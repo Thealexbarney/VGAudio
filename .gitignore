@@ -42,6 +42,7 @@ dlldata.c
 
 # DNX
 project.lock.json
+project.fragment.lock.json
 artifacts/
 
 *_i.c
@@ -250,3 +251,11 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+#Windows 10 app package
+*.appx
+
+#Audio files for testing
+*.wav
+*.dsp
+/DspAdpcm/DspAdpcm.Cli/Properties/launchSettings.json
