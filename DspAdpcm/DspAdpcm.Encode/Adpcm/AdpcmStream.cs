@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using static DspAdpcm.Encode.Adpcm.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
@@ -56,6 +57,14 @@ namespace DspAdpcm.Encode.Adpcm
             {
                 channel.Encode();
             }
+        }
+
+        public void EncodeParallel()
+        {
+            Parallel.ForEach(Channels, (channel) =>
+            {
+                channel.Encode();
+            });
         }
     }
 }
