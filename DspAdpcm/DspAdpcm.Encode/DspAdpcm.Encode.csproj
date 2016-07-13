@@ -39,11 +39,15 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Adpcm\AdpcmChannel.cs" />
     <Compile Include="Adpcm\AdpcmStream.cs" />
     <Compile Include="Adpcm\Encode.cs" />
+    <Compile Include="Adpcm\Helpers.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="IAudioStream.cs" />
+    <Compile Include="Formats\Dsp.cs" />
+    <Compile Include="IPcmStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Wave\WaveChannel.cs" />
     <Compile Include="Wave\WaveStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices.ComTypes;
 using DspAdpcm.Encode.Adpcm;
+using DspAdpcm.Encode.Formats;
 using DspAdpcm.Encode.Wave;
 
 namespace DspAdpcm.Cli
@@ -42,8 +44,10 @@ namespace DspAdpcm.Cli
             Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
             Console.WriteLine($"Processed {(adpcm.NumSamples / watch.Elapsed.TotalMilliseconds):N} samples per milisecond.");
 
+            Dsp dsp = new Dsp(adpcm);
+
             using (var stream = File.Open(args[1], FileMode.Create))
-                foreach (var b in adpcm.GetDspFile())
+                foreach (var b in dsp.GetDspFile())
                     stream.WriteByte(b);
 
             return 0;

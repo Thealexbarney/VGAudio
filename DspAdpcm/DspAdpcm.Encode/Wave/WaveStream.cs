@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace DspAdpcm.Encode.Wave
 {
-    public class WaveStream : IAudioStream
+    public class WaveStream : IPcmStream
     {
         public int NumSamples { get; set; }
         public int SampleRate { get; set; }
@@ -13,18 +14,26 @@ namespace DspAdpcm.Encode.Wave
         public int BitDepth { get; set; }
         public int BytesPerSample => (int)Math.Ceiling((double)BitDepth / 8);
 
-        public short[][] AudioData { get; set; }
+        private IList<short[]> AudioData { get; set; }
 
         public int GetNumSamples() => NumSamples;
         public int GetSampleRate() => SampleRate;
-        public IEnumerable<short> GetAudioData()
-        {
-            return AudioData[0];
-        }
 
         public WaveStream(Stream path)
         {
             OpenWaveFile(path);
+        }
+
+        public virtual IList<IEnumerable<short>> GetAudioData() => AudioData.Select(x => x.AsEnumerable()).ToList();
+
+        public IList<IPcmChannel> GetChannels()
+        {
+            var channels = new List<IPcmChannel>();
+            for (int i = 0; i < AudioData.Count; i++)
+            {
+                channels.Add(new WaveChannel(this, i));
+            }
+            return channels;
         }
 
         private void OpenWaveFile(Stream stream)
@@ -135,7 +144,7 @@ namespace DspAdpcm.Encode.Wave
                 return;
             }
 
-            for (int i = 0; i < AudioData.Length; i++)
+            for (int i = 0; i < AudioData.Count; i++)
             {
                 AudioData[i] = new short[NumSamples];
             }
@@ -153,7 +162,7 @@ namespace DspAdpcm.Encode.Wave
         {
             AudioData = new short[NumChannels][];
 
-            for (int i = 0; i < AudioData.Length; i++)
+            for (int i = 0; i < AudioData.Count; i++)
             {
                 AudioData[i] = new short[NumSamples];
             }

@@ -4,6 +4,7 @@
  */
 using System;
 using System.Collections.Generic;
+using static DspAdpcm.Encode.Adpcm.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
 {
@@ -528,10 +529,8 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        public static void GetLoopContext(AdpcmStream audio)
+        public static void GetLoopContext(AdpcmChannel audio, int loopStart)
         {
-            if (!audio.LoopFlag) return;
-
             short hist1 = 0;
             short hist2 = 0;
             int currentSample = 0;
@@ -557,7 +556,7 @@ namespace DspAdpcm.Encode.Adpcm
 
                     sample = (((scale * sample) << 11) + 1024 + (coef1 * hist1 + coef2 * hist2)) >> 11;
                     sample = Clamp16(sample);
-                    if (currentSample == audio.LoopStart)
+                    if (currentSample == loopStart)
                     {
                         audio.LoopPredScale = ps;
                         audio.LoopHist1 = hist1;
@@ -569,15 +568,6 @@ namespace DspAdpcm.Encode.Adpcm
                     ++currentSample;
                 }
             }
-        }
-
-        public static short Clamp16(int value)
-        {
-            if (value > short.MaxValue)
-                value = short.MaxValue;
-            if (value < short.MinValue)
-                value = short.MinValue;
-            return (short)value;
         }
     }
 }
