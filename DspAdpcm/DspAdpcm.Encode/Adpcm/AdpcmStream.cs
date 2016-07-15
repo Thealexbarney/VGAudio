@@ -15,7 +15,7 @@ namespace DspAdpcm.Encode.Adpcm
 
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
-        public bool LoopFlag { get; }
+        public bool Looping { get; set; }
 
         public AdpcmStream(int samples, int sampleRate)
         {
@@ -26,7 +26,7 @@ namespace DspAdpcm.Encode.Adpcm
         public AdpcmStream(int samples, int sampleRate, int loopStart, int loopEnd)
             : this(samples, sampleRate)
         {
-            LoopFlag = true;
+            Looping = true;
             LoopStart = loopStart;
             LoopEnd = loopEnd;
         }
@@ -53,7 +53,7 @@ namespace DspAdpcm.Encode.Adpcm
 
         public void Encode()
         {
-            foreach (var channel in Channels)
+            foreach (AdpcmChannel channel in Channels)
             {
                 channel.Encode();
             }
@@ -61,7 +61,7 @@ namespace DspAdpcm.Encode.Adpcm
 
         public void EncodeParallel()
         {
-            Parallel.ForEach(Channels, (channel) =>
+            Parallel.ForEach(Channels, channel =>
             {
                 channel.Encode();
             });

@@ -10,6 +10,7 @@ using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 using Windows.UI.Popups;
 using DspAdpcm.Encode.Adpcm;
+using DspAdpcm.Encode.Formats;
 using DspAdpcm.Encode.Wave;
 using GalaSoft.MvvmLight.Command;
 using PropertyChanged;
@@ -124,7 +125,9 @@ namespace DspAdpcm.Uwp.ViewModels
 
                 Time = watch.Elapsed.TotalSeconds;
 
-                await FileIO.WriteBytesAsync(SaveFile, adpcm.GetDspFile().ToArray());
+                Dsp dsp = new Dsp(adpcm);
+
+                await FileIO.WriteBytesAsync(SaveFile, dsp.GetFile().ToArray());
             }
             catch (Exception ex)
             {

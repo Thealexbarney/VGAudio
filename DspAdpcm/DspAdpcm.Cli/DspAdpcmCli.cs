@@ -47,7 +47,7 @@ namespace DspAdpcm.Cli
             Dsp dsp = new Dsp(adpcm);
 
             using (var stream = File.Open(args[1], FileMode.Create))
-                foreach (var b in dsp.GetDspFile())
+                foreach (var b in dsp.GetFile())
                     stream.WriteByte(b);
 
             return 0;

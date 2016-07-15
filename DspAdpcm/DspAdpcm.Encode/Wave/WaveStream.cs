@@ -24,7 +24,7 @@ namespace DspAdpcm.Encode.Wave
             OpenWaveFile(path);
         }
 
-        public virtual IList<IEnumerable<short>> GetAudioData() => AudioData.Select(x => x.AsEnumerable()).ToList();
+        public IList<IEnumerable<short>> GetAudioData() => AudioData.Select(x => x.AsEnumerable()).ToList();
 
         public IList<IPcmChannel> GetChannels()
         {

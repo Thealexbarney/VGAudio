@@ -17,11 +17,11 @@ namespace DspAdpcm.Encode.Formats
 
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
-        public bool LoopFlag { get; }
+        public bool Looping { get; }
         private short Format { get; } = 0; /* 0 for ADPCM */
 
-        private int StartAddr => GetNibbleAddress(LoopFlag ? LoopStart : 0);
-        private int EndAddr => GetNibbleAddress(LoopFlag ? LoopEnd : NumSamples - 1);
+        private int StartAddr => GetNibbleAddress(Looping ? LoopStart : 0);
+        private int EndAddr => GetNibbleAddress(Looping ? LoopEnd : NumSamples - 1);
         private static int CurAddr => GetNibbleAddress(0);
 
         public short Gain { get; set; }
@@ -40,7 +40,7 @@ namespace DspAdpcm.Encode.Formats
 
         public IEnumerable<byte> GetHeader()
         {
-            if (LoopFlag)
+            if (Looping)
             {
                 Adpcm.Encode.GetLoopContext(AudioChannel, LoopStart);
             }
@@ -49,7 +49,7 @@ namespace DspAdpcm.Encode.Formats
             header.AddRange(AudioStream.NumSamples.ToBytesBE());
             header.AddRange(AudioStream.NumNibbles.ToBytesBE());
             header.AddRange(AudioStream.SampleRate.ToBytesBE());
-            header.AddRange(((short)(LoopFlag ? 1 : 0)).ToBytesBE());
+            header.AddRange(((short)(Looping ? 1 : 0)).ToBytesBE());
             header.AddRange(Format.ToBytesBE());
             header.AddRange(StartAddr.ToBytesBE());
             header.AddRange(EndAddr.ToBytesBE());
@@ -67,7 +67,7 @@ namespace DspAdpcm.Encode.Formats
             return header;
         }
 
-        public IEnumerable<byte> GetDspFile()
+        public IEnumerable<byte> GetFile()
         {
             return GetHeader().Concat(AudioChannel.AudioData);
         }

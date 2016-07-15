@@ -47,7 +47,7 @@ namespace DspAdpcm.Encode.Adpcm
                 int numSamples = Math.Min(AudioSource.GetNumSamples() - blockCount * SamplesPerBlock, SamplesPerBlock);
                 Array.Copy(block, 0, AudioData, blockCount++ * BytesPerBlock, GetBytesForAdpcmSamples(numSamples));
             }
-            //if (LoopFlag)
+            //if (Looping)
             //{
             //    Adpcm.Encode.GetLoopContext(this);
             //}
