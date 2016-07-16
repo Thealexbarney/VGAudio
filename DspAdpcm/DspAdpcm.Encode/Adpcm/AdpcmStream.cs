@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using static DspAdpcm.Encode.Adpcm.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
@@ -23,48 +22,11 @@ namespace DspAdpcm.Encode.Adpcm
             SampleRate = sampleRate;
         }
 
-        public AdpcmStream(int samples, int sampleRate, int loopStart, int loopEnd)
-            : this(samples, sampleRate)
+        public void SetLoop(int loopStart, int loopEnd)
         {
             Looping = true;
             LoopStart = loopStart;
             LoopEnd = loopEnd;
-        }
-
-        public AdpcmStream(IPcmStream stream)
-            : this(stream.GetNumSamples(), stream.GetSampleRate())
-        {
-            InputPcmStream = stream;
-            foreach (IPcmChannel channel in InputPcmStream.GetChannels())
-            {
-                Channels.Add(new AdpcmChannel(channel));
-            }
-        }
-
-        public AdpcmStream(IPcmStream stream, int loopStart, int loopEnd)
-            : this(stream.GetNumSamples(), stream.GetSampleRate(), loopStart, loopEnd)
-        {
-            InputPcmStream = stream;
-            foreach (IPcmChannel channel in InputPcmStream.GetChannels())
-            {
-                Channels.Add(new AdpcmChannel(channel));
-            }
-        }
-
-        public void Encode()
-        {
-            foreach (AdpcmChannel channel in Channels)
-            {
-                channel.Encode();
-            }
-        }
-
-        public void EncodeParallel()
-        {
-            Parallel.ForEach(Channels, channel =>
-            {
-                channel.Encode();
-            });
         }
     }
 }

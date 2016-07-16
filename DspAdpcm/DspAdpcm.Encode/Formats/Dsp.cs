@@ -9,15 +9,15 @@ namespace DspAdpcm.Encode.Formats
     public class Dsp
     {
         private const int HeaderSize = 0x60;
-        public int DspFileSize => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
+        public int FileSize => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
         public AdpcmStream AudioStream { get; set; }
-        public AdpcmChannel AudioChannel { get; set; } 
+        public AdpcmChannel AudioChannel => AudioStream.Channels[0];
 
         public int NumSamples => AudioStream.NumSamples;
 
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
-        public bool Looping { get; }
+        public bool Looping { get; set; }
         private short Format { get; } = 0; /* 0 for ADPCM */
 
         private int StartAddr => GetNibbleAddress(Looping ? LoopStart : 0);
@@ -27,14 +27,13 @@ namespace DspAdpcm.Encode.Formats
         public short Gain { get; set; }
         public short PredScale => AudioChannel.AudioData[0];
 
-        public Dsp(AdpcmStream stream, int channel = 0)
+        public Dsp(AdpcmStream stream)
         {
-            if (stream.Channels.ElementAtOrDefault(channel) == null)
+            if (stream.Channels.Count != 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(channel), $"Channel {channel} does not exist");
+                throw new ArgumentOutOfRangeException(nameof(stream.Channels), $"Stream has {stream.Channels.Count} channels, not 1");
             }
 
-            AudioChannel = stream.Channels[channel];
             AudioStream = stream;
         }
 

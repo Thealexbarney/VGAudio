@@ -4,16 +4,16 @@ namespace DspAdpcm.Encode
 {
     public interface IPcmStream
     {
-        int GetNumSamples();
-        int GetSampleRate();
-        IList<IEnumerable<short>> GetAudioData();
+        int NumSamples { get; set; }
+        int SampleRate { get; set; }
         IList<IPcmChannel> GetChannels();
     }
 
     public interface IPcmChannel
     {
-        int GetNumSamples();
-        int GetSampleRate();
-        IEnumerable<short> GetAudioChannelData();
+        int NumSamples { get; set; }
+        void AddSample(short sample);
+        IEnumerable<short> GetAudioData();
+        void SetAudioData(short[] audio);
     }
 }

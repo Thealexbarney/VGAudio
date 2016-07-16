@@ -117,15 +117,18 @@ namespace DspAdpcm.Uwp.ViewModels
 
                     watch.Start();
 
-                    adpcm = Looping ? new AdpcmStream(wave, LoopStart, LoopEnd) : new AdpcmStream(wave);
-                    adpcm.Encode();
+                    adpcm = DspAdpcm.Encode.Adpcm.Encode.PcmToAdpcm(wave);
+                    if (Looping)
+                    {
+                        adpcm.SetLoop(LoopStart, LoopEnd);
+                    }
 
                     watch.Stop();
                 });
 
                 Time = watch.Elapsed.TotalSeconds;
 
-                Dsp dsp = new Dsp(adpcm);
+                var dsp = new Dsp(adpcm);
 
                 await FileIO.WriteBytesAsync(SaveFile, dsp.GetFile().ToArray());
             }

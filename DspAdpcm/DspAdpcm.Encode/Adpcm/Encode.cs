@@ -569,5 +569,48 @@ namespace DspAdpcm.Encode.Adpcm
                 }
             }
         }
+
+        public static AdpcmChannel PcmToAdpcm(IPcmChannel pcmChannel)
+        {
+            var channel = new AdpcmChannel(pcmChannel.NumSamples);
+            channel.Coefs = Adpcm.Encode.DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
+
+            /* Execute encoding-predictor for each block */
+            short[] convSamps = new short[2 + SamplesPerBlock];
+            byte[] block = new byte[BytesPerBlock];
+
+            int blockCount = 0;
+            foreach (var inBlock in pcmChannel.GetAudioData().Batch(SamplesPerBlock))
+            {
+                Array.Copy(inBlock, 0, convSamps, 2, SamplesPerBlock);
+
+                Adpcm.Encode.DspEncodeFrame(convSamps, SamplesPerBlock, block, channel.Coefs);
+
+                convSamps[0] = convSamps[14];
+                convSamps[1] = convSamps[15];
+
+                int numSamples = Math.Min(pcmChannel.NumSamples - blockCount * SamplesPerBlock, SamplesPerBlock);
+                Array.Copy(block, 0, channel.AudioData, blockCount++ * BytesPerBlock, GetBytesForAdpcmSamples(numSamples));
+            }
+            return channel;
+        }
+
+        public static AdpcmStream PcmToAdpcm(IPcmStream pcmStream)
+        {
+            var adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
+            var channels = new AdpcmChannel[pcmStream.GetChannels().Count];
+
+            for (int i = 0; i < channels.Length; i++)
+            {
+                channels[i] = PcmToAdpcm(pcmStream.GetChannels()[i]);
+            }
+
+            foreach (AdpcmChannel channel in channels)
+            {
+                adpcm.Channels.Add(channel);
+            }
+
+            return adpcm;
+        }
     }
 }
