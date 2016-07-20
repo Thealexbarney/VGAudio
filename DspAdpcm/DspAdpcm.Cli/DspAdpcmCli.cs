@@ -10,9 +10,6 @@ namespace DspAdpcm.Cli
     {
         public static int Main(string[] args)
         {
-            Stopwatch watch = new Stopwatch();
-            watch.Start();
-
             if (args.Length < 2)
             {
                 Console.WriteLine("Usage: dspenc <wavin> <dspout>\n");
@@ -34,12 +31,16 @@ namespace DspAdpcm.Cli
                 return -1;
             }
 
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+
             AdpcmStream adpcm = new AdpcmStream(wave);
             adpcm.Encode();
 
             watch.Stop();
             Console.WriteLine($"DONE! {adpcm.NumSamples} samples processed\n");
             Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
+            Console.WriteLine($"Processed {(adpcm.NumSamples / watch.Elapsed.TotalMilliseconds):N} samples per milisecond.");
 
             using (var stream = File.Open(args[1], FileMode.Create))
                 foreach (var b in adpcm.GetDspFile())
