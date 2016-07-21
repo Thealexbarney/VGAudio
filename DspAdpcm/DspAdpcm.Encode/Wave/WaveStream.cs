@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DspAdpcm.Encode.Wave
 {
-    public class WaveStream : IAudioStream
+    public class WaveStream : IPcmStream
     {
         public int NumSamples { get; set; }
         public int SampleRate { get; set; }
@@ -13,14 +13,8 @@ namespace DspAdpcm.Encode.Wave
         public int BitDepth { get; set; }
         public int BytesPerSample => (int)Math.Ceiling((double)BitDepth / 8);
 
-        public short[][] AudioData { get; set; }
-
-        public int GetNumSamples() => NumSamples;
-        public int GetSampleRate() => SampleRate;
-        public IEnumerable<short> GetAudioData()
-        {
-            return AudioData[0];
-        }
+        public IList<IPcmChannel> Channels { get; set; } = new List<IPcmChannel>();
+        public IList<IPcmChannel> GetChannels() => Channels;
 
         public WaveStream(Stream path)
         {
@@ -50,7 +44,7 @@ namespace DspAdpcm.Encode.Wave
                         reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
                 }
 
-                if (AudioData == null)
+                if (Channels.Count == 0)
                 {
                     throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
                 }
@@ -124,45 +118,41 @@ namespace DspAdpcm.Encode.Wave
                 throw new InvalidDataException("Incomplete Wave file");
             }
 
-            var samples = new short[NumSamples * NumChannels];
-            Buffer.BlockCopy(audioBytes, 0, samples, 0, audioBytes.Length);
-
-            AudioData = new short[NumChannels][];
+            var interlacedSamples = new short[NumSamples * NumChannels];
+            Buffer.BlockCopy(audioBytes, 0, interlacedSamples, 0, audioBytes.Length);
 
             if (NumChannels == 1)
             {
-                AudioData[0] = samples;
+                Channels.Add(new WaveChannel(interlacedSamples));
                 return;
             }
 
-            for (int i = 0; i < AudioData.Length; i++)
+            for (int i = 0; i < NumChannels; i++)
             {
-                AudioData[i] = new short[NumSamples];
+                Channels.Add(new WaveChannel(NumSamples));
             }
 
             for (int s = 0; s < NumSamples; s++)
             {
                 for (int c = 0; c < NumChannels; c++)
                 {
-                    AudioData[c][s] = samples[s * NumChannels + c];
+                    Channels[c].AddSample(interlacedSamples[s * NumChannels + c]);
                 }
             }
         }
 
         private void ReadDataChunk(BinaryReader reader)
         {
-            AudioData = new short[NumChannels][];
-
-            for (int i = 0; i < AudioData.Length; i++)
+            for (int i = 0; i < NumChannels; i++)
             {
-                AudioData[i] = new short[NumSamples];
+                Channels.Add(new WaveChannel(NumSamples));
             }
 
             for (int s = 0; s < NumSamples; s++)
             {
                 for (int c = 0; c < NumChannels; c++)
                 {
-                    AudioData[c][s] = reader.ReadInt16();
+                    Channels[c].AddSample(reader.ReadInt16());
                 }
             }
         }

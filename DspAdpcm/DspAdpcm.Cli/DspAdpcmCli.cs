@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using DspAdpcm.Encode;
 using DspAdpcm.Encode.Adpcm;
+using DspAdpcm.Encode.Formats;
 using DspAdpcm.Encode.Wave;
 
 namespace DspAdpcm.Cli
@@ -16,7 +18,7 @@ namespace DspAdpcm.Cli
                 return 0;
             }
 
-            WaveStream wave;
+            IPcmStream wave;
 
             try
             {
@@ -34,16 +36,17 @@ namespace DspAdpcm.Cli
             Stopwatch watch = new Stopwatch();
             watch.Start();
 
-            AdpcmStream adpcm = new AdpcmStream(wave);
-            adpcm.Encode();
+            AdpcmStream adpcm = DspAdpcm.Encode.Adpcm.Encode.PcmToAdpcm(wave);
 
             watch.Stop();
             Console.WriteLine($"DONE! {adpcm.NumSamples} samples processed\n");
             Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
             Console.WriteLine($"Processed {(adpcm.NumSamples / watch.Elapsed.TotalMilliseconds):N} samples per milisecond.");
 
+            var dsp = new Dsp(adpcm);
+
             using (var stream = File.Open(args[1], FileMode.Create))
-                foreach (var b in adpcm.GetDspFile())
+                foreach (var b in dsp.GetFile())
                     stream.WriteByte(b);
 
             return 0;
