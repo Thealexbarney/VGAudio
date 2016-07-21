@@ -35,6 +35,9 @@ namespace DspAdpcm.Encode.Formats
             }
 
             AudioStream = stream;
+            LoopStart = stream.LoopStart;
+            LoopEnd = stream.LoopEnd;
+            Looping = stream.Looping;
         }
 
         public IEnumerable<byte> GetHeader()

@@ -5,16 +5,15 @@ namespace DspAdpcm.Encode.Adpcm
 {
     public class AdpcmStream
     {
-        private IPcmStream InputPcmStream { get; set; }
-        public IList<AdpcmChannel> Channels { get; set; } = new List<AdpcmChannel>();
+        public IList<AdpcmChannel> Channels { get; } = new List<AdpcmChannel>();
 
         public int NumSamples { get; }
         public int NumNibbles => GetNibbleFromSample(NumSamples);
         public int SampleRate { get; }
 
-        public int LoopStart { get; set; }
-        public int LoopEnd { get; set; }
-        public bool Looping { get; set; }
+        public int LoopStart { get; private set; }
+        public int LoopEnd { get; private set; }
+        public bool Looping { get; private set; }
 
         public AdpcmStream(int samples, int sampleRate)
         {
