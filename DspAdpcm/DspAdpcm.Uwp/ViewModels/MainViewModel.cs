@@ -23,6 +23,8 @@ namespace DspAdpcm.Uwp.ViewModels
         private string _inPath;
         private string _outPath;
         public double Time { get; set; }
+        public double Samples { get; set; }
+        public double SamplesPerMs => Samples / (Time * 1000);
 
         public string InPath
         {
@@ -127,6 +129,7 @@ namespace DspAdpcm.Uwp.ViewModels
                 });
 
                 Time = watch.Elapsed.TotalSeconds;
+                Samples = adpcm.NumSamples;
 
                 var dsp = new Dsp(adpcm);
 

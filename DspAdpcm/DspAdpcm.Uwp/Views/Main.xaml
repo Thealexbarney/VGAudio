@@ -7,34 +7,45 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     DataContext="{Binding MainWindow, Source={StaticResource Locator}}">
-    
+
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.Resources>
             <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <local:DoubleToVisibilityConverter x:Key="DoubleToVisibilityConverter" />
         </Grid.Resources>
-        
         <StackPanel Margin="30">
-            <StackPanel Orientation="Horizontal">
-                <TextBox HorizontalAlignment="Left" TextWrapping="Wrap" Text="{Binding InPath, Mode=OneWay}" VerticalAlignment="Top" Width="288" IsReadOnly="True"/>
-                <Button Content="Input File" Margin="10, 0" HorizontalAlignment="Left" VerticalAlignment="Top" Command="{Binding InputPathCommand}"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                <TextBox HorizontalAlignment="Left" TextWrapping="Wrap" Text="{Binding OutPath, Mode=OneWay}" VerticalAlignment="Top" Width="288" IsReadOnly="True"/>
-                <Button Content="Output File" Margin="10, 0" HorizontalAlignment="Left" VerticalAlignment="Top" Command="{Binding OutputPathCommand}"/>
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MaxWidth="300"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBox Grid.Row="0" Grid.Column="0" TextWrapping="Wrap" Text="{Binding InPath, Mode=OneWay}"  IsReadOnly="True"/>
+                <TextBox Grid.Row="2" Grid.Column="0" TextWrapping="Wrap" Text="{Binding OutPath, Mode=OneWay}" IsReadOnly="True"/>
+                <Button  Grid.Row="0" Grid.Column="2" Content="Input File"  Command="{Binding InputPathCommand}"/>
+                <Button  Grid.Row="2" Grid.Column="2" Content="Output File" Command="{Binding OutputPathCommand}"/>
+            </Grid>
             <ToggleButton Margin="0,10,0,0" IsChecked="{Binding Looping, Mode=TwoWay}">
                 <TextBlock Text="Loop File"/>
             </ToggleButton>
             <StackPanel Orientation="Horizontal" Margin="0,10,0,0" Visibility="{Binding Looping, Converter={StaticResource BoolToVisibilityConverter}}">
-                <TextBlock Text="Loop Start:" VerticalAlignment="Center"/>
-                <TextBox HorizontalAlignment="Left" Margin="10, 0" Text="{Binding LoopStart, Mode=TwoWay}" VerticalAlignment="Top" Width="Auto" IsEnabled="{Binding Looping}"/>
+                <TextBlock Text="Loop Start:" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                <TextBox Margin="10, 0" Text="{Binding LoopStart, Mode=TwoWay}" IsEnabled="{Binding Looping}"/>
                 <TextBlock Text="Loop End:" VerticalAlignment="Center"/>
-                <TextBox HorizontalAlignment="Left" Margin="10, 0" Text="{Binding LoopEnd, Mode=TwoWay}" VerticalAlignment="Top" Width="Auto" IsEnabled="{Binding Looping}"/>
+                <TextBox Margin="10, 0" Text="{Binding LoopEnd, Mode=TwoWay}" IsEnabled="{Binding Looping}"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                <Button Content="Encode" HorizontalAlignment="Left" VerticalAlignment="Top" Command="{Binding EncodeCommand}"/>
-                <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0" TextWrapping="Wrap" Text="{Binding Time}"/>
-            </StackPanel>
+            <Button Content="Encode" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Command="{Binding EncodeCommand}"/>
+            <TextBlock Margin="0,10,0,0" TextWrapping="Wrap" Visibility="{Binding Time,Converter={StaticResource DoubleToVisibilityConverter}}">
+                    Encoded in <Run Text="{Binding Time}"/> seconds.
+            </TextBlock>
+            <TextBlock TextWrapping="Wrap" Visibility="{Binding Time, Converter={StaticResource DoubleToVisibilityConverter}}">
+                    Processed <Run Text="{Binding SamplesPerMs}"/> samples per milisecond.
+            </TextBlock>
         </StackPanel>
     </Grid>
 </UserControl>
