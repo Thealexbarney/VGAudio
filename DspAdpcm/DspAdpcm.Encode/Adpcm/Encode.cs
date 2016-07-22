@@ -86,9 +86,6 @@ namespace DspAdpcm.Encode.Adpcm
 
                 vecIdxsOut[i] = maxIndex;
 
-                if (mtx[i][i] == 0.0)
-                    return true;
-
                 if (i != 2)
                 {
                     tmp = 1.0 / mtx[i][i];
@@ -127,6 +124,7 @@ namespace DspAdpcm.Encode.Adpcm
                 if (x != 0)
                     for (int y = x; y <= i - 1; y++)
                         tmp -= vecOut[y] * mtx[i][y];
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
                 else if (tmp != 0.0)
                     x = i;
                 vecOut[i] = tmp;
@@ -147,9 +145,6 @@ namespace DspAdpcm.Encode.Adpcm
         {
             double v2 = inOutVec[2];
             double tmp = 1.0 - (v2 * v2);
-
-            if (tmp == 0.0)
-                return true;
 
             double v0 = (inOutVec[0] - (v2 * v2)) / tmp;
             double v1 = (inOutVec[1] - (inOutVec[1] * v2)) / tmp;
@@ -301,7 +296,7 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        public static short[] DspCorrelateCoefs(IEnumerable<short> source, int samples)
+        private static short[] DspCorrelateCoefs(IEnumerable<short> source, int samples)
         {
             int numFrames = (samples + 13) / 14;
 
@@ -570,10 +565,10 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        public static AdpcmChannel PcmToAdpcm(IPcmChannel pcmChannel)
+        private static AdpcmChannel PcmToAdpcm(IPcmChannel pcmChannel)
         {
             var channel = new AdpcmChannel(pcmChannel.NumSamples);
-            channel.Coefs = Adpcm.Encode.DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
+            channel.Coefs = DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
 
             /* Execute encoding-predictor for each block */
             short[] convSamps = new short[2 + SamplesPerBlock];
@@ -584,7 +579,7 @@ namespace DspAdpcm.Encode.Adpcm
             {
                 Array.Copy(inBlock, 0, convSamps, 2, SamplesPerBlock);
 
-                Adpcm.Encode.DspEncodeFrame(convSamps, SamplesPerBlock, block, channel.Coefs);
+                DspEncodeFrame(convSamps, SamplesPerBlock, block, channel.Coefs);
 
                 convSamps[0] = convSamps[14];
                 convSamps[1] = convSamps[15];
