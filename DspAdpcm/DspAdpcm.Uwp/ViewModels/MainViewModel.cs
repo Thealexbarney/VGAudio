@@ -102,7 +102,7 @@ namespace DspAdpcm.Uwp.ViewModels
 
         public async void Encode()
         {
-            AdpcmStream adpcm = null;
+            IAdpcmStream adpcm = null;
             WaveStream wave;
             var watch = new Stopwatch();
 

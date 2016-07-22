@@ -4,7 +4,7 @@
  */
 using System;
 using System.Collections.Generic;
-using static DspAdpcm.Encode.Adpcm.Helpers;
+using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
 {
@@ -524,7 +524,7 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        public static void GetLoopContext(AdpcmChannel audio, int loopStart)
+        public static void SetLoopContext(IAdpcmChannel audio, int loopStart)
         {
             short hist1 = 0;
             short hist2 = 0;
@@ -553,9 +553,7 @@ namespace DspAdpcm.Encode.Adpcm
                     sample = Clamp16(sample);
                     if (currentSample == loopStart)
                     {
-                        audio.LoopPredScale = ps;
-                        audio.LoopHist1 = hist1;
-                        audio.LoopHist2 = hist2;
+                        audio.SetLoopContext(ps, hist1, hist2);
                         return;
                     }
                     hist2 = hist1;
@@ -565,17 +563,17 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        private static AdpcmChannel PcmToAdpcm(IPcmChannel pcmChannel)
+        private static IAdpcmChannel PcmToAdpcm(IPcmChannel pcmChannel)
         {
             var channel = new AdpcmChannel(pcmChannel.NumSamples);
             channel.Coefs = DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
 
             /* Execute encoding-predictor for each block */
-            short[] convSamps = new short[2 + SamplesPerBlock];
-            byte[] block = new byte[BytesPerBlock];
+            var convSamps = new short[2 + SamplesPerBlock];
+            var block = new byte[BytesPerBlock];
 
             int blockCount = 0;
-            foreach (var inBlock in pcmChannel.GetAudioData().Batch(SamplesPerBlock))
+            foreach (short[] inBlock in pcmChannel.GetAudioData().Batch(SamplesPerBlock))
             {
                 Array.Copy(inBlock, 0, convSamps, 2, SamplesPerBlock);
 
@@ -585,22 +583,22 @@ namespace DspAdpcm.Encode.Adpcm
                 convSamps[1] = convSamps[15];
 
                 int numSamples = Math.Min(pcmChannel.NumSamples - blockCount * SamplesPerBlock, SamplesPerBlock);
-                Array.Copy(block, 0, channel.AudioData, blockCount++ * BytesPerBlock, GetBytesForAdpcmSamples(numSamples));
+                Array.Copy(block, 0, channel.AudioByteArray, blockCount++ * BytesPerBlock, GetBytesForAdpcmSamples(numSamples));
             }
             return channel;
         }
 
-        public static AdpcmStream PcmToAdpcm(IPcmStream pcmStream)
+        public static IAdpcmStream PcmToAdpcm(IPcmStream pcmStream)
         {
-            var adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
-            var channels = new AdpcmChannel[pcmStream.GetChannels().Count];
+            IAdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
+            var channels = new IAdpcmChannel[pcmStream.GetChannels().Count];
 
             for (int i = 0; i < channels.Length; i++)
             {
                 channels[i] = PcmToAdpcm(pcmStream.GetChannels()[i]);
             }
 
-            foreach (AdpcmChannel channel in channels)
+            foreach (IAdpcmChannel channel in channels)
             {
                 adpcm.Channels.Add(channel);
             }

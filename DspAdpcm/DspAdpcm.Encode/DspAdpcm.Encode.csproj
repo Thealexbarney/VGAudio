@@ -42,7 +42,8 @@
     <Compile Include="Adpcm\AdpcmChannel.cs" />
     <Compile Include="Adpcm\AdpcmStream.cs" />
     <Compile Include="Adpcm\Encode.cs" />
-    <Compile Include="Adpcm\Helpers.cs" />
+    <Compile Include="Helpers.cs" />
+    <Compile Include="Adpcm\IAdpcmStream.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Formats\Dsp.cs" />
     <Compile Include="IPcmStream.cs" />

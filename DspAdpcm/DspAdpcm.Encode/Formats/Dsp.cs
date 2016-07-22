@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DspAdpcm.Encode.Adpcm;
-using static DspAdpcm.Encode.Adpcm.Helpers;
+using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Formats
 {
@@ -10,10 +10,11 @@ namespace DspAdpcm.Encode.Formats
     {
         private const int HeaderSize = 0x60;
         public int FileSize => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
-        public AdpcmStream AudioStream { get; set; }
-        public AdpcmChannel AudioChannel => AudioStream.Channels[0];
+        public IAdpcmStream AudioStream { get; set; }
+        public IAdpcmChannel AudioChannel => AudioStream.Channels[0];
 
         public int NumSamples => AudioStream.NumSamples;
+        public int NumNibbles => GetNibbleFromSample(NumSamples);
 
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
@@ -25,9 +26,9 @@ namespace DspAdpcm.Encode.Formats
         private static int CurAddr => GetNibbleAddress(0);
 
         public short Gain { get; set; }
-        public short PredScale => AudioChannel.AudioData[0];
+        public short PredScale => AudioChannel.AudioData.First();
 
-        public Dsp(AdpcmStream stream)
+        public Dsp(IAdpcmStream stream)
         {
             if (stream.Channels.Count != 1)
             {
@@ -44,12 +45,12 @@ namespace DspAdpcm.Encode.Formats
         {
             if (Looping)
             {
-                Adpcm.Encode.GetLoopContext(AudioChannel, LoopStart);
+                Adpcm.Encode.SetLoopContext(AudioChannel, LoopStart);
             }
 
             var header = new List<byte>();
-            header.AddRange(AudioStream.NumSamples.ToBytesBE());
-            header.AddRange(AudioStream.NumNibbles.ToBytesBE());
+            header.AddRange(NumSamples.ToBytesBE());
+            header.AddRange(NumNibbles.ToBytesBE());
             header.AddRange(AudioStream.SampleRate.ToBytesBE());
             header.AddRange(((short)(Looping ? 1 : 0)).ToBytesBE());
             header.AddRange(Format.ToBytesBE());

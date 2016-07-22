@@ -36,7 +36,7 @@ namespace DspAdpcm.Cli
             Stopwatch watch = new Stopwatch();
             watch.Start();
 
-            AdpcmStream adpcm = DspAdpcm.Encode.Adpcm.Encode.PcmToAdpcm(wave);
+            IAdpcmStream adpcm = DspAdpcm.Encode.Adpcm.Encode.PcmToAdpcm(wave);
 
             watch.Stop();
             Console.WriteLine($"DONE! {adpcm.NumSamples} samples processed\n");

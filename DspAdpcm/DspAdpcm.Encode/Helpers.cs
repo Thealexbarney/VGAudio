@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DspAdpcm.Encode.Adpcm
+namespace DspAdpcm.Encode
 {
     public static class Helpers
     {
