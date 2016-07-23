@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace DspAdpcm.Encode.Adpcm
 {
@@ -22,7 +18,7 @@ namespace DspAdpcm.Encode.Adpcm
     public interface IAdpcmChannel
     {
         IEnumerable<byte> AudioData { get; }
-        int NumSamples { get; }
+
         short[] Coefs { get; set; }
         short Hist1 { get; }
         short Hist2 { get; }
@@ -30,6 +26,7 @@ namespace DspAdpcm.Encode.Adpcm
         short LoopPredScale { get; }
         short LoopHist1 { get; }
         short LoopHist2 { get; }
+
         void SetLoopContext(short loopPredScale, short loopHist1, short loopHist2);
     }
 }

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using DspAdpcm.Encode;
 using DspAdpcm.Encode.Adpcm;
-using DspAdpcm.Encode.Formats;
-using DspAdpcm.Encode.Wave;
+using DspAdpcm.Encode.Adpcm.Formats;
+using DspAdpcm.Encode.Pcm;
+using DspAdpcm.Encode.Pcm.Formats;
 
 namespace DspAdpcm.Cli
 {
@@ -24,7 +24,7 @@ namespace DspAdpcm.Cli
             {
                 using (var file = new FileStream(args[0], FileMode.Open))
                 {
-                    wave = new WaveStream(file);
+                    wave = new Wave(file).AudioStream;
                 }
             }
             catch (Exception ex)
@@ -36,7 +36,7 @@ namespace DspAdpcm.Cli
             Stopwatch watch = new Stopwatch();
             watch.Start();
 
-            IAdpcmStream adpcm = DspAdpcm.Encode.Adpcm.Encode.PcmToAdpcm(wave);
+            IAdpcmStream adpcm = Encode.Adpcm.Encode.PcmToAdpcm(wave);
 
             watch.Stop();
             Console.WriteLine($"DONE! {adpcm.NumSamples} samples processed\n");

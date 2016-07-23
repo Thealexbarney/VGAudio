@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 
-namespace DspAdpcm.Encode
+namespace DspAdpcm.Encode.Pcm
 {
     public interface IPcmStream
     {
         int NumSamples { get; set; }
         int SampleRate { get; set; }
-        IList<IPcmChannel> GetChannels();
+        IList<IPcmChannel> Channels { get; }
     }
 
     public interface IPcmChannel

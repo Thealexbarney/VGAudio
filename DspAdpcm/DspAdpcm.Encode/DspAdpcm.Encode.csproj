@@ -45,11 +45,12 @@
     <Compile Include="Helpers.cs" />
     <Compile Include="Adpcm\IAdpcmStream.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Formats\Dsp.cs" />
-    <Compile Include="IPcmStream.cs" />
+    <Compile Include="Adpcm\Formats\Dsp.cs" />
+    <Compile Include="Pcm\Formats\Wave.cs" />
+    <Compile Include="Pcm\IPcmStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Wave\WaveChannel.cs" />
-    <Compile Include="Wave\WaveStream.cs" />
+    <Compile Include="Pcm\PcmChannel.cs" />
+    <Compile Include="Pcm\PcmStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
