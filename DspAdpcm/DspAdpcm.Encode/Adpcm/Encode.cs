@@ -4,6 +4,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DspAdpcm.Encode.Pcm;
 using static DspAdpcm.Encode.Helpers;
 
@@ -598,6 +599,24 @@ namespace DspAdpcm.Encode.Adpcm
             {
                 channels[i] = PcmToAdpcm(pcmStream.Channels[i]);
             }
+
+            foreach (IAdpcmChannel channel in channels)
+            {
+                adpcm.Channels.Add(channel);
+            }
+
+            return adpcm;
+        }
+
+        public static IAdpcmStream PcmToAdpcmParallel(IPcmStream pcmStream)
+        {
+            IAdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
+            var channels = new IAdpcmChannel[pcmStream.Channels.Count];
+
+            Parallel.For(0, channels.Length, i =>
+            {
+                channels[i] = PcmToAdpcm(pcmStream.Channels[i]);
+            });
 
             foreach (IAdpcmChannel channel in channels)
             {
