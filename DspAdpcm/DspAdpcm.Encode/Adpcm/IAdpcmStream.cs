@@ -13,6 +13,7 @@ namespace DspAdpcm.Encode.Adpcm
         bool Looping { get; }
 
         void SetLoop(int loopStart, int loopEnd);
+        IAdpcmStream ShallowCloneChannelSubset(int start, int end);
     }
 
     public interface IAdpcmChannel
