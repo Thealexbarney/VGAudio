@@ -1,25 +1,35 @@
-﻿using static DspAdpcm.Encode.Adpcm.Helpers;
+﻿using System.Collections.Generic;
+using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
 {
-    public class AdpcmChannel
+    public class AdpcmChannel: IAdpcmChannel
     {
-        public byte[] AudioData { get; set; }
+        public byte[] AudioByteArray { get; set; }
 
-        public int NumSamples { get; set; }
+        public IEnumerable<byte> AudioData => AudioByteArray;
+
+        public int NumSamples => AudioByteArray.Length;
 
         public short[] Coefs { get; set; }
         public short Hist1 { get; } = 0;
         public short Hist2 { get; } = 0;
 
-        public short LoopPredScale { get; set; }
-        public short LoopHist1 { get; set; }
-        public short LoopHist2 { get; set; }
+        public short LoopPredScale { get; private set; }
+        public short LoopHist1 { get; private set; }
+        public short LoopHist2 { get; private set; }
+        
 
         public AdpcmChannel(int numSamples)
         {
-            NumSamples = numSamples;
-            AudioData = new byte[GetBytesForAdpcmSamples(numSamples)];
+            AudioByteArray = new byte[GetBytesForAdpcmSamples(numSamples)];
+        }
+
+        public void SetLoopContext(short loopPredScale, short loopHist1, short loopHist2)
+        {
+            LoopPredScale = loopPredScale;
+            LoopHist1 = loopHist1;
+            LoopHist2 = loopHist2;
         }
     }
 }

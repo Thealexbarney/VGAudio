@@ -3,25 +3,24 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace DspAdpcm.Encode.Wave
+namespace DspAdpcm.Encode.Pcm.Formats
 {
-    public class WaveStream : IPcmStream
+    public class Wave
     {
-        public int NumSamples { get; set; }
-        public int SampleRate { get; set; }
-        public int NumChannels { get; set; }
-        public int BitDepth { get; set; }
-        public int BytesPerSample => (int)Math.Ceiling((double)BitDepth / 8);
+        public IPcmStream AudioStream { get; set; }
+        private int NumChannels { get; set; }
+        private int BitDepth { get; set; }
+        private int BytesPerSample => (int)Math.Ceiling((double)BitDepth / 8);
+        private int NumSamples => AudioStream.NumSamples;
+        private IList<IPcmChannel> Channels => AudioStream.Channels;
 
-        public IList<IPcmChannel> Channels { get; set; } = new List<IPcmChannel>();
-        public IList<IPcmChannel> GetChannels() => Channels;
-
-        public WaveStream(Stream path)
+        public Wave(Stream stream)
         {
-            OpenWaveFile(path);
+            AudioStream = new PcmStream();
+            ReadWaveFile(stream);
         }
 
-        private void OpenWaveFile(Stream stream)
+        private void ReadWaveFile(Stream stream)
         {
             using (var reader = new BinaryReader(stream))
             {
@@ -44,7 +43,7 @@ namespace DspAdpcm.Encode.Wave
                         reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
                 }
 
-                if (Channels.Count == 0)
+                if (AudioStream.Channels.Count == 0)
                 {
                     throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
                 }
@@ -74,7 +73,7 @@ namespace DspAdpcm.Encode.Wave
             {
                 int fmtCode = reader.ReadInt16();
                 NumChannels = reader.ReadInt16();
-                SampleRate = reader.ReadInt32();
+                AudioStream.SampleRate = reader.ReadInt32();
                 int fmtAvgBps = reader.ReadInt32();
                 int blockAlign = reader.ReadInt16();
                 BitDepth = reader.ReadInt16();
@@ -98,7 +97,7 @@ namespace DspAdpcm.Encode.Wave
 
         private void ParseDataChunk(BinaryReader reader, int chunkSize)
         {
-            NumSamples = chunkSize / 2 / NumChannels;
+            AudioStream.NumSamples = chunkSize / 2 / NumChannels;
 
             int extraBytes = chunkSize % (NumChannels * BytesPerSample);
             if (extraBytes != 0)
@@ -123,13 +122,13 @@ namespace DspAdpcm.Encode.Wave
 
             if (NumChannels == 1)
             {
-                Channels.Add(new WaveChannel(interlacedSamples));
+                Channels.Add(new PcmChannel(interlacedSamples));
                 return;
             }
 
             for (int i = 0; i < NumChannels; i++)
             {
-                Channels.Add(new WaveChannel(NumSamples));
+                Channels.Add(new PcmChannel(NumSamples));
             }
 
             for (int s = 0; s < NumSamples; s++)
@@ -145,7 +144,7 @@ namespace DspAdpcm.Encode.Wave
         {
             for (int i = 0; i < NumChannels; i++)
             {
-                Channels.Add(new WaveChannel(NumSamples));
+                Channels.Add(new PcmChannel(NumSamples));
             }
 
             for (int s = 0; s < NumSamples; s++)

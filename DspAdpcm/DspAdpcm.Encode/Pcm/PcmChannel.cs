@@ -1,19 +1,19 @@
 ﻿using System.Collections.Generic;
 
-namespace DspAdpcm.Encode.Wave
+namespace DspAdpcm.Encode.Pcm
 {
-    public class WaveChannel : IPcmChannel
+    public class PcmChannel : IPcmChannel
     {
         public int NumSamples { get; set; }
         private short[] AudioData { get; set; }
-        private int _currentSample;
+        private int CurrentSample { get; set; }
         
-        public WaveChannel(short[] audioData)
+        public PcmChannel(short[] audioData)
         {
             SetAudioData(audioData);
         }
 
-        public WaveChannel(int numSamples)
+        public PcmChannel(int numSamples)
         {
             AudioData = new short[numSamples];
             NumSamples = numSamples;
@@ -29,7 +29,8 @@ namespace DspAdpcm.Encode.Wave
 
         public void AddSample(short sample)
         {
-            AudioData[_currentSample++] = sample;
+            if (CurrentSample >= NumSamples) return;
+            AudioData[CurrentSample++] = sample;
         }
     }
 }

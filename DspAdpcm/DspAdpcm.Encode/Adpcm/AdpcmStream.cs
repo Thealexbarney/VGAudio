@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using static DspAdpcm.Encode.Adpcm.Helpers;
+using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
 {
-    public class AdpcmStream
+    public class AdpcmStream : IAdpcmStream
     {
-        public IList<AdpcmChannel> Channels { get; } = new List<AdpcmChannel>();
+        public IList<IAdpcmChannel> Channels { get; } = new List<IAdpcmChannel>();
 
         public int NumSamples { get; }
         public int NumNibbles => GetNibbleFromSample(NumSamples);

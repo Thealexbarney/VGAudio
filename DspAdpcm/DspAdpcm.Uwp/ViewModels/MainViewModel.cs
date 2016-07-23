@@ -10,8 +10,9 @@ using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 using Windows.UI.Popups;
 using DspAdpcm.Encode.Adpcm;
-using DspAdpcm.Encode.Formats;
-using DspAdpcm.Encode.Wave;
+using DspAdpcm.Encode.Adpcm.Formats;
+using DspAdpcm.Encode.Pcm;
+using DspAdpcm.Encode.Pcm.Formats;
 using GalaSoft.MvvmLight.Command;
 using PropertyChanged;
 
@@ -102,8 +103,8 @@ namespace DspAdpcm.Uwp.ViewModels
 
         public async void Encode()
         {
-            AdpcmStream adpcm = null;
-            WaveStream wave;
+            IAdpcmStream adpcm = null;
+            IPcmStream wave;
             var watch = new Stopwatch();
 
             _encoding = true;
@@ -114,7 +115,7 @@ namespace DspAdpcm.Uwp.ViewModels
                 {
                     using (var file = new FileStream(InPath, FileMode.Open))
                     {
-                        wave = new WaveStream(file);
+                        wave = new Wave(file).AudioStream;
                     }
 
                     watch.Start();
