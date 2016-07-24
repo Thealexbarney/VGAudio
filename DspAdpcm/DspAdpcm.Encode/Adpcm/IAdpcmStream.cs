@@ -20,6 +20,7 @@ namespace DspAdpcm.Encode.Adpcm
     {
         IEnumerable<byte> AudioData { get; }
 
+        short Gain { get; set; }
         short[] Coefs { get; set; }
         short Hist1 { get; }
         short Hist2 { get; }

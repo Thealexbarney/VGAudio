@@ -17,7 +17,6 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int EndAddr => Helpers.GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples - 1);
         private static int CurAddr => Helpers.GetNibbleAddress(0);
 
-        public short Gain { get; set; }
         private short PredScale => AudioChannel.AudioData.First();
 
         public Dsp(IAdpcmStream stream)
@@ -47,7 +46,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             header.AddRange(EndAddr.ToBytesBE());
             header.AddRange(CurAddr.ToBytesBE());
             header.AddRange(AudioChannel.Coefs.SelectMany(x => x.ToBytesBE()));
-            header.AddRange(Gain.ToBytesBE());
+            header.AddRange(AudioChannel.Gain.ToBytesBE());
             header.AddRange(PredScale.ToBytesBE());
             header.AddRange(AudioChannel.Hist1.ToBytesBE());
             header.AddRange(AudioChannel.Hist2.ToBytesBE());

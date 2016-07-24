@@ -11,6 +11,7 @@ namespace DspAdpcm.Encode.Adpcm
 
         public int NumSamples => AudioByteArray.Length;
 
+        public short Gain { get; set; }
         public short[] Coefs { get; set; }
         public short Hist1 { get; } = 0;
         public short Hist2 { get; } = 0;
