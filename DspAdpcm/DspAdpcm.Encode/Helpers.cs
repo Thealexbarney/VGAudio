@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace DspAdpcm.Encode
 {
@@ -50,7 +51,26 @@ namespace DspAdpcm.Encode
             return (short)value;
         }
 
-        public static IEnumerable<byte> ToBytesBE(this int input) => BitConverter.GetBytes(input).Reverse();
-        public static IEnumerable<byte> ToBytesBE(this short input) => BitConverter.GetBytes(input).Reverse();
+        public static int GetNextMultiple(int value, int multiple)
+        {
+            if (multiple <= 0)
+                return value;
+
+            if (value % multiple == 0)
+                return value;
+
+            return value + multiple - value % multiple;
+        }
+
+        public static IEnumerable<byte> ToBytesBE(this int value) => BitConverter.GetBytes(value).Reverse();
+        public static IEnumerable<byte> ToBytesBE(this short value) => BitConverter.GetBytes(value).Reverse();
+        public static IEnumerable<byte> ToBytesBE(this ushort value) => BitConverter.GetBytes(value).Reverse();
+        public static void Add16BE(this List<byte> list, int value) => list.Add16BE((short) value);
+        public static void Add16BE(this List<byte> list, short value) => list.AddRange(value.ToBytesBE());
+        public static void Add16BE(this List<byte> list, ushort value) => list.AddRange(value.ToBytesBE());
+        public static void Add32BE(this List<byte> list, int value) => list.AddRange(value.ToBytesBE());
+        public static void Add16(this List<byte> list, short value) => list.AddRange(BitConverter.GetBytes(value));
+        public static void Add32(this List<byte> list, int value) => list.AddRange(BitConverter.GetBytes(value));
+        public static void Add32(this List<byte> list, string value) => list.AddRange(Encoding.ASCII.GetBytes(value.PadRight(4, '\0').Substring(0, 4)));
     }
 }
