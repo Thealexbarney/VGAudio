@@ -258,4 +258,7 @@ paket-files/
 #Audio files for testing
 *.wav
 *.dsp
+*.brstm
+*.bcstm
+*.bfstm
 /DspAdpcm/DspAdpcm.Cli/Properties/launchSettings.json
