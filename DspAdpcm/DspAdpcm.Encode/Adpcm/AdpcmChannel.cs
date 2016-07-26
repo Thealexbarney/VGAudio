@@ -13,8 +13,8 @@ namespace DspAdpcm.Encode.Adpcm
 
         public short Gain { get; set; }
         public short[] Coefs { get; set; }
-        public short Hist1 { get; } = 0;
-        public short Hist2 { get; } = 0;
+        public short Hist1 { get; set; } = 0;
+        public short Hist2 { get; set; } = 0;
 
         public short LoopPredScale { get; private set; }
         public short LoopHist1 { get; private set; }

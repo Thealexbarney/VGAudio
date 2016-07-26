@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm.Formats
 {
@@ -27,6 +28,11 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             }
 
             AudioStream = stream;
+        }
+
+        public Dsp(Stream stream)
+        {
+            ReadDspFile(stream);
         }
 
         public IEnumerable<byte> GetHeader()
@@ -61,6 +67,59 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         public IEnumerable<byte> GetFile()
         {
             return GetHeader().Concat(AudioChannel.AudioData);
+        }
+
+        public void ReadDspFile(Stream stream)
+        {
+            using (var reader = new BinaryReader(stream))
+            {
+                int numSamples = reader.ReadInt32BE();
+                int numNibbles = reader.ReadInt32BE();
+                int sampleRate = reader.ReadInt32BE();
+                bool looped = reader.ReadInt16BE() == 1;
+                short format = reader.ReadInt16BE();
+
+                if (stream.Length < HeaderSize + GetBytesForAdpcmSamples(numSamples))
+                {
+                    throw new InvalidDataException($"File doesn't contain enough data for {numSamples} samples");
+                }
+
+                if (GetNibbleFromSample(numSamples) != numNibbles)
+                {
+                    throw new InvalidDataException("Sample count and nibble count do not match");
+                }
+
+                if (format != 0)
+                {
+                    throw new InvalidDataException($"File does not contain ADPCM audio. Specified format is {format}");
+                }
+
+                AdpcmStream adpcm = new AdpcmStream(numSamples, sampleRate);
+                var channel = new AdpcmChannel(numSamples);
+                
+                int loopStart = GetSampleFromNibble(reader.ReadInt32BE());
+                int loopEnd = GetSampleFromNibble(reader.ReadInt32BE());
+                reader.ReadInt32BE(); //CurAddr
+
+                if (looped)
+                {
+                    adpcm.SetLoop(loopStart, loopEnd);
+                }
+                
+
+                channel.Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16BE()).ToArray();
+                channel.Gain = reader.ReadInt16BE();
+                reader.ReadInt16BE(); //Initial Predictor/Scale
+                channel.Hist1 = reader.ReadInt16BE();
+                channel.Hist2 = reader.ReadInt16BE();
+
+                reader.BaseStream.Seek(HeaderSize, SeekOrigin.Begin);
+
+                channel.AudioByteArray = reader.ReadBytes(GetBytesForAdpcmSamples(numSamples));
+
+                adpcm.Channels.Add(channel);
+                AudioStream = adpcm;
+            }
         }
     }
 }
