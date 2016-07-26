@@ -24,6 +24,21 @@ namespace DspAdpcm.Encode.Adpcm
 
         public void SetLoop(int loopStart, int loopEnd)
         {
+            if (loopStart < 0 || loopStart > NumSamples)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopStart), loopStart, "Loop points must be less than the number of samples and non-negative.");
+            }
+
+            if (loopEnd < 0 || loopEnd > NumSamples)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopEnd), loopEnd, "Loop points must be less than the number of samples and non-negative.");
+            }
+
+            if (loopEnd < loopStart)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopEnd), loopEnd, "The loop end must be greater than the loop start");
+            }
+
             Looping = true;
             LoopStart = loopStart;
             LoopEnd = loopEnd;

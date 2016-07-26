@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace DspAdpcm.Encode
 {
@@ -28,5 +30,11 @@ namespace DspAdpcm.Encode
             if (count > 0)
                 yield return bucket;
         }
+
+        public static int ReadInt32BE(this BinaryReader reader) => 
+            BitConverter.ToInt32(reader.ReadBytes(sizeof(int)).Reverse().ToArray(), 0);
+
+        public static short ReadInt16BE(this BinaryReader reader) =>
+            BitConverter.ToInt16(reader.ReadBytes(sizeof(short)).Reverse().ToArray(), 0);
     }
 }

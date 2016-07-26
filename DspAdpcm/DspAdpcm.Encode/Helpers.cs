@@ -19,6 +19,15 @@ namespace DspAdpcm.Encode
             return NibblesPerBlock * blocks + extraNibbles;
         }
 
+        public static int GetSampleFromNibble(int nibble)
+        {
+            int blocks = nibble / NibblesPerBlock;
+            int extraNibbles = nibble % NibblesPerBlock;
+            int samples = SamplesPerBlock * blocks;
+
+            return samples + extraNibbles - 2;
+        }
+
         public static int GetNibbleAddress(int sample)
         {
             int blocks = sample / SamplesPerBlock;
