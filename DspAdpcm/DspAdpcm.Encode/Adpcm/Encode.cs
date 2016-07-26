@@ -526,17 +526,17 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        public static void SetLoopContext(IAdpcmChannel audio, int loopStart)
+        public static void SetLoopContext(this IAdpcmChannel audio, int loopStart)
         {
             short hist1 = 0;
             short hist2 = 0;
             int currentSample = 0;
 
-            foreach (var block in audio.AudioData.Batch(8))
+            foreach (byte[] block in audio.AudioData.Batch(8))
             {
-                var ps = block[0];
-                var scale = 1 << (ps & 0xf);
-                var predictor = (ps >> 4) & 0xf;
+                byte ps = block[0];
+                int scale = 1 << (ps & 0xf);
+                int predictor = (ps >> 4) & 0xf;
                 short coef1 = audio.Coefs[predictor * 2];
                 short coef2 = audio.Coefs[predictor * 2 + 1];
                 var samples = new int[14];

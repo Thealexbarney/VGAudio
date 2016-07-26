@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm.Formats
@@ -159,6 +160,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length + 4;
             int offsetTableLength = NumChannels * 8;
+
+            Parallel.ForEach(AudioStream.Channels, x => x.SetLoopContext(AudioStream.LoopStart));
 
             for (int i = 0; i < NumChannels; i++)
             {
