@@ -57,7 +57,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         public IEnumerable<byte> GetFile()
         {
-            return GetRstmHeader().Concat(GetHeadChunk()).Concat(GetAdpcChunk()).Concat(GetDataChunk());
+            return Combine(GetRstmHeader(), GetHeadChunk(), GetAdpcChunk(), GetDataChunk());
         }
 
         private byte[] GetRstmHeader()
