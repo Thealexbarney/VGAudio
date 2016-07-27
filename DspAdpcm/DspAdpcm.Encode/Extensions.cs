@@ -9,7 +9,7 @@ namespace DspAdpcm.Encode
     {
         public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> source, int size, int lastSize = -1)
         {
-            if (lastSize == -1 || lastSize > size)
+            if (lastSize < 0 || lastSize > size)
                 lastSize = size;
 
             T[] bucket = new T[size];
@@ -33,15 +33,19 @@ namespace DspAdpcm.Encode
                 yield return bucket.Take(lastSize).ToArray();
         }
 
-        public static T[] Interleave<T>(this T[][] inputs, int interleaveSize, int lastInterleaveSize)
+        public static T[] Interleave<T>(this T[][] inputs, int interleaveSize, int lastInterleaveSize = -1)
         {
+            if (lastInterleaveSize < 0 || lastInterleaveSize > interleaveSize)
+                lastInterleaveSize = interleaveSize;
+
             int length = inputs[0].Length;
             if (inputs.Any(x => x.Length != length))
                 throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be of equal length");
 
             int numInputs = inputs.Length;
             int numBlocks = length / interleaveSize;
-            var output = new T[interleaveSize * numInputs * numBlocks + lastInterleaveSize * numInputs];
+            int lastBlockSize = length % interleaveSize == 0 ? 0 : lastInterleaveSize * numInputs;
+            var output = new T[interleaveSize * numInputs * numBlocks + lastBlockSize];
 
             for (int b = 0; b < numBlocks; b++)
             {
@@ -53,7 +57,7 @@ namespace DspAdpcm.Encode
                 }
             }
 
-            if (length % interleaveSize == 0) return output;
+            if (lastBlockSize == 0) return output;
 
             for (int i = 0; i < numInputs; i++)
             {
@@ -63,24 +67,6 @@ namespace DspAdpcm.Encode
             }
 
             return output;
-        }
-
-        public static IEnumerable<T> Interleave2<T>(this IEnumerable<IEnumerable<T>> channels, int interleaveSize, int lastInterleaveSize)
-        {
-            IEnumerable<IEnumerable<T[]>> batchedAudioData = channels
-                .Select(channel => channel.Batch(interleaveSize, lastInterleaveSize));
-
-            IEnumerable<IEnumerable<T>> interleavedBlocks = batchedAudioData
-                .Zip(channel => channel.SelectMany(batch => batch));
-
-            return interleavedBlocks.SelectMany(x => x);
-        }
-
-        public static IEnumerable<TResult> Zip<T, TResult>(this IEnumerable<IEnumerable<T>> sequences, Func<T[], TResult> resultSelector)
-        {
-            IEnumerator<T>[] enumerators = sequences.Select(s => s.GetEnumerator()).ToArray();
-            while (enumerators.All(e => e.MoveNext()))
-                yield return resultSelector(enumerators.Select(e => e.Current).ToArray());
         }
 
         public static int ReadInt32BE(this BinaryReader reader) =>

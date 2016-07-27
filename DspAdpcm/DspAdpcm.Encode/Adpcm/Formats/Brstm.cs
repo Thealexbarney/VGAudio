@@ -161,7 +161,10 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length + 4;
             int offsetTableLength = NumChannels * 8;
 
-            Parallel.ForEach(AudioStream.Channels, x => x.SetLoopContext(AudioStream.LoopStart));
+            if (AudioStream.Looping)
+            {
+                Parallel.ForEach(AudioStream.Channels, x => x.SetLoopContext(AudioStream.LoopStart));
+            }
 
             for (int i = 0; i < NumChannels; i++)
             {
@@ -196,7 +199,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             chunk.Add32BE(AdpcChunkLength);
             chunk.AddRange(new byte[8]); //Pad to 0x10 bytes
 
-            chunk.AddRange(AudioStream.Channels.BuildAdpcTable(SamplesPerAdpcEntry, NumAdpcEntries));
+            chunk.AddRange(Encode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries));
 
             chunk.AddRange(new byte[AdpcChunkLength - chunk.Count]);
 

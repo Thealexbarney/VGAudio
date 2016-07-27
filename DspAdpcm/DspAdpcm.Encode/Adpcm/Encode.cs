@@ -643,7 +643,7 @@ namespace DspAdpcm.Encode.Adpcm
             return adpcm;
         }
 
-        public static IEnumerable<byte> BuildAdpcTable(this IEnumerable<IAdpcmChannel> channels, int samplesPerAdpcEntry, int numAdpcEntries)
+        public static IEnumerable<byte> BuildAdpcTable(IEnumerable<IAdpcmChannel> channels, int samplesPerAdpcEntry, int numAdpcEntries)
         {
             var channelsArray = channels.ToArray();
             var entries = new short[channelsArray.Length][];
@@ -660,7 +660,7 @@ namespace DspAdpcm.Encode.Adpcm
                     ).ToArray();
             });
 
-            return entries.Interleave2(2, 2)
+            return entries.Interleave(2)
                 .SelectMany(x =>
                     BitConverter.GetBytes(x)
                     .Reverse()
