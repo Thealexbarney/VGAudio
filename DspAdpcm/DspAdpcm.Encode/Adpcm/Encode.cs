@@ -643,20 +643,24 @@ namespace DspAdpcm.Encode.Adpcm
             return adpcm;
         }
 
-        public static IEnumerable<byte> BuildAdpcTable(this IEnumerable<IAdpcmChannel> channels, int samplesPerAdpcEntry, int numAdpcEntries)
+        public static IEnumerable<byte> BuildAdpcTable(IEnumerable<IAdpcmChannel> channels, int samplesPerAdpcEntry, int numAdpcEntries)
         {
-            return channels
-                .Select(x => x
-                    .GetPcmAudio()
+            var channelsArray = channels.ToArray();
+            var entries = new short[channelsArray.Length][];
+
+            Parallel.For(0, channelsArray.Length, i =>
+            {
+                entries[i] = channelsArray[i].GetPcmAudio()
                     .Batch(samplesPerAdpcEntry)
                     .Take(numAdpcEntries)
                     .SelectMany(y => y
                         .Skip(samplesPerAdpcEntry - 2)
                         .Take(2)
                         .Reverse()
-                    )
-                )
-                .Interleave(2, 2)
+                    ).ToArray();
+            });
+
+            return entries.Interleave(2)
                 .SelectMany(x =>
                     BitConverter.GetBytes(x)
                     .Reverse()

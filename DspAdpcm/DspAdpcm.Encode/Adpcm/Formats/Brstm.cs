@@ -57,7 +57,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         public IEnumerable<byte> GetFile()
         {
-            return GetRstmHeader().Concat(GetHeadChunk()).Concat(GetAdpcChunk()).Concat(GetDataChunk());
+            return Combine(GetRstmHeader(), GetHeadChunk(), GetAdpcChunk(), GetDataChunk());
         }
 
         private byte[] GetRstmHeader()
@@ -161,7 +161,10 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length + 4;
             int offsetTableLength = NumChannels * 8;
 
-            Parallel.ForEach(AudioStream.Channels, x => x.SetLoopContext(AudioStream.LoopStart));
+            if (AudioStream.Looping)
+            {
+                Parallel.ForEach(AudioStream.Channels, x => x.SetLoopContext(AudioStream.LoopStart));
+            }
 
             for (int i = 0; i < NumChannels; i++)
             {
@@ -196,7 +199,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             chunk.Add32BE(AdpcChunkLength);
             chunk.AddRange(new byte[8]); //Pad to 0x10 bytes
 
-            chunk.AddRange(AudioStream.Channels.BuildAdpcTable(SamplesPerAdpcEntry, NumAdpcEntries));
+            chunk.AddRange(Encode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries));
 
             chunk.AddRange(new byte[AdpcChunkLength - chunk.Count]);
 
@@ -212,10 +215,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             chunk.Add32BE(0x18);
             chunk.AddRange(new byte[0x14]); //Pad to 0x20 bytes
 
-            List<IEnumerable<byte>> channels = Enumerable.Range(0, NumChannels)
-                .Select((x, index) => AudioStream.Channels[index].AudioData)
-                .ToList();
-
+            var channels = AudioStream.Channels.Select(x => x.AudioData.ToArray()).ToArray();
             chunk.AddRange(channels.Interleave(InterleaveSize, LastBlockSize));
 
             return chunk.ToArray();
