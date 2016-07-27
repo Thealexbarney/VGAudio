@@ -4,6 +4,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DspAdpcm.Encode.Pcm;
 using static DspAdpcm.Encode.Helpers;
@@ -528,9 +529,27 @@ namespace DspAdpcm.Encode.Adpcm
 
         public static void SetLoopContext(this IAdpcmChannel audio, int loopStart)
         {
-            short hist1 = 0;
-            short hist2 = 0;
+            byte ps = audio.GetPredictorScale().Skip(loopStart / SamplesPerBlock).First();
+            var hist = audio.GetPcmAudio().Skip(loopStart - 2).Take(2).ToArray();
+            audio.SetLoopContext(ps, hist[1], hist[0]);
+        }
+
+        public static IEnumerable<byte> GetPredictorScale(this IAdpcmChannel audio)
+        {
+            return audio.AudioData.Batch(8).Select(block => block[0]);
+        }
+
+        public static IEnumerable<short> GetPcmAudio(this IAdpcmChannel audio, bool includeHistorySamples = false)
+        {
+            short hist1 = audio.Hist1;
+            short hist2 = audio.Hist2;
             int currentSample = 0;
+
+            if (includeHistorySamples)
+            {
+                yield return hist1;
+                yield return hist2;
+            }
 
             foreach (byte[] block in audio.AudioData.Batch(8))
             {
@@ -553,14 +572,12 @@ namespace DspAdpcm.Encode.Adpcm
 
                     sample = (((scale * sample) << 11) + 1024 + (coef1 * hist1 + coef2 * hist2)) >> 11;
                     sample = Clamp16(sample);
-                    if (currentSample == loopStart)
-                    {
-                        audio.SetLoopContext(ps, hist1, hist2);
-                        return;
-                    }
+
                     hist2 = hist1;
                     hist1 = (short)sample;
                     ++currentSample;
+
+                    yield return (short)sample;
                 }
             }
         }
@@ -624,6 +641,26 @@ namespace DspAdpcm.Encode.Adpcm
             }
 
             return adpcm;
+        }
+
+        public static IEnumerable<byte> BuildAdpcTable(this IEnumerable<IAdpcmChannel> channels, int samplesPerAdpcEntry, int numAdpcEntries)
+        {
+            return channels
+                .Select(x => x
+                    .GetPcmAudio()
+                    .Batch(samplesPerAdpcEntry)
+                    .Take(numAdpcEntries)
+                    .SelectMany(y => y
+                        .Skip(samplesPerAdpcEntry - 2)
+                        .Take(2)
+                        .Reverse()
+                    )
+                )
+                .Interleave(2, 2)
+                .SelectMany(x =>
+                    BitConverter.GetBytes(x)
+                    .Reverse()
+                );
         }
     }
 }

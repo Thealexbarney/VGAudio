@@ -23,7 +23,7 @@ namespace DspAdpcm.Encode
 
                 yield return bucket;
 
-                Array.Clear(bucket, 0, size);
+                bucket = new T[size];
                 count = 0;
             }
 
