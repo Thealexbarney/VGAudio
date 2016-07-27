@@ -660,7 +660,7 @@ namespace DspAdpcm.Encode.Adpcm
                     ).ToArray();
             });
 
-            return entries.Interleave(2, 2)
+            return entries.Interleave2(2, 2)
                 .SelectMany(x =>
                     BitConverter.GetBytes(x)
                     .Reverse()

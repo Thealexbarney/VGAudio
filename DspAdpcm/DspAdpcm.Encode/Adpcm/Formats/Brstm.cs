@@ -212,10 +212,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             chunk.Add32BE(0x18);
             chunk.AddRange(new byte[0x14]); //Pad to 0x20 bytes
 
-            List<IEnumerable<byte>> channels = Enumerable.Range(0, NumChannels)
-                .Select((x, index) => AudioStream.Channels[index].AudioData)
-                .ToList();
-
+            var channels = AudioStream.Channels.Select(x => x.AudioData.ToArray()).ToArray();
             chunk.AddRange(channels.Interleave(InterleaveSize, LastBlockSize));
 
             return chunk.ToArray();
