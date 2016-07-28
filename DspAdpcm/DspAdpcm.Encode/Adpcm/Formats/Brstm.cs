@@ -148,10 +148,25 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         {
             var chunk = new List<byte>();
 
-            chunk.Add32BE(0x01000000);
-            chunk.Add32BE(0x01000000);
-            chunk.Add32BE(0x58);
-            chunk.Add32BE(NumChannels == 1 ? 0x01000000 : 0x02000100);
+            if (HeadChunk2Length == 0x10)
+            {
+                chunk.Add32BE(0x01000000);
+                chunk.Add32BE(0x01000000);
+                chunk.Add32BE(0x58);
+                chunk.Add32BE(NumChannels == 1 ? 0x01000000 : 0x02000100);
+            }
+
+            if (HeadChunk2Length == 0x18)
+            {
+                chunk.Add32BE(0x01010000);
+                chunk.Add32BE(0x01010000);
+                chunk.Add32BE(0x58);
+                chunk.Add32BE(0x7f400000);
+                chunk.Add32BE(0);
+                chunk.Add32BE(NumChannels == 1 ? 0x01000000 : 0x02000100);
+            }
+
+            chunk.AddRange(new byte[HeadChunk2Length - chunk.Count]);
 
             return chunk.ToArray();
         }
@@ -281,7 +296,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             using (var reader = new BinaryReader(new MemoryStream(head)))
             {
                 reader.BaseStream.Position = 4;
-                if (reader.ReadInt32BE() != head.Length)
+                structure.HeadChunkLength = reader.ReadInt32BE();
+                if (structure.HeadChunkLength != head.Length)
                 {
                     throw new InvalidDataException("HEAD chunk stated length does not match actual length");
                 }
@@ -427,7 +443,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public int HeadChunk3Offset { get; set; }
             public int HeadChunk1Length => HeadChunk2Offset - HeadChunk1Offset;
             public int HeadChunk2Length => HeadChunk3Offset - HeadChunk2Offset;
-            public int HeadChunk3Length => AdpcChunkOffset - HeadChunk3Offset;
+            public int HeadChunk3Length => HeadChunkLength - HeadChunk3Offset;
 
             public int Codec { get; set; }
             public bool Looping { get; set; }
