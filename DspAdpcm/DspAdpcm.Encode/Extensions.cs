@@ -43,11 +43,19 @@ namespace DspAdpcm.Encode
                 throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be of equal length");
 
             int numInputs = inputs.Length;
-            int numBlocks = length / interleaveSize;
-            int lastBlockSize = length % interleaveSize == 0 ? 0 : lastInterleaveSize * numInputs;
-            var output = new T[interleaveSize * numInputs * numBlocks + lastBlockSize];
+            int numFullBlocks = length / interleaveSize;
+            int numShortBlocks = length % interleaveSize == 0 ? 0 : 1;
+            int interleavedLength = numFullBlocks * interleaveSize + numShortBlocks * lastInterleaveSize;
 
-            for (int b = 0; b < numBlocks; b++)
+            if (interleavedLength < length)
+                throw new ArgumentOutOfRangeException(nameof(lastInterleaveSize), lastInterleaveSize,
+                    $"Last interleave size is too small by {length - interleavedLength} bytes");
+
+            int lastBlockSizeWithoutPadding = length - numFullBlocks * interleaveSize;
+
+            var output = new T[interleavedLength * numInputs];
+
+            for (int b = 0; b < numFullBlocks; b++)
             {
                 for (int i = 0; i < numInputs; i++)
                 {
@@ -57,13 +65,14 @@ namespace DspAdpcm.Encode
                 }
             }
 
-            if (lastBlockSize == 0) return output;
-
-            for (int i = 0; i < numInputs; i++)
+            for (int b = 0; b < numShortBlocks; b++)
             {
-                Array.Copy(inputs[i], interleaveSize * numBlocks,
-                    output, interleaveSize * numBlocks * numInputs + lastInterleaveSize * i,
-                    lastInterleaveSize);
+                for (int i = 0; i < numInputs; i++)
+                {
+                    Array.Copy(inputs[i], interleaveSize * numFullBlocks,
+                        output, interleaveSize * numFullBlocks * numInputs + lastInterleaveSize * i,
+                        lastBlockSizeWithoutPadding);
+                }
             }
 
             return output;
