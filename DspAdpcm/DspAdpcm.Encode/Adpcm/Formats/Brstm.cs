@@ -9,7 +9,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 {
     public class Brstm
     {
-        public IAdpcmStream AudioStream { get; set; }
+        public AdpcmStream AudioStream { get; set; }
 
         private int NumSamples => AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
@@ -53,7 +53,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 throw new InvalidDataException("Stream must have at least one channel ");
             }
 
-            AudioStream = stream;
+            AudioStream = stream as AdpcmStream;
         }
 
         public Brstm(Stream stream)
@@ -253,6 +253,19 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 reader.BaseStream.Position = structure.HeadChunkOffset;
                 byte[] headChunk = reader.ReadBytes(structure.HeadChunkLengthRstm);
                 ParseHeadChunk(headChunk, structure);
+
+                SamplesPerInterleave = structure.SamplesPerInterleave;
+                SamplesPerAdpcEntry = structure.SamplesPerAdpcEntry;
+                RstmHeaderLength = structure.RstmHeaderLength;
+                HeadChunk2Length = structure.HeadChunk2Length;
+
+                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+                if (structure.Looping)
+                {
+                    AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+                }
+
+                ParseDataChunk(stream, structure);
             }
         }
 
@@ -329,18 +342,16 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 structure.NumChannelsChunk3 = reader.ReadByte();
                 reader.BaseStream.Position += 3;
 
-                var channels = new List<ChannelInfo>();
-
                 for (int i = 0; i < structure.NumChannelsChunk3; i++)
                 {
                     var channel = new ChannelInfo();
                     reader.BaseStream.Position += 4;
                     channel.Offset = reader.ReadInt32BE();
-                    channels.Add(channel);
+                    structure.Channels.Add(channel);
                 }
 
                 int baseOffset = structure.HeadChunk3Offset;
-                foreach (ChannelInfo channel in channels)
+                foreach (ChannelInfo channel in structure.Channels)
                 {
                     reader.BaseStream.Position = channel.Offset - structure.HeadChunk3Offset + 4;
                     int coefsOffset = reader.ReadInt32BE();
@@ -354,6 +365,47 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                     channel.LoopPredScale = reader.ReadInt16BE();
                     channel.LoopHist1 = reader.ReadInt16BE();
                     channel.LoopHist2 = reader.ReadInt16BE();
+                }
+            }
+        }
+
+        private void ParseDataChunk(Stream chunk, BrstmStructure structure)
+        {
+            using (var reader = new BinaryReader(chunk))
+            {
+                reader.BaseStream.Position = structure.DataChunkOffset;
+                if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "DATA")
+                {
+                    throw new InvalidDataException("Unknown or invalid DATA chunk");
+                }
+                structure.DataChunkLength = reader.ReadInt32BE();
+
+                reader.BaseStream.Position = structure.AudioDataOffset;
+                int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
+
+                List<AdpcmChannel> channels = structure.Channels.Select(channelInfo =>
+                    new AdpcmChannel(structure.NumSamples)
+                    {
+                        Coefs = channelInfo.Coefs,
+                        Gain = channelInfo.Gain,
+                        Hist1 = channelInfo.Hist1,
+                        Hist2 = channelInfo.Hist2
+                    })
+                    .ToList();
+
+                byte[] audioData = reader.ReadBytes(audioDataLength);
+
+                byte[][] deInterleavedAudioData = audioData.DeInterleave(structure.InterleaveSize, structure.NumChannelsChunk1,
+                    structure.LastBlockSize, GetBytesForAdpcmSamples(structure.NumSamples));
+
+                for (int c = 0; c < structure.NumChannelsChunk1; c++)
+                {
+                    channels[c].AudioByteArray = deInterleavedAudioData[c];
+                }
+
+                foreach (AdpcmChannel channel in channels)
+                {
+                    AudioStream.Channels.Add(channel);
                 }
             }
         }
@@ -393,6 +445,9 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public int SamplesPerAdpcEntry { get; set; }
 
             public int NumChannelsChunk3 { get; set; }
+            public List<ChannelInfo> Channels { get; set; } = new List<ChannelInfo>();
+
+            public int DataChunkLength { get; set; }
         }
 
         private class ChannelInfo
