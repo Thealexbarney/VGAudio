@@ -650,11 +650,10 @@ namespace DspAdpcm.Encode.Adpcm
 
             Parallel.For(0, channelsArray.Length, i =>
             {
-                entries[i] = channelsArray[i].GetPcmAudio()
+                entries[i] = channelsArray[i].GetPcmAudio(true)
                     .Batch(samplesPerAdpcEntry)
                     .Take(numAdpcEntries)
                     .SelectMany(y => y
-                        .Skip(samplesPerAdpcEntry - 2)
                         .Take(2)
                         .Reverse()
                     ).ToArray();
