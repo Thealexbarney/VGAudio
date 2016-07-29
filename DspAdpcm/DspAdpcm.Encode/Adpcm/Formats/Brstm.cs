@@ -23,7 +23,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int LastBlockSamples => NumSamples % SamplesPerInterleave;
         private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
         private int SamplesPerAdpcEntry { get; set; } = 0x3800;
-        private int NumAdpcEntries => (NumSamples / SamplesPerAdpcEntry) - (LastBlockSamples == 0 ? 1 : 0);
+        private int NumAdpcEntries => 1 + (NumSamples / SamplesPerAdpcEntry) - (LastBlockSamples == 0 ? 1 : 0);
         private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
 
         private int RstmHeaderLength { get; set; } = 0x40;
@@ -39,7 +39,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int ChannelInfoLength => 0x38;
 
         private int AdpcChunkOffset => RstmHeaderLength + HeadChunkLength;
-        private int AdpcChunkLength => GetNextMultiple(0x10 + NumAdpcEntries * NumChannels * BytesPerAdpcEntry, 0x20);
+        private int AdpcChunkLength => GetNextMultiple(8 + NumAdpcEntries * NumChannels * BytesPerAdpcEntry, 0x20);
 
         private int DataChunkOffset => RstmHeaderLength + HeadChunkLength + AdpcChunkLength;
         private int DataChunkLength => GetNextMultiple(0x20 + (InterleaveCount - (LastBlockSamples == 0 ? 0 : 1)) * InterleaveSize * NumChannels + LastBlockSize * NumChannels, 0x20);
@@ -218,7 +218,6 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             chunk.Add32("ADPC");
             chunk.Add32BE(AdpcChunkLength);
-            chunk.AddRange(new byte[8]); //Pad to 0x10 bytes
 
             chunk.AddRange(Encode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries));
 
