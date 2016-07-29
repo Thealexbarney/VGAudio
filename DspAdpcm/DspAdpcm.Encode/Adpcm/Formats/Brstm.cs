@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private int NumSamples => AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
+        private int NumChannelPairs => (int)Math.Ceiling((double)NumChannels / 2);
         private byte Codec { get; } = 2; // 4-bit ADPCM
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
@@ -155,15 +157,34 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 chunk.Add32BE(0x58);
                 chunk.Add32BE(NumChannels == 1 ? 0x01000000 : 0x02000100);
             }
-
-            if (HeadChunk2Length == 0x18)
+            else
             {
-                chunk.Add32BE(0x01010000);
-                chunk.Add32BE(0x01010000);
-                chunk.Add32BE(0x58);
-                chunk.Add32BE(0x7f400000);
-                chunk.Add32BE(0);
-                chunk.Add32BE(NumChannels == 1 ? 0x01000000 : 0x02000100);
+                chunk.Add((byte)NumChannelPairs);
+                chunk.Add(1);
+                chunk.Add16BE(0);
+
+                int baseOffset = HeadChunkTableLength + HeadChunk1Length + 4;
+                int offsetTableLength = NumChannelPairs * 8;
+                int pairInfoLength = 0xc;
+
+                for (int i = 0; i < NumChannelPairs; i++)
+                {
+                    chunk.Add32BE(0x01010000);
+                    chunk.Add32BE(baseOffset + offsetTableLength + pairInfoLength * i);
+                }
+
+                for (int i = 0; i < NumChannelPairs; i++)
+                {
+                    int numChannels = Math.Min(NumChannels - i * 2, 2);
+                    chunk.Add(0x7f);
+                    chunk.Add(0x40);
+                    chunk.Add16BE(0);
+                    chunk.Add32BE(0);
+                    chunk.Add((byte)numChannels); //Number in channel pair?
+                    chunk.Add((byte)(i * 2)); //First channel ID
+                    chunk.Add((byte)(numChannels >= 2 ? i * 2 + 1 : 0)); //Second channel ID
+                    chunk.Add(0);
+                }
             }
 
             chunk.AddRange(new byte[HeadChunk2Length - chunk.Count]);
