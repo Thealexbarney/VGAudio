@@ -14,7 +14,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private int NumSamples => AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
-        private int NumChannelPairs => (int)Math.Ceiling((double)NumChannels / 2);
+        private int NumTracks => (int)Math.Ceiling((double)NumChannels / 2);
         private byte Codec { get; } = 2; // 4-bit ADPCM
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
@@ -36,7 +36,9 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int HeadChunkHeaderLength = 8;
         private int HeadChunkTableLength => 8 * 3;
         private int HeadChunk1Length => 0x34;
-        private int HeadChunk2Length { get; set; } = 0x10;
+        private int HeadChunk2Length => 4 + (8 * NumTracks) + (TrackInfoLength * NumTracks);
+        private BrstmType HeaderType { get; set; } = BrstmType.SSBB;
+        private int TrackInfoLength => HeaderType == BrstmType.SSBB ? 4 : 0x0c;
         private int HeadChunk3Length => 4 + (8 * NumChannels) + (ChannelInfoLength * NumChannels);
         private int ChannelInfoLength => 0x38;
 
@@ -145,46 +147,37 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             return chunk.ToArray();
         }
 
-        //Not sure what this chunk is for
         private byte[] GetHeadChunk2()
         {
             var chunk = new List<byte>();
 
-            if (HeadChunk2Length == 0x10)
+            chunk.Add((byte)NumTracks);
+            chunk.Add((byte)(HeaderType == BrstmType.SSBB ? 0 : 1));
+            chunk.Add16BE(0);
+
+            int baseOffset = HeadChunkTableLength + HeadChunk1Length + 4;
+            int offsetTableLength = NumTracks * 8;
+
+            for (int i = 0; i < NumTracks; i++)
             {
-                chunk.Add32BE(0x01000000);
-                chunk.Add32BE(0x01000000);
-                chunk.Add32BE(0x58);
-                chunk.Add32BE(NumChannels == 1 ? 0x01000000 : 0x02000100);
+                chunk.Add32BE(HeaderType == BrstmType.SSBB ? 0x01000000 : 0x01010000);
+                chunk.Add32BE(baseOffset + offsetTableLength + TrackInfoLength * i);
             }
-            else
+
+            for (int i = 0; i < NumTracks; i++)
             {
-                chunk.Add((byte)NumChannelPairs);
-                chunk.Add(1);
-                chunk.Add16BE(0);
-
-                int baseOffset = HeadChunkTableLength + HeadChunk1Length + 4;
-                int offsetTableLength = NumChannelPairs * 8;
-                int pairInfoLength = 0xc;
-
-                for (int i = 0; i < NumChannelPairs; i++)
+                int numChannels = Math.Min(NumChannels - i * 2, 2);
+                if (HeaderType == BrstmType.Other)
                 {
-                    chunk.Add32BE(0x01010000);
-                    chunk.Add32BE(baseOffset + offsetTableLength + pairInfoLength * i);
-                }
-
-                for (int i = 0; i < NumChannelPairs; i++)
-                {
-                    int numChannels = Math.Min(NumChannels - i * 2, 2);
                     chunk.Add(0x7f);
                     chunk.Add(0x40);
                     chunk.Add16BE(0);
                     chunk.Add32BE(0);
-                    chunk.Add((byte)numChannels); //Number in channel pair?
-                    chunk.Add((byte)(i * 2)); //First channel ID
-                    chunk.Add((byte)(numChannels >= 2 ? i * 2 + 1 : 0)); //Second channel ID
-                    chunk.Add(0);
                 }
+                chunk.Add((byte)numChannels);
+                chunk.Add((byte)(i * 2)); //First channel ID
+                chunk.Add((byte)(numChannels >= 2 ? i * 2 + 1 : 0)); //Second channel ID
+                chunk.Add(0);
             }
 
             chunk.AddRange(new byte[HeadChunk2Length - chunk.Count]);
@@ -292,7 +285,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 SamplesPerInterleave = structure.SamplesPerInterleave;
                 SamplesPerAdpcEntry = structure.SamplesPerAdpcEntry;
                 RstmHeaderLength = structure.RstmHeaderLength;
-                HeadChunk2Length = structure.HeadChunk2Length;
+                HeaderType = structure.HeaderType;
 
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
                 if (structure.Looping)
@@ -332,10 +325,14 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 reader.BaseStream.Position = structure.HeadChunk1Offset + baseOffset;
                 byte[] headChunk1 = reader.ReadBytes(structure.HeadChunk1Length);
 
+                reader.BaseStream.Position = structure.HeadChunk2Offset + baseOffset;
+                byte[] headChunk2 = reader.ReadBytes(structure.HeadChunk2Length);
+
                 reader.BaseStream.Position = structure.HeadChunk3Offset + baseOffset;
                 byte[] headChunk3 = reader.ReadBytes(structure.HeadChunk3Length);
 
                 ParseHeadChunk1(headChunk1, structure);
+                ParseHeadChunk2(headChunk2, structure);
                 ParseHeadChunk3(headChunk3, structure);
             }
         }
@@ -369,6 +366,11 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 structure.LastBlockSize = reader.ReadInt32BE();
                 structure.SamplesPerAdpcEntry = reader.ReadInt32BE();
             }
+        }
+
+        private static void ParseHeadChunk2(byte[] chunk, BrstmStructure structure)
+        {
+            structure.HeaderType = chunk[1] == 0 ? BrstmType.SSBB : BrstmType.Other;
         }
 
         private static void ParseHeadChunk3(byte[] chunk, BrstmStructure structure)
@@ -480,6 +482,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public int LastBlockSize { get; set; }
             public int SamplesPerAdpcEntry { get; set; }
 
+            public BrstmType HeaderType { get; set; }
+
             public int NumChannelsChunk3 { get; set; }
             public List<ChannelInfo> Channels { get; set; } = new List<ChannelInfo>();
 
@@ -500,6 +504,18 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public short LoopPredScale { get; set; }
             public short LoopHist1 { get; set; }
             public short LoopHist2 { get; set; }
+        }
+
+        private enum BrstmType
+        {
+            /// <summary>
+            /// The header type used in Super Smash Bros. Brawl
+            /// </summary>
+            SSBB,
+            /// <summary>
+            /// The header type used in most games other than Super Smash Bros. Brawl
+            /// </summary>
+            Other
         }
     }
 }
