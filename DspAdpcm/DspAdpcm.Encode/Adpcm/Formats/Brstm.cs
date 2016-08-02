@@ -14,7 +14,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private int NumSamples => AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
-        private int NumTracks => (int)Math.Ceiling((double)NumChannels / 2);
+        private int NumTracks => AudioStream.Tracks.Count;
         private byte Codec { get; } = 2; // 4-bit ADPCM
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
@@ -164,19 +164,18 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 chunk.Add32BE(baseOffset + offsetTableLength + TrackInfoLength * i);
             }
 
-            for (int i = 0; i < NumTracks; i++)
+            foreach (AdpcmTrack track in AudioStream.Tracks)
             {
-                int numChannels = Math.Min(NumChannels - i * 2, 2);
                 if (HeaderType == BrstmType.Other)
                 {
-                    chunk.Add(0x7f);
-                    chunk.Add(0x40);
+                    chunk.Add((byte)track.Volume);
+                    chunk.Add((byte)track.Panning);
                     chunk.Add16BE(0);
                     chunk.Add32BE(0);
                 }
-                chunk.Add((byte)numChannels);
-                chunk.Add((byte)(i * 2)); //First channel ID
-                chunk.Add((byte)(numChannels >= 2 ? i * 2 + 1 : 0)); //Second channel ID
+                chunk.Add((byte)track.NumChannels);
+                chunk.Add((byte)track.ChannelLeft); //First channel ID
+                chunk.Add((byte)track.ChannelRight); //Second channel ID
                 chunk.Add(0);
             }
 
@@ -292,6 +291,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 {
                     AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
                 }
+                AudioStream.Tracks = structure.Tracks;
 
                 ParseDataChunk(stream, structure);
             }
@@ -370,7 +370,39 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private static void ParseHeadChunk2(byte[] chunk, BrstmStructure structure)
         {
-            structure.HeaderType = chunk[1] == 0 ? BrstmType.SSBB : BrstmType.Other;
+            using (var reader = new BinaryReader(new MemoryStream(chunk)))
+            {
+                int numTracks = reader.ReadByte();
+                int[] trackOffsets = new int[numTracks];
+
+                structure.HeaderType = reader.ReadByte() == 0 ? BrstmType.SSBB : BrstmType.Other;
+
+                reader.BaseStream.Position = 4;
+                for (int i = 0; i < numTracks; i++)
+                {
+                    reader.BaseStream.Position += 4;
+                    trackOffsets[i] = reader.ReadInt32BE();
+                }
+
+                for (int i = 0; i < numTracks; i++)
+                {
+                    reader.BaseStream.Position = trackOffsets[i] - structure.HeadChunk2Offset;
+                    var track = new AdpcmTrack();
+
+                    if (structure.HeaderType == BrstmType.Other)
+                    {
+                        track.Volume = reader.ReadByte();
+                        track.Panning = reader.ReadByte();
+                        reader.BaseStream.Position += 6;
+                    }
+
+                    track.NumChannels = reader.ReadByte();
+                    track.ChannelLeft = reader.ReadByte();
+                    track.ChannelRight = reader.ReadByte();
+
+                    structure.Tracks.Add(track);
+                }
+            }
         }
 
         private static void ParseHeadChunk3(byte[] chunk, BrstmStructure structure)
@@ -388,7 +420,6 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                     structure.Channels.Add(channel);
                 }
 
-                int baseOffset = structure.HeadChunk3Offset;
                 foreach (ChannelInfo channel in structure.Channels)
                 {
                     reader.BaseStream.Position = channel.Offset - structure.HeadChunk3Offset + 4;
@@ -483,6 +514,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public int SamplesPerAdpcEntry { get; set; }
 
             public BrstmType HeaderType { get; set; }
+            public List<AdpcmTrack> Tracks { get; set; } = new List<AdpcmTrack>();
 
             public int NumChannelsChunk3 { get; set; }
             public List<ChannelInfo> Channels { get; set; } = new List<ChannelInfo>();

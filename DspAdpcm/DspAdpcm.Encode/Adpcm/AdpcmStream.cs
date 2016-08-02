@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
@@ -7,6 +8,12 @@ namespace DspAdpcm.Encode.Adpcm
     public class AdpcmStream : IAdpcmStream
     {
         public IList<IAdpcmChannel> Channels { get; private set; } = new List<IAdpcmChannel>();
+        private IList<AdpcmTrack> _tracks;
+        public IList<AdpcmTrack> Tracks
+        {
+            get { return _tracks ?? GetDefaultTrackList().ToList(); }
+            set { _tracks = value; }
+        }
 
         public int NumSamples { get; }
         public int NumNibbles => GetNibbleFromSample(NumSamples);
@@ -79,5 +86,29 @@ namespace DspAdpcm.Encode.Adpcm
 
             return copy;
         }
+
+        public IEnumerable<AdpcmTrack> GetDefaultTrackList()
+        {
+            int numTracks = (int)Math.Ceiling((double)Channels.Count / 2);
+            for (int i = 0; i < numTracks; i++)
+            {
+                int numChannels = Math.Min(Channels.Count - i * 2, 2);
+                yield return new AdpcmTrack
+                {
+                    NumChannels = numChannels,
+                    ChannelLeft = i * 2,
+                    ChannelRight = numChannels >= 2 ? i * 2 + 1 : 0
+                };
+            }
+        }
+    }
+
+    public class AdpcmTrack
+    {
+        public int Volume { get; set; } = 0x7f;
+        public int Panning { get; set; } = 0x40;
+        public int NumChannels { get; set; }
+        public int ChannelLeft { get; set; }
+        public int ChannelRight { get; set; }
     }
 }
