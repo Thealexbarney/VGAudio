@@ -22,6 +22,16 @@ namespace DspAdpcm.Uwp.ViewModels
     public class MainViewModel
     {
         public MainState State { get; set; } = MainState.Opening;
+
+        //Hacky solution due to weird issues in UWP
+        //Binding problems with Dictionary<enum, object> but not Dictionary<int, object>
+        public Dictionary<int, AudioFileType> FileTypesBinding { get; } = FileTypes.ToDictionary(x => (int)x.Key, x => x.Value);
+        public int SelectedFileTypeBinding
+        {
+            get { return (int)SelectedFileType; }
+            set { SelectedFileType = (AdpcmTypes) value; }
+        }
+
         public AdpcmTypes SelectedFileType { get; set; } = AdpcmTypes.Dsp;
 
         public bool StateOpening => State == MainState.Opening;
