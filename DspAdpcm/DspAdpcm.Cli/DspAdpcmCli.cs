@@ -14,7 +14,7 @@ namespace DspAdpcm.Cli
         {
             if (args.Length < 2)
             {
-                Console.WriteLine("Usage: dspenc <wavin> <dspout>\n");
+                Console.WriteLine("Usage: dspadpcm <wavIn> <brstmOut>\n");
                 return 0;
             }
 
@@ -36,17 +36,17 @@ namespace DspAdpcm.Cli
             Stopwatch watch = new Stopwatch();
             watch.Start();
 
-            IAdpcmStream adpcm = Encode.Adpcm.Encode.PcmToAdpcm(wave);
+            IAdpcmStream adpcm = Encode.Adpcm.Encode.PcmToAdpcmParallel(wave);
 
             watch.Stop();
             Console.WriteLine($"DONE! {adpcm.NumSamples} samples processed\n");
             Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
             Console.WriteLine($"Processed {(adpcm.NumSamples / watch.Elapsed.TotalMilliseconds):N} samples per milisecond.");
 
-            var dsp = new Dsp(adpcm);
+            var brstm = new Brstm(adpcm);
 
             using (var stream = File.Open(args[1], FileMode.Create))
-                foreach (var b in dsp.GetFile())
+                foreach (var b in brstm.GetFile())
                     stream.WriteByte(b);
 
             return 0;
