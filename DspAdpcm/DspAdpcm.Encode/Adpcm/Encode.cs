@@ -149,6 +149,10 @@ namespace DspAdpcm.Encode.Adpcm
             double v2 = inOutVec[2];
             double tmp = 1.0 - (v2 * v2);
 
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (tmp == 0.0)
+                return true;
+
             double v0 = (inOutVec[0] - (v2 * v2)) / tmp;
             double v1 = (inOutVec[1] - (inOutVec[1] * v2)) / tmp;
 
