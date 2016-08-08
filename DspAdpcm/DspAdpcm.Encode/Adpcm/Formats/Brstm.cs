@@ -250,6 +250,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             var channels = AudioStream.Channels.Select(x => x.AudioData.ToArray()).ToArray();
             chunk.AddRange(channels.Interleave(InterleaveSize, LastBlockSize));
 
+            chunk.AddRange(new byte[DataChunkLength - chunk.Count]);
+
             return chunk.ToArray();
         }
 
@@ -269,7 +271,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
                 if (structure.FileLength != stream.Length)
                 {
-                    throw new InvalidDataException("File has no RSTM header");
+                    throw new InvalidDataException("Stated file length doesn't match actual length");
                 }
 
                 structure.RstmHeaderLength = reader.ReadInt16BE();
