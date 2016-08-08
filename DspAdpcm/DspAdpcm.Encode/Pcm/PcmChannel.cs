@@ -2,7 +2,7 @@
 
 namespace DspAdpcm.Encode.Pcm
 {
-    public class PcmChannel : IPcmChannel
+    public class PcmChannel
     {
         public int NumSamples { get; set; }
         private short[] AudioData { get; set; }

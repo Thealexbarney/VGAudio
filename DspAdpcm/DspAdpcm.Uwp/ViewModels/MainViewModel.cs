@@ -54,7 +54,7 @@ namespace DspAdpcm.Uwp.ViewModels
 
         public string InPath { get; set; }
 
-        public IPcmStream PcmStream { get; set; }
+        public PcmStream PcmStream { get; set; }
         public AdpcmStream AdpcmStream { get; set; }
         public string InputFileType { get; set; }
         public bool Looping { get; set; }

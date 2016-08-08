@@ -18,7 +18,7 @@ namespace DspAdpcm.Cli
                 return 0;
             }
 
-            IPcmStream wave;
+            PcmStream wave;
 
             try
             {

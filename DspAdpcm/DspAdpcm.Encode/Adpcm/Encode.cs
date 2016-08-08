@@ -588,7 +588,7 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        private static AdpcmChannel PcmToAdpcm(IPcmChannel pcmChannel)
+        private static AdpcmChannel PcmToAdpcm(PcmChannel pcmChannel)
         {
             var channel = new AdpcmChannel(pcmChannel.NumSamples);
             channel.Coefs = DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
@@ -613,7 +613,7 @@ namespace DspAdpcm.Encode.Adpcm
             return channel;
         }
 
-        public static AdpcmStream PcmToAdpcm(IPcmStream pcmStream)
+        public static AdpcmStream PcmToAdpcm(PcmStream pcmStream)
         {
             AdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
             var channels = new AdpcmChannel[pcmStream.Channels.Count];
@@ -631,7 +631,7 @@ namespace DspAdpcm.Encode.Adpcm
             return adpcm;
         }
 
-        public static AdpcmStream PcmToAdpcmParallel(IPcmStream pcmStream)
+        public static AdpcmStream PcmToAdpcmParallel(PcmStream pcmStream)
         {
             AdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
             var channels = new AdpcmChannel[pcmStream.Channels.Count];

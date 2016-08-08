@@ -2,12 +2,12 @@
 
 namespace DspAdpcm.Encode.Pcm
 {
-    public class PcmStream : IPcmStream
+    public class PcmStream
     {
         public int NumSamples { get; set; }
         public int SampleRate { get; set; }
         public int BitDepth { get; set; }
 
-        public IList<IPcmChannel> Channels { get; set; } = new List<IPcmChannel>();
+        public IList<PcmChannel> Channels { get; set; } = new List<PcmChannel>();
     }
 }

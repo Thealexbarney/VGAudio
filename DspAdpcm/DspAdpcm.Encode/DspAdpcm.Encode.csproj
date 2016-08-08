@@ -48,7 +48,6 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="Adpcm\Formats\Dsp.cs" />
     <Compile Include="Pcm\Formats\Wave.cs" />
-    <Compile Include="Pcm\IPcmStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Pcm\PcmChannel.cs" />
     <Compile Include="Pcm\PcmStream.cs" />
