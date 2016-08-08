@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace DspAdpcm.Encode
 {
-    public static class Extensions
+    internal static class Extensions
     {
         public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> source, int size, int lastSize = -1)
         {
@@ -98,7 +98,7 @@ namespace DspAdpcm.Encode
 
             if (numShortBlocks != 0 && outputLength % interleaveSize < lastInterleaveSize)
                 throw new ArgumentOutOfRangeException(nameof(lastInterleaveSize), lastInterleaveSize,
-                    $"Not enough elements for specified last interleave size");
+                    $"Not enough elements for specified last interleave size({lastInterleaveSize})");
 
             var outputs = new T[numOutputs][];
             for (int i = 0; i < numOutputs; i++)

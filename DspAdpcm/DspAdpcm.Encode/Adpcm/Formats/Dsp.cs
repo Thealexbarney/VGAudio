@@ -8,15 +8,15 @@ namespace DspAdpcm.Encode.Adpcm.Formats
     public class Dsp
     {
         private const int HeaderSize = 0x60;
-        public int FileSize => HeaderSize + Helpers.GetBytesForAdpcmSamples(AudioStream.NumSamples);
+        public int FileSize => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
         public AdpcmStream AudioStream { get; set; }
         public AdpcmChannel AudioChannel => AudioStream.Channels[0];
 
         private short Format { get; } = 0; /* 0 for ADPCM */
 
-        private int StartAddr => Helpers.GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopStart : 0);
-        private int EndAddr => Helpers.GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples - 1);
-        private static int CurAddr => Helpers.GetNibbleAddress(0);
+        private int StartAddr => GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopStart : 0);
+        private int EndAddr => GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples - 1);
+        private static int CurAddr => GetNibbleAddress(0);
 
         private short PredScale => AudioChannel.AudioData.First();
 
@@ -43,22 +43,22 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             }
 
             var header = new List<byte>();
-            header.AddRange(AudioStream.NumSamples.ToBytesBE());
-            header.AddRange(Helpers.GetNibbleFromSample(AudioStream.NumSamples).ToBytesBE());
-            header.AddRange(AudioStream.SampleRate.ToBytesBE());
-            header.AddRange(((short)(AudioStream.Looping ? 1 : 0)).ToBytesBE());
-            header.AddRange(Format.ToBytesBE());
-            header.AddRange(StartAddr.ToBytesBE());
-            header.AddRange(EndAddr.ToBytesBE());
-            header.AddRange(CurAddr.ToBytesBE());
+            header.Add32BE(AudioStream.NumSamples);
+            header.Add32BE(GetNibbleFromSample(AudioStream.NumSamples));
+            header.Add32BE(AudioStream.SampleRate);
+            header.Add16BE(AudioStream.Looping ? 1 : 0);
+            header.Add16BE(Format);
+            header.Add32BE(StartAddr);
+            header.Add32BE(EndAddr);
+            header.Add32BE(CurAddr);
             header.AddRange(AudioChannel.Coefs.SelectMany(x => x.ToBytesBE()));
-            header.AddRange(AudioChannel.Gain.ToBytesBE());
-            header.AddRange(PredScale.ToBytesBE());
-            header.AddRange(AudioChannel.Hist1.ToBytesBE());
-            header.AddRange(AudioChannel.Hist2.ToBytesBE());
-            header.AddRange(AudioChannel.LoopPredScale.ToBytesBE());
-            header.AddRange(AudioChannel.LoopHist1.ToBytesBE());
-            header.AddRange(AudioChannel.LoopHist2.ToBytesBE());
+            header.Add16BE(AudioChannel.Gain);
+            header.Add16BE(PredScale);
+            header.Add16BE(AudioChannel.Hist1);
+            header.Add16BE(AudioChannel.Hist2);
+            header.Add16BE(AudioChannel.LoopPredScale);
+            header.Add16BE(AudioChannel.LoopHist1);
+            header.Add16BE(AudioChannel.LoopHist2);
             header.AddRange(new byte[HeaderSize - header.Count]); //Padding
 
             return header;

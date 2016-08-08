@@ -53,7 +53,7 @@ namespace DspAdpcm.Encode.Adpcm
 
         public AdpcmStream ShallowClone()
         {
-            return this.MemberwiseClone() as AdpcmStream;
+            return MemberwiseClone() as AdpcmStream;
         }
 
         public AdpcmStream ShallowCloneChannelSubset(int start, int end)

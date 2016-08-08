@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DspAdpcm.Encode
 {
-    public static class Helpers
+    internal static class Helpers
     {
         public const int BytesPerBlock = 8;
         public const int SamplesPerBlock = 14;

@@ -2,6 +2,7 @@
  * https://github.com/libertyernie/brawltools/blob/master/BrawlLib/Wii/Audio/AudioConverter.cs
  * https://github.com/jackoalan/gc-dspadpcm-encode
  */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -56,7 +56,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 throw new InvalidDataException("Stream must have at least one channel ");
             }
 
-            AudioStream = stream as AdpcmStream;
+            AudioStream = stream;
         }
 
         public Brstm(Stream stream)
@@ -253,7 +253,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             return chunk.ToArray();
         }
 
-        public void ReadBrstmFile(Stream stream)
+        private void ReadBrstmFile(Stream stream)
         {
             using (var reader = new BinaryReader(stream))
             {
@@ -266,6 +266,12 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
                 reader.BaseStream.Position = 8;
                 structure.FileLength = reader.ReadInt32BE();
+
+                if (structure.FileLength != stream.Length)
+                {
+                    throw new InvalidDataException("File has no RSTM header");
+                }
+
                 structure.RstmHeaderLength = reader.ReadInt16BE();
                 reader.BaseStream.Position += 2;
 
@@ -529,8 +535,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             public short Gain { get; set; }
             public short PredScale { get; set; }
-            public short Hist1 { get; set; } = 0;
-            public short Hist2 { get; set; } = 0;
+            public short Hist1 { get; set; }
+            public short Hist2 { get; set; }
 
             public short LoopPredScale { get; set; }
             public short LoopHist1 { get; set; }
