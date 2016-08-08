@@ -5,9 +5,9 @@ using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
 {
-    public class AdpcmStream : IAdpcmStream
+    public class AdpcmStream
     {
-        public IList<IAdpcmChannel> Channels { get; private set; } = new List<IAdpcmChannel>();
+        public IList<AdpcmChannel> Channels { get; private set; } = new List<AdpcmChannel>();
         private IList<AdpcmTrack> _tracks;
         public IList<AdpcmTrack> Tracks
         {
@@ -56,7 +56,7 @@ namespace DspAdpcm.Encode.Adpcm
             return this.MemberwiseClone() as AdpcmStream;
         }
 
-        public IAdpcmStream ShallowCloneChannelSubset(int start, int end)
+        public AdpcmStream ShallowCloneChannelSubset(int start, int end)
         {
             if (start > Channels.Count || end > Channels.Count)
             {
@@ -77,7 +77,7 @@ namespace DspAdpcm.Encode.Adpcm
             }
 
             AdpcmStream copy = ShallowClone();
-            copy.Channels = new List<IAdpcmChannel>();
+            copy.Channels = new List<AdpcmChannel>();
 
             for (int i = start; i <= end; i++)
             {

@@ -55,7 +55,7 @@ namespace DspAdpcm.Uwp.ViewModels
         public string InPath { get; set; }
 
         public IPcmStream PcmStream { get; set; }
-        public IAdpcmStream AdpcmStream { get; set; }
+        public AdpcmStream AdpcmStream { get; set; }
         public string InputFileType { get; set; }
         public bool Looping { get; set; }
         public int LoopStart { get; set; }
@@ -130,7 +130,7 @@ namespace DspAdpcm.Uwp.ViewModels
         public async void Encode()
         {
             var watch = new Stopwatch();
-            IAdpcmStream adpcm = null;
+            AdpcmStream adpcm = null;
             Encoding = true;
             EncodeCommand.RaiseCanExecuteChanged();
             try
@@ -209,10 +209,10 @@ namespace DspAdpcm.Uwp.ViewModels
         public string DisplayName { get; }
         public string Extension { get; }
         public string Description { get; }
-        public Func<string, IAdpcmStream> OpenFunc { get; }
-        public Func<IAdpcmStream, IEnumerable<byte>> GetFileFunc { get; }
+        public Func<string, AdpcmStream> OpenFunc { get; }
+        public Func<AdpcmStream, IEnumerable<byte>> GetFileFunc { get; }
 
-        public AudioFileType(string displayName, string extension, string description, Func<string, IAdpcmStream> openFunc, Func<IAdpcmStream, IEnumerable<byte>> getFileFunc)
+        public AudioFileType(string displayName, string extension, string description, Func<string, AdpcmStream> openFunc, Func<AdpcmStream, IEnumerable<byte>> getFileFunc)
         {
             DisplayName = displayName;
             Extension = extension;

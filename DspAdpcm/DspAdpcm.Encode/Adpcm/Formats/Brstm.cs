@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -50,7 +49,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private int FileLength => RstmHeaderLength + HeadChunkLength + AdpcChunkLength + DataChunkLength;
 
-        public Brstm(IAdpcmStream stream)
+        public Brstm(AdpcmStream stream)
         {
             if (stream.Channels.Count < 1)
             {
@@ -208,7 +207,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             for (int i = 0; i < NumChannels; i++)
             {
-                IAdpcmChannel channel = AudioStream.Channels[i];
+                AdpcmChannel channel = AudioStream.Channels[i];
                 chunk.Add32BE(0x01000000);
                 chunk.Add32BE(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
                 chunk.AddRange(channel.Coefs.SelectMany(x => x.ToBytesBE()));

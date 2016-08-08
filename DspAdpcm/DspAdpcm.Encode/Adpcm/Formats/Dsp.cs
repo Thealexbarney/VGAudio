@@ -9,8 +9,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
     {
         private const int HeaderSize = 0x60;
         public int FileSize => HeaderSize + Helpers.GetBytesForAdpcmSamples(AudioStream.NumSamples);
-        public IAdpcmStream AudioStream { get; set; }
-        public IAdpcmChannel AudioChannel => AudioStream.Channels[0];
+        public AdpcmStream AudioStream { get; set; }
+        public AdpcmChannel AudioChannel => AudioStream.Channels[0];
 
         private short Format { get; } = 0; /* 0 for ADPCM */
 
@@ -20,7 +20,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private short PredScale => AudioChannel.AudioData.First();
 
-        public Dsp(IAdpcmStream stream)
+        public Dsp(AdpcmStream stream)
         {
             if (stream.Channels.Count != 1)
             {

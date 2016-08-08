@@ -7,7 +7,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         public Dsp LeftChannel { get; }
         public Dsp RightChannel { get; }
 
-        public DspLR(IAdpcmStream stream)
+        public DspLR(AdpcmStream stream)
         {
             if (stream.Channels.Count != 2)
             {
