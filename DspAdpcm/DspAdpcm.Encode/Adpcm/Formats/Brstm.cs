@@ -27,7 +27,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int NumAdpcEntries => 1 + (NumSamples / SamplesPerAdpcEntry) - (LastBlockSamples == 0 ? 1 : 0);
         private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
 
-        private int RstmHeaderLength { get; set; } = 0x40;
+        private int RstmHeaderLength => 0x40;
 
         private int HeadChunkOffset => RstmHeaderLength;
         private int HeadChunkLength => GetNextMultiple(HeadChunkHeaderLength + HeadChunkTableLength +
@@ -288,7 +288,6 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
                 SamplesPerInterleave = structure.SamplesPerInterleave;
                 SamplesPerAdpcEntry = structure.SamplesPerAdpcEntry;
-                RstmHeaderLength = structure.RstmHeaderLength;
                 HeaderType = structure.HeaderType;
 
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
