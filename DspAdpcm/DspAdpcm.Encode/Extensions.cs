@@ -143,11 +143,5 @@ namespace DspAdpcm.Encode
         public static void Add16(this List<byte> list, short value) => list.AddRange(BitConverter.GetBytes(value));
         public static void Add32(this List<byte> list, int value) => list.AddRange(BitConverter.GetBytes(value));
         public static void Add32(this List<byte> list, string value) => list.AddRange(Encoding.ASCII.GetBytes(value.PadRight(4, '\0').Substring(0, 4)));
-
-        public static int ReadInt32BE(this BinaryReader reader) =>
-            BitConverter.ToInt32(reader.ReadBytes(sizeof(int)).Reverse().ToArray(), 0);
-
-        public static short ReadInt16BE(this BinaryReader reader) =>
-            BitConverter.ToInt16(reader.ReadBytes(sizeof(short)).Reverse().ToArray(), 0);
     }
 }

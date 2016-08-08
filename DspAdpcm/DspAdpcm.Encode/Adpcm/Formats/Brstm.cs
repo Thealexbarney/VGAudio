@@ -257,7 +257,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private void ReadBrstmFile(Stream stream)
         {
-            using (var reader = new BinaryReader(stream))
+            using (var reader = new BinaryReaderBE(stream))
             {
                 if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "RSTM")
                 {
@@ -312,7 +312,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 throw new InvalidDataException("Unknown or invalid HEAD chunk");
             }
 
-            using (var reader = new BinaryReader(new MemoryStream(head)))
+            using (var reader = new BinaryReaderBE(new MemoryStream(head)))
             {
                 reader.BaseStream.Position = 4;
                 structure.HeadChunkLength = reader.ReadInt32BE();
@@ -345,7 +345,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private static void ParseHeadChunk1(byte[] chunk, BrstmStructure structure)
         {
-            using (var reader = new BinaryReader(new MemoryStream(chunk)))
+            using (var reader = new BinaryReaderBE(new MemoryStream(chunk)))
             {
                 structure.Codec = reader.ReadByte();
                 if (structure.Codec != 2) //4-bit ADPCM codec
@@ -376,7 +376,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private static void ParseHeadChunk2(byte[] chunk, BrstmStructure structure)
         {
-            using (var reader = new BinaryReader(new MemoryStream(chunk)))
+            using (var reader = new BinaryReaderBE(new MemoryStream(chunk)))
             {
                 int numTracks = reader.ReadByte();
                 int[] trackOffsets = new int[numTracks];
@@ -413,7 +413,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private static void ParseHeadChunk3(byte[] chunk, BrstmStructure structure)
         {
-            using (var reader = new BinaryReader(new MemoryStream(chunk)))
+            using (var reader = new BinaryReaderBE(new MemoryStream(chunk)))
             {
                 structure.NumChannelsChunk3 = reader.ReadByte();
                 reader.BaseStream.Position += 3;
@@ -446,7 +446,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private void ParseDataChunk(Stream chunk, BrstmStructure structure)
         {
-            using (var reader = new BinaryReader(chunk))
+            using (var reader = new BinaryReaderBE(chunk))
             {
                 reader.BaseStream.Position = structure.DataChunkOffset;
                 if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "DATA")
