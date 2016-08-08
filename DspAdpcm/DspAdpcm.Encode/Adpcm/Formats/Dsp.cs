@@ -71,7 +71,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         public void ReadDspFile(Stream stream)
         {
-            using (var reader = new BinaryReader(stream))
+            using (var reader = new BinaryReaderBE(stream))
             {
                 int numSamples = reader.ReadInt32BE();
                 int numNibbles = reader.ReadInt32BE();

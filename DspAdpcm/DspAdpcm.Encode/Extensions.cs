@@ -133,11 +133,5 @@ namespace DspAdpcm.Encode
 
             return outputs;
         }
-
-        public static int ReadInt32BE(this BinaryReader reader) =>
-            BitConverter.ToInt32(reader.ReadBytes(sizeof(int)).Reverse().ToArray(), 0);
-
-        public static short ReadInt16BE(this BinaryReader reader) =>
-            BitConverter.ToInt16(reader.ReadBytes(sizeof(short)).Reverse().ToArray(), 0);
     }
 }

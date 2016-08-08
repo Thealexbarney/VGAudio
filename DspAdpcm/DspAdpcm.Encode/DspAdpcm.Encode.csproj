@@ -44,6 +44,7 @@
     <Compile Include="Adpcm\Encode.cs" />
     <Compile Include="Adpcm\Formats\Brstm.cs" />
     <Compile Include="Adpcm\Formats\DspLR.cs" />
+    <Compile Include="BinaryReaderBE.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Adpcm\IAdpcmStream.cs" />
     <Compile Include="Extensions.cs" />
