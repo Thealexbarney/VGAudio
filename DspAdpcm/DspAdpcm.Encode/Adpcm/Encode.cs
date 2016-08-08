@@ -2,6 +2,7 @@
  * https://github.com/libertyernie/brawltools/blob/master/BrawlLib/Wii/Audio/AudioConverter.cs
  * https://github.com/jackoalan/gc-dspadpcm-encode
  */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -532,19 +533,19 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        public static void SetLoopContext(this IAdpcmChannel audio, int loopStart)
+        public static void SetLoopContext(this AdpcmChannel audio, int loopStart)
         {
             byte ps = audio.GetPredictorScale().Skip(loopStart / SamplesPerBlock).First();
             var hist = audio.GetPcmAudio().Skip(loopStart - 2).Take(2).ToArray();
             audio.SetLoopContext(ps, hist[1], hist[0]);
         }
 
-        public static IEnumerable<byte> GetPredictorScale(this IAdpcmChannel audio)
+        public static IEnumerable<byte> GetPredictorScale(this AdpcmChannel audio)
         {
             return audio.AudioData.Batch(8).Select(block => block[0]);
         }
 
-        public static IEnumerable<short> GetPcmAudio(this IAdpcmChannel audio, bool includeHistorySamples = false)
+        public static IEnumerable<short> GetPcmAudio(this AdpcmChannel audio, bool includeHistorySamples = false)
         {
             short hist1 = audio.Hist1;
             short hist2 = audio.Hist2;
@@ -587,7 +588,7 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        private static IAdpcmChannel PcmToAdpcm(IPcmChannel pcmChannel)
+        private static AdpcmChannel PcmToAdpcm(PcmChannel pcmChannel)
         {
             var channel = new AdpcmChannel(pcmChannel.NumSamples);
             channel.Coefs = DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
@@ -612,17 +613,17 @@ namespace DspAdpcm.Encode.Adpcm
             return channel;
         }
 
-        public static IAdpcmStream PcmToAdpcm(IPcmStream pcmStream)
+        public static AdpcmStream PcmToAdpcm(PcmStream pcmStream)
         {
-            IAdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
-            var channels = new IAdpcmChannel[pcmStream.Channels.Count];
+            AdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
+            var channels = new AdpcmChannel[pcmStream.Channels.Count];
 
             for (int i = 0; i < channels.Length; i++)
             {
                 channels[i] = PcmToAdpcm(pcmStream.Channels[i]);
             }
 
-            foreach (IAdpcmChannel channel in channels)
+            foreach (AdpcmChannel channel in channels)
             {
                 adpcm.Channels.Add(channel);
             }
@@ -630,17 +631,17 @@ namespace DspAdpcm.Encode.Adpcm
             return adpcm;
         }
 
-        public static IAdpcmStream PcmToAdpcmParallel(IPcmStream pcmStream)
+        public static AdpcmStream PcmToAdpcmParallel(PcmStream pcmStream)
         {
-            IAdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
-            var channels = new IAdpcmChannel[pcmStream.Channels.Count];
+            AdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
+            var channels = new AdpcmChannel[pcmStream.Channels.Count];
 
             Parallel.For(0, channels.Length, i =>
             {
                 channels[i] = PcmToAdpcm(pcmStream.Channels[i]);
             });
 
-            foreach (IAdpcmChannel channel in channels)
+            foreach (AdpcmChannel channel in channels)
             {
                 adpcm.Channels.Add(channel);
             }
@@ -648,7 +649,7 @@ namespace DspAdpcm.Encode.Adpcm
             return adpcm;
         }
 
-        public static IEnumerable<byte> BuildAdpcTable(IEnumerable<IAdpcmChannel> channels, int samplesPerAdpcEntry, int numAdpcEntries)
+        public static IEnumerable<byte> BuildAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerAdpcEntry, int numAdpcEntries)
         {
             var channelsArray = channels.ToArray();
             var entries = new short[channelsArray.Length][];

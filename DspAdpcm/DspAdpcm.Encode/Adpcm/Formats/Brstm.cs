@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -28,7 +27,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int NumAdpcEntries => 1 + (NumSamples / SamplesPerAdpcEntry) - (LastBlockSamples == 0 ? 1 : 0);
         private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
 
-        private int RstmHeaderLength { get; set; } = 0x40;
+        private int RstmHeaderLength => 0x40;
 
         private int HeadChunkOffset => RstmHeaderLength;
         private int HeadChunkLength => GetNextMultiple(HeadChunkHeaderLength + HeadChunkTableLength +
@@ -50,14 +49,14 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private int FileLength => RstmHeaderLength + HeadChunkLength + AdpcChunkLength + DataChunkLength;
 
-        public Brstm(IAdpcmStream stream)
+        public Brstm(AdpcmStream stream)
         {
             if (stream.Channels.Count < 1)
             {
                 throw new InvalidDataException("Stream must have at least one channel ");
             }
 
-            AudioStream = stream as AdpcmStream;
+            AudioStream = stream;
         }
 
         public Brstm(Stream stream)
@@ -208,7 +207,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             for (int i = 0; i < NumChannels; i++)
             {
-                IAdpcmChannel channel = AudioStream.Channels[i];
+                AdpcmChannel channel = AudioStream.Channels[i];
                 chunk.Add32BE(0x01000000);
                 chunk.Add32BE(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
                 chunk.AddRange(channel.Coefs.SelectMany(x => x.ToBytesBE()));
@@ -251,10 +250,12 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             var channels = AudioStream.Channels.Select(x => x.AudioData.ToArray()).ToArray();
             chunk.AddRange(channels.Interleave(InterleaveSize, LastBlockSize));
 
+            chunk.AddRange(new byte[DataChunkLength - chunk.Count]);
+
             return chunk.ToArray();
         }
 
-        public void ReadBrstmFile(Stream stream)
+        private void ReadBrstmFile(Stream stream)
         {
             using (var reader = new BinaryReader(stream))
             {
@@ -267,6 +268,12 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
                 reader.BaseStream.Position = 8;
                 structure.FileLength = reader.ReadInt32BE();
+
+                if (structure.FileLength != stream.Length)
+                {
+                    throw new InvalidDataException("Stated file length doesn't match actual length");
+                }
+
                 structure.RstmHeaderLength = reader.ReadInt16BE();
                 reader.BaseStream.Position += 2;
 
@@ -283,7 +290,6 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
                 SamplesPerInterleave = structure.SamplesPerInterleave;
                 SamplesPerAdpcEntry = structure.SamplesPerAdpcEntry;
-                RstmHeaderLength = structure.RstmHeaderLength;
                 HeaderType = structure.HeaderType;
 
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
@@ -530,8 +536,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             public short Gain { get; set; }
             public short PredScale { get; set; }
-            public short Hist1 { get; set; } = 0;
-            public short Hist2 { get; set; } = 0;
+            public short Hist1 { get; set; }
+            public short Hist2 { get; set; }
 
             public short LoopPredScale { get; set; }
             public short LoopHist1 { get; set; }

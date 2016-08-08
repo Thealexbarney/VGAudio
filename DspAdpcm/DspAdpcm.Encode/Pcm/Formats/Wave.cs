@@ -7,12 +7,12 @@ namespace DspAdpcm.Encode.Pcm.Formats
 {
     public class Wave
     {
-        public IPcmStream AudioStream { get; set; }
+        public PcmStream AudioStream { get; set; }
         private int NumChannels { get; set; }
         private int BitDepth { get; set; }
         private int BytesPerSample => (int)Math.Ceiling((double)BitDepth / 8);
         private int NumSamples => AudioStream.NumSamples;
-        private IList<IPcmChannel> Channels => AudioStream.Channels;
+        private IList<PcmChannel> Channels => AudioStream.Channels;
 
         public Wave(Stream stream)
         {

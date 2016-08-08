@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace DspAdpcm.Encode
 {
-    public static class Extensions
+    internal static class Extensions
     {
         public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> source, int size, int lastSize = -1)
         {
@@ -98,7 +99,7 @@ namespace DspAdpcm.Encode
 
             if (numShortBlocks != 0 && outputLength % interleaveSize < lastInterleaveSize)
                 throw new ArgumentOutOfRangeException(nameof(lastInterleaveSize), lastInterleaveSize,
-                    $"Not enough elements for specified last interleave size");
+                    $"Not enough elements for specified last interleave size({lastInterleaveSize})");
 
             var outputs = new T[numOutputs][];
             for (int i = 0; i < numOutputs; i++)
@@ -133,6 +134,15 @@ namespace DspAdpcm.Encode
 
             return outputs;
         }
+
+        public static IEnumerable<byte> ToBytesBE(this int value) => BitConverter.GetBytes(value).Reverse();
+        public static IEnumerable<byte> ToBytesBE(this short value) => BitConverter.GetBytes(value).Reverse();
+        public static void Add16BE(this List<byte> list, int value) => list.Add16BE((short)value);
+        public static void Add16BE(this List<byte> list, short value) => list.AddRange(value.ToBytesBE());
+        public static void Add32BE(this List<byte> list, int value) => list.AddRange(value.ToBytesBE());
+        public static void Add16(this List<byte> list, short value) => list.AddRange(BitConverter.GetBytes(value));
+        public static void Add32(this List<byte> list, int value) => list.AddRange(BitConverter.GetBytes(value));
+        public static void Add32(this List<byte> list, string value) => list.AddRange(Encoding.ASCII.GetBytes(value.PadRight(4, '\0').Substring(0, 4)));
 
         public static int ReadInt32BE(this BinaryReader reader) =>
             BitConverter.ToInt32(reader.ReadBytes(sizeof(int)).Reverse().ToArray(), 0);

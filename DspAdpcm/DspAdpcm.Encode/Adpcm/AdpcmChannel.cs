@@ -3,7 +3,7 @@ using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
 {
-    public class AdpcmChannel: IAdpcmChannel
+    public class AdpcmChannel
     {
         public byte[] AudioByteArray { get; set; }
 

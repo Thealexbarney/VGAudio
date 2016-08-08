@@ -18,7 +18,7 @@ namespace DspAdpcm.Cli
                 return 0;
             }
 
-            IPcmStream wave;
+            PcmStream wave;
 
             try
             {
@@ -36,7 +36,7 @@ namespace DspAdpcm.Cli
             Stopwatch watch = new Stopwatch();
             watch.Start();
 
-            IAdpcmStream adpcm = Encode.Adpcm.Encode.PcmToAdpcmParallel(wave);
+            AdpcmStream adpcm = Encode.Adpcm.Encode.PcmToAdpcmParallel(wave);
 
             watch.Stop();
             Console.WriteLine($"DONE! {adpcm.NumSamples} samples processed\n");
