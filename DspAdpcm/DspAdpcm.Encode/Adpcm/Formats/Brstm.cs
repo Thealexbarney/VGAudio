@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
     {
         public AdpcmStream AudioStream { get; set; }
 
+        public BrstmConfiguration Configuration { get; } = new BrstmConfiguration();
+
         private int NumSamples => AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
         private int NumTracks => AudioStream.Tracks.Count;
@@ -18,12 +21,12 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
-        private int SamplesPerInterleave { get; set; } = 0x3800;
+        private int SamplesPerInterleave => Math.Min(Configuration.SamplesPerInterleave, NumSamples);
         private int InterleaveCount => (NumSamples / SamplesPerInterleave) + (LastBlockSamples == 0 ? 0 : 1);
         private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
         private int LastBlockSamples => NumSamples % SamplesPerInterleave;
         private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
-        private int SamplesPerAdpcEntry { get; set; } = 0x3800;
+        private int SamplesPerAdpcEntry => Math.Min(Configuration.SamplesPerAdpcEntry, NumSamples);
         private int NumAdpcEntries => 1 + (NumSamples / SamplesPerAdpcEntry) - (LastBlockSamples == 0 ? 1 : 0);
         private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
 
@@ -36,7 +39,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int HeadChunkTableLength => 8 * 3;
         private int HeadChunk1Length => 0x34;
         private int HeadChunk2Length => 4 + (8 * NumTracks) + (TrackInfoLength * NumTracks);
-        private BrstmType HeaderType { get; set; } = BrstmType.SSBB;
+        private BrstmType HeaderType => Configuration.HeaderType;
         private int TrackInfoLength => HeaderType == BrstmType.SSBB ? 4 : 0x0c;
         private int HeadChunk3Length => 4 + (8 * NumChannels) + (ChannelInfoLength * NumChannels);
         private int ChannelInfoLength => 0x38;
@@ -288,9 +291,9 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 byte[] headChunk = reader.ReadBytes(structure.HeadChunkLengthRstm);
                 ParseHeadChunk(headChunk, structure);
 
-                SamplesPerInterleave = structure.SamplesPerInterleave;
-                SamplesPerAdpcEntry = structure.SamplesPerAdpcEntry;
-                HeaderType = structure.HeaderType;
+                Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
+                Configuration.SamplesPerAdpcEntry = structure.SamplesPerAdpcEntry;
+                Configuration.HeaderType = structure.HeaderType;
 
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
                 if (structure.Looping)
@@ -544,7 +547,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public short LoopHist2 { get; set; }
         }
 
-        private enum BrstmType
+        public enum BrstmType
         {
             /// <summary>
             /// The header type used in Super Smash Bros. Brawl
@@ -554,6 +557,46 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             /// The header type used in most games other than Super Smash Bros. Brawl
             /// </summary>
             Other
+        }
+
+        public class BrstmConfiguration
+        {
+            private int _samplesPerInterleave = 0x3800;
+            private int _samplesPerAdpcEntry = 0x3800;
+            public BrstmType HeaderType { get; set; } = BrstmType.SSBB;
+
+            public int SamplesPerInterleave
+            {
+                get { return _samplesPerInterleave; }
+                set
+                {
+                    if (value < 1)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(value), value,
+                            "Number of samples per interleave must be positive");
+                    }
+                    if (value % SamplesPerBlock != 0)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(value), value,
+                            "Number of samples per interleave must be divisible by 14");
+                    }
+                    _samplesPerInterleave = value;
+                }
+            }
+
+            public int SamplesPerAdpcEntry
+            {
+                get { return _samplesPerAdpcEntry; }
+                set
+                {
+                    if (value < 2)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(value), value,
+                            "Number of samples per interleave must be 2 or greater");
+                    }
+                    _samplesPerAdpcEntry = value;
+                }
+            }
         }
     }
 }
