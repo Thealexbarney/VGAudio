@@ -14,6 +14,13 @@ namespace DspAdpcm.Encode.Pcm.Formats
         private int NumSamples => AudioStream.NumSamples;
         private IList<PcmChannel> Channels => AudioStream.Channels;
 
+        // ReSharper disable InconsistentNaming
+        private static readonly Guid KSDATAFORMAT_SUBTYPE_PCM = 
+            new Guid("00000001-0000-0010-8000-00aa00389b71");
+        private const int WAVE_FORMAT_PCM = 1;
+        private const int WAVE_FORMAT_EXTENSIBLE = 0xfffe;
+        // ReSharper restore InconsistentNaming
+
         public Wave(Stream stream)
         {
             AudioStream = new PcmStream();
@@ -71,15 +78,21 @@ namespace DspAdpcm.Encode.Pcm.Formats
         {
             using (var reader = new BinaryReader(new MemoryStream(chunk)))
             {
-                int fmtCode = reader.ReadInt16();
+                int fmtCode = reader.ReadUInt16();
                 NumChannels = reader.ReadInt16();
                 AudioStream.SampleRate = reader.ReadInt32();
                 int fmtAvgBps = reader.ReadInt32();
                 int blockAlign = reader.ReadInt16();
                 BitDepth = reader.ReadInt16();
 
-                if (fmtCode != 1)
+                if (fmtCode == WAVE_FORMAT_EXTENSIBLE)
                 {
+                    ParseWaveFormatExtensible(reader);
+                }
+
+                if (fmtCode != WAVE_FORMAT_PCM && fmtCode != WAVE_FORMAT_EXTENSIBLE)
+                {
+                    var a = KSDATAFORMAT_SUBTYPE_PCM;
                     throw new InvalidDataException($"Must contain PCM data. Has invalid format {fmtCode}");
                 }
 
@@ -92,6 +105,25 @@ namespace DspAdpcm.Encode.Pcm.Formats
                 {
                     throw new InvalidDataException("File has invalid block alignment");
                 }
+            }
+        }
+
+        private void ParseWaveFormatExtensible(BinaryReader reader)
+        {
+            int cbSize = reader.ReadInt16();
+            if (cbSize != 22) return;
+
+            int wValidBitsPerSample = reader.ReadInt16();
+            if (wValidBitsPerSample > BitDepth)
+            {
+                throw new InvalidDataException("Inconsistent bits per sample");
+            }
+            uint channelMask = reader.ReadUInt32();
+
+            var subFormat = new Guid(reader.ReadBytes(16));
+            if (!subFormat.Equals(KSDATAFORMAT_SUBTYPE_PCM))
+            {
+                throw new InvalidDataException($"Must contain PCM data. Has invalid format {subFormat}");
             }
         }
 
