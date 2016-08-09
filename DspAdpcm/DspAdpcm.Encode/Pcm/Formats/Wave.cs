@@ -76,7 +76,7 @@ namespace DspAdpcm.Encode.Pcm.Formats
             {
                 chunk.Add16(22);
                 chunk.Add16((short)BitDepth);
-                chunk.Add32(0xff);
+                chunk.Add32(GetChannelMask(NumChannels));
                 chunk.AddRange(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
             }
 
@@ -96,6 +96,27 @@ namespace DspAdpcm.Encode.Pcm.Formats
             chunk.AddRange(interleavedBytes);
 
             return chunk.ToArray();
+        }
+
+        private static int GetChannelMask(int numChannels)
+        {
+            //Nothing special about these masks. I just choose
+            //whatever channel combinations seemed okay.
+            switch (numChannels)
+            {
+                case 4:
+                    return 0x0033;
+                case 5:
+                    return 0x0133;
+                case 6:
+                    return 0x0633;
+                case 7:
+                    return 0x01f3;
+                case 8:
+                    return 0x06f3;
+                default:
+                    return (1 << numChannels) - 1;
+            }
         }
 
         private void ReadWaveFile(Stream stream)
