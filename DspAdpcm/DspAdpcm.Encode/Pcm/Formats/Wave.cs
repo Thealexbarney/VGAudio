@@ -9,9 +9,10 @@ namespace DspAdpcm.Encode.Pcm.Formats
 {
     public class Wave
     {
-        public PcmStream AudioStream { get; set; }
-        private int NumChannels { get; set; }
-        private int BitDepth { get; set; }
+        public PcmStream AudioStream { get; }
+        private int NumChannelsReading { get; set; } //used when reading in a wave file
+        private int NumChannels => AudioStream.Channels.Count;
+        private int BitDepth { get; set; } = 16;
         private int BytesPerSample => (int)Math.Ceiling((double)BitDepth / 8);
         private int NumSamples => AudioStream.NumSamples;
         private int SampleRate => AudioStream.SampleRate;
@@ -31,11 +32,15 @@ namespace DspAdpcm.Encode.Pcm.Formats
         private int BytesPerSecond => SampleRate * BytesPerSample * NumChannels;
         private int BlockAlign => BytesPerSample * NumChannels;
 
-
         public Wave(Stream stream)
         {
             AudioStream = new PcmStream();
             ReadWaveFile(stream);
+        }
+
+        public Wave(PcmStream stream)
+        {
+            AudioStream = stream;
         }
 
         public IEnumerable<byte> GetFile()
@@ -145,7 +150,7 @@ namespace DspAdpcm.Encode.Pcm.Formats
             using (var reader = new BinaryReader(new MemoryStream(chunk)))
             {
                 int fmtCode = reader.ReadUInt16();
-                NumChannels = reader.ReadInt16();
+                NumChannelsReading = reader.ReadInt16();
                 AudioStream.SampleRate = reader.ReadInt32();
                 int fmtAvgBps = reader.ReadInt32();
                 int blockAlign = reader.ReadInt16();
@@ -167,7 +172,7 @@ namespace DspAdpcm.Encode.Pcm.Formats
                     throw new InvalidDataException($"Must have 16 bits per sample, not {BitDepth} bits per sample");
                 }
 
-                if (blockAlign != BytesPerSample * NumChannels)
+                if (blockAlign != BytesPerSample * NumChannelsReading)
                 {
                     throw new InvalidDataException("File has invalid block alignment");
                 }
@@ -195,9 +200,9 @@ namespace DspAdpcm.Encode.Pcm.Formats
 
         private void ParseDataChunk(BinaryReader reader, int chunkSize)
         {
-            AudioStream.NumSamples = chunkSize / 2 / NumChannels;
+            AudioStream.NumSamples = chunkSize / 2 / NumChannelsReading;
 
-            int extraBytes = chunkSize % (NumChannels * BytesPerSample);
+            int extraBytes = chunkSize % (NumChannelsReading * BytesPerSample);
             if (extraBytes != 0)
             {
                 throw new InvalidDataException($"{extraBytes} extra bytes at end of audio data chunk");
@@ -209,45 +214,45 @@ namespace DspAdpcm.Encode.Pcm.Formats
         //Much faster, but 3X memory usage
         private void ReadDataChunkInMemory(BinaryReader reader)
         {
-            byte[] audioBytes = reader.ReadBytes(NumSamples * NumChannels * 2);
-            if (audioBytes.Length != NumSamples * NumChannels * 2)
+            byte[] audioBytes = reader.ReadBytes(NumSamples * NumChannelsReading * 2);
+            if (audioBytes.Length != NumSamples * NumChannelsReading * 2)
             {
                 throw new InvalidDataException("Incomplete Wave file");
             }
 
-            var interlacedSamples = new short[NumSamples * NumChannels];
+            var interlacedSamples = new short[NumSamples * NumChannelsReading];
             Buffer.BlockCopy(audioBytes, 0, interlacedSamples, 0, audioBytes.Length);
 
-            if (NumChannels == 1)
+            if (NumChannelsReading == 1)
             {
                 Channels.Add(new PcmChannel(interlacedSamples));
                 return;
             }
 
-            for (int i = 0; i < NumChannels; i++)
+            for (int i = 0; i < NumChannelsReading; i++)
             {
                 Channels.Add(new PcmChannel(NumSamples));
             }
 
             for (int s = 0; s < NumSamples; s++)
             {
-                for (int c = 0; c < NumChannels; c++)
+                for (int c = 0; c < NumChannelsReading; c++)
                 {
-                    Channels[c].AddSample(interlacedSamples[s * NumChannels + c]);
+                    Channels[c].AddSample(interlacedSamples[s * NumChannelsReading + c]);
                 }
             }
         }
 
         private void ReadDataChunk(BinaryReader reader)
         {
-            for (int i = 0; i < NumChannels; i++)
+            for (int i = 0; i < NumChannelsReading; i++)
             {
                 Channels.Add(new PcmChannel(NumSamples));
             }
 
             for (int s = 0; s < NumSamples; s++)
             {
-                for (int c = 0; c < NumChannels; c++)
+                for (int c = 0; c < NumChannelsReading; c++)
                 {
                     Channels[c].AddSample(reader.ReadInt16());
                 }
