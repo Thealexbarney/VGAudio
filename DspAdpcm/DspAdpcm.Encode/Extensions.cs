@@ -141,6 +141,7 @@ namespace DspAdpcm.Encode
         public static void Add16BE(this List<byte> list, short value) => list.AddRange(value.ToBytesBE());
         public static void Add32BE(this List<byte> list, int value) => list.AddRange(value.ToBytesBE());
         public static void Add16(this List<byte> list, short value) => list.AddRange(BitConverter.GetBytes(value));
+        public static void Add16(this List<byte> list, ushort value) => list.AddRange(BitConverter.GetBytes(value));
         public static void Add32(this List<byte> list, int value) => list.AddRange(BitConverter.GetBytes(value));
         public static void Add32(this List<byte> list, string value) => list.AddRange(Encoding.ASCII.GetBytes(value.PadRight(4, '\0').Substring(0, 4)));
     }

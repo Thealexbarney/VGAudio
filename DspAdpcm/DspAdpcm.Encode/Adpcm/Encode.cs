@@ -649,6 +649,50 @@ namespace DspAdpcm.Encode.Adpcm
             return adpcm;
         }
 
+        private static PcmChannel AdpcmtoPcm(AdpcmChannel adpcmChannel)
+        {
+            return new PcmChannel(adpcmChannel.NumSamples)
+            {
+                AudioData = adpcmChannel.GetPcmAudio().ToArray()
+            };
+        }
+
+        public static PcmStream AdpcmtoPcm(AdpcmStream adpcmStream)
+        {
+            PcmStream pcm = new PcmStream(adpcmStream.NumSamples, adpcmStream.SampleRate);
+            var channels = new PcmChannel[adpcmStream.Channels.Count];
+
+            for (int i = 0; i < channels.Length; i++)
+            {
+                channels[i] = AdpcmtoPcm(adpcmStream.Channels[i]);
+            }
+
+            foreach (PcmChannel channel in channels)
+            {
+                pcm.Channels.Add(channel);
+            }
+
+            return pcm;
+        }
+
+        public static PcmStream AdpcmtoPcmParallel(AdpcmStream adpcmStream)
+        {
+            PcmStream pcm = new PcmStream(adpcmStream.NumSamples, adpcmStream.SampleRate);
+            var channels = new PcmChannel[adpcmStream.Channels.Count];
+
+            Parallel.For(0, channels.Length, i =>
+            {
+                channels[i] = AdpcmtoPcm(adpcmStream.Channels[i]);
+            });
+
+            foreach (PcmChannel channel in channels)
+            {
+                pcm.Channels.Add(channel);
+            }
+
+            return pcm;
+        }
+
         public static IEnumerable<byte> BuildAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerAdpcEntry, int numAdpcEntries)
         {
             var channelsArray = channels.ToArray();
