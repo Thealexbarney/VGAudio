@@ -5,7 +5,7 @@ namespace DspAdpcm.Encode.Pcm
     public class PcmChannel
     {
         public int NumSamples { get; set; }
-        private short[] AudioData { get; set; }
+        internal short[] AudioData { get; set; }
         private int CurrentSample { get; set; }
         
         public PcmChannel(short[] audioData)

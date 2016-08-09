@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Pcm.Formats
 {
@@ -12,19 +14,83 @@ namespace DspAdpcm.Encode.Pcm.Formats
         private int BitDepth { get; set; }
         private int BytesPerSample => (int)Math.Ceiling((double)BitDepth / 8);
         private int NumSamples => AudioStream.NumSamples;
+        private int SampleRate => AudioStream.SampleRate;
         private IList<PcmChannel> Channels => AudioStream.Channels;
 
         // ReSharper disable InconsistentNaming
-        private static readonly Guid KSDATAFORMAT_SUBTYPE_PCM = 
+        private static readonly Guid KSDATAFORMAT_SUBTYPE_PCM =
             new Guid("00000001-0000-0010-8000-00aa00389b71");
-        private const int WAVE_FORMAT_PCM = 1;
-        private const int WAVE_FORMAT_EXTENSIBLE = 0xfffe;
+        private const ushort WAVE_FORMAT_PCM = 1;
+        private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
         // ReSharper restore InconsistentNaming
+
+        private int RiffChunkLength => 4 + 8 + FmtChunkLength + 8 + DataChunkLength;
+        private int FmtChunkLength => NumChannels > 2 ? 40 : 16;
+        private int DataChunkLength => NumChannels * NumSamples * sizeof(short);
+
+        private int BytesPerSecond => SampleRate * BytesPerSample * NumChannels;
+        private int BlockAlign => BytesPerSample * NumChannels;
+
 
         public Wave(Stream stream)
         {
             AudioStream = new PcmStream();
             ReadWaveFile(stream);
+        }
+
+        public IEnumerable<byte> GetFile()
+        {
+            return Combine(GetRiffHeader(), GetFmtChunk(), GetDataChunk());
+        }
+
+        private byte[] GetRiffHeader()
+        {
+            var header = new List<byte>();
+
+            header.Add32("RIFF");
+            header.Add32(RiffChunkLength);
+            header.Add32("WAVE");
+
+            return header.ToArray();
+        }
+
+        private byte[] GetFmtChunk()
+        {
+            var chunk = new List<byte>();
+
+            chunk.Add32("fmt ");
+            chunk.Add32(FmtChunkLength);
+            chunk.Add16(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM);
+            chunk.Add16((short)NumChannels);
+            chunk.Add32(SampleRate);
+            chunk.Add32(BytesPerSecond);
+            chunk.Add16((short)BlockAlign);
+            chunk.Add16((short)BitDepth);
+
+            if (NumChannels > 2)
+            {
+                chunk.Add16(22);
+                chunk.Add16((short)BitDepth);
+                chunk.Add32(0xff);
+                chunk.AddRange(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
+            }
+
+            return chunk.ToArray();
+        }
+
+        private byte[] GetDataChunk()
+        {
+            var chunk = new List<byte>();
+
+            chunk.Add32("data");
+            chunk.Add32(DataChunkLength);
+            short[][] channels = AudioStream.Channels.Select(x => x.AudioData).ToArray();
+            short[] interleavedAudio = channels.Interleave(1);
+            byte[] interleavedBytes = new byte[interleavedAudio.Length * sizeof(short)];
+            Buffer.BlockCopy(interleavedAudio, 0, interleavedBytes, 0, interleavedBytes.Length);
+            chunk.AddRange(interleavedBytes);
+
+            return chunk.ToArray();
         }
 
         private void ReadWaveFile(Stream stream)
