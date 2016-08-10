@@ -452,7 +452,7 @@ namespace DspAdpcm.Encode.Adpcm
                 }
 
                 /* Set initial scale */
-                for (scale[i] = 0; (scale[i] <= 12) && ((distance > 7) || (distance < -8)); scale[i]++, distance /=2) { }
+                for (scale[i] = 0; (scale[i] <= 12) && ((distance > 7) || (distance < -8)); scale[i]++, distance /= 2) { }
                 scale[i] = (scale[i] <= 1) ? -1 : scale[i] - 2;
 
                 do
@@ -549,7 +549,6 @@ namespace DspAdpcm.Encode.Adpcm
         {
             short hist1 = audio.Hist1;
             short hist2 = audio.Hist2;
-            int currentSample = 0;
 
             if (includeHistorySamples)
             {
@@ -581,7 +580,6 @@ namespace DspAdpcm.Encode.Adpcm
 
                     hist2 = hist1;
                     hist1 = (short)sample;
-                    ++currentSample;
 
                     yield return (short)sample;
                 }
@@ -693,23 +691,35 @@ namespace DspAdpcm.Encode.Adpcm
             return pcm;
         }
 
-        public static IEnumerable<byte> BuildAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerAdpcEntry, int numAdpcEntries)
+        internal static void CalculateAdpcTable(AdpcmChannel channel, int samplesPerEntry)
         {
-            var channelsArray = channels.ToArray();
-            var entries = new short[channelsArray.Length][];
+            channel.SeekTable = 
+                channel.GetPcmAudio(true)
+                .Batch(samplesPerEntry)
+                .SelectMany(y => y
+                    .Take(2)
+                    .Reverse()
+                )
+                .ToArray();
 
-            Parallel.For(0, channelsArray.Length, i =>
-            {
-                entries[i] = channelsArray[i].GetPcmAudio(true)
-                    .Batch(samplesPerAdpcEntry)
-                    .Take(numAdpcEntries)
-                    .SelectMany(y => y
-                        .Take(2)
-                        .Reverse()
-                    ).ToArray();
-            });
+            channel.SamplesPerSeekTableEntry = samplesPerEntry;
+        }
 
-            return entries.Interleave(2)
+        internal static void CalculateAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry)
+        {
+            Parallel.ForEach(channels, channel => CalculateAdpcTable(channel, samplesPerEntry));
+        }
+
+        internal static IEnumerable<byte> BuildAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry)
+        {
+            channels = channels.ToList();
+            CalculateAdpcTable(channels.Where(x => 
+            x.SeekTable == null || x.SamplesPerSeekTableEntry != samplesPerEntry), samplesPerEntry);
+                
+            return channels
+                .Select(x => x.SeekTable)
+                .ToArray()
+                .Interleave(2)
                 .SelectMany(x =>
                     BitConverter.GetBytes(x)
                     .Reverse()

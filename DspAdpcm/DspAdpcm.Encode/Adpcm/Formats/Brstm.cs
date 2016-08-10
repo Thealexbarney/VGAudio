@@ -234,7 +234,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             chunk.Add32("ADPC");
             chunk.Add32BE(AdpcChunkLength);
 
-            chunk.AddRange(Encode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries));
+            Encode.CalculateAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry);
+            chunk.AddRange(Encode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry));
 
             chunk.AddRange(new byte[AdpcChunkLength - chunk.Count]);
 
