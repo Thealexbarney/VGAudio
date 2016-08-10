@@ -695,9 +695,9 @@ namespace DspAdpcm.Encode.Adpcm
         {
             channel.SeekTable = 
                 channel.GetPcmAudio(true)
-                .Batch(samplesPerEntry)
+                .Batch(samplesPerEntry, true)
                 .SelectMany(y => y
-                    .Take(2)
+                    .Take(y.Length > 2 ? 2 : 0)
                     .Reverse()
                 )
                 .ToArray();

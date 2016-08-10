@@ -22,12 +22,14 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int AudioDataOffset => DataChunkOffset + 0x20;
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
         private int SamplesPerInterleave => Math.Min(Configuration.SamplesPerInterleave, NumSamples);
-        private int InterleaveCount => (NumSamples / SamplesPerInterleave) + (LastBlockSamples == 0 ? 0 : 1);
+        private int InterleaveCount => (NumSamples / SamplesPerInterleave) + (FullLastBlock ? 0 : 1);
         private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
-        private int LastBlockSamples => NumSamples % SamplesPerInterleave;
+        private int LastBlockSamples => FullLastBlock ? SamplesPerInterleave : NumSamples % SamplesPerInterleave;
         private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
+        private bool FullLastBlock => NumSamples % SamplesPerInterleave == 0 && NumChannels > 0;
         private int SamplesPerAdpcEntry => Math.Min(Configuration.SamplesPerAdpcEntry, NumSamples);
-        private int NumAdpcEntries => 1 + (NumSamples / SamplesPerAdpcEntry) - (LastBlockSamples == 0 ? 1 : 0);
+        private bool FullLastAdpcEntry => NumSamples % SamplesPerAdpcEntry == 0 && NumChannels > 0;
+        private int NumAdpcEntries => (NumSamples / SamplesPerAdpcEntry) + (FullLastAdpcEntry ? 0 : 1);
         private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
 
         private int RstmHeaderLength => 0x40;
