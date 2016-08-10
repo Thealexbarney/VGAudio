@@ -8,11 +8,8 @@ namespace DspAdpcm.Encode
 {
     internal static class Extensions
     {
-        public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> source, int size, int lastSize = -1)
+        public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> source, int size, bool truncateLastBatch = false)
         {
-            if (lastSize < 0 || lastSize > size)
-                lastSize = size;
-
             T[] bucket = new T[size];
             var count = 0;
 
@@ -31,7 +28,7 @@ namespace DspAdpcm.Encode
 
             // Return the last bucket with all remaining elements
             if (count > 0)
-                yield return bucket.Take(lastSize).ToArray();
+                yield return bucket.Take(truncateLastBatch ? count : size).ToArray();
         }
 
         public static T[] Interleave<T>(this T[][] inputs, int interleaveSize, int lastInterleaveSize = -1)
