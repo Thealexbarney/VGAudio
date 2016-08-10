@@ -132,6 +132,8 @@ namespace DspAdpcm.Encode
             return outputs;
         }
 
+        public static short FlipBytes(this short value) => (short)(value << 8 | (ushort) value >> 8);
+
         public static IEnumerable<byte> ToBytesBE(this int value) => BitConverter.GetBytes(value).Reverse();
         public static IEnumerable<byte> ToBytesBE(this short value) => BitConverter.GetBytes(value).Reverse();
         public static void Add16BE(this List<byte> list, int value) => list.Add16BE((short)value);

@@ -710,7 +710,7 @@ namespace DspAdpcm.Encode.Adpcm
             Parallel.ForEach(channels, channel => CalculateAdpcTable(channel, samplesPerEntry));
         }
 
-        internal static IEnumerable<byte> BuildAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry)
+        internal static IEnumerable<byte> BuildAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry, int numEntries)
         {
             channels = channels.ToList();
             CalculateAdpcTable(channels.Where(x => 
@@ -723,7 +723,8 @@ namespace DspAdpcm.Encode.Adpcm
                 .SelectMany(x =>
                     BitConverter.GetBytes(x)
                     .Reverse()
-                );
+                )
+                .Take(numEntries * 4 * channels.Count());
         }
     }
 }
