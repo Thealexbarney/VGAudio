@@ -222,9 +222,9 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 chunk.Add16BE(channel.AudioData.First());
                 chunk.Add16BE(channel.Hist1);
                 chunk.Add16BE(channel.Hist2);
-                chunk.Add16BE(channel.LoopPredScale);
-                chunk.Add16BE(channel.LoopHist1);
-                chunk.Add16BE(channel.LoopHist2);
+                chunk.Add16BE(AudioStream.Looping ? channel.LoopPredScale : channel.AudioData.First());
+                chunk.Add16BE(AudioStream.Looping ? channel.LoopHist1 : 0);
+                chunk.Add16BE(AudioStream.Looping ? channel.LoopHist2 : 0);
                 chunk.Add16(0);
             }
 
