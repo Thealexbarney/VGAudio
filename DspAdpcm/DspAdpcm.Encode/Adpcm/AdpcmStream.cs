@@ -9,26 +9,56 @@ namespace DspAdpcm.Encode.Adpcm
     {
         public IList<AdpcmChannel> Channels { get; private set; } = new List<AdpcmChannel>();
         private IList<AdpcmTrack> _tracks;
-        public IList<AdpcmTrack> Tracks
+        internal IList<AdpcmTrack> Tracks
         {
             get { return _tracks ?? GetDefaultTrackList().ToList(); }
             set { _tracks = value; }
         }
 
+        /// <summary>
+        /// The number of samples in the <see cref="AdpcmStream"/>.
+        /// </summary>
         public int NumSamples { get; }
-        public int NumNibbles => GetNibbleFromSample(NumSamples);
+        private int NumNibbles => GetNibbleFromSample(NumSamples);
+        /// <summary>
+        /// The audio sample rate of the <see cref="AdpcmStream"/>.
+        /// </summary>
         public int SampleRate { get; }
 
+        /// <summary>
+        /// The loop start point in samples.
+        /// </summary>
         public int LoopStart { get; private set; }
+        /// <summary>
+        /// The loop end point in samples.
+        /// </summary>
         public int LoopEnd { get; private set; }
+        /// <summary>
+        /// Indicates whether the <see cref="AdpcmStream"/>
+        /// loops or not.
+        /// </summary>
         public bool Looping { get; private set; }
 
-        public AdpcmStream(int samples, int sampleRate)
+        /// <summary>
+        /// Creates an empty<see cref="AdpcmStream"/> and sets the
+        /// number of samples and sample rate.
+        /// </summary>
+        /// <param name="numSamples">The sample count.</param>
+        /// <param name="sampleRate">The sample rate in Hz.</param>
+        public AdpcmStream(int numSamples, int sampleRate)
         {
-            NumSamples = samples;
+            NumSamples = numSamples;
             SampleRate = sampleRate;
         }
 
+        /// <summary>
+        /// Sets the loop points for the <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="loopStart">The start loop point in samples.</param>
+        /// <param name="loopEnd">The end loop point in samples.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the
+        /// specified <paramref name="loopStart"/> or <paramref name="loopEnd"/>
+        /// are invalid./></exception>
         public void SetLoop(int loopStart, int loopEnd)
         {
             if (loopStart < 0 || loopStart > NumSamples)
@@ -87,7 +117,7 @@ namespace DspAdpcm.Encode.Adpcm
             return copy;
         }
 
-        public IEnumerable<AdpcmTrack> GetDefaultTrackList()
+        private IEnumerable<AdpcmTrack> GetDefaultTrackList()
         {
             int numTracks = (int)Math.Ceiling((double)Channels.Count / 2);
             for (int i = 0; i < numTracks; i++)
@@ -103,7 +133,7 @@ namespace DspAdpcm.Encode.Adpcm
         }
     }
 
-    public class AdpcmTrack
+    internal class AdpcmTrack
     {
         public int Volume { get; set; } = 0x7f;
         public int Panning { get; set; } = 0x40;

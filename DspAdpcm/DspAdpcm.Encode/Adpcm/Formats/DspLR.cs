@@ -2,7 +2,7 @@
 
 namespace DspAdpcm.Encode.Adpcm.Formats
 {
-    public class DspLR
+    internal class DspLR
     {
         public Dsp LeftChannel { get; }
         public Dsp RightChannel { get; }

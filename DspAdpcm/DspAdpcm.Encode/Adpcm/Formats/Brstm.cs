@@ -43,8 +43,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int HeadChunkTableLength => 8 * 3;
         private int HeadChunk1Length => 0x34;
         private int HeadChunk2Length => 4 + (8 * NumTracks) + (TrackInfoLength * NumTracks);
-        private BrstmType HeaderType => Configuration.HeaderType;
-        private int TrackInfoLength => HeaderType == BrstmType.SSBB ? 4 : 0x0c;
+        private BrstmHeaderType HeaderType => Configuration.HeaderType;
+        private int TrackInfoLength => HeaderType == BrstmHeaderType.SSBB ? 4 : 0x0c;
         private int HeadChunk3Length => 4 + (8 * NumChannels) + (ChannelInfoLength * NumChannels);
         private int ChannelInfoLength => 0x38;
 
@@ -163,7 +163,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             var chunk = new List<byte>();
 
             chunk.Add((byte)NumTracks);
-            chunk.Add((byte)(HeaderType == BrstmType.SSBB ? 0 : 1));
+            chunk.Add((byte)(HeaderType == BrstmHeaderType.SSBB ? 0 : 1));
             chunk.Add16BE(0);
 
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + 4;
@@ -171,13 +171,13 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             for (int i = 0; i < NumTracks; i++)
             {
-                chunk.Add32BE(HeaderType == BrstmType.SSBB ? 0x01000000 : 0x01010000);
+                chunk.Add32BE(HeaderType == BrstmHeaderType.SSBB ? 0x01000000 : 0x01010000);
                 chunk.Add32BE(baseOffset + offsetTableLength + TrackInfoLength * i);
             }
 
             foreach (AdpcmTrack track in AudioStream.Tracks)
             {
-                if (HeaderType == BrstmType.Other)
+                if (HeaderType == BrstmHeaderType.Other)
                 {
                     chunk.Add((byte)track.Volume);
                     chunk.Add((byte)track.Panning);
@@ -401,7 +401,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 int numTracks = reader.ReadByte();
                 int[] trackOffsets = new int[numTracks];
 
-                structure.HeaderType = reader.ReadByte() == 0 ? BrstmType.SSBB : BrstmType.Other;
+                structure.HeaderType = reader.ReadByte() == 0 ? BrstmHeaderType.SSBB : BrstmHeaderType.Other;
 
                 reader.BaseStream.Position = 4;
                 for (int i = 0; i < numTracks; i++)
@@ -415,7 +415,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                     reader.BaseStream.Position = trackOffsets[i] - structure.HeadChunk2Offset;
                     var track = new AdpcmTrack();
 
-                    if (structure.HeaderType == BrstmType.Other)
+                    if (structure.HeaderType == BrstmHeaderType.Other)
                     {
                         track.Volume = reader.ReadByte();
                         track.Panning = reader.ReadByte();
@@ -593,7 +593,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public int LastBlockSize { get; set; }
             public int SamplesPerAdpcEntry { get; set; }
 
-            public BrstmType HeaderType { get; set; } = BrstmType.SSBB;
+            public BrstmHeaderType HeaderType { get; set; } = BrstmHeaderType.SSBB;
             public List<AdpcmTrack> Tracks { get; set; } = new List<AdpcmTrack>();
 
             public int NumChannelsChunk3 { get; set; }
@@ -623,26 +623,37 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public short LoopHist2 { get; set; }
         }
 
-        public enum BrstmType
+        /// <summary>
+        /// The different header types used for BRSTM files.
+        /// </summary>
+        /// <remarks>The only difference between each header type
+        /// is the structure containing information on the tracks
+        /// contained in the BRSTM file.</remarks>
+        public enum BrstmHeaderType
         {
             /// <summary>
             /// The header type used in Super Smash Bros. Brawl
             /// </summary>
             SSBB,
             /// <summary>
-            /// The header type used in most games other than Super Smash Bros. Brawl
+            /// The header type used in most games other than 
+            /// Super Smash Bros. Brawl
             /// </summary>
             Other
         }
 
+        /// <summary>
+        /// The different types of seek tables.
+        /// </summary>
         public enum SeekTableType
         {
             /// <summary>
-            /// A normal length seek table.
+            /// A normal length, complete seek table.
             /// </summary>
             Standard,
             /// <summary>
-            /// A shortened seek table used in games including Pokémon Battle Revolution and Mario Party 8.
+            /// A shortened, truncated seek table used in games 
+            /// including Pokémon Battle Revolution and Mario Party 8.
             /// </summary>
             Short
         }
@@ -651,7 +662,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         {
             private int _samplesPerInterleave = 0x3800;
             private int _samplesPerAdpcEntry = 0x3800;
-            public BrstmType HeaderType { get; set; } = BrstmType.SSBB;
+            public BrstmHeaderType HeaderType { get; set; } = BrstmHeaderType.SSBB;
             public SeekTableType SeekTableType { get; set; } = SeekTableType.Standard;
             public bool RecalculateSeekTable { get; set; } = true;
             public bool RecalculateLoopContext { get; set; } = true;
