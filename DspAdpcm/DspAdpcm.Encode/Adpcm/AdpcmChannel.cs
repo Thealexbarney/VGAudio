@@ -19,7 +19,9 @@ namespace DspAdpcm.Encode.Adpcm
         public short LoopPredScale { get; private set; }
         public short LoopHist1 { get; private set; }
         public short LoopHist2 { get; private set; }
-        
+
+        public short[] SeekTable { get; set; } = null;
+        public int SamplesPerSeekTableEntry { get; set; }
 
         public AdpcmChannel(int numSamples)
         {
