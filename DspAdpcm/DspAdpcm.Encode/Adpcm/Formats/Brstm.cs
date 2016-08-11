@@ -68,6 +68,11 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         public Brstm(Stream stream)
         {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
             ReadBrstmFile(stream);
         }
 

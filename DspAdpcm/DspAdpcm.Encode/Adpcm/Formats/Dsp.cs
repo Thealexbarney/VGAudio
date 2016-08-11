@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static DspAdpcm.Encode.Helpers;
@@ -32,6 +33,11 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         public Dsp(Stream stream)
         {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
             ReadDspFile(stream);
         }
 

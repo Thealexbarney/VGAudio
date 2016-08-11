@@ -9,6 +9,7 @@ namespace DspAdpcm.Encode.Pcm.Formats
 {
     public class Wave
     {
+
         public PcmStream AudioStream { get; }
         private int NumChannelsReading { get; set; } //used when reading in a wave file
         private int NumChannels => AudioStream.Channels.Count;
@@ -34,6 +35,11 @@ namespace DspAdpcm.Encode.Pcm.Formats
 
         public Wave(Stream stream)
         {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
             AudioStream = new PcmStream();
             ReadWaveFile(stream);
         }
