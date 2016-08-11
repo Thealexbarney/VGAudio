@@ -21,16 +21,16 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
-        private int SamplesPerInterleave => Math.Min(Configuration.SamplesPerInterleave, NumSamples);
+        private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
         private int InterleaveCount => (NumSamples / SamplesPerInterleave) + (FullLastBlock ? 0 : 1);
         private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
         private int LastBlockSamples => FullLastBlock ? SamplesPerInterleave : NumSamples % SamplesPerInterleave;
         private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
         private bool FullLastBlock => NumSamples % SamplesPerInterleave == 0 && NumChannels > 0;
-        private int SamplesPerAdpcEntry => Math.Min(Configuration.SamplesPerAdpcEntry, NumSamples);
-        private bool FullLastAdpcEntry => NumSamples % SamplesPerAdpcEntry == 0 && NumChannels > 0;
+        private int SamplesPerAdpcEntry => Configuration.SamplesPerAdpcEntry;
+        private bool FullLastAdpcEntry => NumSamples % SamplesPerAdpcEntry == 0 && NumSamples > 0;
         private int NumAdpcEntriesShortened => (GetBytesForAdpcmSamples(NumSamples) / SamplesPerAdpcEntry) + 1;
-        private int NumAdpcEntries => Configuration.SeekTableType == SeekTableType.Standard ? 
+        private int NumAdpcEntries => Configuration.SeekTableType == SeekTableType.Standard ?
             (NumSamples / SamplesPerAdpcEntry) + (FullLastAdpcEntry ? 0 : 1) : NumAdpcEntriesShortened;
         private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
 
@@ -313,6 +313,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
                 ParseAdpcChunk(stream, structure);
                 ParseDataChunk(stream, structure);
+
+                Configuration.SeekTableType = structure.SeekTableType;
             }
         }
 
@@ -473,13 +475,30 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 throw new InvalidDataException("ADPC chunk length in RSTM header doesn't match length in ADPC header");
             }
 
-            byte[] tableBytes = reader.ReadBytes(structure.AdpcChunkLength - 8);
+            bool fullLastAdpcEntry = structure.NumSamples % structure.SamplesPerAdpcEntry == 0 && structure.NumSamples > 0;
+            int bytesPerEntry = 4 * structure.NumChannelsChunk1;
+            int numAdpcEntriesShortened = (GetBytesForAdpcmSamples(structure.NumSamples) / structure.SamplesPerAdpcEntry) + 1;
+            int numAdpcEntriesStandard = (structure.NumSamples / structure.SamplesPerAdpcEntry) + (fullLastAdpcEntry ? 0 : 1);
+
+            //Chunk pads to 0x20 bytes and has 8 header bytes, so check if the length's within that range.
+            if (Math.Abs(structure.AdpcChunkLength - bytesPerEntry * numAdpcEntriesStandard - 0x14) < 0x14)
+            {
+                structure.AdpcTableLength = bytesPerEntry * numAdpcEntriesStandard;
+                structure.SeekTableType = SeekTableType.Standard;
+            }
+            else if (Math.Abs(structure.AdpcChunkLength - bytesPerEntry * numAdpcEntriesShortened - 0x14) < 0x14)
+            {
+                structure.AdpcTableLength = bytesPerEntry * numAdpcEntriesShortened;
+                structure.SeekTableType = SeekTableType.Short;
+            }
+            else
+            {
+                return; //Unknown format. Don't parse table
+            }
+
+            byte[] tableBytes = reader.ReadBytes(structure.AdpcTableLength);
             short[] table = new short[(int)Math.Ceiling((double)tableBytes.Length / 2)];
             Buffer.BlockCopy(tableBytes, 0, table, 0, tableBytes.Length);
-
-            short[] a = table.Select(x => x.FlipBytes()).ToArray();
-
-            var b = a.DeInterleave(2, structure.NumChannelsChunk1);
 
             structure.SeekTable = table.Select(x => x.FlipBytes()).ToArray()
                 .DeInterleave(2, structure.NumChannelsChunk1);
@@ -566,14 +585,16 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public int LastBlockSize { get; set; }
             public int SamplesPerAdpcEntry { get; set; }
 
-            public BrstmType HeaderType { get; set; }
+            public BrstmType HeaderType { get; set; } = BrstmType.SSBB;
             public List<AdpcmTrack> Tracks { get; set; } = new List<AdpcmTrack>();
 
             public int NumChannelsChunk3 { get; set; }
             public List<ChannelInfo> Channels { get; set; } = new List<ChannelInfo>();
 
             public int AdpcChunkLength { get; set; }
+            public int AdpcTableLength { get; set; }
             public short[][] SeekTable { get; set; }
+            public SeekTableType SeekTableType { get; set; } = SeekTableType.Standard;
 
             public int DataChunkLength { get; set; }
         }
