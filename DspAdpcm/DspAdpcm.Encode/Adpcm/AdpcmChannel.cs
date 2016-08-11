@@ -16,9 +16,9 @@ namespace DspAdpcm.Encode.Adpcm
         public short Hist1 { get; set; } = 0;
         public short Hist2 { get; set; } = 0;
 
-        public short LoopPredScale { get; private set; }
-        public short LoopHist1 { get; private set; }
-        public short LoopHist2 { get; private set; }
+        public short LoopPredScale { get; set; }
+        public short LoopHist1 { get; set; }
+        public short LoopHist2 { get; set; }
 
         public short[] SeekTable { get; set; } = null;
         public int SamplesPerSeekTableEntry { get; set; }

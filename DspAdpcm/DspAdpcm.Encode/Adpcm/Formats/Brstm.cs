@@ -201,7 +201,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length + 4;
             int offsetTableLength = NumChannels * 8;
 
-            if (AudioStream.Looping)
+            if (AudioStream.Looping && Configuration.RecalculateLoopContext)
             {
                 Parallel.ForEach(AudioStream.Channels, x => x.SetLoopContext(AudioStream.LoopStart));
             }
@@ -529,7 +529,10 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                     Coefs = channelInfo.Coefs,
                     Gain = channelInfo.Gain,
                     Hist1 = channelInfo.Hist1,
-                    Hist2 = channelInfo.Hist2
+                    Hist2 = channelInfo.Hist2,
+                    LoopPredScale = channelInfo.LoopPredScale,
+                    LoopHist1 = channelInfo.LoopHist1,
+                    LoopHist2 = channelInfo.LoopHist2
                 })
                 .ToList();
 
@@ -646,6 +649,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public BrstmType HeaderType { get; set; } = BrstmType.SSBB;
             public SeekTableType SeekTableType { get; set; } = SeekTableType.Standard;
             public bool RecalculateSeekTable { get; set; } = true;
+            public bool RecalculateLoopContext { get; set; } = true;
 
             public int SamplesPerInterleave
             {
