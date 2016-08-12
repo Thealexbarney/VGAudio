@@ -5,11 +5,15 @@ using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
 {
+    /// <summary>
+    /// A 4-bit Nintendo ADPCM audio stream.
+    /// The stream can contain any number of individual channels.
+    /// </summary>
     public class AdpcmStream
     {
-        public IList<AdpcmChannel> Channels { get; private set; } = new List<AdpcmChannel>();
-        private IList<AdpcmTrack> _tracks;
-        internal IList<AdpcmTrack> Tracks
+        internal List<AdpcmChannel> Channels { get; set; } = new List<AdpcmChannel>();
+        private List<AdpcmTrack> _tracks;
+        internal List<AdpcmTrack> Tracks
         {
             get { return _tracks ?? GetDefaultTrackList().ToList(); }
             set { _tracks = value; }
@@ -38,6 +42,11 @@ namespace DspAdpcm.Encode.Adpcm
         /// loops or not.
         /// </summary>
         public bool Looping { get; private set; }
+
+        /// <summary>
+        /// The number of channels currently in the <see cref="AdpcmStream"/>.
+        /// </summary>
+        public int NumChannels => Channels.Count;
 
         /// <summary>
         /// Creates an empty<see cref="AdpcmStream"/> and sets the
@@ -81,38 +90,24 @@ namespace DspAdpcm.Encode.Adpcm
             LoopEnd = loopEnd;
         }
 
-        public AdpcmStream ShallowClone()
+        private AdpcmStream ShallowClone() => (AdpcmStream)MemberwiseClone();
+
+        /// <summary>
+        /// Returns a new <see cref="AdpcmStream"/> shallow clone containing 
+        /// the specified subset of channels. The channels are the only
+        /// shallow cloned item. Everything else is deep cloned. 
+        /// </summary>
+        /// <param name="startIndex">The zero-based index at which the range starts.</param>
+        /// <param name="count">The number of channels in the range.</param>
+        /// <returns>The new <see cref="AdpcmStream"/> containing the specified channels.</returns>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="startIndex"/>
+        /// or <paramref name="count"/> are out of range.</exception>
+        public AdpcmStream GetChannels(int startIndex, int count)
         {
-            return MemberwiseClone() as AdpcmStream;
-        }
-
-        public AdpcmStream ShallowCloneChannelSubset(int start, int end)
-        {
-            if (start > Channels.Count || end > Channels.Count)
-            {
-                throw new ArgumentOutOfRangeException(start > Channels.Count ? nameof(start) : nameof(end),
-                    $"Argument must be less than channel count ({Channels.Count})");
-            }
-
-            if (start < 0 || end < 0)
-            {
-                throw new ArgumentOutOfRangeException(start > Channels.Count ? nameof(start) : nameof(end),
-                    "Argument must be greater than zero");
-            }
-
-            if (start > end)
-            {
-                throw new ArgumentOutOfRangeException(nameof(start),
-                    $"{nameof(start)} must be less than or equal to {nameof(end)}");
-            }
-
             AdpcmStream copy = ShallowClone();
-            copy.Channels = new List<AdpcmChannel>();
-
-            for (int i = start; i <= end; i++)
-            {
-                copy.Channels.Add(Channels[i]);
-            }
+            
+            copy.Channels = Channels.GetRange(startIndex, count);
+            copy._tracks = _tracks.Select(x => x.Clone()).ToList();
 
             return copy;
         }
@@ -140,5 +135,7 @@ namespace DspAdpcm.Encode.Adpcm
         public int NumChannels { get; set; }
         public int ChannelLeft { get; set; }
         public int ChannelRight { get; set; }
+
+        public AdpcmTrack Clone() => (AdpcmTrack)MemberwiseClone();
     }
 }

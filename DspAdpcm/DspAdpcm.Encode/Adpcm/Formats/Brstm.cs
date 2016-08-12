@@ -8,10 +8,19 @@ using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm.Formats
 {
+    /// <summary>
+    /// Represents a BRSTM file.
+    /// </summary>
     public class Brstm
     {
+        /// <summary>
+        /// The underlying <see cref="AdpcmStream"/> used to build the BRSTM file.
+        /// </summary>
         public AdpcmStream AudioStream { get; set; }
 
+        /// <summary>
+        /// Contains various settings used when building the BRSTM file.
+        /// </summary>
         public BrstmConfiguration Configuration { get; } = new BrstmConfiguration();
 
         private int NumSamples => AudioStream.NumSamples;
@@ -56,6 +65,11 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private int FileLength => RstmHeaderLength + HeadChunkLength + AdpcChunkLength + DataChunkLength;
 
+        /// <summary>
+        /// Initializes a new <see cref="Brstm"/> from an <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="AdpcmStream"/> used to
+        /// create the <see cref="Brstm"/>.</param>
         public Brstm(AdpcmStream stream)
         {
             if (stream.Channels.Count < 1)
@@ -66,6 +80,12 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             AudioStream = stream;
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Brstm"/> by parsing an existing
+        /// BRSTM file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the BRSTM file. Must be seekable.</param>
         public Brstm(Stream stream)
         {
             if (!stream.CanSeek)
@@ -76,6 +96,10 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             ReadBrstmFile(stream);
         }
 
+        /// <summary>
+        /// Builds a BRSTM file from the current <see cref="AudioStream"/>.
+        /// </summary>
+        /// <returns>A BRSTM file</returns>
         public IEnumerable<byte> GetFile()
         {
             return Combine(GetRstmHeader(), GetHeadChunk(), GetAdpcChunk(), GetDataChunk());
@@ -625,10 +649,10 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         /// <summary>
         /// The different header types used for BRSTM files.
-        /// </summary>
-        /// <remarks>The only difference between each header type
+        /// The only difference between each header type
         /// is the structure containing information on the tracks
-        /// contained in the BRSTM file.</remarks>
+        /// contained in the BRSTM file.
+        /// </summary>
         public enum BrstmHeaderType
         {
             /// <summary>
@@ -658,15 +682,51 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             Short
         }
 
+        /// <summary>
+        /// Contains the options used to build the BRSTM file.
+        /// </summary>
         public class BrstmConfiguration
         {
             private int _samplesPerInterleave = 0x3800;
             private int _samplesPerAdpcEntry = 0x3800;
+            /// <summary>
+            /// The type of track description to be used when building the 
+            /// BRSTM header.
+            /// Default is <see cref="BrstmHeaderType.SSBB"/>
+            /// </summary>
             public BrstmHeaderType HeaderType { get; set; } = BrstmHeaderType.SSBB;
+
+            /// <summary>
+            /// The type of seek table to use when building the BRSTM
+            /// ADPC chunk.
+            /// Default is <see cref="Brstm.SeekTableType.Standard"/>
+            /// </summary>
             public SeekTableType SeekTableType { get; set; } = SeekTableType.Standard;
+
+            /// <summary>
+            /// If <c>true</c>, rebuilds the seek table when building the BRSTM.
+            /// If <c>false</c>, reuses the seek table read from an imported BRSTM
+            /// if available.
+            /// Default is <c>true</c>.
+            /// </summary>
             public bool RecalculateSeekTable { get; set; } = true;
+
+            /// <summary>
+            /// If <c>true</c>, recalculates the loop context when building the BRSTM.
+            /// If <c>false</c>, reuses the loop context read from an imported BRSTM
+            /// if available.
+            /// Default is <c>true</c>.
+            /// </summary>
             public bool RecalculateLoopContext { get; set; } = true;
 
+            /// <summary>
+            /// The number of samples in each block when interleaving
+            /// the audio data in a BRSTM file.
+            /// Must be divisible by 14.
+            /// Default is 14,336 (0x3800).
+            /// </summary>
+            /// <exception cref="ArgumentOutOfRangeException">Thrown if value is negative 
+            /// or not divisible by 14.</exception>
             public int SamplesPerInterleave
             {
                 get { return _samplesPerInterleave; }
@@ -686,6 +746,13 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 }
             }
 
+            /// <summary>
+            /// The number of samples per entry in the seek table. Used when
+            /// building a BRSTM file.
+            /// Default is 14,336 (0x3800).
+            /// </summary>
+            /// <exception cref="ArgumentOutOfRangeException">Thrown if
+            /// value is less than 2.</exception>
             public int SamplesPerAdpcEntry
             {
                 get { return _samplesPerAdpcEntry; }

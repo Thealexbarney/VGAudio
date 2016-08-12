@@ -14,7 +14,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private const int HeaderSize = 0x60;
         private int FileSize => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
         /// <summary>
-        /// The underlying <see cref="AdpcmStream"/> used to build the WAVE file
+        /// The underlying <see cref="AdpcmStream"/> used to build the DSP file.
         /// </summary>
         public AdpcmStream AudioStream { get; set; }
         private AdpcmChannel AudioChannel => AudioStream.Channels[0];
@@ -28,10 +28,10 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private short PredScale => AudioChannel.AudioData.First();
 
         /// <summary>
-        /// Initalizes a new <see cref="Dsp"/> from a <see cref="AdpcmStream"/>
+        /// Initializes a new <see cref="Dsp"/> from an <see cref="AdpcmStream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="AdpcmStream"/> used to
-        /// create the <see cref="Dsp"/></param>
+        /// create the <see cref="Dsp"/>.</param>
         public Dsp(AdpcmStream stream)
         {
             if (stream.Channels.Count != 1)
@@ -43,7 +43,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         }
 
         /// <summary>
-        /// Initalizes a new <see cref="Dsp"/> by parsing an existing
+        /// Initializes a new <see cref="Dsp"/> by parsing an existing
         /// DSP file.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 

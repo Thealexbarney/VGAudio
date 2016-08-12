@@ -3,7 +3,8 @@
 namespace DspAdpcm.Encode.Pcm
 {
     /// <summary>
-    /// Represents a 16-bit PCM audio stream.
+    /// A 16-bit PCM audio stream.
+    /// The stream can contain any number of individual channels.
     /// </summary>
     public class PcmStream
     {
