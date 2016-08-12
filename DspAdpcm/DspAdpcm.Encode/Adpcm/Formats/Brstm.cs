@@ -230,9 +230,11 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length + 4;
             int offsetTableLength = NumChannels * 8;
 
-            if (AudioStream.Looping && Configuration.RecalculateLoopContext)
+            if (AudioStream.Looping)
             {
-                Parallel.ForEach(AudioStream.Channels, x => x.SetLoopContext(AudioStream.LoopStart));
+                Parallel.ForEach(AudioStream.Channels
+                    .Where(x => !x.LoopContextCalculated || Configuration.RecalculateLoopContext),
+                    x => x.SetLoopContext(AudioStream.LoopStart));
             }
 
             for (int i = 0; i < NumChannels; i++)
@@ -553,17 +555,15 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
 
             List<AdpcmChannel> channels = structure.Channels.Select(channelInfo =>
-                new AdpcmChannel(structure.NumSamples)
-                {
-                    Coefs = channelInfo.Coefs,
-                    Gain = channelInfo.Gain,
-                    Hist1 = channelInfo.Hist1,
-                    Hist2 = channelInfo.Hist2,
-                    LoopPredScale = channelInfo.LoopPredScale,
-                    LoopHist1 = channelInfo.LoopHist1,
-                    LoopHist2 = channelInfo.LoopHist2
-                })
-                .ToList();
+            new AdpcmChannel(structure.NumSamples)
+            {
+                Coefs = channelInfo.Coefs,
+                Gain = channelInfo.Gain,
+                Hist1 = channelInfo.Hist1,
+                Hist2 = channelInfo.Hist2
+            }
+            .SetLoopContext(channelInfo.LoopPredScale, channelInfo.LoopHist1, channelInfo.LoopHist2))
+            .ToList();
 
             byte[] audioData = reader.ReadBytes(audioDataLength);
 

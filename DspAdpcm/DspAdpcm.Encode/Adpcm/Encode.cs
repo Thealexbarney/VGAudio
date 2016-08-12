@@ -540,13 +540,13 @@ namespace DspAdpcm.Encode.Adpcm
         internal static void SetLoopContext(this AdpcmChannel audio, int loopStart)
         {
             byte ps = audio.GetPredictorScale().Skip(loopStart / SamplesPerBlock).First();
-            var hist = audio.GetPcmAudio().Skip(loopStart - 2).Take(2).ToArray();
+            short[] hist = audio.GetPcmAudio(true).Skip(loopStart).Take(2).ToArray();
             audio.SetLoopContext(ps, hist[1], hist[0]);
         }
 
         private static IEnumerable<byte> GetPredictorScale(this AdpcmChannel audio)
         {
-            return audio.AudioData.Batch(8).Select(block => block[0]);
+            return audio.AudioData.Batch(8).Select(block => block.First());
         }
 
         internal static IEnumerable<short> GetPcmAudio(this AdpcmChannel audio, bool includeHistorySamples = false)
