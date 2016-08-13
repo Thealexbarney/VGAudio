@@ -533,10 +533,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             }
 
             byte[] tableBytes = reader.ReadBytes(structure.AdpcTableLength);
-            short[] table = new short[(int)Math.Ceiling((double)tableBytes.Length / 2)];
-            Buffer.BlockCopy(tableBytes, 0, table, 0, tableBytes.Length);
 
-            structure.SeekTable = table.Select(x => x.FlipBytes()).ToArray()
+            structure.SeekTable = tableBytes.ToShortArrayFlippedBytes()
                 .DeInterleave(2, structure.NumChannelsChunk1);
         }
 
