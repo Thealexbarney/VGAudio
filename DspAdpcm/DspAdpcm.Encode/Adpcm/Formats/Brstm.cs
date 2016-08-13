@@ -248,7 +248,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 AdpcmChannel channel = AudioStream.Channels[i];
                 chunk.Add32BE(0x01000000);
                 chunk.Add32BE(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
-                chunk.AddRange(channel.Coefs.SelectMany(x => x.ToBytesBE()));
+                chunk.AddRange(channel.Coefs.ToFlippedBytes());
                 chunk.Add16BE(channel.Gain);
                 chunk.Add16BE(channel.AudioData.First());
                 chunk.Add16BE(channel.Hist1);
@@ -264,38 +264,43 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private byte[] GetAdpcChunk()
         {
-            var chunk = new List<byte>();
+            var header = new List<byte>();
 
-            chunk.Add32("ADPC");
-            chunk.Add32BE(AdpcChunkLength);
+            header.Add32("ADPC");
+            header.Add32BE(AdpcChunkLength);
 
             if (Configuration.RecalculateSeekTable)
             {
                 Encode.CalculateAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry);
             }
 
-            chunk.AddRange(Encode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries));
+            byte[] chunk = header.ToArray();
+            Array.Resize(ref chunk, AdpcChunkLength);
 
-            chunk.AddRange(new byte[AdpcChunkLength - chunk.Count]);
+            var table = Encode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries).ToArray();
 
-            return chunk.ToArray();
+            Array.Copy(table, 0, chunk, 8, table.Length);
+
+            return chunk;
         }
 
         private byte[] GetDataChunk()
         {
-            var chunk = new List<byte>();
+            var header = new List<byte>();
 
-            chunk.Add32("DATA");
-            chunk.Add32BE(DataChunkLength);
-            chunk.Add32BE(0x18);
-            chunk.AddRange(new byte[0x14]); //Pad to 0x20 bytes
+            header.Add32("DATA");
+            header.Add32BE(DataChunkLength);
+            header.Add32BE(0x18);
 
-            var channels = AudioStream.Channels.Select(x => x.AudioData.ToArray()).ToArray();
-            chunk.AddRange(channels.Interleave(InterleaveSize, LastBlockSize));
+            byte[] chunk = header.ToArray();
+            Array.Resize(ref chunk, DataChunkLength);
 
-            chunk.AddRange(new byte[DataChunkLength - chunk.Count]);
+            byte[][] channels = AudioStream.Channels.Select(x => x.AudioByteArray).ToArray();
 
-            return chunk.ToArray();
+            var interleavedData = channels.Interleave(InterleaveSize, LastBlockSize);
+
+            Array.Copy(interleavedData, 0, chunk, 0x20, interleavedData.Length);
+            return chunk;
         }
 
         private void ReadBrstmFile(Stream stream)
@@ -554,17 +559,6 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             reader.BaseStream.Position = structure.AudioDataOffset;
             int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
 
-            List<AdpcmChannel> channels = structure.Channels.Select(channelInfo =>
-            new AdpcmChannel(structure.NumSamples)
-            {
-                Coefs = channelInfo.Coefs,
-                Gain = channelInfo.Gain,
-                Hist1 = channelInfo.Hist1,
-                Hist2 = channelInfo.Hist2
-            }
-            .SetLoopContext(channelInfo.LoopPredScale, channelInfo.LoopHist1, channelInfo.LoopHist2))
-            .ToList();
-
             byte[] audioData = reader.ReadBytes(audioDataLength);
 
             byte[][] deInterleavedAudioData = audioData.DeInterleave(structure.InterleaveSize, structure.NumChannelsChunk1,
@@ -572,13 +566,17 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             for (int c = 0; c < structure.NumChannelsChunk1; c++)
             {
-                channels[c].AudioByteArray = deInterleavedAudioData[c];
-                channels[c].SeekTable = structure.SeekTable[c];
-                channels[c].SamplesPerSeekTableEntry = structure.SamplesPerAdpcEntry;
-            }
-
-            foreach (AdpcmChannel channel in channels)
-            {
+                var channel = new AdpcmChannel(structure.NumSamples, deInterleavedAudioData[c])
+                {
+                    Coefs = structure.Channels[c].Coefs,
+                    Gain = structure.Channels[c].Gain,
+                    Hist1 = structure.Channels[c].Hist1,
+                    Hist2 = structure.Channels[c].Hist2,
+                    SeekTable = structure.SeekTable[c],
+                    SamplesPerSeekTableEntry = structure.SamplesPerAdpcEntry
+                };
+                channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
+                    structure.Channels[c].LoopHist2);
                 AudioStream.Channels.Add(channel);
             }
         }

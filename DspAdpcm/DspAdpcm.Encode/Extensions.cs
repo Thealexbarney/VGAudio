@@ -78,61 +78,59 @@ namespace DspAdpcm.Encode
 
         public static T[][] DeInterleave<T>(this T[] input, int interleaveSize, int numOutputs, int lastInterleaveSize = -1, int finalOutputLength = -1)
         {
+            if (input.Length % numOutputs != 0)
+                throw new ArgumentOutOfRangeException(nameof(numOutputs), numOutputs,
+                    $"The input array length ({input.Length}) must be divisible by the number of outputs.");
+
             if (lastInterleaveSize < 0 || lastInterleaveSize > interleaveSize)
                 lastInterleaveSize = interleaveSize;
 
-            int inputLength = input.Length;
-
-            if (inputLength % numOutputs != 0)
-                throw new ArgumentOutOfRangeException(nameof(numOutputs), numOutputs,
-                    $"The input array length ({inputLength}) must be divisible by the number of outputs.");
-
-            int outputLength = inputLength / numOutputs;
+            int outputLength = input.Length / numOutputs;
             if (finalOutputLength < 0)
                 finalOutputLength = outputLength;
 
-            int numFullBlocks = outputLength / interleaveSize;
             int numShortBlocks = outputLength % interleaveSize == 0 ? 0 : 1;
+            int numBlocks = outputLength / interleaveSize + numShortBlocks;
 
             if (numShortBlocks != 0 && outputLength % interleaveSize < lastInterleaveSize)
                 throw new ArgumentOutOfRangeException(nameof(lastInterleaveSize), lastInterleaveSize,
                     $"Not enough elements for specified last interleave size({lastInterleaveSize})");
 
             var outputs = new T[numOutputs][];
-            for (int i = 0; i < numOutputs; i++)
-            {
-                outputs[i] = new T[outputLength];
-            }
 
-            for (int b = 0; b < numFullBlocks; b++)
+            for (int o = 0; o < numOutputs; o++)
             {
-                for (int o = 0; o < numOutputs; o++)
+                outputs[o] = new T[finalOutputLength];
+
+                for (int b = 0; b < numBlocks - 1; b++)
                 {
                     Array.Copy(input, interleaveSize * b * numOutputs + interleaveSize * o,
-                        outputs[o], interleaveSize * b ,
+                        outputs[o], interleaveSize * b,
                         interleaveSize);
                 }
-            }
 
-            for (int b = 0; b < numShortBlocks; b++)
-            {
-                for (int o = 0; o < numOutputs; o++)
-                {
-                    Array.Copy(input, interleaveSize * numFullBlocks * numOutputs + lastInterleaveSize * o,
-                        outputs[o], interleaveSize * numFullBlocks,
-                        lastInterleaveSize);
-                }
-            }
-
-            for (int i = 0; i < outputs.Length; i++)
-            {
-                Array.Resize(ref outputs[i], finalOutputLength);
+                Array.Copy(input, interleaveSize * (numBlocks - 1) * numOutputs + lastInterleaveSize * o,
+                    outputs[o], interleaveSize * (numBlocks - 1),
+                    finalOutputLength - interleaveSize * (numBlocks - 1));
             }
 
             return outputs;
         }
 
-        public static short FlipBytes(this short value) => (short)(value << 8 | (ushort) value >> 8);
+        public static byte[] ToFlippedBytes(this short[] array)
+        {
+            var output = new byte[array.Length * 2];
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                output[i * 2] = (byte)(array[i] >> 8);
+                output[i * 2 + 1] = (byte)array[i];
+            }
+
+            return output;
+        }
+
+        public static short FlipBytes(this short value) => (short)(value << 8 | (ushort)value >> 8);
 
         public static IEnumerable<byte> ToBytesBE(this int value) => BitConverter.GetBytes(value).Reverse();
         public static IEnumerable<byte> ToBytesBE(this short value) => BitConverter.GetBytes(value).Reverse();

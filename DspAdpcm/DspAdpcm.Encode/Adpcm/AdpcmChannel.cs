@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
@@ -27,6 +28,15 @@ namespace DspAdpcm.Encode.Adpcm
         public AdpcmChannel(int numSamples)
         {
             AudioByteArray = new byte[GetBytesForAdpcmSamples(numSamples)];
+        }
+
+        public AdpcmChannel(int numSamples, byte[]audio)
+        {
+            if (audio.Length != GetBytesForAdpcmSamples(numSamples))
+            {
+                throw new ArgumentException("Audio array length does not match the specified number of samples.");
+            }
+            AudioByteArray = audio;
         }
 
         public AdpcmChannel SetLoopContext(short loopPredScale, short loopHist1, short loopHist2)

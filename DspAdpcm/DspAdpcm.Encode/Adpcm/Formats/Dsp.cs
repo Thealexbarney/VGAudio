@@ -74,7 +74,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             header.Add32BE(StartAddr);
             header.Add32BE(EndAddr);
             header.Add32BE(CurAddr);
-            header.AddRange(AudioChannel.Coefs.SelectMany(x => x.ToBytesBE()));
+            header.AddRange(AudioChannel.Coefs.ToFlippedBytes());
             header.Add16BE(AudioChannel.Gain);
             header.Add16BE(PredScale);
             header.Add16BE(AudioChannel.Hist1);
