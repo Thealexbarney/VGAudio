@@ -41,7 +41,7 @@ namespace DspAdpcm.Cli
             watch.Stop();
             Console.WriteLine($"DONE! {adpcm.NumSamples} samples processed\n");
             Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
-            Console.WriteLine($"Processed {(adpcm.NumSamples / watch.Elapsed.TotalMilliseconds):N} samples per milisecond.");
+            Console.WriteLine($"Processed {(adpcm.NumSamples / watch.Elapsed.TotalMilliseconds):N} samples per millisecond.");
 
             var brstm = new Brstm(adpcm);
 

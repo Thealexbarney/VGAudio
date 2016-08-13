@@ -39,7 +39,7 @@ namespace DspAdpcm.Encode.Pcm.Formats
         private int BlockAlign => BytesPerSample * NumChannels;
 
         /// <summary>
-        /// Initalizes a new <see cref="Wave"/> by parsing an existing
+        /// Initializes a new <see cref="Wave"/> by parsing an existing
         /// WAVE file.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
@@ -56,7 +56,7 @@ namespace DspAdpcm.Encode.Pcm.Formats
         }
 
         /// <summary>
-        /// Initalizes a new <see cref="Wave"/> from a <see cref="PcmStream"/>
+        /// Initializes a new <see cref="Wave"/> from a <see cref="PcmStream"/>
         /// </summary>
         /// <param name="stream">The <see cref="PcmStream"/> used to
         /// create the <see cref="Wave"/></param>
