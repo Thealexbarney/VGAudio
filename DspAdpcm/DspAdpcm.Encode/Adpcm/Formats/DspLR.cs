@@ -2,7 +2,7 @@
 
 namespace DspAdpcm.Encode.Adpcm.Formats
 {
-    public class DspLR
+    internal class DspLR
     {
         public Dsp LeftChannel { get; }
         public Dsp RightChannel { get; }
@@ -14,8 +14,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 throw new InvalidDataException($"Stream must have 2 channels, not {stream.Channels.Count}");
             }
 
-            LeftChannel = new Dsp(stream.ShallowCloneChannelSubset(0, 0));
-            RightChannel = new Dsp(stream.ShallowCloneChannelSubset(1, 1));
+            LeftChannel = new Dsp(stream.GetChannels(0, 1));
+            RightChannel = new Dsp(stream.GetChannels(1, 1));
         }
     }
 }

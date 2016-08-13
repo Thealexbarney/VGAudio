@@ -7,8 +7,14 @@ using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Pcm.Formats
 {
+    /// <summary>
+    /// Represents a PCM WAVE file
+    /// </summary>
     public class Wave
     {
+        /// <summary>
+        /// The underlying <see cref="PcmStream"/> used to build the WAVE file
+        /// </summary>
         public PcmStream AudioStream { get; }
         private int NumChannelsReading { get; set; } //used when reading in a wave file
         private int NumChannels => AudioStream.Channels.Count;
@@ -32,17 +38,37 @@ namespace DspAdpcm.Encode.Pcm.Formats
         private int BytesPerSecond => SampleRate * BytesPerSample * NumChannels;
         private int BlockAlign => BytesPerSample * NumChannels;
 
+        /// <summary>
+        /// Initializes a new <see cref="Wave"/> by parsing an existing
+        /// WAVE file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the WAVE file. Must be seekable.</param>
         public Wave(Stream stream)
         {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
             AudioStream = new PcmStream();
             ReadWaveFile(stream);
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Wave"/> from a <see cref="PcmStream"/>
+        /// </summary>
+        /// <param name="stream">The <see cref="PcmStream"/> used to
+        /// create the <see cref="Wave"/></param>
         public Wave(PcmStream stream)
         {
             AudioStream = stream;
         }
 
+        /// <summary>
+        /// Builds a WAVE file from the current <see cref="AudioStream"/>.
+        /// </summary>
+        /// <returns>A WAVE file</returns>
         public IEnumerable<byte> GetFile()
         {
             return Combine(GetRiffHeader(), GetFmtChunk(), GetDataChunk());

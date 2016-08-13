@@ -8,10 +8,19 @@ using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm.Formats
 {
+    /// <summary>
+    /// Represents a BRSTM file.
+    /// </summary>
     public class Brstm
     {
+        /// <summary>
+        /// The underlying <see cref="AdpcmStream"/> used to build the BRSTM file.
+        /// </summary>
         public AdpcmStream AudioStream { get; set; }
 
+        /// <summary>
+        /// Contains various settings used when building the BRSTM file.
+        /// </summary>
         public BrstmConfiguration Configuration { get; } = new BrstmConfiguration();
 
         private int NumSamples => AudioStream.NumSamples;
@@ -43,8 +52,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         private int HeadChunkTableLength => 8 * 3;
         private int HeadChunk1Length => 0x34;
         private int HeadChunk2Length => 4 + (8 * NumTracks) + (TrackInfoLength * NumTracks);
-        private BrstmType HeaderType => Configuration.HeaderType;
-        private int TrackInfoLength => HeaderType == BrstmType.SSBB ? 4 : 0x0c;
+        private BrstmHeaderType HeaderType => Configuration.HeaderType;
+        private int TrackInfoLength => HeaderType == BrstmHeaderType.SSBB ? 4 : 0x0c;
         private int HeadChunk3Length => 4 + (8 * NumChannels) + (ChannelInfoLength * NumChannels);
         private int ChannelInfoLength => 0x38;
 
@@ -56,6 +65,11 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private int FileLength => RstmHeaderLength + HeadChunkLength + AdpcChunkLength + DataChunkLength;
 
+        /// <summary>
+        /// Initializes a new <see cref="Brstm"/> from an <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="AdpcmStream"/> used to
+        /// create the <see cref="Brstm"/>.</param>
         public Brstm(AdpcmStream stream)
         {
             if (stream.Channels.Count < 1)
@@ -66,11 +80,26 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             AudioStream = stream;
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Brstm"/> by parsing an existing
+        /// BRSTM file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the BRSTM file. Must be seekable.</param>
         public Brstm(Stream stream)
         {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
             ReadBrstmFile(stream);
         }
 
+        /// <summary>
+        /// Builds a BRSTM file from the current <see cref="AudioStream"/>.
+        /// </summary>
+        /// <returns>A BRSTM file</returns>
         public IEnumerable<byte> GetFile()
         {
             return Combine(GetRstmHeader(), GetHeadChunk(), GetAdpcChunk(), GetDataChunk());
@@ -158,7 +187,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             var chunk = new List<byte>();
 
             chunk.Add((byte)NumTracks);
-            chunk.Add((byte)(HeaderType == BrstmType.SSBB ? 0 : 1));
+            chunk.Add((byte)(HeaderType == BrstmHeaderType.SSBB ? 0 : 1));
             chunk.Add16BE(0);
 
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + 4;
@@ -166,13 +195,13 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             for (int i = 0; i < NumTracks; i++)
             {
-                chunk.Add32BE(HeaderType == BrstmType.SSBB ? 0x01000000 : 0x01010000);
+                chunk.Add32BE(HeaderType == BrstmHeaderType.SSBB ? 0x01000000 : 0x01010000);
                 chunk.Add32BE(baseOffset + offsetTableLength + TrackInfoLength * i);
             }
 
             foreach (AdpcmTrack track in AudioStream.Tracks)
             {
-                if (HeaderType == BrstmType.Other)
+                if (HeaderType == BrstmHeaderType.Other)
                 {
                     chunk.Add((byte)track.Volume);
                     chunk.Add((byte)track.Panning);
@@ -203,7 +232,9 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             if (AudioStream.Looping)
             {
-                Parallel.ForEach(AudioStream.Channels, x => x.SetLoopContext(AudioStream.LoopStart));
+                Parallel.ForEach(AudioStream.Channels
+                    .Where(x => !x.LoopContextCalculated || Configuration.RecalculateLoopContext),
+                    x => x.SetLoopContext(AudioStream.LoopStart));
             }
 
             for (int i = 0; i < NumChannels; i++)
@@ -222,9 +253,9 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 chunk.Add16BE(channel.AudioData.First());
                 chunk.Add16BE(channel.Hist1);
                 chunk.Add16BE(channel.Hist2);
-                chunk.Add16BE(channel.LoopPredScale);
-                chunk.Add16BE(channel.LoopHist1);
-                chunk.Add16BE(channel.LoopHist2);
+                chunk.Add16BE(AudioStream.Looping ? channel.LoopPredScale : channel.AudioData.First());
+                chunk.Add16BE(AudioStream.Looping ? channel.LoopHist1 : 0);
+                chunk.Add16BE(AudioStream.Looping ? channel.LoopHist2 : 0);
                 chunk.Add16(0);
             }
 
@@ -396,7 +427,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 int numTracks = reader.ReadByte();
                 int[] trackOffsets = new int[numTracks];
 
-                structure.HeaderType = reader.ReadByte() == 0 ? BrstmType.SSBB : BrstmType.Other;
+                structure.HeaderType = reader.ReadByte() == 0 ? BrstmHeaderType.SSBB : BrstmHeaderType.Other;
 
                 reader.BaseStream.Position = 4;
                 for (int i = 0; i < numTracks; i++)
@@ -410,7 +441,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                     reader.BaseStream.Position = trackOffsets[i] - structure.HeadChunk2Offset;
                     var track = new AdpcmTrack();
 
-                    if (structure.HeaderType == BrstmType.Other)
+                    if (structure.HeaderType == BrstmHeaderType.Other)
                     {
                         track.Volume = reader.ReadByte();
                         track.Panning = reader.ReadByte();
@@ -524,14 +555,15 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
 
             List<AdpcmChannel> channels = structure.Channels.Select(channelInfo =>
-                new AdpcmChannel(structure.NumSamples)
-                {
-                    Coefs = channelInfo.Coefs,
-                    Gain = channelInfo.Gain,
-                    Hist1 = channelInfo.Hist1,
-                    Hist2 = channelInfo.Hist2
-                })
-                .ToList();
+            new AdpcmChannel(structure.NumSamples)
+            {
+                Coefs = channelInfo.Coefs,
+                Gain = channelInfo.Gain,
+                Hist1 = channelInfo.Hist1,
+                Hist2 = channelInfo.Hist2
+            }
+            .SetLoopContext(channelInfo.LoopPredScale, channelInfo.LoopHist1, channelInfo.LoopHist2))
+            .ToList();
 
             byte[] audioData = reader.ReadBytes(audioDataLength);
 
@@ -585,7 +617,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public int LastBlockSize { get; set; }
             public int SamplesPerAdpcEntry { get; set; }
 
-            public BrstmType HeaderType { get; set; } = BrstmType.SSBB;
+            public BrstmHeaderType HeaderType { get; set; } = BrstmHeaderType.SSBB;
             public List<AdpcmTrack> Tracks { get; set; } = new List<AdpcmTrack>();
 
             public int NumChannelsChunk3 { get; set; }
@@ -615,38 +647,86 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             public short LoopHist2 { get; set; }
         }
 
-        public enum BrstmType
+        /// <summary>
+        /// The different header types used for BRSTM files.
+        /// The only difference between each header type
+        /// is the structure containing information on the tracks
+        /// contained in the BRSTM file.
+        /// </summary>
+        public enum BrstmHeaderType
         {
             /// <summary>
             /// The header type used in Super Smash Bros. Brawl
             /// </summary>
             SSBB,
             /// <summary>
-            /// The header type used in most games other than Super Smash Bros. Brawl
+            /// The header type used in most games other than 
+            /// Super Smash Bros. Brawl
             /// </summary>
             Other
         }
 
+        /// <summary>
+        /// The different types of seek tables.
+        /// </summary>
         public enum SeekTableType
         {
             /// <summary>
-            /// A normal length seek table.
+            /// A normal length, complete seek table.
             /// </summary>
             Standard,
             /// <summary>
-            /// A shortened seek table used in games including Pokémon Battle Revolution and Mario Party 8.
+            /// A shortened, truncated seek table used in games 
+            /// including Pokémon Battle Revolution and Mario Party 8.
             /// </summary>
             Short
         }
 
+        /// <summary>
+        /// Contains the options used to build the BRSTM file.
+        /// </summary>
         public class BrstmConfiguration
         {
             private int _samplesPerInterleave = 0x3800;
             private int _samplesPerAdpcEntry = 0x3800;
-            public BrstmType HeaderType { get; set; } = BrstmType.SSBB;
+            /// <summary>
+            /// The type of track description to be used when building the 
+            /// BRSTM header.
+            /// Default is <see cref="BrstmHeaderType.SSBB"/>
+            /// </summary>
+            public BrstmHeaderType HeaderType { get; set; } = BrstmHeaderType.SSBB;
+
+            /// <summary>
+            /// The type of seek table to use when building the BRSTM
+            /// ADPC chunk.
+            /// Default is <see cref="Brstm.SeekTableType.Standard"/>
+            /// </summary>
             public SeekTableType SeekTableType { get; set; } = SeekTableType.Standard;
+
+            /// <summary>
+            /// If <c>true</c>, rebuilds the seek table when building the BRSTM.
+            /// If <c>false</c>, reuses the seek table read from an imported BRSTM
+            /// if available.
+            /// Default is <c>true</c>.
+            /// </summary>
             public bool RecalculateSeekTable { get; set; } = true;
 
+            /// <summary>
+            /// If <c>true</c>, recalculates the loop context when building the BRSTM.
+            /// If <c>false</c>, reuses the loop context read from an imported BRSTM
+            /// if available.
+            /// Default is <c>true</c>.
+            /// </summary>
+            public bool RecalculateLoopContext { get; set; } = true;
+
+            /// <summary>
+            /// The number of samples in each block when interleaving
+            /// the audio data in a BRSTM file.
+            /// Must be divisible by 14.
+            /// Default is 14,336 (0x3800).
+            /// </summary>
+            /// <exception cref="ArgumentOutOfRangeException">Thrown if value is negative 
+            /// or not divisible by 14.</exception>
             public int SamplesPerInterleave
             {
                 get { return _samplesPerInterleave; }
@@ -666,6 +746,13 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 }
             }
 
+            /// <summary>
+            /// The number of samples per entry in the seek table. Used when
+            /// building a BRSTM file.
+            /// Default is 14,336 (0x3800).
+            /// </summary>
+            /// <exception cref="ArgumentOutOfRangeException">Thrown if
+            /// value is less than 2.</exception>
             public int SamplesPerAdpcEntry
             {
                 get { return _samplesPerAdpcEntry; }

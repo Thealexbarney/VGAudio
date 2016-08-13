@@ -1,16 +1,23 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm.Formats
 {
+    /// <summary>
+    /// Represents a DSP file.
+    /// </summary>
     public class Dsp
     {
         private const int HeaderSize = 0x60;
-        public int FileSize => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
+        private int FileSize => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
+        /// <summary>
+        /// The underlying <see cref="AdpcmStream"/> used to build the DSP file.
+        /// </summary>
         public AdpcmStream AudioStream { get; set; }
-        public AdpcmChannel AudioChannel => AudioStream.Channels[0];
+        private AdpcmChannel AudioChannel => AudioStream.Channels[0];
 
         private short Format { get; } = 0; /* 0 for ADPCM */
 
@@ -20,6 +27,11 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private short PredScale => AudioChannel.AudioData.First();
 
+        /// <summary>
+        /// Initializes a new <see cref="Dsp"/> from an <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="AdpcmStream"/> used to
+        /// create the <see cref="Dsp"/>.</param>
         public Dsp(AdpcmStream stream)
         {
             if (stream.Channels.Count != 1)
@@ -30,12 +42,23 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             AudioStream = stream;
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Dsp"/> by parsing an existing
+        /// DSP file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the DSP file. Must be seekable.</param>
         public Dsp(Stream stream)
         {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
             ReadDspFile(stream);
         }
 
-        public IEnumerable<byte> GetHeader()
+        private IEnumerable<byte> GetHeader()
         {
             if (AudioStream.Looping)
             {
@@ -64,12 +87,16 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             return header;
         }
 
+        /// <summary>
+        /// Builds a DSP file from the current <see cref="AudioStream"/>.
+        /// </summary>
+        /// <returns>A DSP file</returns>
         public IEnumerable<byte> GetFile()
         {
             return GetHeader().Concat(AudioChannel.AudioData);
         }
 
-        public void ReadDspFile(Stream stream)
+        private void ReadDspFile(Stream stream)
         {
             using (var reader = new BinaryReaderBE(stream))
             {

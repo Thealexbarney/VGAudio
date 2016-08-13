@@ -12,6 +12,10 @@ using static DspAdpcm.Encode.Helpers;
 
 namespace DspAdpcm.Encode.Adpcm
 {
+    /// <summary>
+    /// This class contains functions for encoding and
+    /// decoding Nintendo's 4-bit ADPCM audio format.
+    /// </summary>
     public static class Encode
     {
         private static void InnerProductMerge(double[] vecOut, short[] pcmBuf)
@@ -405,7 +409,7 @@ namespace DspAdpcm.Encode.Adpcm
             return coefs;
         }
 
-        public static void DspEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn)
+        internal static void DspEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn)
         {
             short[][] coefs = new short[8][];
             for (int i = 0; i < 8; i++)
@@ -533,19 +537,19 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        public static void SetLoopContext(this AdpcmChannel audio, int loopStart)
+        internal static void SetLoopContext(this AdpcmChannel audio, int loopStart)
         {
             byte ps = audio.GetPredictorScale().Skip(loopStart / SamplesPerBlock).First();
-            var hist = audio.GetPcmAudio().Skip(loopStart - 2).Take(2).ToArray();
+            short[] hist = audio.GetPcmAudio(true).Skip(loopStart).Take(2).ToArray();
             audio.SetLoopContext(ps, hist[1], hist[0]);
         }
 
-        public static IEnumerable<byte> GetPredictorScale(this AdpcmChannel audio)
+        private static IEnumerable<byte> GetPredictorScale(this AdpcmChannel audio)
         {
-            return audio.AudioData.Batch(8).Select(block => block[0]);
+            return audio.AudioData.Batch(8).Select(block => block.First());
         }
 
-        public static IEnumerable<short> GetPcmAudio(this AdpcmChannel audio, bool includeHistorySamples = false)
+        internal static IEnumerable<short> GetPcmAudio(this AdpcmChannel audio, bool includeHistorySamples = false)
         {
             short hist1 = audio.Hist1;
             short hist2 = audio.Hist2;
@@ -611,6 +615,11 @@ namespace DspAdpcm.Encode.Adpcm
             return channel;
         }
 
+        /// <summary>
+        /// Encodes a <see cref="PcmStream"/> to a <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="pcmStream">The <see cref="PcmStream"/> to encode.</param>
+        /// <returns>The encoded <see cref="AdpcmStream"/>.</returns>
         public static AdpcmStream PcmToAdpcm(PcmStream pcmStream)
         {
             AdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
@@ -629,6 +638,12 @@ namespace DspAdpcm.Encode.Adpcm
             return adpcm;
         }
 
+        /// <summary>
+        /// Encodes a <see cref="PcmStream"/> to a <see cref="AdpcmStream"/>.
+        /// Each channel will be encoded in parallel.
+        /// </summary>
+        /// <param name="pcmStream">The <see cref="PcmStream"/> to encode.</param>
+        /// <returns>The encoded <see cref="AdpcmStream"/>.</returns>
         public static AdpcmStream PcmToAdpcmParallel(PcmStream pcmStream)
         {
             AdpcmStream adpcm = new AdpcmStream(pcmStream.NumSamples, pcmStream.SampleRate);
@@ -655,6 +670,11 @@ namespace DspAdpcm.Encode.Adpcm
             };
         }
 
+        /// <summary>
+        /// Decodes an <see cref="AdpcmStream"/> to a <see cref="PcmStream"/>.
+        /// </summary>
+        /// <param name="adpcmStream">The <see cref="AdpcmStream"/> to decode.</param>
+        /// <returns>The decoded <see cref="PcmStream"/>.</returns>
         public static PcmStream AdpcmtoPcm(AdpcmStream adpcmStream)
         {
             PcmStream pcm = new PcmStream(adpcmStream.NumSamples, adpcmStream.SampleRate);
@@ -673,6 +693,12 @@ namespace DspAdpcm.Encode.Adpcm
             return pcm;
         }
 
+        /// <summary>
+        /// Decodes an <see cref="AdpcmStream"/> to a <see cref="PcmStream"/>.
+        /// Each channel will be decoded in parallel.
+        /// </summary>
+        /// <param name="adpcmStream">The <see cref="AdpcmStream"/> to decode.</param>
+        /// <returns>The decoded <see cref="PcmStream"/>.</returns>
         public static PcmStream AdpcmtoPcmParallel(AdpcmStream adpcmStream)
         {
             PcmStream pcm = new PcmStream(adpcmStream.NumSamples, adpcmStream.SampleRate);
