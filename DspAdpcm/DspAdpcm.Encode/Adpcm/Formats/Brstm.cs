@@ -248,7 +248,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
                 AdpcmChannel channel = AudioStream.Channels[i];
                 chunk.Add32BE(0x01000000);
                 chunk.Add32BE(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
-                chunk.AddRange(channel.Coefs.SelectMany(x => x.ToBytesBE()));
+                chunk.AddRange(channel.Coefs.ToFlippedBytes());
                 chunk.Add16BE(channel.Gain);
                 chunk.Add16BE(channel.AudioData.First());
                 chunk.Add16BE(channel.Hist1);

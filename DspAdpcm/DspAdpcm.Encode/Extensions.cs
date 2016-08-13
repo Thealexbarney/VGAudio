@@ -117,6 +117,19 @@ namespace DspAdpcm.Encode
             return outputs;
         }
 
+        public static byte[] ToFlippedBytes(this short[] array)
+        {
+            var output = new byte[array.Length * 2];
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                output[i * 2] = (byte)(array[i] >> 8);
+                output[i * 2 + 1] = (byte)array[i];
+            }
+
+            return output;
+        }
+
         public static short FlipBytes(this short value) => (short)(value << 8 | (ushort)value >> 8);
 
         public static IEnumerable<byte> ToBytesBE(this int value) => BitConverter.GetBytes(value).Reverse();
