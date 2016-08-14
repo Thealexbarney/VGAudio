@@ -540,7 +540,7 @@ namespace DspAdpcm.Encode.Adpcm
         internal static void SetLoopContext(this AdpcmChannel audio, int loopStart)
         {
             byte ps = audio.GetPredictorScale().Skip(loopStart / SamplesPerBlock).First();
-            short[] hist = audio.GetPcmAudioLazy(true).Skip(loopStart).Take(2).ToArray();
+            short[] hist = audio.GetPcmAudio(loopStart, 0, true);
             audio.SetLoopContext(ps, hist[1], hist[0]);
         }
 
@@ -602,27 +602,55 @@ namespace DspAdpcm.Encode.Adpcm
             }
         }
 
-        internal static short[] GetPcmAudio(this AdpcmChannel audio, bool includeHistorySamples = false)
+        internal static short[] GetPcmAudio(this AdpcmChannel audio, bool includeHistorySamples = false) =>
+            audio.GetPcmAudio(0, audio.NumSamples, includeHistorySamples);
+
+        internal static short[] GetPcmAudio(this AdpcmChannel audio, int index, int count, bool includeHistorySamples = false)
         {
-            int numSamples = audio.NumSamples;
+            if (index < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Argument must be non-negative");
+            }
+
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), count, "Argument must be non-negative");
+            }
+
+            if (audio.NumSamples - index < count)
+            {
+                throw new ArgumentException("Offset and length were out of bounds for the array or count is" +
+                                            " greater than the number of elements from index to the end of the source collection.");
+            }
+
             short hist1 = audio.Hist1;
             short hist2 = audio.Hist2;
             var adpcm = audio.AudioByteArray;
             int numBlocks = adpcm.Length.DivideByRoundUp(BytesPerBlock);
 
             short[] pcm;
+            int numHistSamples = 0;
+            int currentSample = 0;
             int outSample = 0;
             int inByte = 0;
 
             if (includeHistorySamples)
             {
-                pcm = new short[numSamples + 2];
-                pcm[outSample++] = hist2;
-                pcm[outSample++] = hist1;
+                numHistSamples = 2;
+                pcm = new short[count + numHistSamples];
+                if (index <= 0)
+                {
+                    pcm[outSample++] = hist2;
+                }
+                if (index <= 1)
+                {
+                    pcm[outSample++] = hist1;
+                }
+
             }
             else
             {
-                pcm = new short[numSamples];
+                pcm = new short[count];
             }
 
             for (int i = 0; i < numBlocks; i++)
@@ -647,13 +675,21 @@ namespace DspAdpcm.Encode.Adpcm
                     sample = sample >= 8 ? sample - 16 : sample;
 
                     sample = (((scale * sample) << 11) + 1024 + (coef1 * hist1 + coef2 * hist2)) >> 11;
-                    sample = Clamp16(sample);
+
+                    if (sample > short.MaxValue)
+                        sample = short.MaxValue;
+                    if (sample < short.MinValue)
+                        sample = short.MinValue;
 
                     hist2 = hist1;
                     hist1 = (short)sample;
 
-                    pcm[outSample++] = (short)sample;
-                    if (outSample >= numSamples)
+                    if (currentSample >= index - numHistSamples)
+                    {
+                        pcm[outSample++] = (short)sample;
+                    }
+
+                    if (++currentSample >= count + index)
                     {
                         return pcm;
                     }
