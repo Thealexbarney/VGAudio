@@ -540,7 +540,7 @@ namespace DspAdpcm.Encode.Adpcm
         internal static void SetLoopContext(this AdpcmChannel audio, int loopStart)
         {
             byte ps = audio.GetPredictorScale().Skip(loopStart / SamplesPerBlock).First();
-            short[] hist = audio.GetPcmAudio(true).Skip(loopStart).Take(2).ToArray();
+            short[] hist = audio.GetPcmAudioLazy(true).Skip(loopStart).Take(2).ToArray();
             audio.SetLoopContext(ps, hist[1], hist[0]);
         }
 
@@ -549,7 +549,7 @@ namespace DspAdpcm.Encode.Adpcm
             return audio.AudioData.Batch(8).Select(block => block.First());
         }
 
-        internal static IEnumerable<short> GetPcmAudio(this AdpcmChannel audio, bool includeHistorySamples = false)
+        internal static IEnumerable<short> GetPcmAudioLazy(this AdpcmChannel audio, bool includeHistorySamples = false)
         {
             short hist1 = audio.Hist1;
             short hist2 = audio.Hist2;
@@ -588,6 +588,66 @@ namespace DspAdpcm.Encode.Adpcm
                     yield return (short)sample;
                 }
             }
+        }
+
+        internal static short[] GetPcmAudio(this AdpcmChannel audio, bool includeHistorySamples = false)
+        {
+            int numSamples = audio.NumSamples;
+            short hist1 = audio.Hist1;
+            short hist2 = audio.Hist2;
+            var adpcm = audio.AudioByteArray;
+            int numBlocks = adpcm.Length.DivideByRoundUp(BytesPerBlock);
+
+            short[] pcm;
+            int outSample = 0;
+            int inByte = 0;
+
+            if (includeHistorySamples)
+            {
+                pcm = new short[numSamples + 2];
+                pcm[outSample++] = hist2;
+                pcm[outSample++] = hist1;
+            }
+            else
+            {
+                pcm = new short[numSamples];
+            }
+
+            for (int i = 0; i < numBlocks; i++)
+            {
+                byte ps = adpcm[inByte++];
+                int scale = 1 << (ps & 0xf);
+                int predictor = (ps >> 4) & 0xf;
+                short coef1 = audio.Coefs[predictor * 2];
+                short coef2 = audio.Coefs[predictor * 2 + 1];
+
+                for (int s = 0; s < 14; s++)
+                {
+                    int sample;
+                    if (s % 2 == 0)
+                    {
+                        sample = (adpcm[inByte] >> 4) & 0xF;
+                    }
+                    else
+                    {
+                        sample = adpcm[inByte++] & 0xF;
+                    }
+                    sample = sample >= 8 ? sample - 16 : sample;
+
+                    sample = (((scale * sample) << 11) + 1024 + (coef1 * hist1 + coef2 * hist2)) >> 11;
+                    sample = Clamp16(sample);
+
+                    hist2 = hist1;
+                    hist1 = (short)sample;
+
+                    pcm[outSample++] = (short)sample;
+                    if (outSample >= numSamples)
+                    {
+                        return pcm;
+                    }
+                }
+            }
+            return pcm;
         }
 
         private static AdpcmChannel PcmToAdpcm(PcmChannel pcmChannel)
@@ -666,7 +726,7 @@ namespace DspAdpcm.Encode.Adpcm
         {
             return new PcmChannel(adpcmChannel.NumSamples)
             {
-                AudioData = adpcmChannel.GetPcmAudio().ToArray()
+                AudioData = adpcmChannel.GetPcmAudio()
             };
         }
 
@@ -719,15 +779,17 @@ namespace DspAdpcm.Encode.Adpcm
 
         internal static void CalculateAdpcTable(AdpcmChannel channel, int samplesPerEntry)
         {
-            channel.SeekTable = 
-                channel.GetPcmAudio(true)
-                .Batch(samplesPerEntry, true)
-                .SelectMany(y => y
-                    .Take(y.Length > 2 ? 2 : 0)
-                    .Reverse()
-                )
-                .ToArray();
+            var audio = channel.GetPcmAudio(true);
+            int numEntries = channel.NumSamples.DivideByRoundUp(samplesPerEntry);
+            short[] table = new short[numEntries * 2];
 
+            for (int i = 0; i < numEntries; i++)
+            {
+                table[i * 2] = audio[i * samplesPerEntry + 1];
+                table[i * 2 + 1] = audio[i * samplesPerEntry];
+            }
+
+            channel.SeekTable = table;
             channel.SamplesPerSeekTableEntry = samplesPerEntry;
         }
 

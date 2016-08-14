@@ -19,7 +19,7 @@ namespace DspAdpcm.Encode.Pcm.Formats
         private int NumChannelsReading { get; set; } //used when reading in a wave file
         private int NumChannels => AudioStream.Channels.Count;
         private int BitDepth { get; set; } = 16;
-        private int BytesPerSample => (int)Math.Ceiling((double)BitDepth / 8);
+        private int BytesPerSample => BitDepth.DivideByRoundUp(8);
         private int NumSamples => AudioStream.NumSamples;
         private int SampleRate => AudioStream.SampleRate;
         private IList<PcmChannel> Channels => AudioStream.Channels;
