@@ -631,7 +631,7 @@ namespace DspAdpcm.Encode.Adpcm
             short[] pcm;
             int numHistSamples = 0;
             int currentSample = 0;
-            int outSample = 0;
+            int outSample = 0; 
             int inByte = 0;
 
             if (includeHistorySamples)
@@ -651,6 +651,14 @@ namespace DspAdpcm.Encode.Adpcm
             else
             {
                 pcm = new short[count];
+            }
+
+            int firstSample = Math.Max(index - numHistSamples, 0);
+            int lastSample = index + count;
+
+            if (firstSample == lastSample)
+            {
+                return pcm;
             }
 
             for (int i = 0; i < numBlocks; i++)
@@ -684,12 +692,12 @@ namespace DspAdpcm.Encode.Adpcm
                     hist2 = hist1;
                     hist1 = (short)sample;
 
-                    if (currentSample >= index - numHistSamples)
+                    if (currentSample >= firstSample)
                     {
                         pcm[outSample++] = (short)sample;
                     }
 
-                    if (++currentSample >= count + index)
+                    if (++currentSample >= lastSample)
                     {
                         return pcm;
                     }
