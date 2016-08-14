@@ -551,33 +551,41 @@ namespace DspAdpcm.Encode.Adpcm
 
         internal static IEnumerable<short> GetPcmAudioLazy(this AdpcmChannel audio, bool includeHistorySamples = false)
         {
+            int numSamples = audio.NumSamples;
             short hist1 = audio.Hist1;
             short hist2 = audio.Hist2;
+            var adpcm = audio.AudioByteArray;
+            int numBlocks = adpcm.Length.DivideByRoundUp(BytesPerBlock);
+
+            int outSample = 0;
+            int inByte = 0;
 
             if (includeHistorySamples)
             {
-                yield return hist1;
                 yield return hist2;
+                yield return hist1;
             }
 
-            foreach (byte[] block in audio.AudioData.Batch(8))
+            for (int i = 0; i < numBlocks; i++)
             {
-                byte ps = block[0];
+                byte ps = adpcm[inByte++];
                 int scale = 1 << (ps & 0xf);
                 int predictor = (ps >> 4) & 0xf;
                 short coef1 = audio.Coefs[predictor * 2];
                 short coef2 = audio.Coefs[predictor * 2 + 1];
-                var samples = new int[14];
 
-                for (int i = 0; i < 7; i++)
+                for (int s = 0; s < 14; s++)
                 {
-                    samples[i * 2] = (block[i + 1] >> 4) & 0xF;
-                    samples[i * 2 + 1] = block[i + 1] & 0xF;
-                }
-
-                for (int i = 0; i < 14; i++)
-                {
-                    int sample = samples[i] >= 8 ? samples[i] - 16 : samples[i];
+                    int sample;
+                    if (s % 2 == 0)
+                    {
+                        sample = (adpcm[inByte] >> 4) & 0xF;
+                    }
+                    else
+                    {
+                        sample = adpcm[inByte++] & 0xF;
+                    }
+                    sample = sample >= 8 ? sample - 16 : sample;
 
                     sample = (((scale * sample) << 11) + 1024 + (coef1 * hist1 + coef2 * hist2)) >> 11;
                     sample = Clamp16(sample);
@@ -586,6 +594,10 @@ namespace DspAdpcm.Encode.Adpcm
                     hist1 = (short)sample;
 
                     yield return (short)sample;
+                    if (++outSample >= numSamples)
+                    {
+                        yield break;
+                    }
                 }
             }
         }
