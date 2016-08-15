@@ -536,12 +536,17 @@ namespace DspAdpcm.Encode.Adpcm
                 adpcmOut[y + 1] = (byte)((outSamples[bestIndex][y * 2] << 4) | (outSamples[bestIndex][y * 2 + 1] & 0xF));
             }
         }
+        internal static void CalculateLoopContext(IEnumerable<AdpcmChannel> channels, int loopStart)
+        {
+            Parallel.ForEach(channels, channel => CalculateLoopContext(channel, loopStart));
+        }
 
-        internal static void SetLoopContext(this AdpcmChannel audio, int loopStart)
+        internal static void CalculateLoopContext(this AdpcmChannel audio, int loopStart)
         {
             byte ps = audio.GetPredictorScale(loopStart);
             short[] hist = audio.GetPcmAudio(loopStart, 0, true);
             audio.SetLoopContext(ps, hist[1], hist[0]);
+            audio.SelfCalculatedLoopContext = true;
         }
 
         private static byte GetPredictorScale(this AdpcmChannel audio, int sample)

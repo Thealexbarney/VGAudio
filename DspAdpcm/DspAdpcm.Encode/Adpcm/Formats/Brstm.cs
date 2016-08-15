@@ -98,17 +98,18 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
         private void RecalculateData()
         {
-            if (Configuration.RecalculateSeekTable)
-            {
-                Encode.CalculateAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry);
-            }
+            var seekTableToCalculate = Configuration.RecalculateSeekTable
+                ? AudioStream.Channels.Where(
+                    x => !x.SelfCalculatedSeekTable || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry)
+                : AudioStream.Channels.Where(
+                    x => x.AudioByteArray == null || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry);
 
-            if (AudioStream.Looping)
-            {
-                Parallel.ForEach(AudioStream.Channels
-                    .Where(x => !x.LoopContextCalculated || Configuration.RecalculateLoopContext),
-                    x => x.SetLoopContext(AudioStream.LoopStart));
-            }
+            var loopContextToCalculate = Configuration.RecalculateLoopContext
+                ? AudioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
+                : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
+
+            Encode.CalculateAdpcTable(seekTableToCalculate, SamplesPerAdpcEntry);
+            Encode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? AudioStream.LoopStart : 0);
         }
 
         /// <summary>
