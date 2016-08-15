@@ -549,6 +549,21 @@ namespace DspAdpcm.Encode.Adpcm
             return audio.AudioData.Batch(8).Select(block => block.First());
         }
 
+        private static Tuple<int, short, short> GetStartingHistory(this AdpcmChannel audio, int firstSample)
+        {
+            if (audio.SeekTable == null || !audio.SelfCalculatedSeekTable)
+            {
+                return new Tuple<int, short, short>(0, audio.Hist1, audio.Hist2);
+            }
+
+            int entry = firstSample / audio.SamplesPerSeekTableEntry;
+            int sample = entry * audio.SamplesPerSeekTableEntry;
+            short hist1 = audio.SeekTable[entry * 2];
+            short hist2 = audio.SeekTable[entry * 2 + 1];
+
+            return new Tuple<int, short, short>(sample, hist1, hist2);
+        }
+
         internal static IEnumerable<short> GetPcmAudioLazy(this AdpcmChannel audio, bool includeHistorySamples = false)
         {
             int numSamples = audio.NumSamples;
@@ -623,26 +638,28 @@ namespace DspAdpcm.Encode.Adpcm
                                             " greater than the number of elements from index to the end of the source collection.");
             }
 
-            short hist1 = audio.Hist1;
-            short hist2 = audio.Hist2;
+            var history = audio.GetStartingHistory(index);
+            
+            short hist1 = history.Item2;
+            short hist2 = history.Item3;
             var adpcm = audio.AudioByteArray;
             int numBlocks = adpcm.Length.DivideByRoundUp(BytesPerBlock);
 
             short[] pcm;
             int numHistSamples = 0;
-            int currentSample = 0;
-            int outSample = 0; 
+            int currentSample = history.Item1;
+            int outSample = 0;
             int inByte = 0;
 
             if (includeHistorySamples)
             {
                 numHistSamples = 2;
                 pcm = new short[count + numHistSamples];
-                if (index <= 0)
+                if (index <= currentSample)
                 {
                     pcm[outSample++] = hist2;
                 }
-                if (index <= 1)
+                if (index <= currentSample + 1)
                 {
                     pcm[outSample++] = hist1;
                 }
@@ -653,7 +670,7 @@ namespace DspAdpcm.Encode.Adpcm
                 pcm = new short[count];
             }
 
-            int firstSample = Math.Max(index - numHistSamples, 0);
+            int firstSample = Math.Max(index - numHistSamples, currentSample);
             int lastSample = index + count;
 
             if (firstSample == lastSample)
@@ -846,6 +863,7 @@ namespace DspAdpcm.Encode.Adpcm
             }
 
             channel.SeekTable = table;
+            channel.SelfCalculatedSeekTable = true;
             channel.SamplesPerSeekTableEntry = samplesPerEntry;
         }
 
@@ -860,7 +878,7 @@ namespace DspAdpcm.Encode.Adpcm
             CalculateAdpcTable(channels.Where(x =>
             x.SeekTable == null || x.SamplesPerSeekTableEntry != samplesPerEntry), samplesPerEntry);
 
-            var table =  channels
+            var table = channels
                 .Select(x => x.SeekTable)
                 .ToArray()
                 .Interleave(2)

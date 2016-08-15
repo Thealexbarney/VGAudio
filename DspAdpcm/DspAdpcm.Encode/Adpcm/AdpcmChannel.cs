@@ -24,6 +24,7 @@ namespace DspAdpcm.Encode.Adpcm
         public short[] SeekTable { get; set; }
         public int SamplesPerSeekTableEntry { get; set; }
         public bool LoopContextCalculated { get; private set; }
+        public bool SelfCalculatedSeekTable { get; set; }
 
         public AdpcmChannel(int numSamples)
         {
