@@ -860,11 +860,14 @@ namespace DspAdpcm.Encode.Adpcm
             CalculateAdpcTable(channels.Where(x =>
             x.SeekTable == null || x.SamplesPerSeekTableEntry != samplesPerEntry), samplesPerEntry);
 
-            return channels
+            var table =  channels
                 .Select(x => x.SeekTable)
                 .ToArray()
                 .Interleave(2)
                 .ToFlippedBytes();
+
+            Array.Resize(ref table, numEntries * 4 * channels.Count());
+            return table;
         }
     }
 }
