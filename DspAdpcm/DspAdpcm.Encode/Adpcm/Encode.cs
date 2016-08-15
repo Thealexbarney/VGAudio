@@ -539,14 +539,14 @@ namespace DspAdpcm.Encode.Adpcm
 
         internal static void SetLoopContext(this AdpcmChannel audio, int loopStart)
         {
-            byte ps = audio.GetPredictorScale().Skip(loopStart / SamplesPerBlock).First();
+            byte ps = audio.GetPredictorScale(loopStart);
             short[] hist = audio.GetPcmAudio(loopStart, 0, true);
             audio.SetLoopContext(ps, hist[1], hist[0]);
         }
 
-        private static IEnumerable<byte> GetPredictorScale(this AdpcmChannel audio)
+        private static byte GetPredictorScale(this AdpcmChannel audio, int sample)
         {
-            return audio.AudioData.Batch(8).Select(block => block.First());
+            return audio.AudioByteArray[sample / SamplesPerBlock * BytesPerBlock];
         }
 
         private static Tuple<int, short, short> GetStartingHistory(this AdpcmChannel audio, int firstSample)
