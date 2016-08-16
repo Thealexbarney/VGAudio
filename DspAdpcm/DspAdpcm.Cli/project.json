@@ -5,7 +5,7 @@
     },
 
     "dependencies": {
-        "DspAdpcm.Encode": "1.0-*"
+        "DspAdpcm.Lib": "1.0-*"
     },
 
     "frameworks": {

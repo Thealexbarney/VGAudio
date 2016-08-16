@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace DspAdpcm.Encode
+namespace DspAdpcm.Lib
 {
     internal class BinaryReaderBE : BinaryReader
     {

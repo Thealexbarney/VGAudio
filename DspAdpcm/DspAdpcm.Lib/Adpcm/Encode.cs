@@ -7,10 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DspAdpcm.Encode.Pcm;
-using static DspAdpcm.Encode.Helpers;
+using DspAdpcm.Lib.Pcm;
+using static DspAdpcm.Lib.Helpers;
 
-namespace DspAdpcm.Encode.Adpcm
+namespace DspAdpcm.Lib.Adpcm
 {
     /// <summary>
     /// This class contains functions for encoding and

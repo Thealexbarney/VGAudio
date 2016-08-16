@@ -9,10 +9,10 @@ using Windows.Storage;
 using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 using Windows.UI.Popups;
-using DspAdpcm.Encode.Adpcm;
-using DspAdpcm.Encode.Adpcm.Formats;
-using DspAdpcm.Encode.Pcm;
-using DspAdpcm.Encode.Pcm.Formats;
+using DspAdpcm.Lib.Adpcm;
+using DspAdpcm.Lib.Adpcm.Formats;
+using DspAdpcm.Lib.Pcm;
+using DspAdpcm.Lib.Pcm.Formats;
 using GalaSoft.MvvmLight.Command;
 using PropertyChanged;
 
@@ -138,7 +138,7 @@ namespace DspAdpcm.Uwp.ViewModels
                 await Task.Run(() =>
                 {
                     watch.Start();
-                    adpcm = DspAdpcm.Encode.Adpcm.Encode.PcmToAdpcmParallel(PcmStream);
+                    adpcm = DspAdpcm.Lib.Adpcm.Encode.PcmToAdpcmParallel(PcmStream);
                     watch.Stop();
                 });
 

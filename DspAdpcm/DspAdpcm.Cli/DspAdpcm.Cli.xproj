@@ -16,7 +16,7 @@
     <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DspAdpcm.Encode\DspAdpcm.Encode.csproj" />
+    <ProjectReference Include="..\DspAdpcm.Lib\DspAdpcm.Lib.csproj" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.targets" Condition="'$(VSToolsPath)' != ''" />
 </Project>

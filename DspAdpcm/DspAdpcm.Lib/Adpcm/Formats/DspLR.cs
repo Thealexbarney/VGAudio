@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace DspAdpcm.Encode.Adpcm.Formats
+namespace DspAdpcm.Lib.Adpcm.Formats
 {
     internal class DspLR
     {

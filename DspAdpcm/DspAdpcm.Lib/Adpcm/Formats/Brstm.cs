@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static DspAdpcm.Encode.Helpers;
+using static DspAdpcm.Lib.Helpers;
 
-namespace DspAdpcm.Encode.Adpcm.Formats
+namespace DspAdpcm.Lib.Adpcm.Formats
 {
     /// <summary>
     /// Represents a BRSTM file.

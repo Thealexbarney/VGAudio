@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static DspAdpcm.Encode.Helpers;
+using static DspAdpcm.Lib.Helpers;
 
-namespace DspAdpcm.Encode.Adpcm
+namespace DspAdpcm.Lib.Adpcm
 {
     /// <summary>
     /// A 4-bit Nintendo ADPCM audio stream.

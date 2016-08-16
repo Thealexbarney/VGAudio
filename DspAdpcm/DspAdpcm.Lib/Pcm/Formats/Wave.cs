@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using static DspAdpcm.Encode.Helpers;
+using static DspAdpcm.Lib.Helpers;
 
-namespace DspAdpcm.Encode.Pcm.Formats
+namespace DspAdpcm.Lib.Pcm.Formats
 {
     /// <summary>
     /// Represents a PCM WAVE file

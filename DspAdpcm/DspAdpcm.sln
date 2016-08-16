@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspAdpcm.Encode", "DspAdpcm.Encode\DspAdpcm.Encode.csproj", "{2414DAA9-779C-4E7E-A97F-4DE09B22B88F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspAdpcm.Lib", "DspAdpcm.Lib\DspAdpcm.Lib.csproj", "{2414DAA9-779C-4E7E-A97F-4DE09B22B88F}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "DspAdpcm.Cli", "DspAdpcm.Cli\DspAdpcm.Cli.xproj", "{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}"
 EndProject

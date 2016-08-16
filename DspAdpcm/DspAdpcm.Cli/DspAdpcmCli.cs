@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using DspAdpcm.Encode.Adpcm;
-using DspAdpcm.Encode.Adpcm.Formats;
-using DspAdpcm.Encode.Pcm;
-using DspAdpcm.Encode.Pcm.Formats;
+using DspAdpcm.Lib.Adpcm;
+using DspAdpcm.Lib.Adpcm.Formats;
+using DspAdpcm.Lib.Pcm;
+using DspAdpcm.Lib.Pcm.Formats;
 
 namespace DspAdpcm.Cli
 {
@@ -36,7 +36,7 @@ namespace DspAdpcm.Cli
             Stopwatch watch = new Stopwatch();
             watch.Start();
 
-            AdpcmStream adpcm = Encode.Adpcm.Encode.PcmToAdpcmParallel(wave);
+            AdpcmStream adpcm = Lib.Adpcm.Encode.PcmToAdpcmParallel(wave);
 
             watch.Stop();
             Console.WriteLine($"DONE! {adpcm.NumSamples} samples processed\n");

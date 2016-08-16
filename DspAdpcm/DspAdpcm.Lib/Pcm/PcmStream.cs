@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DspAdpcm.Encode.Pcm
+namespace DspAdpcm.Lib.Pcm
 {
     /// <summary>
     /// A 16-bit PCM audio stream.

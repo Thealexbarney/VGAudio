@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace DspAdpcm.Encode
+namespace DspAdpcm.Lib
 {
     internal static class Helpers
     {

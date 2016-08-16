@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace DspAdpcm.Encode
+namespace DspAdpcm.Lib
 {
     internal static class Extensions
     {

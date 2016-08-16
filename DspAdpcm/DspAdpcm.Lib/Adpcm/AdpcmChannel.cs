@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using static DspAdpcm.Encode.Helpers;
+using static DspAdpcm.Lib.Helpers;
 
-namespace DspAdpcm.Encode.Adpcm
+namespace DspAdpcm.Lib.Adpcm
 {
     internal class AdpcmChannel
     {
