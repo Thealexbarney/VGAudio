@@ -114,7 +114,7 @@ namespace DspAdpcm.Encode.Adpcm
 
         private IEnumerable<AdpcmTrack> GetDefaultTrackList()
         {
-            int numTracks = (int)Math.Ceiling((double)Channels.Count / 2);
+            int numTracks = Channels.Count.DivideByRoundUp(2);
             for (int i = 0; i < numTracks; i++)
             {
                 int numChannels = Math.Min(Channels.Count - i * 2, 2);

@@ -10,7 +10,7 @@ namespace DspAdpcm.Encode.Adpcm
 
         public IEnumerable<byte> AudioData => AudioByteArray;
 
-        public int NumSamples => AudioByteArray.Length;
+        public int NumSamples { get; private set; }
 
         public short Gain { get; set; }
         public short[] Coefs { get; set; }
@@ -24,10 +24,13 @@ namespace DspAdpcm.Encode.Adpcm
         public short[] SeekTable { get; set; }
         public int SamplesPerSeekTableEntry { get; set; }
         public bool LoopContextCalculated { get; private set; }
+        public bool SelfCalculatedSeekTable { get; set; }
+        public bool SelfCalculatedLoopContext { get; set; }
 
         public AdpcmChannel(int numSamples)
         {
             AudioByteArray = new byte[GetBytesForAdpcmSamples(numSamples)];
+            NumSamples = numSamples;
         }
 
         public AdpcmChannel(int numSamples, byte[]audio)
@@ -37,6 +40,7 @@ namespace DspAdpcm.Encode.Adpcm
                 throw new ArgumentException("Audio array length does not match the specified number of samples.");
             }
             AudioByteArray = audio;
+            NumSamples = numSamples;
         }
 
         public AdpcmChannel SetLoopContext(short loopPredScale, short loopHist1, short loopHist2)

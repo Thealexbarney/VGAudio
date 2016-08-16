@@ -130,6 +130,20 @@ namespace DspAdpcm.Encode
             return output;
         }
 
+        public static short[] ToShortArrayFlippedBytes(this byte[] array)
+        {
+            int length = array.Length.DivideByRoundUp(2);
+
+            var output = new short[length];
+            for (int i = 0; i < length; i++)
+            {
+                output[i] = (short)((array[i * 2] << 8) | array[i * 2 + 1]);
+            }
+
+            return output;
+        }
+
+        public static int DivideByRoundUp(this int value, int divisor) => (int)Math.Ceiling((double)value / divisor);
         public static short FlipBytes(this short value) => (short)(value << 8 | (ushort)value >> 8);
 
         public static IEnumerable<byte> ToBytesBE(this int value) => BitConverter.GetBytes(value).Reverse();

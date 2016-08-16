@@ -96,12 +96,29 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             ReadBrstmFile(stream);
         }
 
+        private void RecalculateData()
+        {
+            var seekTableToCalculate = Configuration.RecalculateSeekTable
+                ? AudioStream.Channels.Where(
+                    x => !x.SelfCalculatedSeekTable || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry)
+                : AudioStream.Channels.Where(
+                    x => x.AudioByteArray == null || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry);
+
+            var loopContextToCalculate = Configuration.RecalculateLoopContext
+                ? AudioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
+                : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
+
+            Encode.CalculateAdpcTable(seekTableToCalculate, SamplesPerAdpcEntry);
+            Encode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? AudioStream.LoopStart : 0);
+        }
+
         /// <summary>
         /// Builds a BRSTM file from the current <see cref="AudioStream"/>.
         /// </summary>
         /// <returns>A BRSTM file</returns>
         public IEnumerable<byte> GetFile()
         {
+            RecalculateData();
             return Combine(GetRstmHeader(), GetHeadChunk(), GetAdpcChunk(), GetDataChunk());
         }
 
@@ -230,13 +247,6 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length + 4;
             int offsetTableLength = NumChannels * 8;
 
-            if (AudioStream.Looping)
-            {
-                Parallel.ForEach(AudioStream.Channels
-                    .Where(x => !x.LoopContextCalculated || Configuration.RecalculateLoopContext),
-                    x => x.SetLoopContext(AudioStream.LoopStart));
-            }
-
             for (int i = 0; i < NumChannels; i++)
             {
                 chunk.Add32BE(0x01000000);
@@ -268,11 +278,6 @@ namespace DspAdpcm.Encode.Adpcm.Formats
 
             header.Add32("ADPC");
             header.Add32BE(AdpcChunkLength);
-
-            if (Configuration.RecalculateSeekTable)
-            {
-                Encode.CalculateAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry);
-            }
 
             byte[] chunk = header.ToArray();
             Array.Resize(ref chunk, AdpcChunkLength);
@@ -533,10 +538,8 @@ namespace DspAdpcm.Encode.Adpcm.Formats
             }
 
             byte[] tableBytes = reader.ReadBytes(structure.AdpcTableLength);
-            short[] table = new short[(int)Math.Ceiling((double)tableBytes.Length / 2)];
-            Buffer.BlockCopy(tableBytes, 0, table, 0, tableBytes.Length);
 
-            structure.SeekTable = table.Select(x => x.FlipBytes()).ToArray()
+            structure.SeekTable = tableBytes.ToShortArrayFlippedBytes()
                 .DeInterleave(2, structure.NumChannelsChunk1);
         }
 

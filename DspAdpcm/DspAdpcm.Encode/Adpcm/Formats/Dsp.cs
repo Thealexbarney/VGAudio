@@ -62,7 +62,7 @@ namespace DspAdpcm.Encode.Adpcm.Formats
         {
             if (AudioStream.Looping)
             {
-                AudioChannel.SetLoopContext(AudioStream.LoopStart);
+                AudioChannel.CalculateLoopContext(AudioStream.LoopStart);
             }
 
             var header = new List<byte>();
