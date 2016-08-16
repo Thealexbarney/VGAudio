@@ -561,10 +561,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             reader.BaseStream.Position = structure.AudioDataOffset;
             int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
 
-            byte[] audioData = reader.ReadBytes(audioDataLength);
-
-            byte[][] deInterleavedAudioData = audioData.DeInterleave(structure.InterleaveSize, structure.NumChannelsChunk1,
-                structure.LastBlockSize, GetBytesForAdpcmSamples(structure.NumSamples));
+            byte[][] deInterleavedAudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
+                structure.NumChannelsChunk1, structure.LastBlockSize, GetBytesForAdpcmSamples(structure.NumSamples));
 
             for (int c = 0; c < structure.NumChannelsChunk1; c++)
             {
