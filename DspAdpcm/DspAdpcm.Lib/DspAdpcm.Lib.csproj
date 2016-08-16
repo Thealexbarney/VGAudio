@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Adpcm\AdpcmChannel.cs" />
     <Compile Include="Adpcm\AdpcmStream.cs" />
+    <Compile Include="Adpcm\Decode.cs" />
     <Compile Include="Adpcm\Encode.cs" />
     <Compile Include="Adpcm\Formats\Brstm.cs" />
     <Compile Include="Adpcm\Formats\DspLR.cs" />

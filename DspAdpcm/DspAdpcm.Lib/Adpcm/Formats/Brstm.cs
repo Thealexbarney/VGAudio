@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using static DspAdpcm.Lib.Helpers;
 
 namespace DspAdpcm.Lib.Adpcm.Formats
@@ -108,8 +107,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 ? AudioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
                 : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
 
-            Encode.CalculateAdpcTable(seekTableToCalculate, SamplesPerAdpcEntry);
-            Encode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? AudioStream.LoopStart : 0);
+            Decode.CalculateAdpcTable(seekTableToCalculate, SamplesPerAdpcEntry);
+            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? AudioStream.LoopStart : 0);
         }
 
         /// <summary>
@@ -282,7 +281,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             byte[] chunk = header.ToArray();
             Array.Resize(ref chunk, AdpcChunkLength);
 
-            var table = Encode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries).ToArray();
+            var table = Decode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries).ToArray();
 
             Array.Copy(table, 0, chunk, 8, table.Length);
 
