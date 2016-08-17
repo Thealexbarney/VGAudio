@@ -432,7 +432,7 @@ namespace DspAdpcm.Lib.Adpcm
             /* Iterate through each coef set, finding the set with the smallest error */
             for (int i = 0; i < 8; i++)
             {
-                DspEncodeCoef(i, pcmInOut, sampleCount, coefs, inSamples, outSamples, scale, distAccum);
+                DspEncodeCoef(pcmInOut, sampleCount, coefs[i], inSamples[i], outSamples[i], ref scale[i], ref distAccum[i]);
             }
 
             int bestIndex = 0;
@@ -465,22 +465,22 @@ namespace DspAdpcm.Lib.Adpcm
             }
         }
 
-        private static void DspEncodeCoef(int i, short[] pcmInOut, int sampleCount, short[][] coefs, int[][] inSamples,
-            int[][] outSamples, int[] scale, double[] distAccum)
+        private static void DspEncodeCoef(short[] pcmInOut, int sampleCount, short[] coefs, int[] inSamples,
+            int[] outSamples, ref int scale, ref double distAccum)
         {
             int v1, v2, v3;
             int index;
             int distance = 0;
 
             /* Set yn values */
-            inSamples[i][0] = pcmInOut[0];
-            inSamples[i][1] = pcmInOut[1];
+            inSamples[0] = pcmInOut[0];
+            inSamples[1] = pcmInOut[1];
 
             /* Round and clamp samples for this coef set */
             for (int s = 0; s < sampleCount; s++)
             {
                 /* Multiply previous samples by coefs */
-                inSamples[i][s + 2] = v1 = ((pcmInOut[s] * coefs[i][1]) + (pcmInOut[s + 1] * coefs[i][0])) / 2048;
+                inSamples[s + 2] = v1 = ((pcmInOut[s] * coefs[1]) + (pcmInOut[s + 1] * coefs[0])) / 2048;
                 /* Subtract from current sample */
                 v2 = pcmInOut[s + 2] - v1;
                 /* Clamp */
@@ -491,27 +491,27 @@ namespace DspAdpcm.Lib.Adpcm
             }
 
             /* Set initial scale */
-            for (scale[i] = 0; (scale[i] <= 12) && ((distance > 7) || (distance < -8)); scale[i]++, distance /= 2)
+            for (scale = 0; (scale <= 12) && ((distance > 7) || (distance < -8)); scale++, distance /= 2)
             {
             }
-            scale[i] = (scale[i] <= 1) ? -1 : scale[i] - 2;
+            scale = (scale <= 1) ? -1 : scale - 2;
 
             do
             {
-                scale[i]++;
-                distAccum[i] = 0;
+                scale++;
+                distAccum = 0;
                 index = 0;
 
                 for (int s = 0; s < sampleCount; s++)
                 {
                     /* Multiply previous */
-                    v1 = ((inSamples[i][s] * coefs[i][1]) + (inSamples[i][s + 1] * coefs[i][0]));
+                    v1 = ((inSamples[s] * coefs[1]) + (inSamples[s + 1] * coefs[0]));
                     /* Evaluate from real sample */
                     v2 = ((pcmInOut[s + 2] << 11) - v1) / 2048;
                     /* Round to nearest sample */
                     v3 = (v2 > 0)
-                        ? (int)((double)v2 / (1 << scale[i]) + 0.4999999f)
-                        : (int)((double)v2 / (1 << scale[i]) - 0.4999999f);
+                        ? (int)((double)v2 / (1 << scale) + 0.4999999f)
+                        : (int)((double)v2 / (1 << scale) - 0.4999999f);
 
                     /* Clamp sample and set index */
                     if (v3 < -8)
@@ -528,21 +528,21 @@ namespace DspAdpcm.Lib.Adpcm
                     }
 
                     /* Store result */
-                    outSamples[i][s] = v3;
+                    outSamples[s] = v3;
 
                     /* Round and expand */
-                    v1 = (v1 + ((v3 * (1 << scale[i])) << 11) + 1024) >> 11;
+                    v1 = (v1 + ((v3 * (1 << scale)) << 11) + 1024) >> 11;
                     /* Clamp and store */
-                    inSamples[i][s + 2] = v2 = Clamp16(v1);
+                    inSamples[s + 2] = v2 = Clamp16(v1);
                     /* Accumulate distance */
                     v3 = pcmInOut[s + 2] - v2;
-                    distAccum[i] += v3 * (double)v3;
+                    distAccum += v3 * (double)v3;
                 }
 
                 for (int x = index + 8; x > 256; x >>= 1)
-                    if (++scale[i] >= 12)
-                        scale[i] = 11;
-            } while ((scale[i] < 12) && (index > 1));
+                    if (++scale >= 12)
+                        scale = 11;
+            } while ((scale < 12) && (index > 1));
         }
 
         private static AdpcmChannel PcmToAdpcm(PcmChannel pcmChannel)
