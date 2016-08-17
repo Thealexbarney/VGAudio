@@ -151,11 +151,7 @@ namespace DspAdpcm.Lib.Adpcm
                     sample = sample >= 8 ? sample - 16 : sample;
 
                     sample = (((scale * sample) << 11) + 1024 + (coef1 * hist1 + coef2 * hist2)) >> 11;
-
-                    if (sample > short.MaxValue)
-                        sample = short.MaxValue;
-                    if (sample < short.MinValue)
-                        sample = short.MinValue;
+                    sample = Clamp16(sample);
 
                     hist2 = hist1;
                     hist1 = (short)sample;

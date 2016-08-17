@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace DspAdpcm.Lib
 {
@@ -49,12 +50,13 @@ namespace DspAdpcm.Lib
             return BytesPerBlock * blocks + extraBytes;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short Clamp16(int value)
         {
             if (value > short.MaxValue)
-                value = short.MaxValue;
+                return short.MaxValue;
             if (value < short.MinValue)
-                value = short.MinValue;
+                return short.MinValue;
             return (short)value;
         }
 
