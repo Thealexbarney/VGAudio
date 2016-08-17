@@ -12,7 +12,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
     public class Dsp
     {
         private const int HeaderSize = 0x60;
-        private int FileSize => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
+        /// <summary>
+        /// The size in bytes of the DSP file.
+        /// </summary>
+        public int FileLength => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
         /// <summary>
         /// The underlying <see cref="AdpcmStream"/> used to build the DSP file.
         /// </summary>
@@ -58,42 +61,70 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             ReadDspFile(stream);
         }
 
-        private IEnumerable<byte> GetHeader()
+        private void GetHeader(Stream stream)
         {
-            if (AudioStream.Looping)
-            {
-                AudioChannel.CalculateLoopContext(AudioStream.LoopStart);
-            }
+            //if (AudioStream.Looping)
+            //{
+            //    AudioChannel.CalculateLoopContext(AudioStream.LoopStart);
+            //}
 
-            var header = new List<byte>();
-            header.Add32BE(AudioStream.NumSamples);
-            header.Add32BE(GetNibbleFromSample(AudioStream.NumSamples));
-            header.Add32BE(AudioStream.SampleRate);
-            header.Add16BE(AudioStream.Looping ? 1 : 0);
-            header.Add16BE(Format);
-            header.Add32BE(StartAddr);
-            header.Add32BE(EndAddr);
-            header.Add32BE(CurAddr);
-            header.AddRange(AudioChannel.Coefs.ToFlippedBytes());
-            header.Add16BE(AudioChannel.Gain);
-            header.Add16BE(PredScale);
-            header.Add16BE(AudioChannel.Hist1);
-            header.Add16BE(AudioChannel.Hist2);
-            header.Add16BE(AudioChannel.LoopPredScale);
-            header.Add16BE(AudioChannel.LoopHist1);
-            header.Add16BE(AudioChannel.LoopHist2);
-            header.AddRange(new byte[HeaderSize - header.Count]); //Padding
+            BinaryWriterBE header = new BinaryWriterBE(stream);
 
-            return header;
+            header.WriteBE(AudioStream.NumSamples);
+            header.WriteBE(GetNibbleFromSample(AudioStream.NumSamples));
+            header.WriteBE(AudioStream.SampleRate);
+            header.WriteBE((short)(AudioStream.Looping ? 1 : 0));
+            header.WriteBE(Format);
+            header.WriteBE(StartAddr);
+            header.WriteBE(EndAddr);
+            header.WriteBE(CurAddr);
+            header.Write(AudioChannel.Coefs.ToFlippedBytes());
+            header.WriteBE(AudioChannel.Gain);
+            header.WriteBE(PredScale);
+            header.WriteBE(AudioChannel.Hist1);
+            header.WriteBE(AudioChannel.Hist2);
+            header.WriteBE(AudioChannel.LoopPredScale);
+            header.WriteBE(AudioChannel.LoopHist1);
+            header.WriteBE(AudioChannel.LoopHist2);
         }
 
         /// <summary>
         /// Builds a DSP file from the current <see cref="AudioStream"/>.
         /// </summary>
         /// <returns>A DSP file</returns>
-        public IEnumerable<byte> GetFile()
+        public byte[] GetFile()
         {
-            return GetHeader().Concat(AudioChannel.AudioData);
+            var file = new byte[FileLength];
+            var stream = new MemoryStream(file);
+            WriteFile(stream);
+            return file;
+        }
+
+        /// <summary>
+        /// Writes the DSP file to a <see cref="Stream"/>.
+        /// The file is written starting at the beginning
+        /// of the <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to write the
+        /// DSP to.</param>
+        public void WriteFile(Stream stream)
+        {
+            if (stream.Length != FileLength)
+            {
+                try
+                {
+                    stream.SetLength(FileLength);
+                }
+                catch (NotSupportedException ex)
+                {
+                    throw new ArgumentException("Stream is too small.", nameof(stream), ex);
+                }
+            }
+
+            stream.Position = 0;
+            GetHeader(stream);
+            stream.Position = HeaderSize;
+            stream.Write(AudioChannel.AudioByteArray, 0, AudioChannel.AudioByteArray.Length);
         }
 
         private void ReadDspFile(Stream stream)

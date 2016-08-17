@@ -433,7 +433,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 structure.NumChannelsChunk1 = reader.ReadByte();
                 reader.BaseStream.Position += 1;
 
-                structure.SampleRate = reader.ReadInt16BE();
+                structure.SampleRate = (ushort)reader.ReadInt16BE();
                 reader.BaseStream.Position += 2;
 
                 structure.LoopStart = reader.ReadInt32BE();
