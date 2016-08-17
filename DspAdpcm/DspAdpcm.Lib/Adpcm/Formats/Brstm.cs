@@ -62,7 +62,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int DataChunkOffset => RstmHeaderLength + HeadChunkLength + AdpcChunkLength;
         private int DataChunkLength => GetNextMultiple(0x20 + (InterleaveCount - (LastBlockSamples == 0 ? 0 : 1)) * InterleaveSize * NumChannels + LastBlockSize * NumChannels, 0x20);
 
-        private int FileLength => RstmHeaderLength + HeadChunkLength + AdpcChunkLength + DataChunkLength;
+        /// <summary>
+        /// The size in bytes of the BRSTM file.
+        /// </summary>
+        public int FileLength => RstmHeaderLength + HeadChunkLength + AdpcChunkLength + DataChunkLength;
 
         /// <summary>
         /// Initializes a new <see cref="Brstm"/> from an <see cref="AdpcmStream"/>.
@@ -117,19 +120,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <returns>A BRSTM file</returns>
         public byte[] GetFile()
         {
-            RecalculateData();
-
             var file = new byte[FileLength];
-            var rstm = new MemoryStream(file, 0, RstmHeaderLength);
-            var head = new MemoryStream(file, HeadChunkOffset, HeadChunkLength);
-            var adpc = new MemoryStream(file, AdpcChunkOffset, AdpcChunkLength);
-            var data = new MemoryStream(file, DataChunkOffset, DataChunkLength);
-
-            GetRstmHeader(rstm);
-            GetHeadChunk(head);
-            GetAdpcChunk(adpc);
-            GetDataChunk(data);
-
+            var stream = new MemoryStream(file);
+            WriteFile(stream);
             return file;
         }
 
@@ -144,7 +137,17 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         {
             RecalculateData();
 
-            stream.SetLength(FileLength);
+            if (stream.Length != FileLength)
+            {
+                try
+                {
+                    stream.SetLength(FileLength);
+                }
+                catch (NotSupportedException ex)
+                {
+                    throw new ArgumentException("Stream is too small.", nameof(stream), ex);
+                }
+            }
 
             stream.Position = 0;
             GetRstmHeader(stream);
