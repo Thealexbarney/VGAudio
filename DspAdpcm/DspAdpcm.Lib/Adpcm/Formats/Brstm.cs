@@ -300,9 +300,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             byte[][] channels = AudioStream.Channels.Select(x => x.AudioByteArray).ToArray();
 
-            var interleavedData = channels.Interleave(InterleaveSize, LastBlockSize);
-
-            chunk.Write(interleavedData);
+            channels.Interleave(stream, InterleaveSize, LastBlockSize);
         }
 
         private void ReadBrstmFile(Stream stream)

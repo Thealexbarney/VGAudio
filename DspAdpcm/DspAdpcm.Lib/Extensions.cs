@@ -76,6 +76,44 @@ namespace DspAdpcm.Lib
             return output;
         }
 
+        public static void Interleave(this byte[][] inputs, Stream output, int interleaveSize, int lastInterleaveSize = -1)
+        {
+            if (lastInterleaveSize < 0 || lastInterleaveSize > interleaveSize)
+                lastInterleaveSize = interleaveSize;
+
+            int length = inputs[0].Length;
+            if (inputs.Any(x => x.Length != length))
+                throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be of equal length");
+
+            int numInputs = inputs.Length;
+            int numFullBlocks = length / interleaveSize;
+            int numShortBlocks = length % interleaveSize == 0 ? 0 : 1;
+            int interleavedLength = numFullBlocks * interleaveSize + numShortBlocks * lastInterleaveSize;
+
+            if (interleavedLength < length)
+                throw new ArgumentOutOfRangeException(nameof(lastInterleaveSize), lastInterleaveSize,
+                    $"Last interleave size is too small by {length - interleavedLength} bytes");
+
+            int lastBlockSizeWithoutPadding = length - numFullBlocks * interleaveSize;
+
+            for (int b = 0; b < numFullBlocks; b++)
+            {
+                for (int i = 0; i < numInputs; i++)
+                {
+                    output.Write(inputs[i], interleaveSize * b, interleaveSize);
+                }
+            }
+
+            for (int b = 0; b < numShortBlocks; b++)
+            {
+                for (int i = 0; i < numInputs; i++)
+                {
+                    output.Write(inputs[i], interleaveSize * numFullBlocks, lastBlockSizeWithoutPadding);
+                    output.Position += lastInterleaveSize - lastBlockSizeWithoutPadding;
+                }
+            }
+        }
+
         public static T[][] DeInterleave<T>(this T[] input, int interleaveSize, int numOutputs, int lastInterleaveSizeIn = -1, int finalOutputLength = -1)
         {
             if (input.Length % numOutputs != 0)
