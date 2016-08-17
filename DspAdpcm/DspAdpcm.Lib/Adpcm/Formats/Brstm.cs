@@ -115,48 +115,53 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// Builds a BRSTM file from the current <see cref="AudioStream"/>.
         /// </summary>
         /// <returns>A BRSTM file</returns>
-        public IEnumerable<byte> GetFile()
+
+        public byte[] GetFile()
         {
             RecalculateData();
-            return Combine(GetRstmHeader(), GetHeadChunk(), GetAdpcChunk(), GetDataChunk());
+
+            var file = new byte[FileLength];
+            var rstm = new MemoryStream(file, 0, RstmHeaderLength);
+            var head = new MemoryStream(file, HeadChunkOffset, HeadChunkLength);
+            var adpc = new MemoryStream(file, AdpcChunkOffset, AdpcChunkLength);
+            var data = new MemoryStream(file, DataChunkOffset, DataChunkLength);
+
+            GetRstmHeader(rstm);
+            GetHeadChunk(head);
+            GetAdpcChunk(adpc);
+            GetDataChunk(data);
+
+            return file;
         }
 
-        private byte[] GetRstmHeader()
+        private void GetRstmHeader(Stream stream)
         {
-            var header = new List<byte>();
+            BinaryWriterBE header = new BinaryWriterBE(stream);
 
-            header.Add32("RSTM");
-            header.Add16BE(0xfeff); //Endianness
-            header.Add16BE(0x0100); //BRSTM format version
-            header.Add32BE(FileLength);
-            header.Add16BE(RstmHeaderLength);
-            header.Add16BE(2); // NumEntries
-            header.Add32BE(HeadChunkOffset);
-            header.Add32BE(HeadChunkLength);
-            header.Add32BE(AdpcChunkOffset);
-            header.Add32BE(AdpcChunkLength);
-            header.Add32BE(DataChunkOffset);
-            header.Add32BE(DataChunkLength);
-
-            header.AddRange(new byte[RstmHeaderLength - header.Count]);
-
-            return header.ToArray();
+            header.WriteASCII("RSTM");
+            header.WriteBE((ushort)0xfeff); //Endianness
+            header.WriteBE((short)0x0100); //BRSTM format version
+            header.WriteBE(FileLength);
+            header.WriteBE((short)RstmHeaderLength);
+            header.WriteBE((short)2); // NumEntries
+            header.WriteBE(HeadChunkOffset);
+            header.WriteBE(HeadChunkLength);
+            header.WriteBE(AdpcChunkOffset);
+            header.WriteBE(AdpcChunkLength);
+            header.WriteBE(DataChunkOffset);
+            header.WriteBE(DataChunkLength);
         }
 
-        private byte[] GetHeadChunk()
+        private void GetHeadChunk(Stream stream)
         {
-            var chunk = new List<byte>();
+            var chunk = new BinaryWriterBE(stream);
 
-            chunk.Add32("HEAD");
-            chunk.Add32BE(HeadChunkLength);
-            chunk.AddRange(GetHeadChunkHeader());
-            chunk.AddRange(GetHeadChunk1());
-            chunk.AddRange(GetHeadChunk2());
-            chunk.AddRange(GetHeadChunk3());
-
-            chunk.AddRange(new byte[HeadChunkLength - chunk.Count]);
-
-            return chunk.ToArray();
+            chunk.WriteASCII("HEAD");
+            chunk.WriteBE(HeadChunkLength);
+            chunk.Write(GetHeadChunkHeader());
+            chunk.Write(GetHeadChunk1());
+            chunk.Write(GetHeadChunk2());
+            chunk.Write(GetHeadChunk3());
         }
 
         private byte[] GetHeadChunkHeader()
@@ -271,40 +276,33 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             return chunk.ToArray();
         }
 
-        private byte[] GetAdpcChunk()
+        private void GetAdpcChunk(Stream stream)
         {
-            var header = new List<byte>();
+            var chunk = new BinaryWriterBE(stream);
 
-            header.Add32("ADPC");
-            header.Add32BE(AdpcChunkLength);
-
-            byte[] chunk = header.ToArray();
-            Array.Resize(ref chunk, AdpcChunkLength);
+            chunk.WriteASCII("ADPC");
+            chunk.WriteBE(AdpcChunkLength);
 
             var table = Decode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries).ToArray();
 
-            Array.Copy(table, 0, chunk, 8, table.Length);
-
-            return chunk;
+            chunk.Write(table);
         }
 
-        private byte[] GetDataChunk()
+        private void GetDataChunk(Stream stream)
         {
-            var header = new List<byte>();
+            var chunk = new BinaryWriterBE(stream);
 
-            header.Add32("DATA");
-            header.Add32BE(DataChunkLength);
-            header.Add32BE(0x18);
+            chunk.WriteASCII("DATA");
+            chunk.WriteBE(DataChunkLength);
+            chunk.WriteBE(0x18);
 
-            byte[] chunk = header.ToArray();
-            Array.Resize(ref chunk, DataChunkLength);
+            stream.Position = AudioDataOffset - DataChunkOffset;
 
             byte[][] channels = AudioStream.Channels.Select(x => x.AudioByteArray).ToArray();
 
             var interleavedData = channels.Interleave(InterleaveSize, LastBlockSize);
 
-            Array.Copy(interleavedData, 0, chunk, 0x20, interleavedData.Length);
-            return chunk;
+            chunk.Write(interleavedData);
         }
 
         private void ReadBrstmFile(Stream stream)

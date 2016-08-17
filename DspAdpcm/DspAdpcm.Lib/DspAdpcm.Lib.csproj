@@ -48,6 +48,7 @@
     <Compile Include="Adpcm\Formats\Brstm.cs" />
     <Compile Include="Adpcm\Formats\DspLR.cs" />
     <Compile Include="BinaryReaderBE.cs" />
+    <Compile Include="BinaryWriterBE.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Adpcm\Formats\Dsp.cs" />
