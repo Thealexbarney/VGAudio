@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -75,14 +76,52 @@ namespace DspAdpcm.Lib
             return output;
         }
 
-        public static T[][] DeInterleave<T>(this T[] input, int interleaveSize, int numOutputs, int lastInterleaveSize = -1, int finalOutputLength = -1)
+        public static void Interleave(this byte[][] inputs, Stream output, int interleaveSize, int lastInterleaveSize = -1)
+        {
+            if (lastInterleaveSize < 0 || lastInterleaveSize > interleaveSize)
+                lastInterleaveSize = interleaveSize;
+
+            int length = inputs[0].Length;
+            if (inputs.Any(x => x.Length != length))
+                throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be of equal length");
+
+            int numInputs = inputs.Length;
+            int numFullBlocks = length / interleaveSize;
+            int numShortBlocks = length % interleaveSize == 0 ? 0 : 1;
+            int interleavedLength = numFullBlocks * interleaveSize + numShortBlocks * lastInterleaveSize;
+
+            if (interleavedLength < length)
+                throw new ArgumentOutOfRangeException(nameof(lastInterleaveSize), lastInterleaveSize,
+                    $"Last interleave size is too small by {length - interleavedLength} bytes");
+
+            int lastBlockSizeWithoutPadding = length - numFullBlocks * interleaveSize;
+
+            for (int b = 0; b < numFullBlocks; b++)
+            {
+                for (int i = 0; i < numInputs; i++)
+                {
+                    output.Write(inputs[i], interleaveSize * b, interleaveSize);
+                }
+            }
+
+            for (int b = 0; b < numShortBlocks; b++)
+            {
+                for (int i = 0; i < numInputs; i++)
+                {
+                    output.Write(inputs[i], interleaveSize * numFullBlocks, lastBlockSizeWithoutPadding);
+                    output.Position += lastInterleaveSize - lastBlockSizeWithoutPadding;
+                }
+            }
+        }
+
+        public static T[][] DeInterleave<T>(this T[] input, int interleaveSize, int numOutputs, int lastInterleaveSizeIn = -1, int finalOutputLength = -1)
         {
             if (input.Length % numOutputs != 0)
                 throw new ArgumentOutOfRangeException(nameof(numOutputs), numOutputs,
                     $"The input array length ({input.Length}) must be divisible by the number of outputs.");
 
-            if (lastInterleaveSize < 0 || lastInterleaveSize > interleaveSize)
-                lastInterleaveSize = interleaveSize;
+            if (lastInterleaveSizeIn < 0 || lastInterleaveSizeIn > interleaveSize)
+                lastInterleaveSizeIn = interleaveSize;
 
             int outputLength = input.Length / numOutputs;
             if (finalOutputLength < 0)
@@ -90,10 +129,11 @@ namespace DspAdpcm.Lib
 
             int numShortBlocks = outputLength % interleaveSize == 0 ? 0 : 1;
             int numBlocks = outputLength / interleaveSize + numShortBlocks;
+            int lastInterleaveSizeOut = finalOutputLength - interleaveSize * (numBlocks - 1);
 
-            if (numShortBlocks != 0 && outputLength % interleaveSize < lastInterleaveSize)
-                throw new ArgumentOutOfRangeException(nameof(lastInterleaveSize), lastInterleaveSize,
-                    $"Not enough elements for specified last interleave size({lastInterleaveSize})");
+            if (numShortBlocks != 0 && outputLength % interleaveSize < lastInterleaveSizeIn)
+                throw new ArgumentOutOfRangeException(nameof(lastInterleaveSizeIn), lastInterleaveSizeIn,
+                    $"Not enough elements for specified last interleave size({lastInterleaveSizeIn})");
 
             var outputs = new T[numOutputs][];
 
@@ -108,9 +148,63 @@ namespace DspAdpcm.Lib
                         interleaveSize);
                 }
 
-                Array.Copy(input, interleaveSize * (numBlocks - 1) * numOutputs + lastInterleaveSize * o,
+                Array.Copy(input, interleaveSize * (numBlocks - 1) * numOutputs + lastInterleaveSizeIn * o,
                     outputs[o], interleaveSize * (numBlocks - 1),
-                    finalOutputLength - interleaveSize * (numBlocks - 1));
+                    lastInterleaveSizeOut);
+            }
+
+            return outputs;
+        }
+
+        public static byte[][] DeInterleave(this Stream input, int length, int interleaveSize, int numOutputs, int lastInterleaveSizeIn = -1, int finalOutputLength = -1)
+        {
+            if (input.CanSeek)
+            {
+                long remainingLength = input.Length - input.Position;
+                if (remainingLength < length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(length), length,
+                        "Specified length is less than the number of bytes remaining in the Stream");
+                }
+            }
+
+            if (length % numOutputs != 0)
+                throw new ArgumentOutOfRangeException(nameof(numOutputs), numOutputs,
+                    $"The input length ({length}) must be divisible by the number of outputs.");
+
+            if (lastInterleaveSizeIn < 0 || lastInterleaveSizeIn > interleaveSize)
+                lastInterleaveSizeIn = interleaveSize;
+
+            int outputLength = length / numOutputs;
+            if (finalOutputLength < 0)
+                finalOutputLength = outputLength;
+
+            int numShortBlocks = outputLength % interleaveSize == 0 ? 0 : 1;
+            int numBlocks = outputLength / interleaveSize + numShortBlocks;
+            int lastInterleaveSizeOut = finalOutputLength - interleaveSize * (numBlocks - 1);
+
+            if (numShortBlocks != 0 && outputLength % interleaveSize < lastInterleaveSizeIn)
+                throw new ArgumentOutOfRangeException(nameof(lastInterleaveSizeIn), lastInterleaveSizeIn,
+                    $"Not enough elements for specified last interleave size({lastInterleaveSizeIn})");
+
+            var outputs = new byte[numOutputs][];
+            for (int i = 0; i < numOutputs; i++)
+            {
+                outputs[i] = new byte[finalOutputLength];
+            }
+
+            for (int b = 0; b < numBlocks - 1; b++)
+            {
+                for (int o = 0; o < numOutputs; o++)
+                {
+                    input.Read(outputs[o], interleaveSize * b, interleaveSize);
+                }
+            }
+
+            for (int o = 0; o < numOutputs; o++)
+            {
+                input.Read(outputs[o], interleaveSize * (numBlocks - 1), lastInterleaveSizeOut);
+                input.Position += lastInterleaveSizeIn - lastInterleaveSizeOut;
             }
 
             return outputs;
