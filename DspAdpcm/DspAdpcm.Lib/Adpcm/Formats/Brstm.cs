@@ -115,7 +115,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// Builds a BRSTM file from the current <see cref="AudioStream"/>.
         /// </summary>
         /// <returns>A BRSTM file</returns>
-
         public byte[] GetFile()
         {
             RecalculateData();
@@ -132,6 +131,29 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             GetDataChunk(data);
 
             return file;
+        }
+
+        /// <summary>
+        /// Writes the BRSTM file to a <see cref="Stream"/>.
+        /// The file is written starting at the beginning
+        /// of the <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to write the
+        /// BRSTM to.</param>
+        public void WriteFile(Stream stream)
+        {
+            RecalculateData();
+
+            stream.SetLength(FileLength);
+
+            stream.Position = 0;
+            GetRstmHeader(stream);
+            stream.Position = HeadChunkOffset;
+            GetHeadChunk(stream);
+            stream.Position = AdpcChunkOffset;
+            GetAdpcChunk(stream);
+            stream.Position = DataChunkOffset;
+            GetDataChunk(stream);
         }
 
         private void GetRstmHeader(Stream stream)
@@ -296,7 +318,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.WriteBE(DataChunkLength);
             chunk.WriteBE(0x18);
 
-            stream.Position = AudioDataOffset - DataChunkOffset;
+            stream.Position += AudioDataOffset - DataChunkOffset - 3 * sizeof(int);
 
             byte[][] channels = AudioStream.Channels.Select(x => x.AudioByteArray).ToArray();
 
