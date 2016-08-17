@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static DspAdpcm.Lib.Helpers;
@@ -11,15 +10,22 @@ namespace DspAdpcm.Lib.Adpcm.Formats
     /// </summary>
     public class Dsp
     {
-        private const int HeaderSize = 0x60;
-        /// <summary>
-        /// The size in bytes of the DSP file.
-        /// </summary>
-        public int FileLength => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
         /// <summary>
         /// The underlying <see cref="AdpcmStream"/> used to build the DSP file.
         /// </summary>
         public AdpcmStream AudioStream { get; set; }
+
+        /// <summary>
+        /// Contains various settings used when building the BRSTM file.
+        /// </summary>
+        public DspConfiguration Configuration { get; } = new DspConfiguration();
+        
+        /// <summary>
+        /// The size in bytes of the DSP file.
+        /// </summary>
+        public int FileLength => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
+
+        private const int HeaderSize = 0x60;
         private AdpcmChannel AudioChannel => AudioStream.Channels[0];
 
         private short Format { get; } = 0; /* 0 for ADPCM */
@@ -61,12 +67,18 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             ReadDspFile(stream);
         }
 
+        private void RecalculateData()
+        {
+            var loopContextToCalculate = Configuration.RecalculateLoopContext
+                ? AudioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
+                : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
+
+            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? AudioStream.LoopStart : 0);
+        }
+
         private void GetHeader(Stream stream)
         {
-            //if (AudioStream.Looping)
-            //{
-            //    AudioChannel.CalculateLoopContext(AudioStream.LoopStart);
-            //}
+            RecalculateData();
 
             BinaryWriterBE header = new BinaryWriterBE(stream);
 
@@ -178,6 +190,20 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 adpcm.Channels.Add(channel);
                 AudioStream = adpcm;
             }
+        }
+
+        /// <summary>
+        /// Contains the options used to build the DSP file.
+        /// </summary>
+        public class DspConfiguration
+        {
+            /// <summary>
+            /// If <c>true</c>, recalculates the loop context when building the DSP.
+            /// If <c>false</c>, reuses the loop context read from an imported DSP
+            /// if available.
+            /// Default is <c>true</c>.
+            /// </summary>
+            public bool RecalculateLoopContext { get; set; } = true;
         }
     }
 }
