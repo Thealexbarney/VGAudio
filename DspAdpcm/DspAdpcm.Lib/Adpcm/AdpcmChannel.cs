@@ -7,9 +7,7 @@ namespace DspAdpcm.Lib.Adpcm
     internal class AdpcmChannel
     {
         public byte[] AudioByteArray { get; set; }
-
-        public IEnumerable<byte> AudioData => AudioByteArray;
-
+        
         public int NumSamples { get; private set; }
 
         public short Gain { get; set; }
@@ -51,6 +49,11 @@ namespace DspAdpcm.Lib.Adpcm
 
             LoopContextCalculated = true;
             return this;
+        }
+
+        public byte[] GetAudioData()
+        {
+            return AudioByteArray;
         }
     }
 }

@@ -289,10 +289,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 chunk.Add32BE(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
                 chunk.AddRange(channel.Coefs.ToFlippedBytes());
                 chunk.Add16BE(channel.Gain);
-                chunk.Add16BE(channel.AudioData.First());
+                chunk.Add16BE(channel.GetAudioData()[0]);
                 chunk.Add16BE(channel.Hist1);
                 chunk.Add16BE(channel.Hist2);
-                chunk.Add16BE(AudioStream.Looping ? channel.LoopPredScale : channel.AudioData.First());
+                chunk.Add16BE(AudioStream.Looping ? channel.LoopPredScale : channel.GetAudioData()[0]);
                 chunk.Add16BE(AudioStream.Looping ? channel.LoopHist1 : 0);
                 chunk.Add16BE(AudioStream.Looping ? channel.LoopHist2 : 0);
                 chunk.Add16(0);
