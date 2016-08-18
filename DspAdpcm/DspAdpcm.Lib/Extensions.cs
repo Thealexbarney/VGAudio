@@ -76,14 +76,13 @@ namespace DspAdpcm.Lib
             return output;
         }
 
-        public static void Interleave(this byte[][] inputs, Stream output, int interleaveSize, int lastInterleaveSize = -1)
+        public static void Interleave(this byte[][] inputs, Stream output, int length, int interleaveSize, int lastInterleaveSize = -1)
         {
             if (lastInterleaveSize < 0 || lastInterleaveSize > interleaveSize)
                 lastInterleaveSize = interleaveSize;
 
-            int length = inputs[0].Length;
-            if (inputs.Any(x => x.Length != length))
-                throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be of equal length");
+            if (inputs.Any(x => x.Length < length))
+                throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be as long as the specified length");
 
             int numInputs = inputs.Length;
             int numFullBlocks = length / interleaveSize;

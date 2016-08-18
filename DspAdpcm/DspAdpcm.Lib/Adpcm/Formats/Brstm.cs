@@ -22,7 +22,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public BrstmConfiguration Configuration { get; } = new BrstmConfiguration();
 
-        private int NumSamples => AudioStream.NumSamples;
+        private int NumSamples => AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
         private int NumTracks => AudioStream.Tracks.Count;
         private byte Codec { get; } = 2; // 4-bit ADPCM
@@ -214,7 +214,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.Add16BE(AudioStream.SampleRate);
             chunk.Add16BE(0); //padding
             chunk.Add32BE(AudioStream.LoopStart);
-            chunk.Add32BE(AudioStream.NumSamples);
+            chunk.Add32BE(NumSamples);
             chunk.Add32BE(AudioDataOffset);
             chunk.Add32BE(InterleaveCount);
             chunk.Add32BE(InterleaveSize);
@@ -325,7 +325,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             byte[][] channels = AudioStream.Channels.Select(x => x.AudioByteArray).ToArray();
 
-            channels.Interleave(stream, InterleaveSize, LastBlockSize);
+            channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, LastBlockSize);
         }
 
         private void ReadBrstmFile(Stream stream)
