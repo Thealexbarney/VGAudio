@@ -22,9 +22,14 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public BrstmConfiguration Configuration { get; } = new BrstmConfiguration();
 
-        private int NumSamples => AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples;
+        private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
         private int NumTracks => AudioStream.Tracks.Count;
+
+        private int AlignmentSamples => GetNextMultiple(AudioStream.LoopStart, Configuration.LoopPointAlignment) - AudioStream.LoopStart;
+        private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
+        private int LoopEnd => AudioStream.LoopEnd + AlignmentSamples;
+
         private byte Codec { get; } = 2; // 4-bit ADPCM
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
@@ -61,7 +66,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private int DataChunkOffset => RstmHeaderLength + HeadChunkLength + AdpcChunkLength;
         private int DataChunkLength => GetNextMultiple(0x20 + (InterleaveCount - (LastBlockSamples == 0 ? 0 : 1)) * InterleaveSize * NumChannels + LastBlockSize * NumChannels, 0x20);
-
+        
         /// <summary>
         /// The size in bytes of the BRSTM file.
         /// </summary>
@@ -111,7 +116,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
 
             Decode.CalculateAdpcTable(seekTableToCalculate, SamplesPerAdpcEntry);
-            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? AudioStream.LoopStart : 0);
+            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? LoopStart : 0);
         }
 
         /// <summary>
@@ -213,7 +218,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.Add(0); //padding
             chunk.Add16BE(AudioStream.SampleRate);
             chunk.Add16BE(0); //padding
-            chunk.Add32BE(AudioStream.LoopStart);
+            chunk.Add32BE(LoopStart);
             chunk.Add32BE(NumSamples);
             chunk.Add32BE(AudioDataOffset);
             chunk.Add32BE(InterleaveCount);
@@ -323,7 +328,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             stream.Position += AudioDataOffset - DataChunkOffset - 3 * sizeof(int);
 
-            byte[][] channels = AudioStream.Channels.Select(x => x.AudioByteArray).ToArray();
+            byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData(Configuration.LoopPointAlignment, AudioStream.LoopStart, AudioStream.LoopEnd)).ToArray();
 
             channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, LastBlockSize);
         }
@@ -785,6 +790,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     _samplesPerAdpcEntry = value;
                 }
             }
+
+            public int LoopPointAlignment { get; set; } = 0x3800;
         }
     }
 }

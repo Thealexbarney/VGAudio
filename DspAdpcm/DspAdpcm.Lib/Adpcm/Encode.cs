@@ -616,5 +616,30 @@ namespace DspAdpcm.Lib.Adpcm
 
             return adpcm;
         }
+
+        internal static byte[] EncodeAdpcm(short[] pcm, short[] coefs, short hist1, short hist2, int samples)
+        {
+            var adpcm = new byte[GetBytesForAdpcmSamples(samples)];
+            var convSamps = new short[2 + SamplesPerBlock];
+            var block = new byte[BytesPerBlock];
+
+            convSamps[0] = hist2;
+            convSamps[1] = hist1;
+
+            int blockCount = 0;
+            foreach (short[] inBlock in pcm.Batch(SamplesPerBlock))
+            {
+                Array.Copy(inBlock, 0, convSamps, 2, SamplesPerBlock);
+
+                DspEncodeFrame(convSamps, SamplesPerBlock, block, coefs);
+
+                convSamps[0] = convSamps[14];
+                convSamps[1] = convSamps[15];
+
+                int numSamples = Math.Min(samples - blockCount * SamplesPerBlock, SamplesPerBlock);
+                Array.Copy(block, 0, adpcm, blockCount++ * BytesPerBlock, GetBytesForAdpcmSamples(numSamples));
+            }
+            return adpcm;
+        }
     }
 }

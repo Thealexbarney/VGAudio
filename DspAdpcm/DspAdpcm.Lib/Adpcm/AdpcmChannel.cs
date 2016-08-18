@@ -7,7 +7,7 @@ namespace DspAdpcm.Lib.Adpcm
     internal class AdpcmChannel
     {
         public byte[] AudioByteArray { get; set; }
-        
+
         public int NumSamples { get; private set; }
 
         public short Gain { get; set; }
@@ -31,7 +31,7 @@ namespace DspAdpcm.Lib.Adpcm
             NumSamples = numSamples;
         }
 
-        public AdpcmChannel(int numSamples, byte[]audio)
+        public AdpcmChannel(int numSamples, byte[] audio)
         {
             if (audio.Length != GetBytesForAdpcmSamples(numSamples))
             {
@@ -51,9 +51,39 @@ namespace DspAdpcm.Lib.Adpcm
             return this;
         }
 
-        public byte[] GetAudioData()
+        public byte[] GetAudioData() => AudioByteArray;
+
+        public byte[] GetAudioData(int alignment, int loopStart, int loopEnd)
         {
-            return AudioByteArray;
+            if (loopStart % alignment == 0)
+            {
+                return AudioByteArray;
+            }
+            return GetAlignedAudioData(alignment, loopStart, loopEnd);
+        }
+
+        private byte[] GetAlignedAudioData(int alignment, int loopStart, int loopEnd)
+        {
+            int outLoopStart = GetNextMultiple(loopStart, alignment);
+            int samplesToAdd = outLoopStart - loopStart;
+            int outputLength = GetBytesForAdpcmSamples(NumSamples + samplesToAdd);
+            var output = new byte[outputLength];
+
+            int blocksToCopy = loopEnd / SamplesPerBlock;
+            int bytesToCopy = blocksToCopy * BytesPerBlock;
+            int samplesToCopy = blocksToCopy * SamplesPerBlock;
+            Array.Copy(AudioByteArray, 0, output, 0, bytesToCopy);
+
+            //Decode.CalculateAdpcTable(this, alignment);
+            int totalSamples = loopEnd + samplesToAdd;
+            int samplesToEncode = totalSamples - samplesToCopy;
+
+            short[] history = this.GetPcmAudioLooped(samplesToCopy, 16, loopStart, loopEnd, true);
+            short[] pcm = this.GetPcmAudioLooped(samplesToCopy, samplesToEncode, loopStart, loopEnd);
+            var adpcm = Encode.EncodeAdpcm(pcm, Coefs, history[1], history[0], samplesToEncode);
+
+            Array.Copy(adpcm, 0, output, bytesToCopy, adpcm.Length);
+            return output;
         }
     }
 }

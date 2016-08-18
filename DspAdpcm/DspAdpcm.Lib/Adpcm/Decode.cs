@@ -68,6 +68,28 @@ namespace DspAdpcm.Lib.Adpcm
             };
         }
 
+        internal static short[] GetPcmAudioLooped(this AdpcmChannel audio, int index, int count, int startLoop, int endLoop,
+            bool includeHistorySamples = false)
+        {
+            short[] output = new short[count + (includeHistorySamples ? 2 : 0)];
+            int outputIndex = 0;
+            int samplesRemaining = count;
+            bool firstTime = true;
+
+            while (samplesRemaining > 0 || firstTime && includeHistorySamples)
+            {
+                int samplesToGet = Math.Min(Math.Max(samplesRemaining - index, endLoop - index), samplesRemaining);
+                short[] samples = audio.GetPcmAudio(index, samplesToGet, firstTime && includeHistorySamples);
+                Array.Copy(samples, 0, output, outputIndex, samples.Length);
+                samplesRemaining -= samplesToGet;
+                outputIndex += samples.Length;
+                index = startLoop;
+                firstTime = false;
+            }
+
+            return output;
+        }
+
         internal static short[] GetPcmAudio(this AdpcmChannel audio, bool includeHistorySamples = false) =>
             audio.GetPcmAudio(0, audio.NumSamples, includeHistorySamples);
 
@@ -100,7 +122,7 @@ namespace DspAdpcm.Lib.Adpcm
             int numHistSamples = 0;
             int currentSample = history.Item1;
             int outSample = 0;
-            int inByte = 0;
+            int inByte = currentSample / SamplesPerBlock * BytesPerBlock;
 
             if (includeHistorySamples)
             {
@@ -169,7 +191,7 @@ namespace DspAdpcm.Lib.Adpcm
             }
             return pcm;
         }
-        
+
         private static Tuple<int, short, short> GetStartingHistory(this AdpcmChannel audio, int firstSample)
         {
             if (audio.SeekTable == null || !audio.SelfCalculatedSeekTable)
