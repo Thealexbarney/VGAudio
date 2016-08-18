@@ -23,15 +23,16 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <summary>
         /// The size in bytes of the DSP file.
         /// </summary>
-        public int FileLength => HeaderSize + GetBytesForAdpcmSamples(AudioStream.NumSamples);
+        public int FileLength => HeaderSize + GetBytesForAdpcmSamples(NumSamples);
 
         private const int HeaderSize = 0x60;
         private AdpcmChannel AudioChannel => AudioStream.Channels[0];
 
+        private int NumSamples => Configuration.TrimFile && AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples;
         private short Format { get; } = 0; /* 0 for ADPCM */
 
         private int StartAddr => GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopStart : 0);
-        private int EndAddr => GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples - 1);
+        private int EndAddr => GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopEnd : NumSamples - 1);
         private static int CurAddr => GetNibbleAddress(0);
 
         private short PredScale => AudioChannel.AudioData.First();
@@ -82,8 +83,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             BinaryWriterBE header = new BinaryWriterBE(stream);
 
-            header.WriteBE(AudioStream.NumSamples);
-            header.WriteBE(GetNibbleFromSample(AudioStream.NumSamples));
+            header.WriteBE(NumSamples);
+            header.WriteBE(GetNibbleFromSample(NumSamples));
             header.WriteBE(AudioStream.SampleRate);
             header.WriteBE((short)(AudioStream.Looping ? 1 : 0));
             header.WriteBE(Format);
@@ -136,7 +137,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             stream.Position = 0;
             GetHeader(stream);
             stream.Position = HeaderSize;
-            stream.Write(AudioChannel.AudioByteArray, 0, AudioChannel.AudioByteArray.Length);
+            
+            stream.Write(AudioChannel.AudioByteArray, 0, GetBytesForAdpcmSamples(NumSamples));
         }
 
         private void ReadDspFile(Stream stream)
@@ -204,6 +206,15 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             /// Default is <c>true</c>.
             /// </summary>
             public bool RecalculateLoopContext { get; set; } = true;
+
+            /// <summary>
+            /// If <c>true</c>, trims the output file length to the set LoopEnd.
+            /// If <c>false</c> or if the <see cref="Dsp"/> does not loop,
+            /// the output file is not trimmed.
+            /// if available.
+            /// Default is <c>true</c>.
+            /// </summary>
+            public bool TrimFile { get; set; } = true;
         }
     }
 }
