@@ -78,7 +78,7 @@ namespace DspAdpcm.Lib.Adpcm
 
             while (samplesRemaining > 0 || firstTime && includeHistorySamples)
             {
-                int samplesToGet = Math.Min(Math.Max(samplesRemaining - index, endLoop - index), samplesRemaining);
+                int samplesToGet = Math.Min(endLoop - index, samplesRemaining);
                 short[] samples = audio.GetPcmAudio(index, samplesToGet, firstTime && includeHistorySamples);
                 Array.Copy(samples, 0, output, outputIndex, samples.Length);
                 samplesRemaining -= samplesToGet;
@@ -115,7 +115,7 @@ namespace DspAdpcm.Lib.Adpcm
 
             short hist1 = history.Item2;
             short hist2 = history.Item3;
-            var adpcm = audio.AudioByteArray;
+            var adpcm = audio.GetAudioData;
             int numBlocks = adpcm.Length.DivideByRoundUp(BytesPerBlock);
 
             short[] pcm;
@@ -209,7 +209,7 @@ namespace DspAdpcm.Lib.Adpcm
 
         private static byte GetPredictorScale(this AdpcmChannel audio, int sample)
         {
-            return audio.AudioByteArray[sample / SamplesPerBlock * BytesPerBlock];
+            return audio.GetAudioData[sample / SamplesPerBlock * BytesPerBlock];
         }
 
         internal static void CalculateLoopContext(IEnumerable<AdpcmChannel> channels, int loopStart)
@@ -261,6 +261,61 @@ namespace DspAdpcm.Lib.Adpcm
 
             Array.Resize(ref table, numEntries * 4 * channels.Count());
             return table;
+        }
+
+        internal static void CalculateLoopAlignment(IEnumerable<AdpcmChannel> channels, int alignment, int loopStart, int loopEnd)
+        {
+            Parallel.ForEach(channels, channel => CalculateLoopAlignment(channel, alignment, loopStart, loopEnd));
+        }
+
+        internal static void CalculateLoopAlignment(this AdpcmChannel audio, int alignment, int loopStart, int loopEnd)
+        {
+            if (loopStart % alignment == 0)
+            {
+                audio.AudioByteArrayAligned = null;
+                audio.LoopAlignment = alignment;
+                audio.LoopStartAligned = 0;
+                audio.LoopEndAligned = 0;
+                return;
+            }
+
+            if (audio.LoopAlignment == alignment
+                && audio.LoopStartAligned == loopStart
+                && audio.LoopEndAligned == loopEnd)
+            {
+                return;
+            }
+
+            int outLoopStart = GetNextMultiple(loopStart, alignment);
+            int samplesToAdd = outLoopStart - loopStart;
+            int outputLength = GetBytesForAdpcmSamples(audio.NumSamples + samplesToAdd);
+            var output = new byte[outputLength];
+
+            int blocksToCopy = loopEnd / SamplesPerBlock;
+            int bytesToCopy = blocksToCopy * BytesPerBlock;
+            int samplesToCopy = blocksToCopy * SamplesPerBlock;
+            Array.Copy(audio.AudioByteArray, 0, output, 0, bytesToCopy);
+
+            //We're gonna be doing a lot of seeking, so make sure the seek table is built
+            if (!audio.SelfCalculatedSeekTable)
+            {
+                Decode.CalculateAdpcTable(audio, alignment);
+            }
+
+            int totalSamples = loopEnd + samplesToAdd;
+            int samplesToEncode = totalSamples - samplesToCopy;
+
+            short[] history = audio.GetPcmAudioLooped(samplesToCopy, 16, loopStart, loopEnd, true);
+            short[] pcm = audio.GetPcmAudioLooped(samplesToCopy, samplesToEncode, loopStart, loopEnd);
+            var adpcm = Encode.EncodeAdpcm(pcm, audio.Coefs, history[1], history[0], samplesToEncode);
+
+            Array.Copy(adpcm, 0, output, bytesToCopy, adpcm.Length);
+
+            audio.AudioByteArrayAligned = output;
+            audio.LoopAlignment = alignment;
+            audio.LoopStartAligned = loopStart;
+            audio.LoopEndAligned = loopEnd;
+            audio.NumSamplesAligned = totalSamples;
         }
     }
 }

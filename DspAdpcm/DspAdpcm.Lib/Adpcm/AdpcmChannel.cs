@@ -6,9 +6,10 @@ namespace DspAdpcm.Lib.Adpcm
 {
     internal class AdpcmChannel
     {
+        private readonly int _numSamples;
         public byte[] AudioByteArray { get; set; }
 
-        public int NumSamples { get; private set; }
+        public int NumSamples => AudioByteArrayAligned == null ? _numSamples : NumSamplesAligned;
 
         public short Gain { get; set; }
         public short[] Coefs { get; set; }
@@ -25,10 +26,16 @@ namespace DspAdpcm.Lib.Adpcm
         public bool SelfCalculatedSeekTable { get; set; }
         public bool SelfCalculatedLoopContext { get; set; }
 
+        public byte[] AudioByteArrayAligned { get; set; }
+        public int LoopAlignment { get; set; }
+        public int LoopStartAligned { get; set; }
+        public int LoopEndAligned { get; set; }
+        public int NumSamplesAligned { get; set; }
+
         public AdpcmChannel(int numSamples)
         {
             AudioByteArray = new byte[GetBytesForAdpcmSamples(numSamples)];
-            NumSamples = numSamples;
+            _numSamples = numSamples;
         }
 
         public AdpcmChannel(int numSamples, byte[] audio)
@@ -38,7 +45,7 @@ namespace DspAdpcm.Lib.Adpcm
                 throw new ArgumentException("Audio array length does not match the specified number of samples.");
             }
             AudioByteArray = audio;
-            NumSamples = numSamples;
+            _numSamples = numSamples;
         }
 
         public AdpcmChannel SetLoopContext(short loopPredScale, short loopHist1, short loopHist2)
@@ -51,39 +58,6 @@ namespace DspAdpcm.Lib.Adpcm
             return this;
         }
 
-        public byte[] GetAudioData() => AudioByteArray;
-
-        public byte[] GetAudioData(int alignment, int loopStart, int loopEnd)
-        {
-            if (loopStart % alignment == 0)
-            {
-                return AudioByteArray;
-            }
-            return GetAlignedAudioData(alignment, loopStart, loopEnd);
-        }
-
-        private byte[] GetAlignedAudioData(int alignment, int loopStart, int loopEnd)
-        {
-            int outLoopStart = GetNextMultiple(loopStart, alignment);
-            int samplesToAdd = outLoopStart - loopStart;
-            int outputLength = GetBytesForAdpcmSamples(NumSamples + samplesToAdd);
-            var output = new byte[outputLength];
-
-            int blocksToCopy = loopEnd / SamplesPerBlock;
-            int bytesToCopy = blocksToCopy * BytesPerBlock;
-            int samplesToCopy = blocksToCopy * SamplesPerBlock;
-            Array.Copy(AudioByteArray, 0, output, 0, bytesToCopy);
-
-            //Decode.CalculateAdpcTable(this, alignment);
-            int totalSamples = loopEnd + samplesToAdd;
-            int samplesToEncode = totalSamples - samplesToCopy;
-
-            short[] history = this.GetPcmAudioLooped(samplesToCopy, 16, loopStart, loopEnd, true);
-            short[] pcm = this.GetPcmAudioLooped(samplesToCopy, samplesToEncode, loopStart, loopEnd);
-            var adpcm = Encode.EncodeAdpcm(pcm, Coefs, history[1], history[0], samplesToEncode);
-
-            Array.Copy(adpcm, 0, output, bytesToCopy, adpcm.Length);
-            return output;
-        }
+        public byte[] GetAudioData => AudioByteArrayAligned ?? AudioByteArray;
     }
 }

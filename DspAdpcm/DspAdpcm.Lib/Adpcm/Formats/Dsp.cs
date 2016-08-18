@@ -35,7 +35,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int EndAddr => GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopEnd : NumSamples - 1);
         private static int CurAddr => GetNibbleAddress(0);
 
-        private short PredScale => AudioChannel.GetAudioData()[0];
+        private short PredScale => AudioChannel.GetAudioData[0];
 
         /// <summary>
         /// Initializes a new <see cref="Dsp"/> from an <see cref="AdpcmStream"/>.

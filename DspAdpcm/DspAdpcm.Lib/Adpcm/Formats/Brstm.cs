@@ -109,12 +109,13 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 ? AudioStream.Channels.Where(
                     x => !x.SelfCalculatedSeekTable || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry)
                 : AudioStream.Channels.Where(
-                    x => x.AudioByteArray == null || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry);
+                    x => x.SeekTable == null || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry);
 
             var loopContextToCalculate = Configuration.RecalculateLoopContext
                 ? AudioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
                 : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
 
+            Decode.CalculateLoopAlignment(AudioStream.Channels, Configuration.LoopPointAlignment, AudioStream.LoopStart, AudioStream.LoopEnd);
             Decode.CalculateAdpcTable(seekTableToCalculate, SamplesPerAdpcEntry);
             Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? LoopStart : 0);
         }
@@ -294,10 +295,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 chunk.Add32BE(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
                 chunk.AddRange(channel.Coefs.ToFlippedBytes());
                 chunk.Add16BE(channel.Gain);
-                chunk.Add16BE(channel.GetAudioData()[0]);
+                chunk.Add16BE(channel.GetAudioData[0]);
                 chunk.Add16BE(channel.Hist1);
                 chunk.Add16BE(channel.Hist2);
-                chunk.Add16BE(AudioStream.Looping ? channel.LoopPredScale : channel.GetAudioData()[0]);
+                chunk.Add16BE(AudioStream.Looping ? channel.LoopPredScale : channel.GetAudioData[0]);
                 chunk.Add16BE(AudioStream.Looping ? channel.LoopHist1 : 0);
                 chunk.Add16BE(AudioStream.Looping ? channel.LoopHist2 : 0);
                 chunk.Add16(0);
@@ -328,7 +329,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             stream.Position += AudioDataOffset - DataChunkOffset - 3 * sizeof(int);
 
-            byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData(Configuration.LoopPointAlignment, AudioStream.LoopStart, AudioStream.LoopEnd)).ToArray();
+            byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
 
             channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, LastBlockSize);
         }
