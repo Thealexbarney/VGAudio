@@ -107,7 +107,7 @@ namespace DspAdpcm.Lib.Adpcm
             AdpcmStream copy = ShallowClone();
             
             copy.Channels = Channels.GetRange(startIndex, count);
-            copy._tracks = _tracks.Select(x => x.Clone()).ToList();
+            copy._tracks = _tracks?.Select(x => x.Clone()).ToList();
 
             return copy;
         }
