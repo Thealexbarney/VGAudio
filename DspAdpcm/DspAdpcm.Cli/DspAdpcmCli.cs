@@ -45,9 +45,10 @@ namespace DspAdpcm.Cli
 
             var brstm = new Brstm(adpcm);
 
-            using (var stream = File.Open(args[1], FileMode.Create))
-                foreach (var b in brstm.GetFile())
-                    stream.WriteByte(b);
+            using (FileStream stream = File.Open(args[1], FileMode.Create))
+            {
+                brstm.WriteFile(stream);
+            }
 
             return 0;
         }
