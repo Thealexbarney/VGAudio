@@ -348,9 +348,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 reader.BaseStream.Position = 8;
                 structure.FileLength = reader.ReadInt32BE();
 
-                if (structure.FileLength != stream.Length)
+                if (stream.Length < structure.FileLength)
                 {
-                    throw new InvalidDataException("Stated file length doesn't match actual length");
+                    throw new InvalidDataException("Actual file length is less than stated length");
                 }
 
                 structure.RstmHeaderLength = reader.ReadInt16BE();
@@ -599,7 +599,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     Gain = structure.Channels[c].Gain,
                     Hist1 = structure.Channels[c].Hist1,
                     Hist2 = structure.Channels[c].Hist2,
-                    SeekTable = structure.SeekTable[c],
+                    SeekTable = structure.SeekTable?[c],
                     SamplesPerSeekTableEntry = structure.SamplesPerAdpcEntry
                 };
                 channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,

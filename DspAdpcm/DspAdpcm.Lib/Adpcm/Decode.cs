@@ -299,7 +299,7 @@ namespace DspAdpcm.Lib.Adpcm
             //We're gonna be doing a lot of seeking, so make sure the seek table is built
             if (!audio.SelfCalculatedSeekTable)
             {
-                Decode.CalculateAdpcTable(audio, alignment);
+                CalculateAdpcTable(audio, alignment);
             }
 
             int totalSamples = loopEnd + samplesToAdd;
