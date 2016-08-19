@@ -66,7 +66,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private int DataChunkOffset => RstmHeaderLength + HeadChunkLength + AdpcChunkLength;
         private int DataChunkLength => GetNextMultiple(0x20 + (InterleaveCount - (LastBlockSamples == 0 ? 0 : 1)) * InterleaveSize * NumChannels + LastBlockSize * NumChannels, 0x20);
-        
+
         /// <summary>
         /// The size in bytes of the BRSTM file.
         /// </summary>
@@ -546,14 +546,15 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int bytesPerEntry = 4 * structure.NumChannelsChunk1;
             int numAdpcEntriesShortened = (GetBytesForAdpcmSamples(structure.NumSamples) / structure.SamplesPerAdpcEntry) + 1;
             int numAdpcEntriesStandard = (structure.NumSamples / structure.SamplesPerAdpcEntry) + (fullLastAdpcEntry ? 0 : 1);
+            int expectedLengthShortened = GetNextMultiple(8 + numAdpcEntriesShortened * bytesPerEntry, 0x20);
+            int expectedLengthStandard = GetNextMultiple(8 + numAdpcEntriesStandard * bytesPerEntry, 0x20);
 
-            //Chunk pads to 0x20 bytes and has 8 header bytes, so check if the length's within that range.
-            if (Math.Abs(structure.AdpcChunkLength - bytesPerEntry * numAdpcEntriesStandard - 0x14) < 0x14)
+            if (structure.AdpcChunkLength == expectedLengthStandard)
             {
                 structure.AdpcTableLength = bytesPerEntry * numAdpcEntriesStandard;
                 structure.SeekTableType = SeekTableType.Standard;
             }
-            else if (Math.Abs(structure.AdpcChunkLength - bytesPerEntry * numAdpcEntriesShortened - 0x14) < 0x14)
+            else if (structure.AdpcChunkLength == expectedLengthShortened)
             {
                 structure.AdpcTableLength = bytesPerEntry * numAdpcEntriesShortened;
                 structure.SeekTableType = SeekTableType.Short;
