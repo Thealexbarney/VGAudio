@@ -46,6 +46,7 @@
     <Compile Include="Adpcm\Decode.cs" />
     <Compile Include="Adpcm\Encode.cs" />
     <Compile Include="Adpcm\Formats\Brstm.cs" />
+    <Compile Include="Adpcm\Formats\BrstmStructure.cs" />
     <Compile Include="BinaryReaderBE.cs" />
     <Compile Include="BinaryWriterBE.cs" />
     <Compile Include="Helpers.cs" />

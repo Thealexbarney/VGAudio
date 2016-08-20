@@ -128,7 +128,7 @@ namespace DspAdpcm.Lib.Adpcm
         }
     }
 
-    internal class AdpcmTrack
+    public class AdpcmTrack
     {
         public int Volume { get; set; } = 0x7f;
         public int Panning { get; set; } = 0x40;
@@ -136,6 +136,6 @@ namespace DspAdpcm.Lib.Adpcm
         public int ChannelLeft { get; set; }
         public int ChannelRight { get; set; }
 
-        public AdpcmTrack Clone() => (AdpcmTrack)MemberwiseClone();
+        internal AdpcmTrack Clone() => (AdpcmTrack)MemberwiseClone();
     }
 }

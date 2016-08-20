@@ -103,6 +103,20 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             ReadBrstmFile(stream);
         }
 
+        private Brstm() { }
+
+        public static BrstmStructure ReadMetadata(Stream stream)
+        {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
+            var brstm = new Brstm();
+            var a = brstm.ReadBrstmFile(stream, false);
+            return a;
+        }
+
         private void RecalculateData()
         {
             var seekTableToCalculate = Configuration.RecalculateSeekTable
@@ -338,7 +352,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, LastBlockSize);
         }
 
-        private void ReadBrstmFile(Stream stream)
+        private BrstmStructure ReadBrstmFile(Stream stream, bool readData = true)
         {
             using (var reader = new BinaryReaderBE(stream))
             {
@@ -383,9 +397,19 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 AudioStream.Tracks = structure.Tracks;
 
                 ParseAdpcChunk(stream, structure);
+
+                if (!readData)
+                {
+                    reader.BaseStream.Position = structure.DataChunkOffset + 4;
+                    structure.DataChunkLength = reader.ReadInt32BE();
+                    return structure;
+                }
+
                 ParseDataChunk(stream, structure);
 
                 Configuration.SeekTableType = structure.SeekTableType;
+
+                return structure;
             }
         }
 
@@ -613,55 +637,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
         }
 
-        private class BrstmStructure
-        {
-            public int FileLength { get; set; }
-            public int RstmHeaderLength { get; set; }
-            public int HeadChunkOffset { get; set; }
-            public int HeadChunkLengthRstm { get; set; }
-            public int AdpcChunkOffset { get; set; }
-            public int AdpcChunkLengthRstm { get; set; }
-            public int DataChunkOffset { get; set; }
-            public int DataChunkLengthRstm { get; set; }
-
-            public int HeadChunkLength { get; set; }
-            public int HeadChunk1Offset { get; set; }
-            public int HeadChunk2Offset { get; set; }
-            public int HeadChunk3Offset { get; set; }
-            public int HeadChunk1Length => HeadChunk2Offset - HeadChunk1Offset;
-            public int HeadChunk2Length => HeadChunk3Offset - HeadChunk2Offset;
-            public int HeadChunk3Length => HeadChunkLength - HeadChunk3Offset;
-
-            public int Codec { get; set; }
-            public bool Looping { get; set; }
-            public int NumChannelsChunk1 { get; set; }
-            public int SampleRate { get; set; }
-            public int LoopStart { get; set; }
-            public int NumSamples { get; set; }
-            public int AudioDataOffset { get; set; }
-            public int InterleaveCount { get; set; }
-            public int InterleaveSize { get; set; }
-            public int SamplesPerInterleave { get; set; }
-            public int LastBlockSizeWithoutPadding { get; set; }
-            public int LastBlockSamples { get; set; }
-            public int LastBlockSize { get; set; }
-            public int SamplesPerAdpcEntry { get; set; }
-
-            public BrstmHeaderType HeaderType { get; set; } = BrstmHeaderType.SSBB;
-            public List<AdpcmTrack> Tracks { get; set; } = new List<AdpcmTrack>();
-
-            public int NumChannelsChunk3 { get; set; }
-            public List<ChannelInfo> Channels { get; set; } = new List<ChannelInfo>();
-
-            public int AdpcChunkLength { get; set; }
-            public int AdpcTableLength { get; set; }
-            public short[][] SeekTable { get; set; }
-            public SeekTableType SeekTableType { get; set; } = SeekTableType.Standard;
-
-            public int DataChunkLength { get; set; }
-        }
-
-        private class ChannelInfo
+        public class ChannelInfo
         {
             public int Offset { get; set; }
 
