@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DspAdpcm.Lib.Pcm
 {
@@ -8,14 +9,19 @@ namespace DspAdpcm.Lib.Pcm
         internal short[] AudioData { get; set; }
         private int CurrentSample { get; set; }
         
-        public PcmChannel(short[] audioData)
-        {
-            SetAudioData(audioData);
-        }
-
         public PcmChannel(int numSamples)
         {
             AudioData = new short[numSamples];
+            NumSamples = numSamples;
+        }
+
+        public PcmChannel(int numSamples, short[] audio)
+        {
+            if (audio.Length != numSamples)
+            {
+                throw new ArgumentException("Audio array length does not match the specified number of samples.");
+            }
+            AudioData = audio;
             NumSamples = numSamples;
         }
 

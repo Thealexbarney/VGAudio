@@ -142,11 +142,16 @@ namespace DspAdpcm.Lib.Pcm.Formats
 
             chunk.WriteASCII("data");
             chunk.Write(DataChunkLength);
-            short[][] channels = AudioStream.Channels.Select(x => x.AudioData).ToArray();
-            short[] interleavedAudio = channels.Interleave(1);
-            byte[] interleavedBytes = new byte[interleavedAudio.Length * sizeof(short)];
-            Buffer.BlockCopy(interleavedAudio, 0, interleavedBytes, 0, interleavedBytes.Length);
-            chunk.Write(interleavedBytes);
+            byte[][] channels = AudioStream.Channels
+                .Select(x =>
+                {
+                    byte[] bytes = new byte[x.AudioData.Length * sizeof(short)];
+                    Buffer.BlockCopy(x.AudioData, 0, bytes, 0, bytes.Length);
+                    return bytes;
+                })
+                .ToArray();
+
+            channels.Interleave(stream, NumSamples * BytesPerSample, BytesPerSample);
         }
 
         private static int GetChannelMask(int numChannels)
@@ -297,7 +302,7 @@ namespace DspAdpcm.Lib.Pcm.Formats
 
             if (NumChannelsReading == 1)
             {
-                Channels.Add(new PcmChannel(interlacedSamples));
+                Channels.Add(new PcmChannel(NumSamples, interlacedSamples));
                 return;
             }
 

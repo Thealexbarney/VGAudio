@@ -62,10 +62,7 @@ namespace DspAdpcm.Lib.Adpcm
 
         private static PcmChannel AdpcmtoPcm(AdpcmChannel adpcmChannel)
         {
-            return new PcmChannel(adpcmChannel.NumSamples)
-            {
-                AudioData = adpcmChannel.GetPcmAudio()
-            };
+            return new PcmChannel(adpcmChannel.NumSamples, adpcmChannel.GetPcmAudio());
         }
 
         internal static short[] GetPcmAudioLooped(this AdpcmChannel audio, int index, int count, int startLoop, int endLoop,
