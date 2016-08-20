@@ -105,6 +105,14 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private Brstm() { }
 
+        /// <summary>
+        /// Parses the header of a BRSTM file and returns the metadata
+        /// and structure data of that file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the BRSTM file. Must be seekable.</param>
+        /// <returns>A <see cref="BrstmStructure"/> containing
+        /// the data from the BRSTM header.</returns>
         public static BrstmStructure ReadMetadata(Stream stream)
         {
             if (!stream.CanSeek)
@@ -464,7 +472,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 }
 
                 structure.Looping = reader.ReadByte() == 1;
-                structure.NumChannelsChunk1 = reader.ReadByte();
+                structure.NumChannelsPart1 = reader.ReadByte();
                 reader.BaseStream.Position += 1;
 
                 structure.SampleRate = (ushort)reader.ReadInt16BE();
@@ -525,10 +533,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         {
             using (var reader = new BinaryReaderBE(new MemoryStream(chunk)))
             {
-                structure.NumChannelsChunk3 = reader.ReadByte();
+                structure.NumChannelsPart3 = reader.ReadByte();
                 reader.BaseStream.Position += 3;
 
-                for (int i = 0; i < structure.NumChannelsChunk3; i++)
+                for (int i = 0; i < structure.NumChannelsPart3; i++)
                 {
                     var channel = new ChannelInfo();
                     reader.BaseStream.Position += 4;
@@ -571,7 +579,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
 
             bool fullLastAdpcEntry = structure.NumSamples % structure.SamplesPerAdpcEntry == 0 && structure.NumSamples > 0;
-            int bytesPerEntry = 4 * structure.NumChannelsChunk1;
+            int bytesPerEntry = 4 * structure.NumChannelsPart1;
             int numAdpcEntriesShortened = (GetBytesForAdpcmSamples(structure.NumSamples) / structure.SamplesPerAdpcEntry) + 1;
             int numAdpcEntriesStandard = (structure.NumSamples / structure.SamplesPerAdpcEntry) + (fullLastAdpcEntry ? 0 : 1);
             int expectedLengthShortened = GetNextMultiple(8 + numAdpcEntriesShortened * bytesPerEntry, 0x20);
@@ -579,12 +587,12 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             if (structure.AdpcChunkLength == expectedLengthStandard)
             {
-                structure.AdpcTableLength = bytesPerEntry * numAdpcEntriesStandard;
+                structure.SeekTableLength = bytesPerEntry * numAdpcEntriesStandard;
                 structure.SeekTableType = SeekTableType.Standard;
             }
             else if (structure.AdpcChunkLength == expectedLengthShortened)
             {
-                structure.AdpcTableLength = bytesPerEntry * numAdpcEntriesShortened;
+                structure.SeekTableLength = bytesPerEntry * numAdpcEntriesShortened;
                 structure.SeekTableType = SeekTableType.Short;
             }
             else
@@ -592,10 +600,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 return; //Unknown format. Don't parse table
             }
 
-            byte[] tableBytes = reader.ReadBytes(structure.AdpcTableLength);
+            byte[] tableBytes = reader.ReadBytes(structure.SeekTableLength);
 
             structure.SeekTable = tableBytes.ToShortArrayFlippedBytes()
-                .DeInterleave(2, structure.NumChannelsChunk1);
+                .DeInterleave(2, structure.NumChannelsPart1);
         }
 
         private void ParseDataChunk(Stream chunk, BrstmStructure structure)
@@ -618,9 +626,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
 
             byte[][] deInterleavedAudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.NumChannelsChunk1, structure.LastBlockSize, GetBytesForAdpcmSamples(structure.NumSamples));
+                structure.NumChannelsPart1, structure.LastBlockSize, GetBytesForAdpcmSamples(structure.NumSamples));
 
-            for (int c = 0; c < structure.NumChannelsChunk1; c++)
+            for (int c = 0; c < structure.NumChannelsPart1; c++)
             {
                 var channel = new AdpcmChannel(structure.NumSamples, deInterleavedAudioData[c])
                 {
@@ -637,19 +645,57 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
         }
 
+        /// <summary>
+        /// Defines the ADPCM information for a single
+        /// ADPCM channel.
+        /// </summary>
         public class ChannelInfo
         {
+            /// <summary>
+            /// The offset of the coefficients of the
+            /// channel. Used in a BRSTM header.
+            /// </summary>
             public int Offset { get; set; }
 
+            /// <summary>
+            /// The ADPCM coefficients of the channel.
+            /// </summary>
             public short[] Coefs { get; set; }
 
+            /// <summary>
+            /// The gain level for the channel.
+            /// </summary>
             public short Gain { get; set; }
+            /// <summary>
+            /// The predictor and scale for the first
+            /// frame of the channel.
+            /// </summary>
             public short PredScale { get; set; }
+            /// <summary>
+            /// The first PCM history sample for the stream.
+            /// (Initial sample - 1).
+            /// </summary>
             public short Hist1 { get; set; }
+            /// <summary>
+            /// The second PCM history sample for the stream.
+            /// (Initial sample - 2).
+            /// </summary>
             public short Hist2 { get; set; }
 
+            /// <summary>
+            /// The predictor and scale for the loop
+            /// point frame.
+            /// </summary>
             public short LoopPredScale { get; set; }
+            /// <summary>
+            /// The first PCM history sample for the start
+            /// loop point. (loop point - 1).
+            /// </summary>
             public short LoopHist1 { get; set; }
+            /// <summary>
+            /// The second PCM history sample for the start
+            /// loop point. (loop point - 2).
+            /// </summary>
             public short LoopHist2 { get; set; }
         }
 
