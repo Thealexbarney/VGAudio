@@ -22,9 +22,14 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public BrstmConfiguration Configuration { get; } = new BrstmConfiguration();
 
-        private int NumSamples => AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples;
+        private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
         private int NumTracks => AudioStream.Tracks.Count;
+
+        private int AlignmentSamples => GetNextMultiple(AudioStream.LoopStart, Configuration.LoopPointAlignment) - AudioStream.LoopStart;
+        private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
+        private int LoopEnd => AudioStream.LoopEnd + AlignmentSamples;
+
         private byte Codec { get; } = 2; // 4-bit ADPCM
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
@@ -104,14 +109,19 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 ? AudioStream.Channels.Where(
                     x => !x.SelfCalculatedSeekTable || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry)
                 : AudioStream.Channels.Where(
-                    x => x.AudioByteArray == null || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry);
+                    x => x.SeekTable == null || x.SamplesPerSeekTableEntry != SamplesPerAdpcEntry);
 
             var loopContextToCalculate = Configuration.RecalculateLoopContext
                 ? AudioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
                 : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
 
+            if (AudioStream.Looping)
+            {
+                Decode.CalculateLoopAlignment(AudioStream.Channels, Configuration.LoopPointAlignment,
+                    AudioStream.LoopStart, AudioStream.LoopEnd);
+            }
             Decode.CalculateAdpcTable(seekTableToCalculate, SamplesPerAdpcEntry);
-            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? AudioStream.LoopStart : 0);
+            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? LoopStart : 0);
         }
 
         /// <summary>
@@ -213,7 +223,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.Add(0); //padding
             chunk.Add16BE(AudioStream.SampleRate);
             chunk.Add16BE(0); //padding
-            chunk.Add32BE(AudioStream.LoopStart);
+            chunk.Add32BE(LoopStart);
             chunk.Add32BE(NumSamples);
             chunk.Add32BE(AudioDataOffset);
             chunk.Add32BE(InterleaveCount);
@@ -289,10 +299,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 chunk.Add32BE(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
                 chunk.AddRange(channel.Coefs.ToFlippedBytes());
                 chunk.Add16BE(channel.Gain);
-                chunk.Add16BE(channel.AudioData.First());
+                chunk.Add16BE(channel.GetAudioData[0]);
                 chunk.Add16BE(channel.Hist1);
                 chunk.Add16BE(channel.Hist2);
-                chunk.Add16BE(AudioStream.Looping ? channel.LoopPredScale : channel.AudioData.First());
+                chunk.Add16BE(AudioStream.Looping ? channel.LoopPredScale : channel.GetAudioData[0]);
                 chunk.Add16BE(AudioStream.Looping ? channel.LoopHist1 : 0);
                 chunk.Add16BE(AudioStream.Looping ? channel.LoopHist2 : 0);
                 chunk.Add16(0);
@@ -323,7 +333,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             stream.Position += AudioDataOffset - DataChunkOffset - 3 * sizeof(int);
 
-            byte[][] channels = AudioStream.Channels.Select(x => x.AudioByteArray).ToArray();
+            byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
 
             channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, LastBlockSize);
         }
@@ -342,9 +352,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 reader.BaseStream.Position = 8;
                 structure.FileLength = reader.ReadInt32BE();
 
-                if (structure.FileLength != stream.Length)
+                if (stream.Length < structure.FileLength)
                 {
-                    throw new InvalidDataException("Stated file length doesn't match actual length");
+                    throw new InvalidDataException("Actual file length is less than stated length");
                 }
 
                 structure.RstmHeaderLength = reader.ReadInt16BE();
@@ -540,14 +550,15 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int bytesPerEntry = 4 * structure.NumChannelsChunk1;
             int numAdpcEntriesShortened = (GetBytesForAdpcmSamples(structure.NumSamples) / structure.SamplesPerAdpcEntry) + 1;
             int numAdpcEntriesStandard = (structure.NumSamples / structure.SamplesPerAdpcEntry) + (fullLastAdpcEntry ? 0 : 1);
+            int expectedLengthShortened = GetNextMultiple(8 + numAdpcEntriesShortened * bytesPerEntry, 0x20);
+            int expectedLengthStandard = GetNextMultiple(8 + numAdpcEntriesStandard * bytesPerEntry, 0x20);
 
-            //Chunk pads to 0x20 bytes and has 8 header bytes, so check if the length's within that range.
-            if (Math.Abs(structure.AdpcChunkLength - bytesPerEntry * numAdpcEntriesStandard - 0x14) < 0x14)
+            if (structure.AdpcChunkLength == expectedLengthStandard)
             {
                 structure.AdpcTableLength = bytesPerEntry * numAdpcEntriesStandard;
                 structure.SeekTableType = SeekTableType.Standard;
             }
-            else if (Math.Abs(structure.AdpcChunkLength - bytesPerEntry * numAdpcEntriesShortened - 0x14) < 0x14)
+            else if (structure.AdpcChunkLength == expectedLengthShortened)
             {
                 structure.AdpcTableLength = bytesPerEntry * numAdpcEntriesShortened;
                 structure.SeekTableType = SeekTableType.Short;
@@ -593,7 +604,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     Gain = structure.Channels[c].Gain,
                     Hist1 = structure.Channels[c].Hist1,
                     Hist2 = structure.Channels[c].Hist2,
-                    SeekTable = structure.SeekTable[c],
+                    SeekTable = structure.SeekTable?[c],
                     SamplesPerSeekTableEntry = structure.SamplesPerAdpcEntry
                 };
                 channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
@@ -785,6 +796,13 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     _samplesPerAdpcEntry = value;
                 }
             }
+
+            /// <summary>
+            /// When building the BRSTM file, the loop points and audio will
+            /// be adjusted so that the start loop point is a multiple of
+            /// this number. Default is 14,336 (0x3800).
+            /// </summary>
+            public int LoopPointAlignment { get; set; } = 0x3800;
         }
     }
 }
