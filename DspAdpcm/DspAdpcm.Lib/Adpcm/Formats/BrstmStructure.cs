@@ -157,7 +157,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <summary>
         /// The ADPCM information for each channel.
         /// </summary>
-        public List<Brstm.ChannelInfo> Channels { get; set; } = new List<Brstm.ChannelInfo>();
+        public List<Brstm.BrstmChannelInfo> Channels { get; set; } = new List<Brstm.BrstmChannelInfo>();
 
         /// <summary>
         /// The length of the ADPC chunk as stated in the
