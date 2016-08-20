@@ -793,6 +793,11 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 }
             }
 
+            /// <summary>
+            /// When building the BRSTM file, the loop points and audio will
+            /// be adjusted so that the start loop point is a multiple of
+            /// this number. Default is 14,336 (0x3800).
+            /// </summary>
             public int LoopPointAlignment { get; set; } = 0x3800;
         }
     }
