@@ -28,11 +28,15 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private const int HeaderSize = 0x60;
         private AdpcmChannel AudioChannel => AudioStream.Channels[0];
 
-        private int NumSamples => Configuration.TrimFile && AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples;
+        private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples) + AlignmentSamples;
         private short Format { get; } = 0; /* 0 for ADPCM */
 
-        private int StartAddr => GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopStart : 0);
-        private int EndAddr => GetNibbleAddress(AudioStream.Looping ? AudioStream.LoopEnd : NumSamples - 1);
+        private int AlignmentSamples => GetNextMultiple(AudioStream.LoopStart, Configuration.LoopPointAlignment) - AudioStream.LoopStart;
+        private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
+        private int LoopEnd => AudioStream.LoopEnd + AlignmentSamples;
+
+        private int StartAddr => GetNibbleAddress(AudioStream.Looping ? LoopStart : 0);
+        private int EndAddr => GetNibbleAddress(AudioStream.Looping ? LoopEnd : NumSamples - 1);
         private static int CurAddr => GetNibbleAddress(0);
 
         private short PredScale => AudioChannel.GetAudioData[0];
@@ -74,7 +78,12 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 ? AudioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
                 : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
 
-            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? AudioStream.LoopStart : 0);
+            if (AudioStream.Looping)
+            {
+                Decode.CalculateLoopAlignment(AudioStream.Channels, Configuration.LoopPointAlignment,
+                    AudioStream.LoopStart, AudioStream.LoopEnd);
+            }
+            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? LoopStart : 0);
         }
 
         private void GetHeader(Stream stream)
@@ -138,7 +147,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             GetHeader(stream);
             stream.Position = HeaderSize;
             
-            stream.Write(AudioChannel.AudioByteArray, 0, GetBytesForAdpcmSamples(NumSamples));
+            stream.Write(AudioChannel.GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
         }
 
         private void ReadDspFile(Stream stream)
@@ -215,6 +224,13 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             /// Default is <c>true</c>.
             /// </summary>
             public bool TrimFile { get; set; } = true;
+
+            /// <summary>
+            /// When building the DSP file, the loop points and audio will
+            /// be adjusted so that the start loop point is a multiple of
+            /// this number. Default is 1.
+            /// </summary>
+            public int LoopPointAlignment { get; set; } = 1;
         }
     }
 }
