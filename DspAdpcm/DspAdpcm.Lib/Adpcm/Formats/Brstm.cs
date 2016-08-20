@@ -30,7 +30,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
         private int LoopEnd => AudioStream.LoopEnd + AlignmentSamples;
 
-        private byte Codec { get; } = 2; // 4-bit ADPCM
+        private BrstmCodec Codec { get; } = BrstmCodec.Adpcm;
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
@@ -239,7 +239,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         {
             var chunk = new List<byte>();
 
-            chunk.Add(Codec);
+            chunk.Add((byte)Codec);
             chunk.Add(Looping);
             chunk.Add((byte)NumChannels);
             chunk.Add(0); //padding
@@ -465,8 +465,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         {
             using (var reader = new BinaryReaderBE(new MemoryStream(chunk)))
             {
-                structure.Codec = reader.ReadByte();
-                if (structure.Codec != 2) //4-bit ADPCM codec
+                structure.Codec = (BrstmCodec)reader.ReadByte();
+                if (structure.Codec != BrstmCodec.Adpcm)
                 {
                     throw new InvalidDataException("File must contain 4-bit ADPCM encoded audio");
                 }
@@ -730,6 +730,25 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             /// including Pokémon Battle Revolution and Mario Party 8.
             /// </summary>
             Short
+        }
+
+        /// <summary>
+        /// The different audio codecs used in BRSTM files.
+        /// </summary>
+        public enum BrstmCodec
+        {
+            /// <summary>
+            /// Big-endian, 8-bit PCM
+            /// </summary>
+            Pcm8Bit = 0,
+            /// <summary>
+            /// Big-endian, 16-bit PCM
+            /// </summary>
+            Pcm16Bit = 1,
+            /// <summary>
+            /// Nintendo's 4-Bit ADPCM
+            /// </summary>
+            Adpcm = 2
         }
 
         /// <summary>

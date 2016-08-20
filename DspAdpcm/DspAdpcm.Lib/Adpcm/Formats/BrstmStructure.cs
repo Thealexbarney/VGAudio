@@ -77,7 +77,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <summary>
         /// The audio codec.
         /// </summary>
-        public int Codec { get; set; }
+        public Brstm.BrstmCodec Codec { get; set; }
         /// <summary>
         /// This flag is set if the BRSTM loops.
         /// </summary>
