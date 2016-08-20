@@ -115,7 +115,11 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 ? AudioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
                 : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
 
-            Decode.CalculateLoopAlignment(AudioStream.Channels, Configuration.LoopPointAlignment, AudioStream.LoopStart, AudioStream.LoopEnd);
+            if (AudioStream.Looping)
+            {
+                Decode.CalculateLoopAlignment(AudioStream.Channels, Configuration.LoopPointAlignment,
+                    AudioStream.LoopStart, AudioStream.LoopEnd);
+            }
             Decode.CalculateAdpcTable(seekTableToCalculate, SamplesPerAdpcEntry);
             Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? LoopStart : 0);
         }
