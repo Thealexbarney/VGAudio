@@ -143,7 +143,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// The type of description used for the tracks
         /// in part 2 of the HEAD chunk.
         /// </summary>
-        public Brstm.BrstmHeaderType HeaderType { get; set; } = Brstm.BrstmHeaderType.SSBB;
+        public Brstm.BrstmTrackType HeaderType { get; set; }
         /// <summary>
         /// A list of all tracks defined in the BRSTM.
         /// </summary>
@@ -180,7 +180,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// games including Pokémon Battle Revolution
         /// and Mario Party 8. 
         /// </summary>
-        public Brstm.SeekTableType SeekTableType { get; set; } = Brstm.SeekTableType.Standard;
+        public Brstm.BrstmSeekTableType SeekTableType { get; set; }
 
         /// <summary>
         /// The length of the DATA chunk as stated in the

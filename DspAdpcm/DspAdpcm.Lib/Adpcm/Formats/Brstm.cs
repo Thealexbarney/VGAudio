@@ -43,7 +43,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int SamplesPerAdpcEntry => Configuration.SamplesPerAdpcEntry;
         private bool FullLastAdpcEntry => NumSamples % SamplesPerAdpcEntry == 0 && NumSamples > 0;
         private int NumAdpcEntriesShortened => (GetBytesForAdpcmSamples(NumSamples) / SamplesPerAdpcEntry) + 1;
-        private int NumAdpcEntries => Configuration.SeekTableType == SeekTableType.Standard ?
+        private int NumAdpcEntries => Configuration.SeekTableType == BrstmSeekTableType.Standard ?
             (NumSamples / SamplesPerAdpcEntry) + (FullLastAdpcEntry ? 0 : 1) : NumAdpcEntriesShortened;
         private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
 
@@ -56,8 +56,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int HeadChunkTableLength => 8 * 3;
         private int HeadChunk1Length => 0x34;
         private int HeadChunk2Length => 4 + (8 * NumTracks) + (TrackInfoLength * NumTracks);
-        private BrstmHeaderType HeaderType => Configuration.HeaderType;
-        private int TrackInfoLength => HeaderType == BrstmHeaderType.SSBB ? 4 : 0x0c;
+        private BrstmTrackType HeaderType => Configuration.HeaderType;
+        private int TrackInfoLength => HeaderType == BrstmTrackType.Short ? 4 : 0x0c;
         private int HeadChunk3Length => 4 + (8 * NumChannels) + (ChannelInfoLength * NumChannels);
         private int ChannelInfoLength => 0x38;
 
@@ -265,7 +265,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             var chunk = new List<byte>();
 
             chunk.Add((byte)NumTracks);
-            chunk.Add((byte)(HeaderType == BrstmHeaderType.SSBB ? 0 : 1));
+            chunk.Add((byte)(HeaderType == BrstmTrackType.Short ? 0 : 1));
             chunk.Add16BE(0);
 
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + 4;
@@ -273,13 +273,13 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             for (int i = 0; i < NumTracks; i++)
             {
-                chunk.Add32BE(HeaderType == BrstmHeaderType.SSBB ? 0x01000000 : 0x01010000);
+                chunk.Add32BE(HeaderType == BrstmTrackType.Short ? 0x01000000 : 0x01010000);
                 chunk.Add32BE(baseOffset + offsetTableLength + TrackInfoLength * i);
             }
 
             foreach (AdpcmTrack track in AudioStream.Tracks)
             {
-                if (HeaderType == BrstmHeaderType.Other)
+                if (HeaderType == BrstmTrackType.Standard)
                 {
                     chunk.Add((byte)track.Volume);
                     chunk.Add((byte)track.Panning);
@@ -499,7 +499,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 int numTracks = reader.ReadByte();
                 int[] trackOffsets = new int[numTracks];
 
-                structure.HeaderType = reader.ReadByte() == 0 ? BrstmHeaderType.SSBB : BrstmHeaderType.Other;
+                structure.HeaderType = reader.ReadByte() == 0 ? BrstmTrackType.Short : BrstmTrackType.Standard;
 
                 reader.BaseStream.Position = 4;
                 for (int i = 0; i < numTracks; i++)
@@ -513,7 +513,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     reader.BaseStream.Position = trackOffsets[i] - structure.HeadChunk2Offset;
                     var track = new AdpcmTrack();
 
-                    if (structure.HeaderType == BrstmHeaderType.Other)
+                    if (structure.HeaderType == BrstmTrackType.Standard)
                     {
                         track.Volume = reader.ReadByte();
                         track.Panning = reader.ReadByte();
@@ -588,12 +588,12 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             if (structure.AdpcChunkLength == expectedLengthStandard)
             {
                 structure.SeekTableLength = bytesPerEntry * numAdpcEntriesStandard;
-                structure.SeekTableType = SeekTableType.Standard;
+                structure.SeekTableType = BrstmSeekTableType.Standard;
             }
             else if (structure.AdpcChunkLength == expectedLengthShortened)
             {
                 structure.SeekTableLength = bytesPerEntry * numAdpcEntriesShortened;
-                structure.SeekTableType = SeekTableType.Short;
+                structure.SeekTableType = BrstmSeekTableType.Short;
             }
             else
             {
@@ -700,28 +700,26 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         }
 
         /// <summary>
-        /// The different header types used for BRSTM files.
-        /// The only difference between each header type
-        /// is the structure containing information on the tracks
-        /// contained in the BRSTM file.
+        /// The different track description types used in BRSTM files.
         /// </summary>
-        public enum BrstmHeaderType
+        public enum BrstmTrackType
         {
             /// <summary>
-            /// The header type used in Super Smash Bros. Brawl
+            /// The track description used in most games other than 
+            /// Super Smash Bros. Brawl.
             /// </summary>
-            SSBB,
+            Standard,
             /// <summary>
-            /// The header type used in most games other than 
-            /// Super Smash Bros. Brawl
+            /// The track description used in Super Smash Bros. Brawl.
+            /// It does not contain values for volume or panning.
             /// </summary>
-            Other
+            Short
         }
 
         /// <summary>
-        /// The different types of seek tables.
+        /// The different types of seek tables used in BRSTM files.
         /// </summary>
-        public enum SeekTableType
+        public enum BrstmSeekTableType
         {
             /// <summary>
             /// A normal length, complete seek table.
@@ -744,16 +742,16 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             /// <summary>
             /// The type of track description to be used when building the 
             /// BRSTM header.
-            /// Default is <see cref="BrstmHeaderType.SSBB"/>
+            /// Default is <see cref="BrstmTrackType.Short"/>
             /// </summary>
-            public BrstmHeaderType HeaderType { get; set; } = BrstmHeaderType.SSBB;
+            public BrstmTrackType HeaderType { get; set; } = BrstmTrackType.Short;
 
             /// <summary>
             /// The type of seek table to use when building the BRSTM
             /// ADPC chunk.
-            /// Default is <see cref="Brstm.SeekTableType.Standard"/>
+            /// Default is <see cref="BrstmSeekTableType.Standard"/>
             /// </summary>
-            public SeekTableType SeekTableType { get; set; } = SeekTableType.Standard;
+            public BrstmSeekTableType SeekTableType { get; set; } = BrstmSeekTableType.Standard;
 
             /// <summary>
             /// If <c>true</c>, rebuilds the seek table when building the BRSTM.
