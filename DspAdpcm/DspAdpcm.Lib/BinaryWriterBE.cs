@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace DspAdpcm.Lib
 {
-    class BinaryWriterBE : BinaryWriter
+    internal class BinaryWriterBE : BinaryWriter
     {
         public BinaryWriterBE(Stream input) : base(input)
         {

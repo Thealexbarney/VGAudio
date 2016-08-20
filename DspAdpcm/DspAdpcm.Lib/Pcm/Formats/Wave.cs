@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using static DspAdpcm.Lib.Helpers;
 
 namespace DspAdpcm.Lib.Pcm.Formats
 {
@@ -240,7 +239,6 @@ namespace DspAdpcm.Lib.Pcm.Formats
 
                 if (fmtCode != WAVE_FORMAT_PCM && fmtCode != WAVE_FORMAT_EXTENSIBLE)
                 {
-                    var a = KSDATAFORMAT_SUBTYPE_PCM;
                     throw new InvalidDataException($"Must contain PCM data. Has invalid format {fmtCode}");
                 }
 

@@ -52,7 +52,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int HeadChunkOffset => RstmHeaderLength;
         private int HeadChunkLength => GetNextMultiple(HeadChunkHeaderLength + HeadChunkTableLength +
             HeadChunk1Length + HeadChunk2Length + HeadChunk3Length, 0x20);
-        private int HeadChunkHeaderLength = 8;
+        private int HeadChunkHeaderLength => 8;
         private int HeadChunkTableLength => 8 * 3;
         private int HeadChunk1Length => 0x34;
         private int HeadChunk2Length => 4 + (8 * NumTracks) + (TrackInfoLength * NumTracks);
@@ -206,7 +206,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.Add32BE(0x01000000);
             chunk.Add32BE(HeadChunkTableLength); //Chunk 1 offset
             chunk.Add32BE(0x01000000);
-            chunk.Add32BE(HeadChunkTableLength + HeadChunk1Length); //Chunk 1 offset
+            chunk.Add32BE(HeadChunkTableLength + HeadChunk1Length); //Chunk 2 offset
             chunk.Add32BE(0x01000000);
             chunk.Add32BE(HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length); //Chunk 3 offset
 
@@ -391,7 +391,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private static void ParseHeadChunk(byte[] head, BrstmStructure structure)
         {
-            int baseOffset = 8;
+            const int baseOffset = 8;
 
             if (Encoding.UTF8.GetString(head, 0, 4) != "HEAD")
             {

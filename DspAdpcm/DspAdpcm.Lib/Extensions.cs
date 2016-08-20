@@ -237,7 +237,7 @@ namespace DspAdpcm.Lib
 
         public static void WriteASCII(this BinaryWriter writer, string value)
         {
-            byte[] text = System.Text.Encoding.ASCII.GetBytes(value);
+            byte[] text = Encoding.ASCII.GetBytes(value);
             writer.Write(text);
         }
 

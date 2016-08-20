@@ -113,10 +113,7 @@ namespace DspAdpcm.Lib.Adpcm
                     max = tmp;
             }
 
-            if (min / max < 1.0e-10)
-                return true;
-
-            return false;
+            return min / max < 1.0e-10;
         }
 
         private static void BidirectionalFilter(double[][] mtx, int[] vecIdxs, double[] vecOut)
@@ -432,7 +429,7 @@ namespace DspAdpcm.Lib.Adpcm
             /* Iterate through each coef set, finding the set with the smallest error */
             for (int i = 0; i < 8; i++)
             {
-                DspEncodeCoef(pcmInOut, sampleCount, coefs[i], inSamples[i], outSamples[i], ref scale[i], ref distAccum[i]);
+                DspEncodeCoef(pcmInOut, sampleCount, coefs[i], inSamples[i], outSamples[i], out scale[i], out distAccum[i]);
             }
 
             int bestIndex = 0;
@@ -466,7 +463,7 @@ namespace DspAdpcm.Lib.Adpcm
         }
 
         private static void DspEncodeCoef(short[] pcmInOut, int sampleCount, short[] coefs, int[] inSamples,
-            int[] outSamples, ref int scale, ref double distAccum)
+            int[] outSamples, out int scale, out double distAccum)
         {
             int v1, v2, v3;
             int index;
