@@ -31,6 +31,7 @@ namespace DspAdpcm.Lib.Pcm.Formats
         private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
         // ReSharper restore InconsistentNaming
 
+        private int FileLength => 8 + RiffChunkLength;
         private int RiffChunkLength => 4 + 8 + FmtChunkLength + 8 + DataChunkLength;
         private int FmtChunkLength => NumChannels > 2 ? 40 : 16;
         private int DataChunkLength => NumChannels * NumSamples * sizeof(short);
@@ -69,59 +70,83 @@ namespace DspAdpcm.Lib.Pcm.Formats
         /// Builds a WAVE file from the current <see cref="AudioStream"/>.
         /// </summary>
         /// <returns>A WAVE file</returns>
-        public IEnumerable<byte> GetFile()
+        public byte[] GetFile()
         {
-            return Combine(GetRiffHeader(), GetFmtChunk(), GetDataChunk());
+            var file = new byte[FileLength];
+            var stream = new MemoryStream(file);
+            WriteFile(stream);
+            return file;
         }
 
-        private byte[] GetRiffHeader()
+        /// <summary>
+        /// Writes the WAVE file to a <see cref="Stream"/>.
+        /// The file is written starting at the beginning
+        /// of the <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to write the
+        /// WAVE to.</param>
+        public void WriteFile(Stream stream)
         {
-            var header = new List<byte>();
+            if (stream.Length != FileLength)
+            {
+                try
+                {
+                    stream.SetLength(FileLength);
+                }
+                catch (NotSupportedException ex)
+                {
+                    throw new ArgumentException("Stream is too small.", nameof(stream), ex);
+                }
+            }
 
-            header.Add32("RIFF");
-            header.Add32(RiffChunkLength);
-            header.Add32("WAVE");
-
-            return header.ToArray();
+            stream.Position = 0;
+            GetRiffHeader(stream);
+            GetFmtChunk(stream);
+            GetDataChunk(stream);
         }
 
-        private byte[] GetFmtChunk()
+        private void GetRiffHeader(Stream stream)
         {
-            var chunk = new List<byte>();
+            var header = new BinaryWriter(stream);
 
-            chunk.Add32("fmt ");
-            chunk.Add32(FmtChunkLength);
-            chunk.Add16(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM);
-            chunk.Add16((short)NumChannels);
-            chunk.Add32(SampleRate);
-            chunk.Add32(BytesPerSecond);
-            chunk.Add16((short)BlockAlign);
-            chunk.Add16((short)BitDepth);
+            header.WriteASCII("RIFF");
+            header.Write(RiffChunkLength);
+            header.WriteASCII("WAVE");
+        }
+
+        private void GetFmtChunk(Stream stream)
+        {
+            var chunk = new BinaryWriter(stream);
+
+            chunk.WriteASCII("fmt ");
+            chunk.Write(FmtChunkLength);
+            chunk.Write((short)(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
+            chunk.Write((short)NumChannels);
+            chunk.Write(SampleRate);
+            chunk.Write(BytesPerSecond);
+            chunk.Write((short)BlockAlign);
+            chunk.Write((short)BitDepth);
 
             if (NumChannels > 2)
             {
-                chunk.Add16(22);
-                chunk.Add16((short)BitDepth);
-                chunk.Add32(GetChannelMask(NumChannels));
-                chunk.AddRange(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
+                chunk.Write((short)22);
+                chunk.Write((short)BitDepth);
+                chunk.Write(GetChannelMask(NumChannels));
+                chunk.Write(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
             }
-
-            return chunk.ToArray();
         }
 
-        private byte[] GetDataChunk()
+        private void GetDataChunk(Stream stream)
         {
-            var chunk = new List<byte>();
+            var chunk = new BinaryWriter(stream);
 
-            chunk.Add32("data");
-            chunk.Add32(DataChunkLength);
+            chunk.WriteASCII("data");
+            chunk.Write(DataChunkLength);
             short[][] channels = AudioStream.Channels.Select(x => x.AudioData).ToArray();
             short[] interleavedAudio = channels.Interleave(1);
             byte[] interleavedBytes = new byte[interleavedAudio.Length * sizeof(short)];
             Buffer.BlockCopy(interleavedAudio, 0, interleavedBytes, 0, interleavedBytes.Length);
-            chunk.AddRange(interleavedBytes);
-
-            return chunk.ToArray();
+            chunk.Write(interleavedBytes);
         }
 
         private static int GetChannelMask(int numChannels)

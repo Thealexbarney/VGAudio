@@ -235,6 +235,12 @@ namespace DspAdpcm.Lib
             return output;
         }
 
+        public static void WriteASCII(this BinaryWriter writer, string value)
+        {
+            byte[] text = System.Text.Encoding.ASCII.GetBytes(value);
+            writer.Write(text);
+        }
+
         public static int DivideByRoundUp(this int value, int divisor) => (int)Math.Ceiling((double)value / divisor);
         public static short FlipBytes(this short value) => (short)(value << 8 | (ushort)value >> 8);
 
