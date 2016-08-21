@@ -19,7 +19,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// Contains various settings used when building the BRSTM file.
         /// </summary>
         public DspConfiguration Configuration { get; } = new DspConfiguration();
-        
+
         /// <summary>
         /// The size in bytes of the DSP file.
         /// </summary>
@@ -70,6 +70,28 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
 
             ReadDspFile(stream);
+        }
+
+        private Dsp() { }
+
+        /// <summary>
+        /// Parses the header of a DSP file and returns the metadata
+        /// and structure data of that file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the DSP file. Must be seekable.</param>
+        /// <returns>A <see cref="DspStructure"/> containing
+        /// the data from the DSP header.</returns>
+        public static DspStructure ReadMetadata(Stream stream)
+        {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
+            var dsp = new Dsp();
+            var a = dsp.ReadDspFile(stream, false);
+            return a;
         }
 
         private void RecalculateData()
@@ -146,61 +168,97 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             stream.Position = 0;
             GetHeader(stream);
             stream.Position = HeaderSize;
-            
+
             stream.Write(AudioChannel.GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
         }
 
-        private void ReadDspFile(Stream stream)
+        private DspStructure ReadDspFile(Stream stream, bool readAudioData = true)
         {
             using (var reader = new BinaryReaderBE(stream))
             {
-                int numSamples = reader.ReadInt32BE();
-                int numNibbles = reader.ReadInt32BE();
-                int sampleRate = reader.ReadInt32BE();
-                bool looped = reader.ReadInt16BE() == 1;
-                short format = reader.ReadInt16BE();
+                var structure = new DspStructure();
 
-                if (stream.Length < HeaderSize + GetBytesForAdpcmSamples(numSamples))
+                ParseHeader(stream, structure);
+
+                if (!readAudioData)
                 {
-                    throw new InvalidDataException($"File doesn't contain enough data for {numSamples} samples");
+                    return structure;
                 }
 
-                if (GetNibbleFromSample(numSamples) != numNibbles)
-                {
-                    throw new InvalidDataException("Sample count and nibble count do not match");
-                }
-
-                if (format != 0)
-                {
-                    throw new InvalidDataException($"File does not contain ADPCM audio. Specified format is {format}");
-                }
-
-                AdpcmStream adpcm = new AdpcmStream(numSamples, sampleRate);
-                var channel = new AdpcmChannel(numSamples);
+                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
                 
-                int loopStart = GetSampleFromNibble(reader.ReadInt32BE());
-                int loopEnd = GetSampleFromNibble(reader.ReadInt32BE());
-                reader.ReadInt32BE(); //CurAddr
-
-                if (looped)
+                if (structure.Looping)
                 {
-                    adpcm.SetLoop(loopStart, loopEnd);
+                    AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
                 }
-                
 
-                channel.Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16BE()).ToArray();
-                channel.Gain = reader.ReadInt16BE();
-                reader.ReadInt16BE(); //Initial Predictor/Scale
-                channel.Hist1 = reader.ReadInt16BE();
-                channel.Hist2 = reader.ReadInt16BE();
+                reader.BaseStream.Position = HeaderSize;
+                ParseData(stream, structure);
 
-                reader.BaseStream.Seek(HeaderSize, SeekOrigin.Begin);
-
-                channel.AudioByteArray = reader.ReadBytes(GetBytesForAdpcmSamples(numSamples));
-
-                adpcm.Channels.Add(channel);
-                AudioStream = adpcm;
+                return structure;
             }
+        }
+
+        private static void ParseHeader(Stream stream, DspStructure structure)
+        {
+            var reader = new BinaryReaderBE(stream);
+
+            structure.NumSamples = reader.ReadInt32BE();
+            structure.NumNibbles = reader.ReadInt32BE();
+            structure.SampleRate = reader.ReadInt32BE();
+            structure.Looping = reader.ReadInt16BE() == 1;
+            structure.Format = reader.ReadInt16BE();
+            structure.StartAddress = reader.ReadInt32BE();
+            structure.EndAddress = reader.ReadInt32BE();
+            structure.CurrentAddress = reader.ReadInt32BE();
+
+            var channel = new AdpcmChannelInfo
+            {
+                Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16BE()).ToArray(),
+                Gain = reader.ReadInt16BE(),
+                PredScale = reader.ReadInt16BE(),
+                Hist1 = reader.ReadInt16BE(),
+                Hist2 = reader.ReadInt16BE(),
+                LoopPredScale = reader.ReadInt16BE(),
+                LoopHist1 = reader.ReadInt16BE(),
+                LoopHist2 = reader.ReadInt16BE()
+            };
+
+            structure.Channels.Add(channel);
+
+            if (stream.Length < HeaderSize + GetBytesForAdpcmSamples(structure.NumSamples))
+            {
+                throw new InvalidDataException($"File doesn't contain enough data for {structure.NumSamples} samples");
+            }
+
+            if (GetNibbleFromSample(structure.NumSamples) != structure.NumNibbles)
+            {
+                throw new InvalidDataException("Sample count and nibble count do not match");
+            }
+
+            if (structure.Format != 0)
+            {
+                throw new InvalidDataException($"File does not contain ADPCM audio. Specified format is {structure.Format}");
+            }
+        }
+
+        private void ParseData(Stream stream, DspStructure structure)
+        {
+            var reader = new BinaryReaderBE(stream);
+
+            byte[] audio = reader.ReadBytes(GetBytesForAdpcmSamples(structure.NumSamples));
+
+            var channel = new AdpcmChannel(structure.NumSamples, audio)
+            {
+                Coefs = structure.Channels[0].Coefs,
+                Gain = structure.Channels[0].Gain,
+                Hist1 = structure.Channels[0].Hist1,
+                Hist2 = structure.Channels[0].Hist2
+            };
+            channel.SetLoopContext(structure.Channels[0].LoopPredScale, structure.Channels[0].LoopHist1,
+                    structure.Channels[0].LoopHist2);
+
+            AudioStream.Channels.Add(channel);
         }
 
         /// <summary>
