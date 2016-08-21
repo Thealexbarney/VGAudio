@@ -8,6 +8,7 @@ using System.Windows.Input;
 using Windows.Storage;
 using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
+using Windows.UI.Core;
 using Windows.UI.Popups;
 using DspAdpcm.Lib.Adpcm;
 using DspAdpcm.Lib.Adpcm.Formats;
@@ -25,11 +26,11 @@ namespace DspAdpcm.Uwp.ViewModels
 
         //Hacky solution due to weird issues in UWP
         //Binding problems with Dictionary<enum, object> but not Dictionary<int, object>
-        public Dictionary<int, AudioFileType> FileTypesBinding { get; } = FileTypes.ToDictionary(x => (int)x.Key, x => x.Value);
+        public Dictionary<int, AudioFileType> FileTypesBinding { get; }
         public int SelectedFileTypeBinding
         {
             get { return (int)SelectedFileType; }
-            set { SelectedFileType = (AdpcmTypes) value; }
+            set { SelectedFileType = (AdpcmTypes)value; }
         }
 
         public AdpcmTypes SelectedFileType { get; set; } = AdpcmTypes.Dsp;
@@ -42,15 +43,10 @@ namespace DspAdpcm.Uwp.ViewModels
         public double Samples { get; set; }
         public double SamplesPerMs => Samples / (Time * 1000);
 
-        public static Dictionary<AdpcmTypes, AudioFileType> FileTypes { get; } = new Dictionary<AdpcmTypes, AudioFileType>()
-        {
-            [AdpcmTypes.Dsp] = new AudioFileType("DSP", ".dsp", "Nintendo DSP ACPCM Audio File",
-                fileName => new Dsp(new FileStream(fileName, FileMode.Open)).AudioStream,
-                adpcmStream => new Dsp(adpcmStream).GetFile()),
-            [AdpcmTypes.Brstm] = new AudioFileType("BRSTM", ".brstm", "BRSTM Audio File",
-                fileName => new Brstm(new FileStream(fileName, FileMode.Open)).AudioStream,
-                adpcmStream => new Brstm(adpcmStream).GetFile())
-        };
+        public Dsp.DspConfiguration DspConfiguration { get; set; } = new Dsp.DspConfiguration();
+        public Brstm.BrstmConfiguration BrstmConfiguration { get; set; } = new Brstm.BrstmConfiguration();
+
+        public Dictionary<AdpcmTypes, AudioFileType> FileTypes { get; }
 
         public string InPath { get; set; }
 
@@ -68,6 +64,30 @@ namespace DspAdpcm.Uwp.ViewModels
 
         public MainViewModel()
         {
+            FileTypes = new Dictionary<AdpcmTypes, AudioFileType>()
+            {
+                [AdpcmTypes.Dsp] = new AudioFileType("DSP", ".dsp", "Nintendo DSP ACPCM Audio File",
+                    async fileName =>
+                    {
+                        var dsp = new Dsp(new FileStream(fileName, FileMode.Open));
+                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                            CoreDispatcherPriority.Normal, () => { DspConfiguration = dsp.Configuration; });
+                        return dsp.AudioStream;
+                    },
+                    adpcmStream => new Dsp(adpcmStream).GetFile()),
+                [AdpcmTypes.Brstm] = new AudioFileType("BRSTM", ".brstm", "BRSTM Audio File",
+                    async fileName =>
+                    {
+                        var brstm = new Brstm(new FileStream(fileName, FileMode.Open));
+                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                           CoreDispatcherPriority.Normal, () => { BrstmConfiguration = brstm.Configuration; });
+                        return brstm.AudioStream;
+                    },
+                    adpcmStream => new Brstm(adpcmStream, BrstmConfiguration).GetFile())
+            };
+
+            FileTypesBinding = FileTypes.ToDictionary(x => (int)x.Key, x => x.Value);
+
             EncodeCommand = new RelayCommand(Encode, CanEncode);
             SaveFileCommand = new RelayCommand(SaveFile);
             OpenFileCommand = new RelayCommand(OpenFile);
@@ -209,10 +229,11 @@ namespace DspAdpcm.Uwp.ViewModels
         public string DisplayName { get; }
         public string Extension { get; }
         public string Description { get; }
-        public Func<string, AdpcmStream> OpenFunc { get; }
+        public Func<string, Task<AdpcmStream>> OpenFunc { get; }
         public Func<AdpcmStream, IEnumerable<byte>> GetFileFunc { get; }
+        public Action After { get; }
 
-        public AudioFileType(string displayName, string extension, string description, Func<string, AdpcmStream> openFunc, Func<AdpcmStream, IEnumerable<byte>> getFileFunc)
+        public AudioFileType(string displayName, string extension, string description, Func<string, Task<AdpcmStream>> openFunc, Func<AdpcmStream, IEnumerable<byte>> getFileFunc)
         {
             DisplayName = displayName;
             Extension = extension;

@@ -1,0 +1,52 @@
+﻿<UserControl
+    x:Class="DspAdpcm.Uwp.Views.Brstm"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DspAdpcm.Uwp.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    DataContext="{Binding MainWindow, Source={StaticResource Locator}}">
+
+    <Grid>
+        <Grid.Resources>
+            <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <local:TrackTypeEnumToBoolConverter x:Key="TrackTypeConverter" />
+            <local:SeekTableTypeEnumToBoolConverter x:Key="SeekTableTypeConverter" />
+        </Grid.Resources>
+        <StackPanel>
+            <ToggleButton x:Name="Advanced" Margin="0,10,0,0">
+                <TextBlock Text="Show Advanced Options"/>
+            </ToggleButton>
+            <StackPanel Visibility="{Binding IsChecked, ElementName=Advanced, Converter={StaticResource BoolToVisibilityConverter}}">
+                <CheckBox Content="Recalculate seek table" IsChecked="{Binding BrstmConfiguration.RecalculateSeekTable}"/>
+                <CheckBox Content="Recalculate loop context" IsChecked="{Binding BrstmConfiguration.RecalculateLoopContext}"/>
+                <TextBlock Text="Track description type:" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton IsChecked="{Binding Path=BrstmConfiguration.TrackType, Converter={StaticResource TrackTypeConverter}, ConverterParameter=Standard, Mode=TwoWay}" Content="Standard"/>
+                    <RadioButton IsChecked="{Binding Path=BrstmConfiguration.TrackType, Converter={StaticResource TrackTypeConverter}, ConverterParameter=Short, Mode=TwoWay}" Content="Short"/>
+                </StackPanel>
+                <TextBlock Text="Seek table type:" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton IsChecked="{Binding Path=BrstmConfiguration.SeekTableType, Converter={StaticResource SeekTableTypeConverter}, ConverterParameter=Standard, Mode=TwoWay}" GroupName="A">Standard</RadioButton>
+                    <RadioButton IsChecked="{Binding Path=BrstmConfiguration.SeekTableType, Converter={StaticResource SeekTableTypeConverter}, ConverterParameter=Short, Mode=TwoWay}" GroupName="A">Short</RadioButton>
+                </StackPanel>
+                <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                    <TextBlock Text="Loop point alignment:" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    <TextBox Margin="10, 0" Text="{Binding BrstmConfiguration.LoopPointAlignment, Mode=TwoWay}"/>
+                </StackPanel>
+                <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                    <TextBlock Text="Samples per interleaved block:" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    <TextBox Margin="10, 0" Text="{Binding BrstmConfiguration.SamplesPerInterleave, Mode=TwoWay}"/>
+                </StackPanel>
+                <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                    <TextBlock Text="Samples per seek table entry:" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    <TextBox Margin="10, 0" Text="{Binding BrstmConfiguration.SamplesPerAdpcEntry, Mode=TwoWay}"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+
+    </Grid>
+</UserControl>

@@ -19,7 +19,7 @@
     <PackageCertificateKeyFile>DspAdpcm.Uwp_StoreKey.pfx</PackageCertificateKeyFile>
     <PackageCertificateThumbprint>19047632D8CDD8EB880EBE427CD61F35D64D938B</PackageCertificateThumbprint>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
-    <AppxBundle>Never</AppxBundle>
+    <AppxBundle>Auto</AppxBundle>
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
@@ -106,6 +106,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\Brstm.xaml.cs">
+      <DependentUpon>Brstm.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Converters.cs" />
     <Compile Include="Views\Main.xaml.cs">
       <DependentUpon>Main.xaml</DependentUpon>
@@ -173,6 +176,10 @@
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Brstm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\Main.xaml">
       <SubType>Designer</SubType>
