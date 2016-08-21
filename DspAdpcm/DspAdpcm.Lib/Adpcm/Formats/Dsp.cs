@@ -72,6 +72,28 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             ReadDspFile(stream);
         }
 
+        private Dsp() { }
+
+        /// <summary>
+        /// Parses the header of a DSP file and returns the metadata
+        /// and structure data of that file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the DSP file. Must be seekable.</param>
+        /// <returns>A <see cref="DspStructure"/> containing
+        /// the data from the DSP header.</returns>
+        public static DspStructure ReadMetadata(Stream stream)
+        {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
+            var dsp = new Dsp();
+            var a = dsp.ReadDspFile(stream, false);
+            return a;
+        }
+
         private void RecalculateData()
         {
             var loopContextToCalculate = Configuration.RecalculateLoopContext
@@ -150,13 +172,18 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             stream.Write(AudioChannel.GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
         }
 
-        private void ReadDspFile(Stream stream)
+        private DspStructure ReadDspFile(Stream stream, bool readAudioData = true)
         {
             using (var reader = new BinaryReaderBE(stream))
             {
                 var structure = new DspStructure();
 
                 ParseHeader(stream, structure);
+
+                if (!readAudioData)
+                {
+                    return structure;
+                }
 
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
                 
@@ -167,6 +194,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
                 reader.BaseStream.Position = HeaderSize;
                 ParseData(stream, structure);
+
+                return structure;
             }
         }
 

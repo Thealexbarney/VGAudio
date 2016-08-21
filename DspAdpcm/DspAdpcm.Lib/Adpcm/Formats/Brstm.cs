@@ -360,7 +360,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, LastBlockSize);
         }
 
-        private BrstmStructure ReadBrstmFile(Stream stream, bool readData = true)
+        private BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
         {
             using (var reader = new BinaryReaderBE(stream))
             {
@@ -406,7 +406,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
                 ParseAdpcChunk(stream, structure);
 
-                if (!readData)
+                if (!readAudioData)
                 {
                     reader.BaseStream.Position = structure.DataChunkOffset + 4;
                     structure.DataChunkLength = reader.ReadInt32BE();
