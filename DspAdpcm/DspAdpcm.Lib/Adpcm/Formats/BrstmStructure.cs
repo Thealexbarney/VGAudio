@@ -77,7 +77,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <summary>
         /// The audio codec.
         /// </summary>
-        public Brstm.BrstmCodec Codec { get; set; }
+        public BrstmCodec Codec { get; set; }
         /// <summary>
         /// This flag is set if the BRSTM loops.
         /// </summary>
@@ -143,7 +143,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// The type of description used for the tracks
         /// in part 2 of the HEAD chunk.
         /// </summary>
-        public Brstm.BrstmTrackType HeaderType { get; set; }
+        public BrstmTrackType HeaderType { get; set; }
         /// <summary>
         /// A list of all tracks defined in the BRSTM.
         /// </summary>
@@ -157,7 +157,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <summary>
         /// The ADPCM information for each channel.
         /// </summary>
-        public List<Brstm.BrstmChannelInfo> Channels { get; set; } = new List<Brstm.BrstmChannelInfo>();
+        public List<BrstmChannelInfo> Channels { get; set; } = new List<BrstmChannelInfo>();
 
         /// <summary>
         /// The length of the ADPC chunk as stated in the
@@ -180,12 +180,77 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// games including Pokémon Battle Revolution
         /// and Mario Party 8. 
         /// </summary>
-        public Brstm.BrstmSeekTableType SeekTableType { get; set; }
+        public BrstmSeekTableType SeekTableType { get; set; }
 
         /// <summary>
         /// The length of the DATA chunk as stated in the
         /// DATA chunk header.
         /// </summary>
         public int DataChunkLength { get; set; }
+    }
+
+    /// <summary>
+    /// Defines the ADPCM information for a single
+    /// ADPCM channel.
+    /// </summary>
+    public class BrstmChannelInfo : AdpcmChannelInfo
+    {
+        /// <summary>
+        /// The offset of the coefficients of the
+        /// channel. Used in a BRSTM header.
+        /// </summary>
+        public int Offset { get; set; }
+    }
+
+    /// <summary>
+    /// The different types of seek tables used in BRSTM files.
+    /// </summary>
+    public enum BrstmSeekTableType
+    {
+        /// <summary>
+        /// A normal length, complete seek table.
+        /// </summary>
+        Standard,
+        /// <summary>
+        /// A shortened, truncated seek table used in games 
+        /// including Pokémon Battle Revolution and Mario Party 8.
+        /// </summary>
+        Short
+    }
+
+    /// <summary>
+    /// The different track description types used in BRSTM files.
+    /// </summary>
+    public enum BrstmTrackType
+    {
+        /// <summary>
+        /// The track description used in most games other than 
+        /// Super Smash Bros. Brawl.
+        /// </summary>
+        Standard,
+        /// <summary>
+        /// The track description used in Super Smash Bros. Brawl.
+        /// It does not contain values for volume or panning.
+        /// </summary>
+        Short
+    }
+
+    /// <summary>
+    /// The different audio codecs used in BRSTM files.
+    /// </summary>
+    public enum BrstmCodec
+    {
+        /// <summary>
+        /// Big-endian, 8-bit PCM
+        /// </summary>
+        Pcm8Bit = 0,
+        /// <summary>
+        /// Big-endian, 16-bit PCM
+        /// </summary>
+        Pcm16Bit = 1,
+        /// <summary>
+        /// Nintendo's 4-Bit ADPCM
+        /// </summary>
+        Adpcm = 2
     }
 }
