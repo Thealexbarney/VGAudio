@@ -56,7 +56,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int HeadChunkTableLength => 8 * 3;
         private int HeadChunk1Length => 0x34;
         private int HeadChunk2Length => 4 + (8 * NumTracks) + (TrackInfoLength * NumTracks);
-        private BrstmTrackType HeaderType => Configuration.HeaderType;
+        private BrstmTrackType HeaderType => Configuration.TrackType;
         private int TrackInfoLength => HeaderType == BrstmTrackType.Short ? 4 : 0x0c;
         private int HeadChunk3Length => 4 + (8 * NumChannels) + (ChannelInfoLength * NumChannels);
         private int ChannelInfoLength => 0x38;
@@ -395,7 +395,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
                 Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
                 Configuration.SamplesPerAdpcEntry = structure.SamplesPerAdpcEntry;
-                Configuration.HeaderType = structure.HeaderType;
+                Configuration.TrackType = structure.HeaderType;
 
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
                 if (structure.Looping)
@@ -657,7 +657,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             /// BRSTM header.
             /// Default is <see cref="BrstmTrackType.Short"/>
             /// </summary>
-            public BrstmTrackType HeaderType { get; set; } = BrstmTrackType.Short;
+            public BrstmTrackType TrackType { get; set; } = BrstmTrackType.Short;
 
             /// <summary>
             /// The type of seek table to use when building the BRSTM
