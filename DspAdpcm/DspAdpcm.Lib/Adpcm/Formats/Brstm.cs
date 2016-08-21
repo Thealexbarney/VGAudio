@@ -103,6 +103,31 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             ReadBrstmFile(stream);
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Brstm"/> from an <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="AdpcmStream"/> used to
+        /// create the <see cref="Brstm"/>.</param>
+        /// <param name="configuration">A <see cref="BrstmConfiguration"/>
+        /// to use for the <see cref="Brstm"/></param>
+        public Brstm(AdpcmStream stream, BrstmConfiguration configuration) : this(stream) 
+        {
+            Configuration = configuration;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Brstm"/> by parsing an existing
+        /// BRSTM file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the BRSTM file. Must be seekable.</param>
+        /// <param name="configuration">A <see cref="BrstmConfiguration"/>
+        /// to use for the <see cref="Brstm"/></param>
+        public Brstm(Stream stream, BrstmConfiguration configuration) : this(stream)
+        {
+            Configuration = configuration;
+        }
+
         private Brstm() { }
 
         /// <summary>

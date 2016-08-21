@@ -72,6 +72,31 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             ReadDspFile(stream);
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Dsp"/> from an <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="AdpcmStream"/> used to
+        /// create the <see cref="Dsp"/>.</param>
+        /// <param name="configuration">A <see cref="DspConfiguration"/>
+        /// to use for the <see cref="Dsp"/></param>
+        public Dsp(AdpcmStream stream, DspConfiguration configuration) : this(stream)
+        {
+            Configuration = configuration;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Dsp"/> by parsing an existing
+        /// DSP file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the DSP file. Must be seekable.</param>
+        /// <param name="configuration">A <see cref="DspConfiguration"/>
+        /// to use for the <see cref="Dsp"/></param>
+        public Dsp(Stream stream, DspConfiguration configuration) : this(stream)
+        {
+            Configuration = configuration;
+        }
+
         private Dsp() { }
 
         /// <summary>
