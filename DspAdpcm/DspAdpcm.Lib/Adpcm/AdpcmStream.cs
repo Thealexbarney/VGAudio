@@ -90,6 +90,22 @@ namespace DspAdpcm.Lib.Adpcm
             LoopEnd = loopEnd;
         }
 
+        /// <summary>
+        /// Adds all the channels in the input <see cref="AdpcmStream"/>
+        /// to the current one.
+        /// </summary>
+        /// <param name="adpcm">The <see cref="AdpcmStream"/> containing
+        /// the channels to add.</param>
+        public void Add(AdpcmStream adpcm)
+        {
+            if (adpcm.NumSamples != NumSamples)
+            {
+                throw new ArgumentException("Only audio streams of the same length can be added to each other.");
+            }
+
+            Channels.AddRange(adpcm.Channels);
+        }
+
         private AdpcmStream ShallowClone() => (AdpcmStream)MemberwiseClone();
 
         /// <summary>
