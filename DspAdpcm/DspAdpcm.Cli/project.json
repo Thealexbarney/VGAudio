@@ -1,11 +1,11 @@
 {
-    "version": "1.0.0-*",
+    "version": "1.0.0.0",
     "buildOptions": {
         "emitEntryPoint": true
     },
 
     "dependencies": {
-        "DspAdpcm.Lib": "1.0-*"
+        "DspAdpcm.Lib": "1.0.0"
     },
 
     "frameworks": {
