@@ -222,6 +222,13 @@ namespace DspAdpcm.Lib
             return output;
         }
 
+        public static short[] ToShortArray(this byte[] array)
+        {
+            var output = new short[array.Length.DivideByRoundUp(2)];
+            Buffer.BlockCopy(array, 0, output, 0, array.Length);
+            return output;
+        }
+
         public static short[] ToShortArrayFlippedBytes(this byte[] array)
         {
             int length = array.Length.DivideByRoundUp(2);

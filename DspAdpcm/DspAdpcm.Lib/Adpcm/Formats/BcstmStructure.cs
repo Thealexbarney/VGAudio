@@ -96,10 +96,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public int NumSamples { get; set; }
         /// <summary>
-        /// The offset that the actual audio data starts at.
-        /// </summary>
-        public int AudioDataOffset { get; set; }
-        /// <summary>
         /// The total count of interleaved audio data blocks.
         /// </summary>
         public int InterleaveCount { get; set; }
@@ -148,6 +144,28 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// The ADPCM information for each channel.
         /// </summary>
         public List<BcstmChannelInfo> Channels { get; set; } = new List<BcstmChannelInfo>();
+
+        /// <summary>
+        /// The length of the SEEK chunk as stated in the
+        /// SEEK chunk header.
+        /// </summary>
+        public int SeekChunkLength { get; set; }
+        /// <summary>
+        /// The length of the seek table in the
+        /// SEEK chunk.
+        /// </summary>
+        public int SeekTableLength { get; set; }
+        /// <summary>
+        /// The seek table containing PCM samples
+        /// from throughout the audio stream.
+        /// </summary>
+        public short[][] SeekTable { get; set; }
+
+        /// <summary>
+        /// The length of the DATA chunk as stated in the
+        /// DATA chunk header.
+        /// </summary>
+        public int DataChunkLength { get; set; }
     }
 
     /// <summary>

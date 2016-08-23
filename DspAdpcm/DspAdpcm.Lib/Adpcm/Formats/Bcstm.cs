@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using static DspAdpcm.Lib.Helpers;
 
 namespace DspAdpcm.Lib.Adpcm.Formats
 {
@@ -100,6 +99,22 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 }
 
                 ParseInfoChunk(reader, structure);
+                ParseSeekChunk(reader, structure);
+
+                if (!readAudioData)
+                {
+                    reader.BaseStream.Position = structure.DataChunkOffset + 4;
+                    structure.DataChunkLength = reader.ReadInt32();
+                    return structure;
+                }
+
+                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+                if (structure.Looping)
+                {
+                    AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+                }
+
+                ParseDataChunk(reader, structure);
 
                 return structure;
             }
@@ -108,9 +123,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private static void ParseInfoChunk(BinaryReader chunk, BcstmStructure structure)
         {
             chunk.BaseStream.Position = structure.InfoChunkOffset;
-
-            byte[] chunkId = chunk.ReadBytes(4);
-            if (Encoding.UTF8.GetString(chunkId, 0, 4) != "INFO")
+            if (Encoding.UTF8.GetString(chunk.ReadBytes(4), 0, 4) != "INFO")
             {
                 throw new InvalidDataException("Unknown or invalid INFO chunk");
             }
@@ -135,7 +148,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private static void ParseInfoChunk1(BinaryReader chunk, BcstmStructure structure)
         {
             chunk.BaseStream.Position = structure.InfoChunkOffset + 8 + structure.InfoChunk1Offset;
-            structure.Codec = (BcstmCodec) chunk.ReadByte();
+            structure.Codec = (BcstmCodec)chunk.ReadByte();
             if (structure.Codec != BcstmCodec.Adpcm)
             {
                 throw new InvalidDataException("File must contain 4-bit ADPCM encoded audio");
@@ -184,7 +197,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 chunk.BaseStream.Position = coefsOffset;
 
                 channel.Coefs = Enumerable.Range(0, 16).Select(x => chunk.ReadInt16()).ToArray();
-                
+
                 channel.PredScale = chunk.ReadInt16();
                 channel.Hist1 = chunk.ReadInt16();
                 channel.Hist2 = chunk.ReadInt16();
@@ -192,6 +205,72 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 channel.LoopHist1 = chunk.ReadInt16();
                 channel.LoopHist2 = chunk.ReadInt16();
                 channel.Gain = chunk.ReadInt16();
+            }
+        }
+
+        private static void ParseSeekChunk(BinaryReader chunk, BcstmStructure structure)
+        {
+            chunk.BaseStream.Position = structure.SeekChunkOffset;
+
+            if (Encoding.UTF8.GetString(chunk.ReadBytes(4), 0, 4) != "SEEK")
+            {
+                throw new InvalidDataException("Unknown or invalid SEEK chunk");
+            }
+            structure.SeekChunkLength = chunk.ReadInt32();
+
+            if (structure.SeekChunkLengthCstm != structure.SeekChunkLength)
+            {
+                throw new InvalidDataException("SEEK chunk length in CSTM header doesn't match length in SEEK header");
+            }
+
+            bool fullLastAdpcEntry = structure.NumSamples % structure.SamplesPerSeekTableEntry == 0 && structure.NumSamples > 0;
+            int bytesPerEntry = 4 * structure.NumChannelsPart1;
+            int numAdpcEntries = (structure.NumSamples / structure.SamplesPerSeekTableEntry) + (fullLastAdpcEntry ? 0 : 1);
+
+            structure.SeekTableLength = bytesPerEntry * numAdpcEntries;
+
+            byte[] tableBytes = chunk.ReadBytes(structure.SeekTableLength);
+
+            structure.SeekTable = tableBytes.ToShortArray()
+                .DeInterleave(2, structure.NumChannelsPart1);
+        }
+
+        private void ParseDataChunk(BinaryReader chunk, BcstmStructure structure)
+        {
+            chunk.BaseStream.Position = structure.DataChunkOffset;
+
+            if (Encoding.UTF8.GetString(chunk.ReadBytes(4), 0, 4) != "DATA")
+            {
+                throw new InvalidDataException("Unknown or invalid DATA chunk");
+            }
+            structure.DataChunkLength = chunk.ReadInt32();
+
+            if (structure.DataChunkLengthCstm != structure.DataChunkLength)
+            {
+                throw new InvalidDataException("DATA chunk length in CSTM header doesn't match length in DATA header");
+            }
+
+            int audioDataOffset = structure.DataChunkOffset + 0x20;
+            chunk.BaseStream.Position = audioDataOffset;
+            int audioDataLength = structure.DataChunkLength - (audioDataOffset - structure.DataChunkOffset);
+
+            byte[][] deInterleavedAudioData = chunk.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
+                structure.NumChannelsPart1, structure.LastBlockSize, GetBytesForAdpcmSamples(structure.NumSamples));
+
+            for (int c = 0; c < structure.NumChannelsPart1; c++)
+            {
+                var channel = new AdpcmChannel(structure.NumSamples, deInterleavedAudioData[c])
+                {
+                    Coefs = structure.Channels[c].Coefs,
+                    Gain = structure.Channels[c].Gain,
+                    Hist1 = structure.Channels[c].Hist1,
+                    Hist2 = structure.Channels[c].Hist2,
+                    SeekTable = structure.SeekTable?[c],
+                    SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry
+                };
+                channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
+                    structure.Channels[c].LoopHist2);
+                AudioStream.Channels.Add(channel);
             }
         }
     }
