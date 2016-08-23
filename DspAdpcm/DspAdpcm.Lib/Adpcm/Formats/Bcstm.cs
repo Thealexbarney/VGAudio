@@ -255,7 +255,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int audioDataLength = structure.DataChunkLength - (audioDataOffset - structure.DataChunkOffset);
 
             byte[][] deInterleavedAudioData = chunk.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.NumChannelsPart1, structure.LastBlockSize, GetBytesForAdpcmSamples(structure.NumSamples));
+                structure.NumChannelsPart1);
 
             for (int c = 0; c < structure.NumChannelsPart1; c++)
             {

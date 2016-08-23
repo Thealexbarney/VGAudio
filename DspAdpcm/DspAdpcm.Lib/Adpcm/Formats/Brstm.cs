@@ -382,7 +382,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
 
-            channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, LastBlockSize);
+            channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, 0x20);
         }
 
         private BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
@@ -651,7 +651,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
 
             byte[][] deInterleavedAudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.NumChannelsPart1, structure.LastBlockSize, GetBytesForAdpcmSamples(structure.NumSamples));
+                structure.NumChannelsPart1);
 
             for (int c = 0; c < structure.NumChannelsPart1; c++)
             {
