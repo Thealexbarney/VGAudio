@@ -51,5 +51,134 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// CSTM header.
         /// </summary>
         public int DataChunkLengthCstm { get; set; }
+
+        /// <summary>
+        /// The length of the INFO chunk as stated in the
+        /// INFO chunk header.
+        /// </summary>
+        public int InfoChunkLength { get; set; }
+        /// <summary>
+        /// The offset of part 1 of the INFO chunk.
+        /// </summary>
+        public int InfoChunk1Offset { get; set; }
+        /// <summary>
+        /// The offset of part 2 of the INFO chunk.
+        /// </summary>
+        public int InfoChunk2Offset { get; set; }
+        /// <summary>
+        /// The offset of part 3 of the INFO chunk.
+        /// </summary>
+        public int InfoChunk3Offset { get; set; }
+
+        /// <summary>
+        /// The audio codec.
+        /// </summary>
+        public BcstmCodec Codec { get; set; }
+        /// <summary>
+        /// This flag is set if the BCSTM loops.
+        /// </summary>
+        public bool Looping { get; set; }
+        /// <summary>
+        /// The number of channels as stated in part 1
+        /// of the INFO chunk.
+        /// </summary>
+        public int NumChannelsPart1 { get; set; }
+        /// <summary>
+        /// The sample rate of the audio.
+        /// </summary>
+        public int SampleRate { get; set; }
+        /// <summary>
+        /// The start loop point in samples.
+        /// </summary>
+        public int LoopStart { get; set; }
+        /// <summary>
+        /// The number of samples in the BCSTM.
+        /// </summary>
+        public int NumSamples { get; set; }
+        /// <summary>
+        /// The offset that the actual audio data starts at.
+        /// </summary>
+        public int AudioDataOffset { get; set; }
+        /// <summary>
+        /// The total count of interleaved audio data blocks.
+        /// </summary>
+        public int InterleaveCount { get; set; }
+        /// <summary>
+        /// The number of bytes per channel in each
+        /// interleaved audio data block.
+        /// </summary>
+        public int InterleaveSize { get; set; }
+        /// <summary>
+        /// The number of samples per channel in each
+        /// interleaved audio data block.
+        /// </summary>
+        public int SamplesPerInterleave { get; set; }
+        /// <summary>
+        /// The number of bytes per channel in the final
+        /// interleaved audio data block, not including
+        /// the padding at the end of each channel.
+        /// </summary>
+        public int LastBlockSizeWithoutPadding { get; set; }
+        /// <summary>
+        /// he number of samples per channel in the final
+        /// interleaved audio data block.
+        /// </summary>
+        public int LastBlockSamples { get; set; }
+        /// <summary>
+        /// The number of bytes per channel in the final
+        /// interleaved audio data block, including
+        /// the padding at the end of each channel.
+        /// </summary>
+        public int LastBlockSize { get; set; }
+        /// <summary>
+        /// The number of bytes per seek table entry.
+        /// </summary>
+        public int BytesPerSeekTableEntry { get; set; }
+        /// <summary>
+        /// The number of samples per seek table entry.
+        /// </summary>
+        public int SamplesPerSeekTableEntry { get; set; }
+
+        /// <summary>
+        /// The number of channels as stated in part 3
+        /// of the INFO chunk.
+        /// </summary>
+        public int NumChannelsPart3 { get; set; }
+        /// <summary>
+        /// The ADPCM information for each channel.
+        /// </summary>
+        public List<BcstmChannelInfo> Channels { get; set; } = new List<BcstmChannelInfo>();
+    }
+
+    /// <summary>
+    /// The different audio codecs used in BCSTM files.
+    /// </summary>
+    public enum BcstmCodec
+    {
+        /// <summary>
+        /// Big-endian, 8-bit PCM
+        /// </summary>
+        Pcm8Bit = 0,
+        /// <summary>
+        /// Big-endian, 16-bit PCM
+        /// </summary>
+        Pcm16Bit = 1,
+        /// <summary>
+        /// Nintendo's 4-Bit ADPCM
+        /// </summary>
+        Adpcm = 2
+    }
+
+    /// <summary>
+    /// Defines the ADPCM information for a single
+    /// ADPCM channel.
+    /// </summary>
+    public class BcstmChannelInfo : AdpcmChannelInfo
+    {
+        /// <summary>
+        /// The offset of the channel information. 
+        /// Used in a BCSTM header.
+        /// </summary>
+        public int Offset { get; set; }
     }
 }

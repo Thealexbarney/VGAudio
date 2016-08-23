@@ -150,7 +150,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         public List<AdpcmTrack> Tracks { get; set; } = new List<AdpcmTrack>();
 
         /// <summary>
-        /// The number of channels as stated in part 1
+        /// The number of channels as stated in part 3
         /// of the HEAD chunk.
         /// </summary>
         public int NumChannelsPart3 { get; set; }
