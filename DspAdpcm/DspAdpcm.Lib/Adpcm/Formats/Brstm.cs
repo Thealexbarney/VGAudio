@@ -23,6 +23,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         public BrstmConfiguration Configuration { get; } = new BrstmConfiguration();
 
         private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
+        private int NumSamplesUntrimmed => AudioStream.Channels?[0]?.NumSamplesUntrimmed ?? 0;
         private int NumChannels => AudioStream.Channels.Count;
         private int NumTracks => AudioStream.Tracks.Count;
 
@@ -64,8 +65,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int AdpcChunkOffset => RstmHeaderLength + HeadChunkLength;
         private int AdpcChunkLength => GetNextMultiple(8 + NumAdpcEntries * NumChannels * BytesPerAdpcEntry, 0x20);
 
+        private int SamplesToWrite => Configuration.TrimFile ? NumSamples : NumSamplesUntrimmed;
         private int DataChunkOffset => RstmHeaderLength + HeadChunkLength + AdpcChunkLength;
-        private int DataChunkLength => GetNextMultiple(0x20 + (InterleaveCount - (LastBlockSamples == 0 ? 0 : 1)) * InterleaveSize * NumChannels + LastBlockSize * NumChannels, 0x20);
+        private int DataChunkLength => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(SamplesToWrite), 0x20) * NumChannels;
 
         /// <summary>
         /// The size in bytes of the BRSTM file.
@@ -382,7 +384,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
 
-            channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, 0x20);
+            channels.Interleave(stream, GetBytesForAdpcmSamples(SamplesToWrite), InterleaveSize, 0x20);
         }
 
         private BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
@@ -761,6 +763,14 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             /// this number. Default is 14,336 (0x3800).
             /// </summary>
             public int LoopPointAlignment { get; set; } = 0x3800;
+
+            /// <summary>
+            /// If the file is looped and the number of samples
+            /// exceeds the loop end, any samples past the loop end
+            /// will be discarded when writing the file.
+            /// Default is <c>true</c>.
+            /// </summary>
+            public bool TrimFile { get; set; } = true;
         }
     }
 }

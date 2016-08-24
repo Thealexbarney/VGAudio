@@ -30,6 +30,7 @@ namespace DspAdpcm.Lib.Adpcm
         public int LoopStartAligned { get; set; }
         public int LoopEndAligned { get; set; }
         public int NumSamplesAligned { get; set; }
+        public int NumSamplesUntrimmed => GetSampleFromNibble((AudioByteArrayAligned?.Length ?? AudioByteArray.Length) * 2);
 
         public AdpcmChannel(int numSamples)
         {
