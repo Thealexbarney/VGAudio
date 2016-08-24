@@ -36,7 +36,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int AudioDataOffset => DataChunkOffset + 0x20;
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
         private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
-        private int InterleaveCount => (NumSamples / SamplesPerInterleave) + (FullLastBlock ? 0 : 1);
+        private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
         private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
         private int LastBlockSamples => FullLastBlock ? SamplesPerInterleave : NumSamples % SamplesPerInterleave;
         private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);

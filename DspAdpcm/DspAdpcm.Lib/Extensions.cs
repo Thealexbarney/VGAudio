@@ -149,6 +149,13 @@ namespace DspAdpcm.Lib
             return outputs;
         }
 
+        public static byte[] ToByteArray(this short[] array)
+        {
+            var output = new byte[array.Length * 2];
+            Buffer.BlockCopy(array, 0, output, 0, output.Length);
+            return output;
+        }
+
         public static byte[] ToFlippedBytes(this short[] array)
         {
             var output = new byte[array.Length * 2];

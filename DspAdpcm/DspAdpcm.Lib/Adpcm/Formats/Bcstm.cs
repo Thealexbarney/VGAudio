@@ -22,6 +22,58 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public BcstmConfiguration Configuration { get; } = new BcstmConfiguration();
 
+        private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
+        private int NumSamplesUntrimmed => AudioStream.Channels?[0]?.NumSamplesUntrimmed ?? 0;
+        private int NumChannels => AudioStream.Channels.Count;
+        private int NumTracks => AudioStream.Tracks.Count;
+
+        private int AlignmentSamples => GetNextMultiple(AudioStream.LoopStart, Configuration.LoopPointAlignment) - AudioStream.LoopStart;
+        private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
+        private int LoopEnd => AudioStream.LoopEnd + AlignmentSamples;
+
+        private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
+        private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
+        private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
+        private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
+        private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
+        private int LastBlockSamples => FullLastBlock ? SamplesPerInterleave : NumSamples % SamplesPerInterleave;
+        private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
+        private bool FullLastBlock => NumSamples % SamplesPerInterleave == 0 && NumChannels > 0;
+        private int SamplesPerAdpcEntry => Configuration.SamplesPerAdpcEntry;
+        private bool FullLastAdpcEntry => NumSamples % SamplesPerAdpcEntry == 0 && NumSamples > 0;
+        private int NumAdpcEntries => (NumSamples / SamplesPerAdpcEntry) + (FullLastAdpcEntry ? 0 : 1);
+        private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
+
+        private int CstmHeaderLength => 0x40;
+
+        private int HeadChunkOffset => CstmHeaderLength;
+
+        private int InfoChunkOffset => CstmHeaderLength;
+        private int InfoChunkLength => GetNextMultiple(InfoChunkHeaderLength + InfoChunkTableLength +
+            InfoChunk1Length + InfoChunk2Length + InfoChunk3Length, 0x20);
+        private int InfoChunkHeaderLength => 8;
+        private int InfoChunkTableLength => 8 * 3;
+        private int InfoChunk1Length => 0x38 + (!Configuration.InfoPart1Extra ? 0 : 0xc);
+        private int InfoChunk2Length => Configuration.IncludeTrackInformation ? 4 + 8 * NumTracks : 0;
+        private int InfoChunk3Length => (4 + 8 * NumChannels) +
+            (Configuration.IncludeTrackInformation ? 0x14 * NumTracks : 0) +
+            8 * NumChannels +
+            ChannelInfoLength * NumChannels;
+
+        private int ChannelInfoLength => 0x2e;
+
+        private int SeekChunkOffset => CstmHeaderLength + InfoChunkLength;
+        private int SeekChunkLength => GetNextMultiple(8 + NumAdpcEntries * NumChannels * BytesPerAdpcEntry, 0x20);
+
+        private int SamplesToWrite => Configuration.TrimFile ? NumSamples : NumSamplesUntrimmed;
+        private int DataChunkOffset => CstmHeaderLength + InfoChunkLength + SeekChunkLength;
+        private int DataChunkLength => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(SamplesToWrite), 0x20) * NumChannels;
+
+        /// <summary>
+        /// The size in bytes of the BCSTM file.
+        /// </summary>
+        public int FileLength => CstmHeaderLength + InfoChunkLength + SeekChunkLength + DataChunkLength;
+
         /// <summary>
         /// Initializes a new <see cref="Bcstm"/> by parsing an existing
         /// BCSTM file.
@@ -38,9 +90,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             ReadBcstmFile(stream);
         }
 
-        private Bcstm()
-        {
-        }
+        private Bcstm() { }
 
         /// <summary>
         /// Parses the header of a BCSTM file and returns the metadata
@@ -59,6 +109,102 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             var bcstm = new Bcstm();
             return bcstm.ReadBcstmFile(stream, false);
+        }
+        /// <summary>
+        /// Builds a BRSTM file from the current <see cref="AudioStream"/>.
+        /// </summary>
+        /// <returns>A BRSTM file</returns>
+        public byte[] GetFile()
+        {
+            var file = new byte[FileLength];
+            var stream = new MemoryStream(file);
+            WriteFile(stream);
+            return file;
+        }
+
+        /// <summary>
+        /// Writes the BRSTM file to a <see cref="Stream"/>.
+        /// The file is written starting at the beginning
+        /// of the <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to write the
+        /// BRSTM to.</param>
+        public void WriteFile(Stream stream)
+        {
+            if (stream.Length != FileLength)
+            {
+                try
+                {
+                    stream.SetLength(FileLength);
+                }
+                catch (NotSupportedException ex)
+                {
+                    throw new ArgumentException("Stream is too small.", nameof(stream), ex);
+                }
+            }
+
+            stream.Position = 0;
+            GetCstmHeader(stream);
+            stream.Position = HeadChunkOffset;
+            GetInfoChunk(stream);
+            stream.Position = SeekChunkOffset;
+            GetSeekChunk(stream);
+            stream.Position = DataChunkOffset;
+            GetDataChunk(stream);
+        }
+
+        private void GetCstmHeader(Stream stream)
+        {
+            BinaryWriter header = new BinaryWriter(stream);
+
+            header.WriteASCII("CSTM");
+            header.Write((ushort)0xfeff); //Endianness
+            stream.Position += 6;
+            header.Write(FileLength);
+
+            header.Write(3); // NumEntries
+            header.Write(0x4000);
+            header.Write(InfoChunkOffset);
+            header.Write(InfoChunkLength);
+            header.Write(0x4001);
+            header.Write(SeekChunkOffset);
+            header.Write(SeekChunkLength);
+            header.Write(0x4002);
+            header.Write(DataChunkOffset);
+            header.Write(DataChunkLength);
+        }
+
+        private void GetInfoChunk(Stream stream)
+        {
+            var chunk = new BinaryWriter(stream);
+
+            chunk.WriteASCII("INFO");
+            chunk.Write(InfoChunkLength);
+        }
+
+        private void GetSeekChunk(Stream stream)
+        {
+            var chunk = new BinaryWriter(stream);
+
+            chunk.WriteASCII("SEEK");
+            chunk.Write(SeekChunkLength);
+
+            var table = Decode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries, false);
+
+            chunk.Write(table);
+        }
+
+        private void GetDataChunk(Stream stream)
+        {
+            var chunk = new BinaryWriter(stream);
+
+            chunk.WriteASCII("DATA");
+            chunk.Write(DataChunkLength);
+            stream.Position += 0x18;
+
+            byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
+
+            channels.Interleave(stream, GetBytesForAdpcmSamples(SamplesToWrite), InterleaveSize, 0x20);
         }
 
         private BcstmStructure ReadBcstmFile(Stream stream, bool readAudioData = true)
@@ -114,12 +260,17 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     return structure;
                 }
 
+                Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
+                Configuration.SamplesPerAdpcEntry = structure.SamplesPerSeekTableEntry;
+
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
                 if (structure.Looping)
                 {
                     AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
                 }
                 AudioStream.Tracks = structure.Tracks;
+                Configuration.IncludeTrackInformation = structure.IncludeTracks;
+                Configuration.InfoPart1Extra = structure.InfoPart1Extra;
 
                 ParseDataChunk(reader, structure);
 
@@ -180,11 +331,20 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             structure.LastBlockSize = chunk.ReadInt32();
             structure.BytesPerSeekTableEntry = chunk.ReadInt32();
             structure.SamplesPerSeekTableEntry = chunk.ReadInt32();
+
+            chunk.BaseStream.Position += 8;
+            structure.InfoPart1Extra = chunk.ReadInt32() == 0x100;
         }
 
         private static void ParseInfoChunk2(BinaryReader chunk, BcstmStructure structure)
         {
-            if (structure.InfoChunk2Offset == -1) return;
+            if (structure.InfoChunk2Offset == -1)
+            {
+                structure.IncludeTracks = false;
+                return;
+            }
+
+            structure.IncludeTracks = true;
             int part2Offset = structure.InfoChunkOffset + 8 + structure.InfoChunk2Offset;
             chunk.BaseStream.Position = part2Offset;
 
@@ -320,6 +480,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public class BcstmConfiguration : B_stmConfiguration
         {
+            public bool IncludeTrackInformation { get; set; } = true;
+            public bool InfoPart1Extra { get; set; } = false;
         }
     }
 }

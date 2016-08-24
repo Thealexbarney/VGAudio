@@ -135,10 +135,18 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public int SamplesPerSeekTableEntry { get; set; }
 
+        public bool InfoPart1Extra { get; set; }
+
         /// <summary>
         /// A list of all tracks defined in the BCSTM.
         /// </summary>
         public List<AdpcmTrack> Tracks { get; set; } = new List<AdpcmTrack>();
+
+        /// <summary>
+        /// Specifies whether the BCSTM lists the tracks
+        /// included in it.
+        /// </summary>
+        public bool IncludeTracks { get; set; }
 
         /// <summary>
         /// The number of channels as stated in part 3

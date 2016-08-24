@@ -244,7 +244,7 @@ namespace DspAdpcm.Lib.Adpcm
             Parallel.ForEach(channels, channel => CalculateAdpcTable(channel, samplesPerEntry));
         }
 
-        internal static byte[] BuildAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry, int numEntries)
+        internal static byte[] BuildAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry, int numEntries, bool bigEndian = true)
         {
             channels = channels.ToList();
             CalculateAdpcTable(channels.Where(x =>
@@ -253,11 +253,10 @@ namespace DspAdpcm.Lib.Adpcm
             var table = channels
                 .Select(x => x.SeekTable)
                 .ToArray()
-                .Interleave(2)
-                .ToFlippedBytes();
+                .Interleave(2);
 
-            Array.Resize(ref table, numEntries * 4 * channels.Count());
-            return table;
+            Array.Resize(ref table, numEntries * 2 * channels.Count());
+            return bigEndian ? table.ToFlippedBytes() : table.ToByteArray();
         }
 
         internal static void CalculateLoopAlignment(IEnumerable<AdpcmChannel> channels, int alignment, int loopStart, int loopEnd)
