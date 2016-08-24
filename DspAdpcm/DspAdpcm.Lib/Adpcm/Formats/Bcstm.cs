@@ -18,6 +18,11 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         public AdpcmStream AudioStream { get; set; }
 
         /// <summary>
+        /// Contains various settings used when building the BCSTM file.
+        /// </summary>
+        public BcstmConfiguration Configuration { get; } = new BcstmConfiguration();
+
+        /// <summary>
         /// Initializes a new <see cref="Bcstm"/> by parsing an existing
         /// BCSTM file.
         /// </summary>
@@ -308,6 +313,13 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     structure.Channels[c].LoopHist2);
                 AudioStream.Channels.Add(channel);
             }
+        }
+
+        /// <summary>
+        /// Contains the options used to build the BCSTM file.
+        /// </summary>
+        public class BcstmConfiguration : B_stmConfiguration
+        {
         }
     }
 }
