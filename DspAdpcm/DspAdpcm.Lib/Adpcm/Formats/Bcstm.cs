@@ -136,11 +136,11 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 throw new InvalidDataException("INFO chunk length in CSTM header doesn't match length in INFO header");
             }
 
-            chunk.BaseStream.Position += 4;
+            chunk.Expect(0x4100);
             structure.InfoChunk1Offset = chunk.ReadInt32();
-            chunk.BaseStream.Position += 4;
+            chunk.Expect(0x0101, 0);
             structure.InfoChunk2Offset = chunk.ReadInt32();
-            chunk.BaseStream.Position += 4;
+            chunk.Expect(0x0101);
             structure.InfoChunk3Offset = chunk.ReadInt32();
 
             ParseInfoChunk1(chunk, structure);
@@ -179,6 +179,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private static void ParseInfoChunk2(BinaryReader chunk, BcstmStructure structure)
         {
+            if (structure.InfoChunk2Offset == -1) return;
             int part2Offset = structure.InfoChunkOffset + 8 + structure.InfoChunk2Offset;
             chunk.BaseStream.Position = part2Offset;
 
@@ -218,7 +219,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             for (int i = 0; i < structure.NumChannelsPart3; i++)
             {
                 var channel = new BcstmChannelInfo();
-                chunk.BaseStream.Position += 4;
+                chunk.Expect(0x4102);
                 channel.Offset = chunk.ReadInt32();
                 structure.Channels.Add(channel);
             }
@@ -226,7 +227,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             foreach (BcstmChannelInfo channel in structure.Channels)
             {
                 int channelInfoOffset = part3Offset + channel.Offset;
-                chunk.BaseStream.Position = channelInfoOffset + 4;
+                chunk.BaseStream.Position = channelInfoOffset;
+                chunk.Expect(0x0300);
                 int coefsOffset = chunk.ReadInt32() + channelInfoOffset;
                 chunk.BaseStream.Position = coefsOffset;
 

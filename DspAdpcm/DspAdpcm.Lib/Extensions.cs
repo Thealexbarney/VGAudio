@@ -188,14 +188,30 @@ namespace DspAdpcm.Lib
             writer.Write(text);
         }
 
-        public static void Expect(this BinaryReader reader, int expected)
+        public static void Expect(this BinaryReader reader, params int[] expected)
         {
             long offset = reader.BaseStream.Position;
             int actual = reader.ReadInt32();
-            if (actual != expected)
+            if (!expected.Contains(actual))
             {
-                throw new InvalidDataException($"Expected {expected}, got {actual} at offset {offset:X}");
+                throw new InvalidDataException(
+                    $"Expected {(expected.Length > 1 ? "one of: " : "")}" +
+                    $"{expected.ToDelimitedString()}, but got {actual} at offset 0x{offset:X}");
             }
+        }
+
+        public static string ToDelimitedString<T>(this IList<T> items)
+        {
+            var sb = new StringBuilder();
+            for(int i = 0; i < items.Count; i++)
+            {
+                if (i != 0)
+                {
+                    sb.Append(", ");
+                }
+                sb.Append(items[i]);
+            }
+            return sb.ToString();
         }
 
         public static int DivideByRoundUp(this int value, int divisor) => (int)Math.Ceiling((double)value / divisor);
