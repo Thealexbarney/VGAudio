@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -113,6 +114,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 {
                     AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
                 }
+                AudioStream.Tracks = structure.Tracks;
 
                 ParseDataChunk(reader, structure);
 
@@ -142,6 +144,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             structure.InfoChunk3Offset = chunk.ReadInt32();
 
             ParseInfoChunk1(chunk, structure);
+            ParseInfoChunk2(chunk, structure);
             ParseInfoChunk3(chunk, structure);
         }
 
@@ -172,6 +175,37 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             structure.LastBlockSize = chunk.ReadInt32();
             structure.BytesPerSeekTableEntry = chunk.ReadInt32();
             structure.SamplesPerSeekTableEntry = chunk.ReadInt32();
+        }
+
+        private static void ParseInfoChunk2(BinaryReader chunk, BcstmStructure structure)
+        {
+            int part2Offset = structure.InfoChunkOffset + 8 + structure.InfoChunk2Offset;
+            chunk.BaseStream.Position = part2Offset;
+
+            int numTracks = chunk.ReadInt32();
+
+            var offsets = new List<int>(numTracks);
+            for (int i = 0; i < numTracks; i++)
+            {
+                chunk.Expect(0x4101);
+                offsets.Add(chunk.ReadInt32());
+            }
+
+            foreach (int offset in offsets)
+            {
+                chunk.BaseStream.Position = part2Offset + offset;
+
+                var track = new AdpcmTrack();
+                track.Volume = chunk.ReadByte();
+                track.Panning = chunk.ReadByte();
+                chunk.BaseStream.Position += 2;
+
+                chunk.BaseStream.Position += 8;
+                track.NumChannels = chunk.ReadInt32();
+                track.ChannelLeft = chunk.ReadByte();
+                track.ChannelRight = chunk.ReadByte();
+                structure.Tracks.Add(track);
+            }
         }
 
         private static void ParseInfoChunk3(BinaryReader chunk, BcstmStructure structure)

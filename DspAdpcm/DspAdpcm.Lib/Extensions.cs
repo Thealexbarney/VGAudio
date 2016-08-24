@@ -188,6 +188,16 @@ namespace DspAdpcm.Lib
             writer.Write(text);
         }
 
+        public static void Expect(this BinaryReader reader, int expected)
+        {
+            long offset = reader.BaseStream.Position;
+            int actual = reader.ReadInt32();
+            if (actual != expected)
+            {
+                throw new InvalidDataException($"Expected {expected}, got {actual} at offset {offset:X}");
+            }
+        }
+
         public static int DivideByRoundUp(this int value, int divisor) => (int)Math.Ceiling((double)value / divisor);
         public static short FlipBytes(this short value) => (short)(value << 8 | (ushort)value >> 8);
 
