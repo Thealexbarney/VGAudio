@@ -183,6 +183,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// DATA chunk header.
         /// </summary>
         public int DataChunkLength { get; set; }
+        /// <summary>
+        /// The version listed in the CSTM header.
+        /// </summary>
+        public int Version { get; set; }
     }
 
     /// <summary>
