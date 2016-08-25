@@ -31,6 +31,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
         private int LoopEnd => AudioStream.LoopEnd + AlignmentSamples;
 
+        private BcstmCodec Codec { get; } = BcstmCodec.Adpcm;
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
         private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
@@ -180,6 +181,122 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             chunk.WriteASCII("INFO");
             chunk.Write(InfoChunkLength);
+
+            int headerTableLength = 8 * 3;
+
+            chunk.Write(0x4100);
+            chunk.Write(headerTableLength);
+            if (Configuration.IncludeTrackInformation)
+            {
+                chunk.Write(0x0101);
+                chunk.Write(headerTableLength + InfoChunk1Length);
+            }
+            else
+            {
+                chunk.Write(0);
+                chunk.Write(-1);
+            }
+            chunk.Write(0x0101);
+            chunk.Write(headerTableLength + InfoChunk1Length + InfoChunk2Length);
+
+            GetInfoChunk1(stream);
+            GetInfoChunk2(stream);
+            GetInfoChunk3(stream);
+        }
+
+        private void GetInfoChunk1(Stream stream)
+        {
+            var chunk = new BinaryWriter(stream);
+
+            chunk.Write((byte)Codec);
+            chunk.Write(Looping);
+            chunk.Write((byte)NumChannels);
+            chunk.Write((byte)0);
+            chunk.Write((ushort)AudioStream.SampleRate);
+            chunk.Write((short)0);
+            chunk.Write(LoopStart);
+            chunk.Write(NumSamples);
+            chunk.Write(InterleaveCount);
+            chunk.Write(InterleaveSize);
+            chunk.Write(SamplesPerInterleave);
+            chunk.Write(LastBlockSizeWithoutPadding);
+            chunk.Write(LastBlockSamples);
+            chunk.Write(LastBlockSize);
+            chunk.Write(BytesPerAdpcEntry);
+            chunk.Write(SamplesPerAdpcEntry);
+            chunk.Write(0x1f00);
+            chunk.Write(0x18);
+
+            if (Configuration.InfoPart1Extra)
+            {
+                chunk.Write(0x100);
+                chunk.Write(0);
+                chunk.Write(-1);
+            }
+        }
+
+        private void GetInfoChunk2(Stream stream)
+        {
+            if (!Configuration.IncludeTrackInformation) return;
+
+            var chunk = new BinaryWriter(stream);
+            int trackTableLength = 4 + 8 * NumTracks;
+            int channelTableLength = 4 + 8 * NumChannels;
+            int trackLength = 0x14;
+
+            chunk.Write(NumTracks);
+
+            for (int i = 0; i < NumTracks; i++)
+            {
+                chunk.Write(0x4101);
+                chunk.Write(trackTableLength + channelTableLength + trackLength * i);
+            }
+        }
+
+        private void GetInfoChunk3(Stream stream)
+        {
+            var chunk = new BinaryWriter(stream);
+            int channelTableLength = 4 + 8 * NumChannels;
+            int trackTableLength = Configuration.IncludeTrackInformation ? 0x14 * NumTracks : 0;
+
+            chunk.Write(NumChannels);
+            for (int i = 0; i < NumChannels; i++)
+            {
+                chunk.Write(0x4102);
+                chunk.Write(channelTableLength + trackTableLength + 8 * i);
+            }
+
+            foreach (var track in AudioStream.Tracks)
+            {
+                chunk.Write((byte)track.Volume);
+                chunk.Write((byte)track.Panning);
+                chunk.Write((short)0);
+                chunk.Write(0x100);
+                chunk.Write(0xc);
+                chunk.Write(track.NumChannels);
+                chunk.Write((byte)track.ChannelLeft);
+                chunk.Write((byte)track.ChannelRight);
+                chunk.Write((short)0);
+            }
+
+            int channelTable2Length = 8 * NumChannels;
+            for (int i = 0; i < NumChannels; i++)
+            {
+                chunk.Write(0x300);
+                chunk.Write(channelTable2Length - 8 * i + ChannelInfoLength * i);
+            }
+
+            foreach (var channel in AudioStream.Channels)
+            {
+                chunk.Write(channel.Coefs.ToByteArray());
+                chunk.Write((short)channel.GetAudioData[0]);
+                chunk.Write(channel.Hist1);
+                chunk.Write(channel.Hist2);
+                chunk.Write(channel.LoopPredScale);
+                chunk.Write(channel.LoopHist1);
+                chunk.Write(channel.LoopHist2);
+                chunk.Write(channel.Gain);
+            }
         }
 
         private void GetSeekChunk(Stream stream)
