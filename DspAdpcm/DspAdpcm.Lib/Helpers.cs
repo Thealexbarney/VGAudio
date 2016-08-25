@@ -25,7 +25,7 @@ namespace DspAdpcm.Lib
             int extraNibbles = nibble % NibblesPerBlock;
             int samples = SamplesPerBlock * blocks;
 
-            return samples + extraNibbles - 2;
+            return samples + extraNibbles - (extraNibbles != 0 ? 2 : 0);
         }
 
         public static int GetNibbleAddress(int sample)

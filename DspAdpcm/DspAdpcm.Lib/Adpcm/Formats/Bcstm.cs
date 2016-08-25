@@ -22,7 +22,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public BcstmConfiguration Configuration { get; } = new BcstmConfiguration();
 
-        private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
+        private int NumSamples => AudioStream.Looping && Configuration.TrimFile ? LoopEnd : AudioStream.NumSamples;
         private int NumSamplesUntrimmed => AudioStream.Channels?[0]?.NumSamplesUntrimmed ?? 0;
         private int NumChannels => AudioStream.Channels.Count;
         private int NumTracks => AudioStream.Tracks.Count;
@@ -36,14 +36,18 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
         private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
         private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
-        private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
-        private int LastBlockSamples => FullLastBlock ? SamplesPerInterleave : NumSamples % SamplesPerInterleave;
-        private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
-        private bool FullLastBlock => NumSamples % SamplesPerInterleave == 0 && NumChannels > 0;
+        private int LastBlockSamples => (AudioStream.Looping ? LoopEnd : NumSamples) - ((InterleaveCount - 1) * SamplesPerInterleave);
+
+        private int AudioDataSize => Configuration.TrimFile
+            ? GetBytesForAdpcmSamples(NumSamples)
+            : (AudioStream.Channels[0]?.GetAudioData.Length ?? 0);
+        private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave));
+        private int LastBlockSize => Math.Min(GetNextMultiple(AudioDataSize - ((InterleaveCount - 1) * InterleaveSize), 0x20), InterleaveSize);
+
         private int SamplesPerAdpcEntry => Configuration.SamplesPerAdpcEntry;
         private bool FullLastAdpcEntry => NumSamples % SamplesPerAdpcEntry == 0 && NumSamples > 0;
         private int NumAdpcEntries => (NumSamples / SamplesPerAdpcEntry) + (FullLastAdpcEntry ? 0 : 1);
-        private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
+        private int BytesPerAdpcEntry => 4;
 
         private int CstmHeaderLength => 0x40;
 
@@ -215,7 +219,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.Write((ushort)AudioStream.SampleRate);
             chunk.Write((short)0);
             chunk.Write(LoopStart);
-            chunk.Write(NumSamples);
+            chunk.Write(LoopEnd);
             chunk.Write(InterleaveCount);
             chunk.Write(InterleaveSize);
             chunk.Write(SamplesPerInterleave);
@@ -383,7 +387,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
                 if (structure.Looping)
                 {
-                    AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+                    AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
                 }
                 AudioStream.Tracks = structure.Tracks;
                 Configuration.IncludeTrackInformation = structure.IncludeTracks;
@@ -438,7 +442,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.BaseStream.Position += 2;
 
             structure.LoopStart = chunk.ReadInt32();
-            structure.NumSamples = chunk.ReadInt32();
+            structure.LoopEnd = chunk.ReadInt32();
 
             structure.InterleaveCount = chunk.ReadInt32();
             structure.InterleaveSize = chunk.ReadInt32();
@@ -448,6 +452,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             structure.LastBlockSize = chunk.ReadInt32();
             structure.BytesPerSeekTableEntry = chunk.ReadInt32();
             structure.SamplesPerSeekTableEntry = chunk.ReadInt32();
+            structure.NumSamples =
+                GetSampleFromNibble(((structure.InterleaveCount - 1) * structure.InterleaveSize +
+                                     structure.LastBlockSizeWithoutPadding) * 2);
 
             chunk.BaseStream.Position += 8;
             structure.InfoPart1Extra = chunk.ReadInt32() == 0x100;

@@ -92,6 +92,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public int LoopStart { get; set; }
         /// <summary>
+        /// The start loop end in samples.
+        /// </summary>
+        public int LoopEnd { get; set; }
+        /// <summary>
         /// The number of samples in the BCSTM.
         /// </summary>
         public int NumSamples { get; set; }

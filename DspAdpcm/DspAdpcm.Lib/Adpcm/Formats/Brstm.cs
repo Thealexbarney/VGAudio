@@ -38,7 +38,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
         private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
         private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
-        private int LastBlockSamples => FullLastBlock ? SamplesPerInterleave : NumSamples % SamplesPerInterleave;
+        private int LastBlockSamples => NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave);
         private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
         private bool FullLastBlock => NumSamples % SamplesPerInterleave == 0 && NumChannels > 0;
         private int SamplesPerAdpcEntry => Configuration.SamplesPerAdpcEntry;
@@ -46,7 +46,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int NumAdpcEntriesShortened => (GetBytesForAdpcmSamples(NumSamples) / SamplesPerAdpcEntry) + 1;
         private int NumAdpcEntries => Configuration.SeekTableType == BrstmSeekTableType.Standard ?
             (NumSamples / SamplesPerAdpcEntry) + (FullLastAdpcEntry ? 0 : 1) : NumAdpcEntriesShortened;
-        private int BytesPerAdpcEntry => 4; //Or is it bits per sample?
+        private int BytesPerAdpcEntry => 4;
 
         private int RstmHeaderLength => 0x40;
 
