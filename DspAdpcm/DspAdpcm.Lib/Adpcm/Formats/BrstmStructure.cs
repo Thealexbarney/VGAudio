@@ -137,7 +137,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <summary>
         /// The number of samples per seek table entry.
         /// </summary>
-        public int SamplesPerAdpcEntry { get; set; }
+        public int SamplesPerSeekTableEntry { get; set; }
 
         /// <summary>
         /// The type of description used for the tracks

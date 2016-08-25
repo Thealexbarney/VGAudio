@@ -11,7 +11,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
     {
         internal B_stmConfiguration() { }
         private int _samplesPerInterleave = 0x3800;
-        private int _samplesPerAdpcEntry = 0x3800;
+        private int _samplesPerSeekTableEntry = 0x3800;
 
         /// <summary>
         /// If <c>true</c>, rebuilds the seek table when building the file.
@@ -63,9 +63,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if
         /// value is less than 2.</exception>
-        public int SamplesPerAdpcEntry
+        public int SamplesPerSeekTableEntry
         {
-            get { return _samplesPerAdpcEntry; }
+            get { return _samplesPerSeekTableEntry; }
             set
             {
                 if (value < 2)
@@ -73,7 +73,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     throw new ArgumentOutOfRangeException(nameof(value), value,
                         "Number of samples per interleave must be 2 or greater");
                 }
-                _samplesPerAdpcEntry = value;
+                _samplesPerSeekTableEntry = value;
             }
         }
 

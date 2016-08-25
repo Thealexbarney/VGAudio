@@ -44,10 +44,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave));
         private int LastBlockSize => Math.Min(GetNextMultiple(AudioDataSize - ((InterleaveCount - 1) * InterleaveSize), 0x20), InterleaveSize);
 
-        private int SamplesPerAdpcEntry => Configuration.SamplesPerAdpcEntry;
-        private bool FullLastAdpcEntry => NumSamples % SamplesPerAdpcEntry == 0 && NumSamples > 0;
-        private int NumAdpcEntries => (NumSamples / SamplesPerAdpcEntry) + (FullLastAdpcEntry ? 0 : 1);
-        private int BytesPerAdpcEntry => 4;
+        private int SamplesPerSeekTableEntry => Configuration.SamplesPerSeekTableEntry;
+        private bool FullLastSeekTableEntry => NumSamples % SamplesPerSeekTableEntry == 0 && NumSamples > 0;
+        private int NumSeekTableEntries => (NumSamples / SamplesPerSeekTableEntry) + (FullLastSeekTableEntry ? 0 : 1);
+        private int BytesPerSeekTableEntry => 4;
 
         private int CstmHeaderLength => 0x40;
 
@@ -68,7 +68,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int ChannelInfoLength => 0x2e;
 
         private int SeekChunkOffset => CstmHeaderLength + InfoChunkLength;
-        private int SeekChunkLength => GetNextMultiple(8 + NumAdpcEntries * NumChannels * BytesPerAdpcEntry, 0x20);
+        private int SeekChunkLength => GetNextMultiple(8 + NumSeekTableEntries * NumChannels * BytesPerSeekTableEntry, 0x20);
 
         private int SamplesToWrite => Configuration.TrimFile ? NumSamples : NumSamplesUntrimmed;
         private int DataChunkOffset => CstmHeaderLength + InfoChunkLength + SeekChunkLength;
@@ -226,8 +226,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.Write(LastBlockSizeWithoutPadding);
             chunk.Write(LastBlockSamples);
             chunk.Write(LastBlockSize);
-            chunk.Write(BytesPerAdpcEntry);
-            chunk.Write(SamplesPerAdpcEntry);
+            chunk.Write(BytesPerSeekTableEntry);
+            chunk.Write(SamplesPerSeekTableEntry);
             chunk.Write(0x1f00);
             chunk.Write(0x18);
 
@@ -310,7 +310,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.WriteASCII("SEEK");
             chunk.Write(SeekChunkLength);
 
-            var table = Decode.BuildAdpcTable(AudioStream.Channels, SamplesPerAdpcEntry, NumAdpcEntries, false);
+            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, false);
 
             chunk.Write(table);
         }
@@ -382,7 +382,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 }
 
                 Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
-                Configuration.SamplesPerAdpcEntry = structure.SamplesPerSeekTableEntry;
+                Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
 
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
                 if (structure.Looping)
@@ -548,11 +548,11 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 throw new InvalidDataException("SEEK chunk length in CSTM header doesn't match length in SEEK header");
             }
 
-            bool fullLastAdpcEntry = structure.NumSamples % structure.SamplesPerSeekTableEntry == 0 && structure.NumSamples > 0;
+            bool fullLastSeekTableEntry = structure.NumSamples % structure.SamplesPerSeekTableEntry == 0 && structure.NumSamples > 0;
             int bytesPerEntry = 4 * structure.NumChannelsPart1;
-            int numAdpcEntries = (structure.NumSamples / structure.SamplesPerSeekTableEntry) + (fullLastAdpcEntry ? 0 : 1);
+            int numSeekTableEntries = (structure.NumSamples / structure.SamplesPerSeekTableEntry) + (fullLastSeekTableEntry ? 0 : 1);
 
-            structure.SeekTableLength = bytesPerEntry * numAdpcEntries;
+            structure.SeekTableLength = bytesPerEntry * numSeekTableEntries;
 
             byte[] tableBytes = chunk.ReadBytes(structure.SeekTableLength);
 
