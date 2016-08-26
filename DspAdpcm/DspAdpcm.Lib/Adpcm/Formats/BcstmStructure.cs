@@ -139,6 +139,11 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public int SamplesPerSeekTableEntry { get; set; }
 
+        /// <summary>
+        /// Specifies whether the BCSTM includes an extra chunk in the header
+        /// after the stream info and before the track offset table.
+        /// The purpose of this chunk is unknown.
+        /// </summary>
         public bool InfoPart1Extra { get; set; }
 
         /// <summary>
