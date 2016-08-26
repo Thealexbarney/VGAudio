@@ -37,15 +37,19 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
         private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
         private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
-        private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
         private int LastBlockSamples => NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave);
-        private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
-        private bool FullLastBlock => NumSamples % SamplesPerInterleave == 0 && NumChannels > 0;
+
+        private int AudioDataSize => Configuration.TrimFile
+            ? GetBytesForAdpcmSamples(NumSamples)
+            : (AudioStream.Channels[0]?.GetAudioData.Length ?? 0);
+        private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave));
+        private int LastBlockSize => Math.Min(GetNextMultiple(AudioDataSize - ((InterleaveCount - 1) * InterleaveSize), 0x20), InterleaveSize);
+
         private int SamplesPerSeekTableEntry => Configuration.SamplesPerSeekTableEntry;
-        private bool FullLastSeekTableEntry => NumSamples % SamplesPerSeekTableEntry == 0 && NumSamples > 0;
+        private int NumSeekTableEntriesStandard => NumSamples.DivideByRoundUp(SamplesPerSeekTableEntry);
         private int NumSeekTableEntriesShortened => (GetBytesForAdpcmSamples(NumSamples) / SamplesPerSeekTableEntry) + 1;
         private int NumSeekTableEntries => Configuration.SeekTableType == BrstmSeekTableType.Standard ?
-            (NumSamples / SamplesPerSeekTableEntry) + (FullLastSeekTableEntry ? 0 : 1) : NumSeekTableEntriesShortened;
+            NumSeekTableEntriesStandard : NumSeekTableEntriesShortened;
         private int BytesPerSeekTableEntry => 4;
 
         private int RstmHeaderLength => 0x40;
