@@ -36,7 +36,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
         private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
         private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
-        private int LastBlockSamples => LoopEnd - ((InterleaveCount - 1) * SamplesPerInterleave);
+        private int LastBlockSamples => (LoopEnd == 0 ? NumSamples : LoopEnd) - ((InterleaveCount - 1) * SamplesPerInterleave);
 
         private int AudioDataSize => Configuration.TrimFile
             ? GetBytesForAdpcmSamples(NumSamples)
@@ -73,7 +73,23 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int DataChunkOffset => CstmHeaderLength + InfoChunkLength + SeekChunkLength;
         private int DataChunkLength => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(SamplesToWrite), 0x20) * NumChannels;
 
-        private int Version { get; set; }
+        private int? _version;
+        private int Version
+        {
+            get
+            {
+                return _version ?? VersionDictionary[new Tuple<bool, bool>(Configuration.IncludeTrackInformation, Configuration.InfoPart1Extra)];
+            }
+            set { _version = value; }
+        }
+        //All BCSTM files I've seen follow this format except for Kingdom Hearts 3D
+        private Dictionary<Tuple<bool, bool>, int> VersionDictionary {get;} = new Dictionary<Tuple<bool, bool>, int>()
+        {
+            [new Tuple<bool, bool>(true, false)] = 0x200,
+            [new Tuple<bool, bool>(true, true)] = 0x201,
+            [new Tuple<bool, bool>(false, true)] = 0x202,
+            [new Tuple<bool, bool>(false, false)] = 0x200 //Unused in any BCSTM I've seen. Here for completion
+        };
 
         /// <summary>
         /// The size in bytes of the BCSTM file.
