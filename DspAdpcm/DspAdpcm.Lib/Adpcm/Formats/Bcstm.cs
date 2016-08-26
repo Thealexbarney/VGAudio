@@ -81,6 +81,21 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         public int FileLength => CstmHeaderLength + InfoChunkLength + SeekChunkLength + DataChunkLength;
 
         /// <summary>
+        /// Initializes a new <see cref="Bcstm"/> from an <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="AdpcmStream"/> used to
+        /// create the <see cref="Bcstm"/>.</param>
+        public Bcstm(AdpcmStream stream)
+        {
+            if (stream.Channels.Count < 1)
+            {
+                throw new InvalidDataException("Stream must have at least one channel ");
+            }
+
+            AudioStream = stream;
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="Bcstm"/> by parsing an existing
         /// BCSTM file.
         /// </summary>
@@ -221,7 +236,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.Write((ushort)AudioStream.SampleRate);
             chunk.Write((short)0);
             chunk.Write(LoopStart);
-            chunk.Write(LoopEnd);
+            chunk.Write(AudioStream.Looping ? LoopEnd : NumSamples);
             chunk.Write(InterleaveCount);
             chunk.Write(InterleaveSize);
             chunk.Write(SamplesPerInterleave);
@@ -272,17 +287,20 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 chunk.Write(channelTableLength + trackTableLength + 8 * i);
             }
 
-            foreach (var track in AudioStream.Tracks)
+            if (Configuration.IncludeTrackInformation)
             {
-                chunk.Write((byte)track.Volume);
-                chunk.Write((byte)track.Panning);
-                chunk.Write((short)0);
-                chunk.Write(0x100);
-                chunk.Write(0xc);
-                chunk.Write(track.NumChannels);
-                chunk.Write((byte)track.ChannelLeft);
-                chunk.Write((byte)track.ChannelRight);
-                chunk.Write((short)0);
+                foreach (var track in AudioStream.Tracks)
+                {
+                    chunk.Write((byte)track.Volume);
+                    chunk.Write((byte)track.Panning);
+                    chunk.Write((short)0);
+                    chunk.Write(0x100);
+                    chunk.Write(0xc);
+                    chunk.Write(track.NumChannels);
+                    chunk.Write((byte)track.ChannelLeft);
+                    chunk.Write((byte)track.ChannelRight);
+                    chunk.Write((short)0);
+                }
             }
 
             int channelTable2Length = 8 * NumChannels;
