@@ -114,9 +114,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            var dsp = new Dsp();
-            var a = dsp.ReadDspFile(stream, false);
-            return a;
+            return new Dsp().ReadDspFile(stream, false);
         }
 
         private void RecalculateData()
@@ -131,30 +129,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     AudioStream.LoopStart, AudioStream.LoopEnd);
             }
             Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? LoopStart : 0);
-        }
-
-        private void GetHeader(Stream stream)
-        {
-            RecalculateData();
-
-            BinaryWriterBE header = new BinaryWriterBE(stream);
-
-            header.WriteBE(NumSamples);
-            header.WriteBE(GetNibbleFromSample(NumSamples));
-            header.WriteBE(AudioStream.SampleRate);
-            header.WriteBE((short)(AudioStream.Looping ? 1 : 0));
-            header.WriteBE(Format);
-            header.WriteBE(StartAddr);
-            header.WriteBE(EndAddr);
-            header.WriteBE(CurAddr);
-            header.Write(AudioChannel.Coefs.ToFlippedBytes());
-            header.WriteBE(AudioChannel.Gain);
-            header.WriteBE(PredScale);
-            header.WriteBE(AudioChannel.Hist1);
-            header.WriteBE(AudioChannel.Hist2);
-            header.WriteBE(AudioChannel.LoopPredScale);
-            header.WriteBE(AudioChannel.LoopHist1);
-            header.WriteBE(AudioChannel.LoopHist2);
         }
 
         /// <summary>
@@ -190,68 +164,90 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 }
             }
 
+            RecalculateData();
+
+            BinaryWriter writer = new BinaryWriterBE(stream);
+
             stream.Position = 0;
-            GetHeader(stream);
+            GetHeader(writer);
             stream.Position = HeaderSize;
 
             stream.Write(AudioChannel.GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
         }
 
-        private DspStructure ReadDspFile(Stream stream, bool readAudioData = true)
+        private void GetHeader(BinaryWriter writer)
         {
-            using (var reader = new BinaryReaderBE(stream))
-            {
-                var structure = new DspStructure();
-
-                ParseHeader(stream, structure);
-
-                if (!readAudioData)
-                {
-                    return structure;
-                }
-
-                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
-                
-                if (structure.Looping)
-                {
-                    AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
-                }
-
-                reader.BaseStream.Position = HeaderSize;
-                ParseData(stream, structure);
-
-                return structure;
-            }
+            writer.Write(NumSamples);
+            writer.Write(GetNibbleFromSample(NumSamples));
+            writer.Write(AudioStream.SampleRate);
+            writer.Write((short)(AudioStream.Looping ? 1 : 0));
+            writer.Write(Format);
+            writer.Write(StartAddr);
+            writer.Write(EndAddr);
+            writer.Write(CurAddr);
+            writer.Write(AudioChannel.Coefs.ToFlippedBytes());
+            writer.Write(AudioChannel.Gain);
+            writer.Write(PredScale);
+            writer.Write(AudioChannel.Hist1);
+            writer.Write(AudioChannel.Hist2);
+            writer.Write(AudioChannel.LoopPredScale);
+            writer.Write(AudioChannel.LoopHist1);
+            writer.Write(AudioChannel.LoopHist2);
         }
 
-        private static void ParseHeader(Stream stream, DspStructure structure)
+        private DspStructure ReadDspFile(Stream stream, bool readAudioData = true)
         {
-            var reader = new BinaryReaderBE(stream);
+            BinaryReader reader = new BinaryReaderBE(stream);
 
-            structure.NumSamples = reader.ReadInt32BE();
-            structure.NumNibbles = reader.ReadInt32BE();
-            structure.SampleRate = reader.ReadInt32BE();
-            structure.Looping = reader.ReadInt16BE() == 1;
-            structure.Format = reader.ReadInt16BE();
-            structure.StartAddress = reader.ReadInt32BE();
-            structure.EndAddress = reader.ReadInt32BE();
-            structure.CurrentAddress = reader.ReadInt32BE();
+            var structure = new DspStructure();
+
+            ParseHeader(reader, structure);
+
+            if (!readAudioData)
+            {
+                return structure;
+            }
+
+            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+
+            if (structure.Looping)
+            {
+                AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
+            }
+
+            reader.BaseStream.Position = HeaderSize;
+            ParseData(reader, structure);
+
+            return structure;
+
+        }
+
+        private static void ParseHeader(BinaryReader reader, DspStructure structure)
+        {
+            structure.NumSamples = reader.ReadInt32();
+            structure.NumNibbles = reader.ReadInt32();
+            structure.SampleRate = reader.ReadInt32();
+            structure.Looping = reader.ReadInt16() == 1;
+            structure.Format = reader.ReadInt16();
+            structure.StartAddress = reader.ReadInt32();
+            structure.EndAddress = reader.ReadInt32();
+            structure.CurrentAddress = reader.ReadInt32();
 
             var channel = new AdpcmChannelInfo
             {
-                Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16BE()).ToArray(),
-                Gain = reader.ReadInt16BE(),
-                PredScale = reader.ReadInt16BE(),
-                Hist1 = reader.ReadInt16BE(),
-                Hist2 = reader.ReadInt16BE(),
-                LoopPredScale = reader.ReadInt16BE(),
-                LoopHist1 = reader.ReadInt16BE(),
-                LoopHist2 = reader.ReadInt16BE()
+                Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray(),
+                Gain = reader.ReadInt16(),
+                PredScale = reader.ReadInt16(),
+                Hist1 = reader.ReadInt16(),
+                Hist2 = reader.ReadInt16(),
+                LoopPredScale = reader.ReadInt16(),
+                LoopHist1 = reader.ReadInt16(),
+                LoopHist2 = reader.ReadInt16()
             };
 
             structure.Channels.Add(channel);
 
-            if (stream.Length < HeaderSize + GetBytesForAdpcmSamples(structure.NumSamples))
+            if (reader.BaseStream.Length < HeaderSize + GetBytesForAdpcmSamples(structure.NumSamples))
             {
                 throw new InvalidDataException($"File doesn't contain enough data for {structure.NumSamples} samples");
             }
@@ -267,10 +263,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
         }
 
-        private void ParseData(Stream stream, DspStructure structure)
+        private void ParseData(BinaryReader reader, DspStructure structure)
         {
-            var reader = new BinaryReaderBE(stream);
-
             byte[] audio = reader.ReadBytes(GetBytesForAdpcmSamples(structure.NumSamples));
 
             var channel = new AdpcmChannel(structure.NumSamples, audio)

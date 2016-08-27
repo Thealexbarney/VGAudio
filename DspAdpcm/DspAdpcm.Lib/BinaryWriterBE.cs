@@ -11,33 +11,27 @@ namespace DspAdpcm.Lib
 
         private byte[] _buffer;
 
-        public void WriteBE(short value)
+        public override void Write(short value)
         {
             _buffer[0] = (byte)(value >> 8);
             _buffer[1] = (byte)value;
             OutStream.Write(_buffer, 0, 2);
         }
 
-        public void WriteBE(ushort value)
+        public override void Write(ushort value)
         {
             _buffer[0] = (byte)(value >> 8);
             _buffer[1] = (byte)value;
             OutStream.Write(_buffer, 0, 2);
         }
 
-        public void WriteBE(int value)
+        public override void Write(int value)
         {
             _buffer[0] = (byte)(value >> 24);
             _buffer[1] = (byte)(value >> 16);
             _buffer[2] = (byte)(value >> 8);
             _buffer[3] = (byte)value;
             OutStream.Write(_buffer, 0, 4);
-        }
-
-        public void WriteASCII(string value)
-        {
-            byte[] text = System.Text.Encoding.ASCII.GetBytes(value);
-            Write(text);
         }
     }
 }

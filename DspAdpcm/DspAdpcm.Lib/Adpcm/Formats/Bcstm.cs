@@ -211,8 +211,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// BRSTM to.</param>
         public void WriteFile(Stream stream)
         {
-            RecalculateData();
-
             if (stream.Length != FileLength)
             {
                 try
@@ -225,7 +223,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 }
             }
 
-            var writer = new BinaryWriter(stream);
+            RecalculateData();
+
+            BinaryWriter writer = new BinaryWriter(stream);
 
             stream.Position = 0;
             GetCstmHeader(writer);
