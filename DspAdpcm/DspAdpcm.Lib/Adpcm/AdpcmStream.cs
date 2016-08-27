@@ -32,11 +32,11 @@ namespace DspAdpcm.Lib.Adpcm
         /// <summary>
         /// The loop start point in samples.
         /// </summary>
-        public int LoopStart { get; private set; }
+        public int LoopStart { get; internal set; }
         /// <summary>
         /// The loop end point in samples.
         /// </summary>
-        public int LoopEnd { get; private set; }
+        public int LoopEnd { get; internal set; }
         /// <summary>
         /// Indicates whether the <see cref="AdpcmStream"/>
         /// loops or not.

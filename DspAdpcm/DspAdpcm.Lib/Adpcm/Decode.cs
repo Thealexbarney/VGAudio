@@ -222,7 +222,7 @@ namespace DspAdpcm.Lib.Adpcm
             audio.SelfCalculatedLoopContext = true;
         }
 
-        internal static void CalculateAdpcTable(AdpcmChannel channel, int samplesPerEntry)
+        internal static void CalculateSeekTable(AdpcmChannel channel, int samplesPerEntry)
         {
             var audio = channel.GetPcmAudio(true);
             int numEntries = channel.NumSamples.DivideByRoundUp(samplesPerEntry);
@@ -239,25 +239,24 @@ namespace DspAdpcm.Lib.Adpcm
             channel.SamplesPerSeekTableEntry = samplesPerEntry;
         }
 
-        internal static void CalculateAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry)
+        internal static void CalculateSeekTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry)
         {
-            Parallel.ForEach(channels, channel => CalculateAdpcTable(channel, samplesPerEntry));
+            Parallel.ForEach(channels, channel => CalculateSeekTable(channel, samplesPerEntry));
         }
 
-        internal static byte[] BuildAdpcTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry, int numEntries)
+        internal static byte[] BuildSeekTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry, int numEntries, bool bigEndian = true)
         {
             channels = channels.ToList();
-            CalculateAdpcTable(channels.Where(x =>
+            CalculateSeekTable(channels.Where(x =>
             x.SeekTable == null || x.SamplesPerSeekTableEntry != samplesPerEntry), samplesPerEntry);
 
             var table = channels
                 .Select(x => x.SeekTable)
                 .ToArray()
-                .Interleave(2)
-                .ToFlippedBytes();
+                .Interleave(2);
 
-            Array.Resize(ref table, numEntries * 4 * channels.Count());
-            return table;
+            Array.Resize(ref table, numEntries * 2 * channels.Count());
+            return bigEndian ? table.ToFlippedBytes() : table.ToByteArray();
         }
 
         internal static void CalculateLoopAlignment(IEnumerable<AdpcmChannel> channels, int alignment, int loopStart, int loopEnd)
@@ -296,7 +295,7 @@ namespace DspAdpcm.Lib.Adpcm
             //We're gonna be doing a lot of seeking, so make sure the seek table is built
             if (!audio.SelfCalculatedSeekTable)
             {
-                CalculateAdpcTable(audio, alignment);
+                CalculateSeekTable(audio, alignment);
             }
 
             int totalSamples = loopEnd + samplesToAdd;

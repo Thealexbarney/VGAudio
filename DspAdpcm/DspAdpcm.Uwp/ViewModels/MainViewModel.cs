@@ -45,6 +45,7 @@ namespace DspAdpcm.Uwp.ViewModels
 
         public Dsp.DspConfiguration DspConfiguration { get; set; } = new Dsp.DspConfiguration();
         public Brstm.BrstmConfiguration BrstmConfiguration { get; set; } = new Brstm.BrstmConfiguration();
+        public Bcstm.BcstmConfiguration BcstmConfiguration { get; set; } = new Bcstm.BcstmConfiguration();
 
         public Dictionary<AdpcmTypes, AudioFileType> FileTypes { get; }
 
@@ -83,7 +84,16 @@ namespace DspAdpcm.Uwp.ViewModels
                            CoreDispatcherPriority.Normal, () => { BrstmConfiguration = brstm.Configuration; });
                         return brstm.AudioStream;
                     },
-                    adpcmStream => new Brstm(adpcmStream, BrstmConfiguration).GetFile())
+                    adpcmStream => new Brstm(adpcmStream, BrstmConfiguration).GetFile()),
+                [AdpcmTypes.Bcstm] = new AudioFileType("BCSTM", ".bcstm", "BCSTM Audio File",
+                    async fileName =>
+                    {
+                        var bcstm = new Bcstm(new FileStream(fileName, FileMode.Open));
+                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                           CoreDispatcherPriority.Normal, () => { BcstmConfiguration = bcstm.Configuration; });
+                        return bcstm.AudioStream;
+                    },
+                    adpcmStream => new Bcstm(adpcmStream, BcstmConfiguration).GetFile())
             };
 
             FileTypesBinding = FileTypes.ToDictionary(x => (int)x.Key, x => x.Value);
@@ -106,6 +116,7 @@ namespace DspAdpcm.Uwp.ViewModels
             picker.FileTypeFilter.Add(".wav");
             picker.FileTypeFilter.Add(".dsp");
             picker.FileTypeFilter.Add(".brstm");
+            picker.FileTypeFilter.Add(".bcstm");
 
             StorageFile file = await picker.PickSingleFileAsync();
 
@@ -220,7 +231,8 @@ namespace DspAdpcm.Uwp.ViewModels
         public enum AdpcmTypes
         {
             Dsp,
-            Brstm
+            Brstm,
+            Bcstm
         }
     }
 
@@ -231,7 +243,6 @@ namespace DspAdpcm.Uwp.ViewModels
         public string Description { get; }
         public Func<string, Task<AdpcmStream>> OpenFunc { get; }
         public Func<AdpcmStream, IEnumerable<byte>> GetFileFunc { get; }
-        public Action After { get; }
 
         public AudioFileType(string displayName, string extension, string description, Func<string, Task<AdpcmStream>> openFunc, Func<AdpcmStream, IEnumerable<byte>> getFileFunc)
         {

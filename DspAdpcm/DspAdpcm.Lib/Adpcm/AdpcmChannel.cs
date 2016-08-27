@@ -39,9 +39,9 @@ namespace DspAdpcm.Lib.Adpcm
 
         public AdpcmChannel(int numSamples, byte[] audio)
         {
-            if (audio.Length != GetBytesForAdpcmSamples(numSamples))
+            if (audio.Length < GetBytesForAdpcmSamples(numSamples))
             {
-                throw new ArgumentException("Audio array length does not match the specified number of samples.");
+                throw new ArgumentException("Audio array length is too short for the specified number of samples.");
             }
             AudioByteArray = audio;
             _numSamples = numSamples;
