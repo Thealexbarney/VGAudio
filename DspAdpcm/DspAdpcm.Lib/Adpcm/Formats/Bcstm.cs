@@ -127,6 +127,31 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             ReadBcstmFile(stream);
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Bcstm"/> from an <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="AdpcmStream"/> used to
+        /// create the <see cref="Bcstm"/>.</param>
+        /// <param name="configuration">A <see cref="BcstmConfiguration"/>
+        /// to use for the <see cref="Bcstm"/></param>
+        public Bcstm(AdpcmStream stream, BcstmConfiguration configuration) : this(stream) 
+        {
+            Configuration = configuration;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Bcstm"/> by parsing an existing
+        /// BRSTM file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the BCSTM file. Must be seekable.</param>
+        /// <param name="configuration">A <see cref="BcstmConfiguration"/>
+        /// to use for the <see cref="Bcstm"/></param>
+        public Bcstm(Stream stream, BcstmConfiguration configuration) : this(stream)
+        {
+            Configuration = configuration;
+        }
+
         private Bcstm() { }
 
         /// <summary>
