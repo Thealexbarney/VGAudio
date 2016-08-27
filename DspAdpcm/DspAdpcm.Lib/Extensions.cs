@@ -246,16 +246,5 @@ namespace DspAdpcm.Lib
         }
 
         public static int DivideByRoundUp(this int value, int divisor) => (int)Math.Ceiling((double)value / divisor);
-        public static short FlipBytes(this short value) => (short)(value << 8 | (ushort)value >> 8);
-
-        public static IEnumerable<byte> ToBytesBE(this int value) => BitConverter.GetBytes(value).Reverse();
-        public static IEnumerable<byte> ToBytesBE(this short value) => BitConverter.GetBytes(value).Reverse();
-        public static void Add16BE(this List<byte> list, int value) => list.Add16BE((short)value);
-        public static void Add16BE(this List<byte> list, short value) => list.AddRange(value.ToBytesBE());
-        public static void Add32BE(this List<byte> list, int value) => list.AddRange(value.ToBytesBE());
-        public static void Add16(this List<byte> list, short value) => list.AddRange(BitConverter.GetBytes(value));
-        public static void Add16(this List<byte> list, ushort value) => list.AddRange(BitConverter.GetBytes(value));
-        public static void Add32(this List<byte> list, int value) => list.AddRange(BitConverter.GetBytes(value));
-        public static void Add32(this List<byte> list, string value) => list.AddRange(Encoding.ASCII.GetBytes(value.PadRight(4, '\0').Substring(0, 4)));
     }
 }

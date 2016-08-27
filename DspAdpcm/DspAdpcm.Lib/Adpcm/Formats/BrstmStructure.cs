@@ -67,18 +67,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// The offset of part 3 of the HEAD chunk.
         /// </summary>
         public int HeadChunk3Offset { get; set; }
-        /// <summary>
-        /// The length of part 1 of the HEAD chunk.
-        /// </summary>
-        public int HeadChunk1Length => HeadChunk2Offset - HeadChunk1Offset;
-        /// <summary>
-        /// The length of part 2 of the HEAD chunk.
-        /// </summary>
-        public int HeadChunk2Length => HeadChunk3Offset - HeadChunk2Offset;
-        /// <summary>
-        /// The length of part 3 of the HEAD chunk.
-        /// </summary>
-        public int HeadChunk3Length => HeadChunkLength - HeadChunk3Offset;
 
         /// <summary>
         /// The length of the ADPC chunk as stated in the
@@ -109,19 +97,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// in part 2 of the HEAD chunk.
         /// </summary>
         public BrstmTrackType HeaderType { get; set; }
-    }
-
-    /// <summary>
-    /// Defines the ADPCM information for a single
-    /// ADPCM channel.
-    /// </summary>
-    public class BrstmChannelInfo : AdpcmChannelInfo
-    {
-        /// <summary>
-        /// The offset of the coefficients of the
-        /// channel. Used in a BRSTM header.
-        /// </summary>
-        public int Offset { get; set; }
     }
 
     /// <summary>
