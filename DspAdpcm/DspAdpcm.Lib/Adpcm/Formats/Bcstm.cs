@@ -22,8 +22,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public BcstmConfiguration Configuration { get; } = new BcstmConfiguration();
 
-        private int NumSamples => AudioStream.Looping && Configuration.TrimFile ? LoopEnd : AudioStream.NumSamples;
-        private int NumSamplesUntrimmed => AudioStream.Channels?[0]?.NumSamplesUntrimmed ?? 0;
+        private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
         private int NumTracks => AudioStream.Tracks.Count;
 
@@ -33,20 +32,18 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private BcstmCodec Codec { get; } = BcstmCodec.Adpcm;
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
-        private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
-        private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
-        private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
-        private int LastBlockSamples => (LoopEnd == 0 ? NumSamples : LoopEnd) - ((InterleaveCount - 1) * SamplesPerInterleave);
 
-        private int AudioDataSize => Configuration.TrimFile
-            ? GetBytesForAdpcmSamples(NumSamples)
-            : (AudioStream.Channels[0]?.GetAudioData.Length ?? 0);
-        private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave));
-        private int LastBlockSize => Math.Min(GetNextMultiple(AudioDataSize - ((InterleaveCount - 1) * InterleaveSize), 0x20), InterleaveSize);
+        private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
+        private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
+        private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
+
+        private int LastBlockSamples => NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave);
+        private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
+        private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
 
         private int SamplesPerSeekTableEntry => Configuration.SamplesPerSeekTableEntry;
-        private int NumSeekTableEntries => (NumSamples + 1).DivideByRoundUp(SamplesPerSeekTableEntry);
         private int BytesPerSeekTableEntry => 4;
+        private int NumSeekTableEntries => NumSamples.DivideByRoundUp(SamplesPerSeekTableEntry);
 
         private int CstmHeaderLength => 0x40;
 
@@ -69,9 +66,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int SeekChunkOffset => CstmHeaderLength + InfoChunkLength;
         private int SeekChunkLength => GetNextMultiple(8 + NumSeekTableEntries * NumChannels * BytesPerSeekTableEntry, 0x20);
 
-        private int SamplesToWrite => Configuration.TrimFile ? NumSamples : NumSamplesUntrimmed;
         private int DataChunkOffset => CstmHeaderLength + InfoChunkLength + SeekChunkLength;
-        private int DataChunkLength => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(SamplesToWrite), 0x20) * NumChannels;
+        private int DataChunkLength => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), 0x20) * NumChannels;
 
         private int? _version;
         private int Version
@@ -410,7 +406,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
 
-            channels.Interleave(stream, GetBytesForAdpcmSamples(SamplesToWrite), InterleaveSize, 0x20);
+            channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, 0x20);
         }
 
         private BcstmStructure ReadBcstmFile(Stream stream, bool readAudioData = true)
@@ -471,10 +467,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
 
             AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
-            AudioStream.LoopEnd = structure.LoopEnd;
             if (structure.Looping)
             {
-                AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
+                AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
             }
             AudioStream.Tracks = structure.Tracks;
             Configuration.IncludeTrackInformation = structure.IncludeTracks;
@@ -529,7 +524,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             chunk.BaseStream.Position += 2;
 
             structure.LoopStart = chunk.ReadInt32();
-            structure.LoopEnd = chunk.ReadInt32();
+            structure.NumSamples = chunk.ReadInt32();
 
             structure.InterleaveCount = chunk.ReadInt32();
             structure.InterleaveSize = chunk.ReadInt32();
@@ -539,9 +534,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             structure.LastBlockSize = chunk.ReadInt32();
             structure.BytesPerSeekTableEntry = chunk.ReadInt32();
             structure.SamplesPerSeekTableEntry = chunk.ReadInt32();
-            structure.NumSamples =
-                GetSampleFromNibble(((structure.InterleaveCount - 1) * structure.InterleaveSize +
-                                     structure.LastBlockSizeWithoutPadding) * 2);
 
             chunk.BaseStream.Position += 8;
             structure.InfoPart1Extra = chunk.ReadInt32() == 0x100;
@@ -636,7 +628,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
 
             int bytesPerEntry = 4 * structure.NumChannelsPart1;
-            int numSeekTableEntries = (structure.NumSamples + 1).DivideByRoundUp(structure.SamplesPerSeekTableEntry);
+            int numSeekTableEntries = structure.NumSamples.DivideByRoundUp(structure.SamplesPerSeekTableEntry);
 
             structure.SeekTableLength = bytesPerEntry * numSeekTableEntries;
 
@@ -701,7 +693,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             /// The purpose of this chunk is unknown.
             /// Default is <c>false</c>.
             /// </summary>
-            public bool InfoPart1Extra { get; set; } = false;
+            public bool InfoPart1Extra { get; set; }
         }
     }
 }

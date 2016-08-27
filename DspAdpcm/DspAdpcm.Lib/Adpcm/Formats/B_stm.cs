@@ -83,13 +83,5 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// this number. Default is 14,336 (0x3800).
         /// </summary>
         public int LoopPointAlignment { get; set; } = 0x3800;
-
-        /// <summary>
-        /// If the file is looped and the number of samples
-        /// exceeds the loop end, any samples past the loop end
-        /// will be discarded when writing the file.
-        /// Default is <c>true</c>.
-        /// </summary>
-        public bool TrimFile { get; set; } = true;
     }
 }
