@@ -172,6 +172,28 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             var bcstm = new Bcstm();
             return bcstm.ReadBcstmFile(stream, false);
         }
+
+        private void RecalculateData()
+        {
+            var seekTableToCalculate = Configuration.RecalculateSeekTable
+                ? AudioStream.Channels.Where(
+                    x => !x.SelfCalculatedSeekTable || x.SamplesPerSeekTableEntry != SamplesPerSeekTableEntry)
+                : AudioStream.Channels.Where(
+                    x => x.SeekTable == null || x.SamplesPerSeekTableEntry != SamplesPerSeekTableEntry);
+
+            var loopContextToCalculate = Configuration.RecalculateLoopContext
+                ? AudioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
+                : AudioStream.Channels.Where(x => !x.LoopContextCalculated);
+
+            if (AudioStream.Looping)
+            {
+                Decode.CalculateLoopAlignment(AudioStream.Channels, Configuration.LoopPointAlignment,
+                    AudioStream.LoopStart, AudioStream.LoopEnd);
+            }
+            Decode.CalculateSeekTable(seekTableToCalculate, SamplesPerSeekTableEntry);
+            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? LoopStart : 0);
+        }
+
         /// <summary>
         /// Builds a BRSTM file from the current <see cref="AudioStream"/>.
         /// </summary>
@@ -193,6 +215,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// BRSTM to.</param>
         public void WriteFile(Stream stream)
         {
+            RecalculateData();
+
             if (stream.Length != FileLength)
             {
                 try
