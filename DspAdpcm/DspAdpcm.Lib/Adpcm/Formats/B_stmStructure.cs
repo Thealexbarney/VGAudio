@@ -10,12 +10,11 @@ namespace DspAdpcm.Lib.Adpcm.Formats
     public abstract class B_stmStructure
     {
         /// <summary>
-        /// This flag is set if the the file loops.
+        /// This flag is set if the file loops.
         /// </summary>
         public bool Looping { get; set; }
         /// <summary>
-        /// The number of channels as stated in part 1
-        /// of the HEAD chunk.
+        /// The number of channels in the file.
         /// </summary>
         public int NumChannels { get; set; }
         /// <summary>
@@ -55,7 +54,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public int LastBlockSizeWithoutPadding { get; set; }
         /// <summary>
-        /// he number of samples per channel in the final
+        /// The number of samples per channel in the final
         /// interleaved audio data block.
         /// </summary>
         public int LastBlockSamples { get; set; }
