@@ -79,7 +79,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             set { _version = value; }
         }
         //All BCSTM files I've seen follow this format except for Kingdom Hearts 3D
-        private Dictionary<Tuple<bool, bool>, int> VersionDictionary {get;} = new Dictionary<Tuple<bool, bool>, int>()
+        private Dictionary<Tuple<bool, bool>, int> VersionDictionary { get; } = new Dictionary<Tuple<bool, bool>, int>()
         {
             [new Tuple<bool, bool>(true, false)] = 0x200,
             [new Tuple<bool, bool>(true, true)] = 0x201,
@@ -130,7 +130,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// create the <see cref="Bcstm"/>.</param>
         /// <param name="configuration">A <see cref="BcstmConfiguration"/>
         /// to use for the <see cref="Bcstm"/></param>
-        public Bcstm(AdpcmStream stream, BcstmConfiguration configuration) : this(stream) 
+        public Bcstm(AdpcmStream stream, BcstmConfiguration configuration) : this(stream)
         {
             Configuration = configuration;
         }
@@ -517,7 +517,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
 
             structure.Looping = chunk.ReadByte() == 1;
-            structure.NumChannelsPart1 = chunk.ReadByte();
+            structure.NumChannels = chunk.ReadByte();
             chunk.BaseStream.Position += 1;
 
             structure.SampleRate = chunk.ReadUInt16();
@@ -582,17 +582,18 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int part3Offset = structure.InfoChunkOffset + 8 + structure.InfoChunk3Offset;
             chunk.BaseStream.Position = part3Offset;
 
-            structure.NumChannelsPart3 = chunk.ReadInt32();
+            chunk.Expect((byte)structure.NumChannels);
+            chunk.BaseStream.Position += 3;
 
-            for (int i = 0; i < structure.NumChannelsPart3; i++)
+            for (int i = 0; i < structure.NumChannels; i++)
             {
-                var channel = new BcstmChannelInfo();
+                var channel = new B_stmChannelInfo();
                 chunk.Expect(0x4102);
                 channel.Offset = chunk.ReadInt32();
                 structure.Channels.Add(channel);
             }
 
-            foreach (BcstmChannelInfo channel in structure.Channels)
+            foreach (B_stmChannelInfo channel in structure.Channels)
             {
                 int channelInfoOffset = part3Offset + channel.Offset;
                 chunk.BaseStream.Position = channelInfoOffset;
@@ -627,7 +628,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 throw new InvalidDataException("SEEK chunk length in CSTM header doesn't match length in SEEK header");
             }
 
-            int bytesPerEntry = 4 * structure.NumChannelsPart1;
+            int bytesPerEntry = 4 * structure.NumChannels;
             int numSeekTableEntries = structure.NumSamples.DivideByRoundUp(structure.SamplesPerSeekTableEntry);
 
             structure.SeekTableLength = bytesPerEntry * numSeekTableEntries;
@@ -635,7 +636,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             byte[] tableBytes = chunk.ReadBytes(structure.SeekTableLength);
 
             structure.SeekTable = tableBytes.ToShortArray()
-                .DeInterleave(2, structure.NumChannelsPart1);
+                .DeInterleave(2, structure.NumChannels);
         }
 
         private void ParseDataChunk(BinaryReader chunk, BcstmStructure structure)
@@ -658,9 +659,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int audioDataLength = structure.DataChunkLength - (audioDataOffset - structure.DataChunkOffset);
 
             byte[][] deInterleavedAudioData = chunk.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.NumChannelsPart1);
+                structure.NumChannels);
 
-            for (int c = 0; c < structure.NumChannelsPart1; c++)
+            for (int c = 0; c < structure.NumChannels; c++)
             {
                 var channel = new AdpcmChannel(structure.NumSamples, deInterleavedAudioData[c])
                 {

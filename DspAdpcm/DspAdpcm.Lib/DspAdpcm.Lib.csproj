@@ -50,6 +50,7 @@
     <Compile Include="Adpcm\Formats\Brstm.cs" />
     <Compile Include="Adpcm\Formats\BrstmStructure.cs" />
     <Compile Include="Adpcm\Formats\B_stm.cs" />
+    <Compile Include="Adpcm\Formats\B_stmStructure.cs" />
     <Compile Include="Adpcm\Formats\DspStructure.cs" />
     <Compile Include="BinaryReaderBE.cs" />
     <Compile Include="BinaryWriterBE.cs" />

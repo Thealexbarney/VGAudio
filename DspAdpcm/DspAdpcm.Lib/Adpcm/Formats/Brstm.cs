@@ -498,7 +498,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 }
 
                 structure.Looping = reader.ReadByte() == 1;
-                structure.NumChannelsPart1 = reader.ReadByte();
+                structure.NumChannels = reader.ReadByte();
                 reader.BaseStream.Position += 1;
 
                 structure.SampleRate = (ushort)reader.ReadInt16BE();
@@ -559,18 +559,18 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         {
             using (var reader = new BinaryReaderBE(new MemoryStream(chunk)))
             {
-                structure.NumChannelsPart3 = reader.ReadByte();
+                reader.Expect((byte)structure.NumChannels);
                 reader.BaseStream.Position += 3;
 
-                for (int i = 0; i < structure.NumChannelsPart3; i++)
+                for (int i = 0; i < structure.NumChannels; i++)
                 {
-                    var channel = new BrstmChannelInfo();
+                    var channel = new B_stmChannelInfo();
                     reader.BaseStream.Position += 4;
                     channel.Offset = reader.ReadInt32BE();
                     structure.Channels.Add(channel);
                 }
 
-                foreach (BrstmChannelInfo channel in structure.Channels)
+                foreach (B_stmChannelInfo channel in structure.Channels)
                 {
                     reader.BaseStream.Position = channel.Offset - structure.HeadChunk3Offset + 4;
                     int coefsOffset = reader.ReadInt32BE();
@@ -605,7 +605,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
 
             bool fullLastSeekTableEntry = structure.NumSamples % structure.SamplesPerSeekTableEntry == 0 && structure.NumSamples > 0;
-            int bytesPerEntry = 4 * structure.NumChannelsPart1;
+            int bytesPerEntry = 4 * structure.NumChannels;
             int numSeekTableEntriesShortened = (GetBytesForAdpcmSamples(structure.NumSamples) / structure.SamplesPerSeekTableEntry) + 1;
             int numSeekTableEntriesStandard = (structure.NumSamples / structure.SamplesPerSeekTableEntry) + (fullLastSeekTableEntry ? 0 : 1);
             int expectedLengthShortened = GetNextMultiple(8 + numSeekTableEntriesShortened * bytesPerEntry, 0x20);
@@ -629,7 +629,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             byte[] tableBytes = reader.ReadBytes(structure.SeekTableLength);
 
             structure.SeekTable = tableBytes.ToShortArrayFlippedBytes()
-                .DeInterleave(2, structure.NumChannelsPart1);
+                .DeInterleave(2, structure.NumChannels);
         }
 
         private void ParseDataChunk(Stream chunk, BrstmStructure structure)
@@ -652,9 +652,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
 
             byte[][] deInterleavedAudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.NumChannelsPart1);
+                structure.NumChannels);
 
-            for (int c = 0; c < structure.NumChannelsPart1; c++)
+            for (int c = 0; c < structure.NumChannels; c++)
             {
                 var channel = new AdpcmChannel(structure.NumSamples, deInterleavedAudioData[c])
                 {

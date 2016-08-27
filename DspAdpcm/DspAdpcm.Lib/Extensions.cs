@@ -219,6 +219,18 @@ namespace DspAdpcm.Lib
             }
         }
 
+        public static void Expect(this BinaryReader reader, params byte[] expected)
+        {
+            long offset = reader.BaseStream.Position;
+            byte actual = reader.ReadByte();
+            if (!expected.Contains(actual))
+            {
+                throw new InvalidDataException(
+                    $"Expected {(expected.Length > 1 ? "one of: " : "")}" +
+                    $"{expected.ToDelimitedString()}, but got {actual} at offset 0x{offset:X}");
+            }
+        }
+
         public static string ToDelimitedString<T>(this IList<T> items)
         {
             var sb = new StringBuilder();
