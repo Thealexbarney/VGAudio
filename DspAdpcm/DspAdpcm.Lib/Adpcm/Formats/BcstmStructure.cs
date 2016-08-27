@@ -11,6 +11,10 @@
         /// </summary>
         public int FileLength { get; set; }
         /// <summary>
+        /// The version listed in the CSTM header.
+        /// </summary>
+        public int Version { get; set; }
+        /// <summary>
         /// The length of the CSTM header.
         /// </summary>
         public int CstmHeaderLength { get; set; }
@@ -93,11 +97,6 @@
         /// included in it.
         /// </summary>
         public bool IncludeTracks { get; set; }
-
-        /// <summary>
-        /// The version listed in the CSTM header.
-        /// </summary>
-        public int Version { get; set; }
     }
 
     /// <summary>

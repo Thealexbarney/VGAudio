@@ -146,9 +146,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            var brstm = new Brstm();
-            var a = brstm.ReadBrstmFile(stream, false);
-            return a;
+            return new Brstm().ReadBrstmFile(stream, false);
         }
 
         private void RecalculateData()
@@ -207,390 +205,348 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 }
             }
 
+            var writer = new BinaryWriterBE(stream);
+
             stream.Position = 0;
-            GetRstmHeader(stream);
+            GetRstmHeader(writer);
             stream.Position = HeadChunkOffset;
-            GetHeadChunk(stream);
+            GetHeadChunk(writer);
             stream.Position = AdpcChunkOffset;
-            GetAdpcChunk(stream);
+            GetAdpcChunk(writer);
             stream.Position = DataChunkOffset;
-            GetDataChunk(stream);
+            GetDataChunk(writer);
         }
 
-        private void GetRstmHeader(Stream stream)
+        private void GetRstmHeader(BinaryWriterBE writer)
         {
-            BinaryWriterBE header = new BinaryWriterBE(stream);
-
-            header.WriteASCII("RSTM");
-            header.WriteBE((ushort)0xfeff); //Endianness
-            header.WriteBE((short)0x0100); //BRSTM format version
-            header.WriteBE(FileLength);
-            header.WriteBE((short)RstmHeaderLength);
-            header.WriteBE((short)2); // NumEntries
-            header.WriteBE(HeadChunkOffset);
-            header.WriteBE(HeadChunkLength);
-            header.WriteBE(AdpcChunkOffset);
-            header.WriteBE(AdpcChunkLength);
-            header.WriteBE(DataChunkOffset);
-            header.WriteBE(DataChunkLength);
+            writer.WriteASCII("RSTM");
+            writer.WriteBE((ushort)0xfeff); //Endianness
+            writer.WriteBE((short)0x0100); //BRSTM format version
+            writer.WriteBE(FileLength);
+            writer.WriteBE((short)RstmHeaderLength);
+            writer.WriteBE((short)2); // NumEntries
+            writer.WriteBE(HeadChunkOffset);
+            writer.WriteBE(HeadChunkLength);
+            writer.WriteBE(AdpcChunkOffset);
+            writer.WriteBE(AdpcChunkLength);
+            writer.WriteBE(DataChunkOffset);
+            writer.WriteBE(DataChunkLength);
         }
 
-        private void GetHeadChunk(Stream stream)
+        private void GetHeadChunk(BinaryWriterBE writer)
         {
-            var chunk = new BinaryWriterBE(stream);
+            writer.WriteASCII("HEAD");
+            writer.WriteBE(HeadChunkLength);
 
-            chunk.WriteASCII("HEAD");
-            chunk.WriteBE(HeadChunkLength);
-            chunk.Write(GetHeadChunkHeader());
-            chunk.Write(GetHeadChunk1());
-            chunk.Write(GetHeadChunk2());
-            chunk.Write(GetHeadChunk3());
+            writer.WriteBE(0x01000000);
+            writer.WriteBE(HeadChunkTableLength); //Chunk 1 offset
+            writer.WriteBE(0x01000000);
+            writer.WriteBE(HeadChunkTableLength + HeadChunk1Length); //Chunk 2 offset
+            writer.WriteBE(0x01000000);
+            writer.WriteBE(HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length); //Chunk 3 offset
+
+            GetHeadChunk1(writer);
+            GetHeadChunk2(writer);
+            GetHeadChunk3(writer);
         }
 
-        private byte[] GetHeadChunkHeader()
+        private void GetHeadChunk1(BinaryWriterBE writer)
         {
-            var chunk = new List<byte>();
-
-            chunk.Add32BE(0x01000000);
-            chunk.Add32BE(HeadChunkTableLength); //Chunk 1 offset
-            chunk.Add32BE(0x01000000);
-            chunk.Add32BE(HeadChunkTableLength + HeadChunk1Length); //Chunk 2 offset
-            chunk.Add32BE(0x01000000);
-            chunk.Add32BE(HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length); //Chunk 3 offset
-
-            return chunk.ToArray();
+            writer.Write((byte)Codec);
+            writer.Write(Looping);
+            writer.Write((byte)NumChannels);
+            writer.Write((byte)0); //padding
+            writer.WriteBE((ushort)AudioStream.SampleRate);
+            writer.WriteBE((short)0);//padding
+            writer.WriteBE(LoopStart);
+            writer.WriteBE(NumSamples);
+            writer.WriteBE(AudioDataOffset);
+            writer.WriteBE(InterleaveCount);
+            writer.WriteBE(InterleaveSize);
+            writer.WriteBE(SamplesPerInterleave);
+            writer.WriteBE(LastBlockSizeWithoutPadding);
+            writer.WriteBE(LastBlockSamples);
+            writer.WriteBE(LastBlockSize);
+            writer.WriteBE(SamplesPerSeekTableEntry);
+            writer.WriteBE(BytesPerSeekTableEntry);
         }
 
-        private byte[] GetHeadChunk1()
+        private void GetHeadChunk2(BinaryWriterBE writer)
         {
-            var chunk = new List<byte>();
-
-            chunk.Add((byte)Codec);
-            chunk.Add(Looping);
-            chunk.Add((byte)NumChannels);
-            chunk.Add(0); //padding
-            chunk.Add16BE(AudioStream.SampleRate);
-            chunk.Add16BE(0); //padding
-            chunk.Add32BE(LoopStart);
-            chunk.Add32BE(NumSamples);
-            chunk.Add32BE(AudioDataOffset);
-            chunk.Add32BE(InterleaveCount);
-            chunk.Add32BE(InterleaveSize);
-            chunk.Add32BE(SamplesPerInterleave);
-            chunk.Add32BE(LastBlockSizeWithoutPadding);
-            chunk.Add32BE(LastBlockSamples);
-            chunk.Add32BE(LastBlockSize);
-            chunk.Add32BE(SamplesPerSeekTableEntry);
-            chunk.Add32BE(BytesPerSeekTableEntry);
-
-            return chunk.ToArray();
-        }
-
-        private byte[] GetHeadChunk2()
-        {
-            var chunk = new List<byte>();
-
-            chunk.Add((byte)NumTracks);
-            chunk.Add((byte)(HeaderType == BrstmTrackType.Short ? 0 : 1));
-            chunk.Add16BE(0);
+            writer.Write((byte)NumTracks);
+            writer.Write((byte)(HeaderType == BrstmTrackType.Short ? 0 : 1));
+            writer.WriteBE((short)0);
 
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + 4;
             int offsetTableLength = NumTracks * 8;
 
             for (int i = 0; i < NumTracks; i++)
             {
-                chunk.Add32BE(HeaderType == BrstmTrackType.Short ? 0x01000000 : 0x01010000);
-                chunk.Add32BE(baseOffset + offsetTableLength + TrackInfoLength * i);
+                writer.WriteBE(HeaderType == BrstmTrackType.Short ? 0x01000000 : 0x01010000);
+                writer.WriteBE(baseOffset + offsetTableLength + TrackInfoLength * i);
             }
 
             foreach (AdpcmTrack track in AudioStream.Tracks)
             {
                 if (HeaderType == BrstmTrackType.Standard)
                 {
-                    chunk.Add((byte)track.Volume);
-                    chunk.Add((byte)track.Panning);
-                    chunk.Add16BE(0);
-                    chunk.Add32BE(0);
+                    writer.Write((byte)track.Volume);
+                    writer.Write((byte)track.Panning);
+                    writer.WriteBE((short)0);
+                    writer.WriteBE(0);
                 }
-                chunk.Add((byte)track.NumChannels);
-                chunk.Add((byte)track.ChannelLeft); //First channel ID
-                chunk.Add((byte)track.ChannelRight); //Second channel ID
-                chunk.Add(0);
+                writer.Write((byte)track.NumChannels);
+                writer.Write((byte)track.ChannelLeft); //First channel ID
+                writer.Write((byte)track.ChannelRight); //Second channel ID
+                writer.Write((byte)0);
             }
-
-            chunk.AddRange(new byte[HeadChunk2Length - chunk.Count]);
-
-            return chunk.ToArray();
         }
 
-        private byte[] GetHeadChunk3()
+        private void GetHeadChunk3(BinaryWriterBE writer)
         {
-            var chunk = new List<byte>();
-
-            chunk.Add((byte)NumChannels);
-            chunk.Add(0); //padding
-            chunk.Add16BE(0); //padding
+            writer.Write((byte)NumChannels);
+            writer.Write((byte)0); //padding
+            writer.WriteBE((short)0); //padding
 
             int baseOffset = HeadChunkTableLength + HeadChunk1Length + HeadChunk2Length + 4;
             int offsetTableLength = NumChannels * 8;
 
             for (int i = 0; i < NumChannels; i++)
             {
-                chunk.Add32BE(0x01000000);
-                chunk.Add32BE(baseOffset + offsetTableLength + ChannelInfoLength * i);
+                writer.WriteBE(0x01000000);
+                writer.WriteBE(baseOffset + offsetTableLength + ChannelInfoLength * i);
             }
 
             for (int i = 0; i < NumChannels; i++)
             {
                 AdpcmChannel channel = AudioStream.Channels[i];
-                chunk.Add32BE(0x01000000);
-                chunk.Add32BE(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
-                chunk.AddRange(channel.Coefs.ToFlippedBytes());
-                chunk.Add16BE(channel.Gain);
-                chunk.Add16BE(channel.GetAudioData[0]);
-                chunk.Add16BE(channel.Hist1);
-                chunk.Add16BE(channel.Hist2);
-                chunk.Add16BE(AudioStream.Looping ? channel.LoopPredScale : channel.GetAudioData[0]);
-                chunk.Add16BE(AudioStream.Looping ? channel.LoopHist1 : 0);
-                chunk.Add16BE(AudioStream.Looping ? channel.LoopHist2 : 0);
-                chunk.Add16(0);
+                writer.WriteBE(0x01000000);
+                writer.WriteBE(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
+                writer.Write(channel.Coefs.ToFlippedBytes());
+                writer.WriteBE(channel.Gain);
+                writer.WriteBE(channel.GetAudioData[0]);
+                writer.WriteBE(channel.Hist1);
+                writer.WriteBE(channel.Hist2);
+                writer.WriteBE(AudioStream.Looping ? channel.LoopPredScale : channel.GetAudioData[0]);
+                writer.WriteBE(AudioStream.Looping ? channel.LoopHist1 : (short)0);
+                writer.WriteBE(AudioStream.Looping ? channel.LoopHist2 : (short)0);
+                writer.WriteBE((short)0);
             }
-
-            return chunk.ToArray();
         }
 
-        private void GetAdpcChunk(Stream stream)
+        private void GetAdpcChunk(BinaryWriterBE writer)
         {
-            var chunk = new BinaryWriterBE(stream);
+            writer.WriteASCII("ADPC");
+            writer.WriteBE(AdpcChunkLength);
 
-            chunk.WriteASCII("ADPC");
-            chunk.WriteBE(AdpcChunkLength);
+            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries);
 
-            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries).ToArray();
-
-            chunk.Write(table);
+            writer.Write(table);
         }
 
-        private void GetDataChunk(Stream stream)
+        private void GetDataChunk(BinaryWriterBE writer)
         {
-            var chunk = new BinaryWriterBE(stream);
+            writer.WriteASCII("DATA");
+            writer.WriteBE(DataChunkLength);
+            writer.WriteBE(0x18);
 
-            chunk.WriteASCII("DATA");
-            chunk.WriteBE(DataChunkLength);
-            chunk.WriteBE(0x18);
-
-            stream.Position += AudioDataOffset - DataChunkOffset - 3 * sizeof(int);
+            writer.BaseStream.Position = AudioDataOffset;
 
             byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
 
-            channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, 0x20);
+            channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, 0x20);
         }
 
         private BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
         {
-            using (var reader = new BinaryReaderBE(stream))
+            var reader = new BinaryReaderBE(stream);
+            if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "RSTM")
             {
-                if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "RSTM")
-                {
-                    throw new InvalidDataException("File has no RSTM header");
-                }
+                throw new InvalidDataException("File has no RSTM header");
+            }
 
-                var structure = new BrstmStructure();
+            var structure = new BrstmStructure();
 
-                reader.BaseStream.Position = 8;
-                structure.FileLength = reader.ReadInt32BE();
+            reader.Expect((ushort)0xfeff);
+            structure.Version = reader.ReadInt16BE();
+            structure.FileLength = reader.ReadInt32BE();
 
-                if (stream.Length < structure.FileLength)
-                {
-                    throw new InvalidDataException("Actual file length is less than stated length");
-                }
+            if (stream.Length < structure.FileLength)
+            {
+                throw new InvalidDataException("Actual file length is less than stated length");
+            }
 
-                structure.RstmHeaderLength = reader.ReadInt16BE();
-                reader.BaseStream.Position += 2;
+            structure.RstmHeaderLength = reader.ReadInt16BE();
+            structure.RstmHeaderSections = reader.ReadInt16BE();
 
-                structure.HeadChunkOffset = reader.ReadInt32BE();
-                structure.HeadChunkLengthRstm = reader.ReadInt32BE();
-                structure.AdpcChunkOffset = reader.ReadInt32BE();
-                structure.AdpcChunkLengthRstm = reader.ReadInt32BE();
-                structure.DataChunkOffset = reader.ReadInt32BE();
-                structure.DataChunkLengthRstm = reader.ReadInt32BE();
+            structure.HeadChunkOffset = reader.ReadInt32BE();
+            structure.HeadChunkLengthRstm = reader.ReadInt32BE();
+            structure.AdpcChunkOffset = reader.ReadInt32BE();
+            structure.AdpcChunkLengthRstm = reader.ReadInt32BE();
+            structure.DataChunkOffset = reader.ReadInt32BE();
+            structure.DataChunkLengthRstm = reader.ReadInt32BE();
 
-                reader.BaseStream.Position = structure.HeadChunkOffset;
-                byte[] headChunk = reader.ReadBytes(structure.HeadChunkLengthRstm);
-                ParseHeadChunk(headChunk, structure);
+            reader.BaseStream.Position = structure.HeadChunkOffset;
+            ParseHeadChunk(reader, structure);
 
-                Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
-                Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
-                Configuration.TrackType = structure.HeaderType;
+            Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
+            Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
+            Configuration.TrackType = structure.HeaderType;
 
-                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
-                if (structure.Looping)
-                {
-                    AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
-                }
-                AudioStream.Tracks = structure.Tracks;
+            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+            if (structure.Looping)
+            {
+                AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+            }
+            AudioStream.Tracks = structure.Tracks;
 
-                ParseAdpcChunk(stream, structure);
+            ParseAdpcChunk(reader, structure);
 
-                if (!readAudioData)
-                {
-                    reader.BaseStream.Position = structure.DataChunkOffset + 4;
-                    structure.DataChunkLength = reader.ReadInt32BE();
-                    return structure;
-                }
-
-                ParseDataChunk(stream, structure);
-
-                Configuration.SeekTableType = structure.SeekTableType;
-
+            if (!readAudioData)
+            {
+                reader.BaseStream.Position = structure.DataChunkOffset + 4;
+                structure.DataChunkLength = reader.ReadInt32BE();
                 return structure;
             }
+
+            ParseDataChunk(reader, structure);
+
+            Configuration.SeekTableType = structure.SeekTableType;
+
+            return structure;
         }
 
-        private static void ParseHeadChunk(byte[] head, BrstmStructure structure)
+        private static void ParseHeadChunk(BinaryReaderBE reader, BrstmStructure structure)
         {
-            const int baseOffset = 8;
+            reader.BaseStream.Position = structure.HeadChunkOffset;
+            int baseOffset = structure.HeadChunkOffset + 8;
 
-            if (Encoding.UTF8.GetString(head, 0, 4) != "HEAD")
+            if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "HEAD")
             {
                 throw new InvalidDataException("Unknown or invalid HEAD chunk");
             }
 
-            using (var reader = new BinaryReaderBE(new MemoryStream(head)))
+            structure.HeadChunkLength = reader.ReadInt32BE();
+            if (structure.HeadChunkLength != structure.HeadChunkLengthRstm)
             {
-                reader.BaseStream.Position = 4;
-                structure.HeadChunkLength = reader.ReadInt32BE();
-                if (structure.HeadChunkLength != head.Length)
+                throw new InvalidDataException("HEAD chunk length in RSTM header doesn't match length in HEAD header");
+            }
+
+            reader.Expect(0x01000000);
+            structure.HeadChunk1Offset = reader.ReadInt32BE();
+            reader.Expect(0x01000000);
+            structure.HeadChunk2Offset = reader.ReadInt32BE();
+            reader.Expect(0x01000000);
+            structure.HeadChunk3Offset = reader.ReadInt32BE();
+
+            ParseHeadChunk1(reader, structure);
+            ParseHeadChunk2(reader, structure);
+            ParseHeadChunk3(reader, structure);
+        }
+
+        private static void ParseHeadChunk1(BinaryReaderBE reader, BrstmStructure structure)
+        {
+            reader.BaseStream.Position = structure.HeadChunkOffset + 8 + structure.HeadChunk1Offset;
+            structure.Codec = (BrstmCodec)reader.ReadByte();
+            if (structure.Codec != BrstmCodec.Adpcm)
+            {
+                throw new InvalidDataException("File must contain 4-bit ADPCM encoded audio");
+            }
+
+            structure.Looping = reader.ReadByte() == 1;
+            structure.NumChannels = reader.ReadByte();
+            reader.BaseStream.Position += 1;
+
+            structure.SampleRate = reader.ReadUInt16BE();
+            reader.BaseStream.Position += 2;
+
+            structure.LoopStart = reader.ReadInt32BE();
+            structure.NumSamples = reader.ReadInt32BE();
+
+            structure.AudioDataOffset = reader.ReadInt32BE();
+            structure.InterleaveCount = reader.ReadInt32BE();
+            structure.InterleaveSize = reader.ReadInt32BE();
+            structure.SamplesPerInterleave = reader.ReadInt32BE();
+            structure.LastBlockSizeWithoutPadding = reader.ReadInt32BE();
+            structure.LastBlockSamples = reader.ReadInt32BE();
+            structure.LastBlockSize = reader.ReadInt32BE();
+            structure.SamplesPerSeekTableEntry = reader.ReadInt32BE();
+        }
+
+        private static void ParseHeadChunk2(BinaryReaderBE reader, BrstmStructure structure)
+        {
+            int baseOffset = structure.HeadChunkOffset + 8;
+            reader.BaseStream.Position = baseOffset + structure.HeadChunk2Offset;
+
+            int numTracks = reader.ReadByte();
+            int[] trackOffsets = new int[numTracks];
+
+            structure.HeaderType = reader.ReadByte() == 0 ? BrstmTrackType.Short : BrstmTrackType.Standard;
+            int marker = structure.HeaderType == BrstmTrackType.Short ? 0x01000000 : 0x01010000;
+
+            reader.BaseStream.Position += 2;
+            for (int i = 0; i < numTracks; i++)
+            {
+                reader.Expect(marker);
+                trackOffsets[i] = reader.ReadInt32BE();
+            }
+
+            foreach (int offset in trackOffsets)
+            {
+                reader.BaseStream.Position = baseOffset + offset;
+                var track = new AdpcmTrack();
+
+                if (structure.HeaderType == BrstmTrackType.Standard)
                 {
-                    throw new InvalidDataException("HEAD chunk stated length does not match actual length");
+                    track.Volume = reader.ReadByte();
+                    track.Panning = reader.ReadByte();
+                    reader.BaseStream.Position += 6;
                 }
 
-                reader.BaseStream.Position += 4;
-                structure.HeadChunk1Offset = reader.ReadInt32BE();
-                reader.BaseStream.Position += 4;
-                structure.HeadChunk2Offset = reader.ReadInt32BE();
-                reader.BaseStream.Position += 4;
-                structure.HeadChunk3Offset = reader.ReadInt32BE();
+                track.NumChannels = reader.ReadByte();
+                track.ChannelLeft = reader.ReadByte();
+                track.ChannelRight = reader.ReadByte();
 
-                reader.BaseStream.Position = structure.HeadChunk1Offset + baseOffset;
-                byte[] headChunk1 = reader.ReadBytes(structure.HeadChunk1Length);
-
-                reader.BaseStream.Position = structure.HeadChunk2Offset + baseOffset;
-                byte[] headChunk2 = reader.ReadBytes(structure.HeadChunk2Length);
-
-                reader.BaseStream.Position = structure.HeadChunk3Offset + baseOffset;
-                byte[] headChunk3 = reader.ReadBytes(structure.HeadChunk3Length);
-
-                ParseHeadChunk1(headChunk1, structure);
-                ParseHeadChunk2(headChunk2, structure);
-                ParseHeadChunk3(headChunk3, structure);
+                structure.Tracks.Add(track);
             }
         }
 
-        private static void ParseHeadChunk1(byte[] chunk, BrstmStructure structure)
+        private static void ParseHeadChunk3(BinaryReaderBE reader, BrstmStructure structure)
         {
-            using (var reader = new BinaryReaderBE(new MemoryStream(chunk)))
+            int baseOffset = structure.HeadChunkOffset + 8;
+            reader.BaseStream.Position = baseOffset + structure.HeadChunk3Offset;
+
+            reader.Expect((byte)structure.NumChannels);
+            reader.BaseStream.Position += 3;
+
+            for (int i = 0; i < structure.NumChannels; i++)
             {
-                structure.Codec = (BrstmCodec)reader.ReadByte();
-                if (structure.Codec != BrstmCodec.Adpcm)
-                {
-                    throw new InvalidDataException("File must contain 4-bit ADPCM encoded audio");
-                }
+                var channel = new B_stmChannelInfo();
+                reader.Expect(0x01000000);
+                channel.Offset = reader.ReadInt32BE();
+                structure.Channels.Add(channel);
+            }
 
-                structure.Looping = reader.ReadByte() == 1;
-                structure.NumChannels = reader.ReadByte();
-                reader.BaseStream.Position += 1;
+            foreach (B_stmChannelInfo channel in structure.Channels)
+            {
+                reader.BaseStream.Position = baseOffset + channel.Offset;
+                reader.Expect(0x01000000);
+                int coefsOffset = reader.ReadInt32BE();
+                reader.BaseStream.Position = baseOffset + coefsOffset;
 
-                structure.SampleRate = (ushort)reader.ReadInt16BE();
-                reader.BaseStream.Position += 2;
-
-                structure.LoopStart = reader.ReadInt32BE();
-                structure.NumSamples = reader.ReadInt32BE();
-
-                structure.AudioDataOffset = reader.ReadInt32BE();
-                structure.InterleaveCount = reader.ReadInt32BE();
-                structure.InterleaveSize = reader.ReadInt32BE();
-                structure.SamplesPerInterleave = reader.ReadInt32BE();
-                structure.LastBlockSizeWithoutPadding = reader.ReadInt32BE();
-                structure.LastBlockSamples = reader.ReadInt32BE();
-                structure.LastBlockSize = reader.ReadInt32BE();
-                structure.SamplesPerSeekTableEntry = reader.ReadInt32BE();
+                channel.Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16BE()).ToArray();
+                channel.Gain = reader.ReadInt16BE();
+                channel.PredScale = reader.ReadInt16BE();
+                channel.Hist1 = reader.ReadInt16BE();
+                channel.Hist2 = reader.ReadInt16BE();
+                channel.LoopPredScale = reader.ReadInt16BE();
+                channel.LoopHist1 = reader.ReadInt16BE();
+                channel.LoopHist2 = reader.ReadInt16BE();
             }
         }
 
-        private static void ParseHeadChunk2(byte[] chunk, BrstmStructure structure)
+        private static void ParseAdpcChunk(BinaryReaderBE reader, BrstmStructure structure)
         {
-            using (var reader = new BinaryReaderBE(new MemoryStream(chunk)))
-            {
-                int numTracks = reader.ReadByte();
-                int[] trackOffsets = new int[numTracks];
-
-                structure.HeaderType = reader.ReadByte() == 0 ? BrstmTrackType.Short : BrstmTrackType.Standard;
-
-                reader.BaseStream.Position = 4;
-                for (int i = 0; i < numTracks; i++)
-                {
-                    reader.BaseStream.Position += 4;
-                    trackOffsets[i] = reader.ReadInt32BE();
-                }
-
-                for (int i = 0; i < numTracks; i++)
-                {
-                    reader.BaseStream.Position = trackOffsets[i] - structure.HeadChunk2Offset;
-                    var track = new AdpcmTrack();
-
-                    if (structure.HeaderType == BrstmTrackType.Standard)
-                    {
-                        track.Volume = reader.ReadByte();
-                        track.Panning = reader.ReadByte();
-                        reader.BaseStream.Position += 6;
-                    }
-
-                    track.NumChannels = reader.ReadByte();
-                    track.ChannelLeft = reader.ReadByte();
-                    track.ChannelRight = reader.ReadByte();
-
-                    structure.Tracks.Add(track);
-                }
-            }
-        }
-
-        private static void ParseHeadChunk3(byte[] chunk, BrstmStructure structure)
-        {
-            using (var reader = new BinaryReaderBE(new MemoryStream(chunk)))
-            {
-                reader.Expect((byte)structure.NumChannels);
-                reader.BaseStream.Position += 3;
-
-                for (int i = 0; i < structure.NumChannels; i++)
-                {
-                    var channel = new B_stmChannelInfo();
-                    reader.BaseStream.Position += 4;
-                    channel.Offset = reader.ReadInt32BE();
-                    structure.Channels.Add(channel);
-                }
-
-                foreach (B_stmChannelInfo channel in structure.Channels)
-                {
-                    reader.BaseStream.Position = channel.Offset - structure.HeadChunk3Offset + 4;
-                    int coefsOffset = reader.ReadInt32BE();
-                    reader.BaseStream.Position = coefsOffset - structure.HeadChunk3Offset;
-
-                    channel.Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16BE()).ToArray();
-                    channel.Gain = reader.ReadInt16BE();
-                    channel.PredScale = reader.ReadInt16BE();
-                    channel.Hist1 = reader.ReadInt16BE();
-                    channel.Hist2 = reader.ReadInt16BE();
-                    channel.LoopPredScale = reader.ReadInt16BE();
-                    channel.LoopHist1 = reader.ReadInt16BE();
-                    channel.LoopHist2 = reader.ReadInt16BE();
-                }
-            }
-        }
-
-        private static void ParseAdpcChunk(Stream chunk, BrstmStructure structure)
-        {
-            var reader = new BinaryReaderBE(chunk);
             reader.BaseStream.Position = structure.AdpcChunkOffset;
 
             if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "ADPC")
@@ -632,9 +588,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 .DeInterleave(2, structure.NumChannels);
         }
 
-        private void ParseDataChunk(Stream chunk, BrstmStructure structure)
+        private void ParseDataChunk(BinaryReaderBE reader, BrstmStructure structure)
         {
-            var reader = new BinaryReaderBE(chunk);
             reader.BaseStream.Position = structure.DataChunkOffset;
 
             if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "DATA")

@@ -11,9 +11,17 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public int FileLength { get; set; }
         /// <summary>
+        /// The version listed in the RSTM header.
+        /// </summary>
+        public int Version { get; set; }
+        /// <summary>
         /// The length of the RSTM header.
         /// </summary>
         public int RstmHeaderLength { get; set; }
+        /// <summary>
+        /// The number of sections listed in the RSTM header.
+        /// </summary>
+        public int RstmHeaderSections { get; set; }
         /// <summary>
         /// The offset of the HEAD chunk.
         /// </summary>
