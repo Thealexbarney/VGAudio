@@ -23,7 +23,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         public BrstmConfiguration Configuration { get; } = new BrstmConfiguration();
 
         private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
-        private int NumSamplesUntrimmed => AudioStream.Channels?[0]?.NumSamplesUntrimmed ?? 0;
         private int NumChannels => AudioStream.Channels.Count;
         private int NumTracks => AudioStream.Tracks.Count;
 
@@ -34,23 +33,20 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private BrstmCodec Codec { get; } = BrstmCodec.Adpcm;
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
-        private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
-        private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
-        private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
-        private int LastBlockSamples => NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave);
 
-        private int AudioDataSize => Configuration.TrimFile
-            ? GetBytesForAdpcmSamples(NumSamples)
-            : (AudioStream.Channels[0]?.GetAudioData.Length ?? 0);
-        private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave));
-        private int LastBlockSize => Math.Min(GetNextMultiple(AudioDataSize - ((InterleaveCount - 1) * InterleaveSize), 0x20), InterleaveSize);
+        private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
+        private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
+        private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
+
+        private int LastBlockSamples => NumSamples - ((InterleaveCount - 1) * SamplesPerInterleave);
+        private int LastBlockSizeWithoutPadding => GetBytesForAdpcmSamples(LastBlockSamples);
+        private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
 
         private int SamplesPerSeekTableEntry => Configuration.SamplesPerSeekTableEntry;
-        private int NumSeekTableEntriesStandard => NumSamples.DivideByRoundUp(SamplesPerSeekTableEntry);
-        private int NumSeekTableEntriesShortened => (GetBytesForAdpcmSamples(NumSamples) / SamplesPerSeekTableEntry) + 1;
-        private int NumSeekTableEntries => Configuration.SeekTableType == BrstmSeekTableType.Standard ?
-            NumSeekTableEntriesStandard : NumSeekTableEntriesShortened;
         private int BytesPerSeekTableEntry => 4;
+        private int NumSeekTableEntries => Configuration.SeekTableType == BrstmSeekTableType.Standard
+            ? NumSamples.DivideByRoundUp(SamplesPerSeekTableEntry)
+            : (GetBytesForAdpcmSamples(NumSamples) / SamplesPerSeekTableEntry) + 1;
 
         private int RstmHeaderLength => 0x40;
 
@@ -69,9 +65,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int AdpcChunkOffset => RstmHeaderLength + HeadChunkLength;
         private int AdpcChunkLength => GetNextMultiple(8 + NumSeekTableEntries * NumChannels * BytesPerSeekTableEntry, 0x20);
 
-        private int SamplesToWrite => Configuration.TrimFile ? NumSamples : NumSamplesUntrimmed;
         private int DataChunkOffset => RstmHeaderLength + HeadChunkLength + AdpcChunkLength;
-        private int DataChunkLength => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(SamplesToWrite), 0x20) * NumChannels;
+        private int DataChunkLength => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), 0x20) * NumChannels;
 
         /// <summary>
         /// The size in bytes of the BRSTM file.
@@ -116,7 +111,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// create the <see cref="Brstm"/>.</param>
         /// <param name="configuration">A <see cref="BrstmConfiguration"/>
         /// to use for the <see cref="Brstm"/></param>
-        public Brstm(AdpcmStream stream, BrstmConfiguration configuration) : this(stream) 
+        public Brstm(AdpcmStream stream, BrstmConfiguration configuration) : this(stream)
         {
             Configuration = configuration;
         }
@@ -388,7 +383,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
 
-            channels.Interleave(stream, GetBytesForAdpcmSamples(SamplesToWrite), InterleaveSize, 0x20);
+            channels.Interleave(stream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, 0x20);
         }
 
         private BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
@@ -679,7 +674,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <summary>
         /// Contains the options used to build the BRSTM file.
         /// </summary>
-        public class BrstmConfiguration  : B_stmConfiguration
+        public class BrstmConfiguration : B_stmConfiguration
         {
             /// <summary>
             /// The type of track description to be used when building the 
