@@ -7,7 +7,6 @@ namespace DspAdpcm.Lib.Pcm
     {
         public int NumSamples { get; set; }
         internal short[] AudioData { get; set; }
-        private int CurrentSample { get; set; }
         
         public PcmChannel(int numSamples)
         {
@@ -26,17 +25,5 @@ namespace DspAdpcm.Lib.Pcm
         }
 
         public IEnumerable<short> GetAudioData() => AudioData;
-
-        public void SetAudioData(short[] audio)
-        {
-            AudioData = audio;
-            NumSamples = audio.Length;
-        }
-
-        public void AddSample(short sample)
-        {
-            if (CurrentSample >= NumSamples) return;
-            AudioData[CurrentSample++] = sample;
-        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,14 +13,10 @@ namespace DspAdpcm.Lib.Pcm.Formats
         /// <summary>
         /// The underlying <see cref="PcmStream"/> used to build the WAVE file
         /// </summary>
-        public PcmStream AudioStream { get; }
-        private int NumChannelsReading { get; set; } //used when reading in a wave file
+        public PcmStream AudioStream { get; set; }
         private int NumChannels => AudioStream.Channels.Count;
-        private int BitDepth { get; set; } = 16;
-        private int BytesPerSample => BitDepth.DivideByRoundUp(8);
         private int NumSamples => AudioStream.NumSamples;
         private int SampleRate => AudioStream.SampleRate;
-        private IList<PcmChannel> Channels => AudioStream.Channels;
 
         // ReSharper disable InconsistentNaming
         private static readonly Guid KSDATAFORMAT_SUBTYPE_PCM =
@@ -30,11 +25,16 @@ namespace DspAdpcm.Lib.Pcm.Formats
         private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
         // ReSharper restore InconsistentNaming
 
-        private int FileLength => 8 + RiffChunkLength;
+        /// <summary>
+        /// The size in bytes of the WAVE file.
+        /// </summary>
+        public int FileLength => 8 + RiffChunkLength;
         private int RiffChunkLength => 4 + 8 + FmtChunkLength + 8 + DataChunkLength;
         private int FmtChunkLength => NumChannels > 2 ? 40 : 16;
         private int DataChunkLength => NumChannels * NumSamples * sizeof(short);
 
+        private int BitDepth { get; set; } = 16;
+        private int BytesPerSample => BitDepth.DivideByRoundUp(8);
         private int BytesPerSecond => SampleRate * BytesPerSample * NumChannels;
         private int BlockAlign => BytesPerSample * NumChannels;
 
@@ -51,7 +51,6 @@ namespace DspAdpcm.Lib.Pcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            AudioStream = new PcmStream();
             ReadWaveFile(stream);
         }
 
@@ -63,6 +62,26 @@ namespace DspAdpcm.Lib.Pcm.Formats
         public Wave(PcmStream stream)
         {
             AudioStream = stream;
+        }
+
+        private Wave() { }
+
+        /// <summary>
+        /// Parses the header of a WAVE file and returns the metadata
+        /// and structure data of that file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the WAVE file. Must be seekable.</param>
+        /// <returns>A <see cref="WaveStructure"/> containing
+        /// the data from the WAVE header.</returns>
+        public static WaveStructure ReadMetadata(Stream stream)
+        {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
+            return new Wave().ReadWaveFile(stream, false);
         }
 
         /// <summary>
@@ -98,59 +117,51 @@ namespace DspAdpcm.Lib.Pcm.Formats
                 }
             }
 
+            BinaryWriter writer = new BinaryWriter(stream);
+
             stream.Position = 0;
-            GetRiffHeader(stream);
-            GetFmtChunk(stream);
-            GetDataChunk(stream);
+            GetRiffHeader(writer);
+            GetFmtChunk(writer);
+            GetDataChunk(writer);
         }
 
-        private void GetRiffHeader(Stream stream)
+        private void GetRiffHeader(BinaryWriter writer)
         {
-            var header = new BinaryWriter(stream);
-
-            header.WriteASCII("RIFF");
-            header.Write(RiffChunkLength);
-            header.WriteASCII("WAVE");
+            writer.WriteASCII("RIFF");
+            writer.Write(RiffChunkLength);
+            writer.WriteASCII("WAVE");
         }
 
-        private void GetFmtChunk(Stream stream)
+        private void GetFmtChunk(BinaryWriter writer)
         {
-            var chunk = new BinaryWriter(stream);
-
-            chunk.WriteASCII("fmt ");
-            chunk.Write(FmtChunkLength);
-            chunk.Write((short)(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
-            chunk.Write((short)NumChannels);
-            chunk.Write(SampleRate);
-            chunk.Write(BytesPerSecond);
-            chunk.Write((short)BlockAlign);
-            chunk.Write((short)BitDepth);
+            writer.WriteASCII("fmt ");
+            writer.Write(FmtChunkLength);
+            writer.Write((short)(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
+            writer.Write((short)NumChannels);
+            writer.Write(SampleRate);
+            writer.Write(BytesPerSecond);
+            writer.Write((short)BlockAlign);
+            writer.Write((short)BitDepth);
 
             if (NumChannels > 2)
             {
-                chunk.Write((short)22);
-                chunk.Write((short)BitDepth);
-                chunk.Write(GetChannelMask(NumChannels));
-                chunk.Write(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
+                writer.Write((short)22);
+                writer.Write((short)BitDepth);
+                writer.Write(GetChannelMask(NumChannels));
+                writer.Write(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
             }
         }
 
-        private void GetDataChunk(Stream stream)
+        private void GetDataChunk(BinaryWriter writer)
         {
-            var chunk = new BinaryWriter(stream);
-
-            chunk.WriteASCII("data");
-            chunk.Write(DataChunkLength);
-            byte[][] channels = AudioStream.Channels
-                .Select(x =>
-                {
-                    byte[] bytes = new byte[x.AudioData.Length * sizeof(short)];
-                    Buffer.BlockCopy(x.AudioData, 0, bytes, 0, bytes.Length);
-                    return bytes;
-                })
+            writer.WriteASCII("data");
+            writer.Write(DataChunkLength);
+            short[][] channels = AudioStream.Channels
+                .Select(x => x.AudioData)
                 .ToArray();
 
-            channels.Interleave(stream, NumSamples * BytesPerSample, BytesPerSample);
+            var audioData = ShortToInterleavedByte(channels);
+            writer.BaseStream.Write(audioData, 0, audioData.Length);
         }
 
         private static int GetChannelMask(int numChannels)
@@ -174,40 +185,47 @@ namespace DspAdpcm.Lib.Pcm.Formats
             }
         }
 
-        private void ReadWaveFile(Stream stream)
+        private WaveStructure ReadWaveFile(Stream stream, bool readAudioData = true)
         {
-            using (var reader = new BinaryReader(stream))
+            var reader = new BinaryReader(stream);
+            var structure = new WaveStructure();
+
+            ParseRiffHeader(reader, structure);
+
+            byte[] chunkId = new byte[4];
+            while (reader.Read(chunkId, 0, 4) == 4)
             {
-                ParseRiffHeader(reader);
-
-                byte[] chunkId = new byte[4];
-                while (reader.Read(chunkId, 0, 4) == 4)
+                int chunkSize = reader.ReadInt32();
+                if (Encoding.UTF8.GetString(chunkId, 0, 4) == "fmt ")
                 {
-                    int chunkSize = reader.ReadInt32();
-                    if (Encoding.UTF8.GetString(chunkId, 0, 4) == "fmt ")
-                    {
-                        ParseFmtChunk(reader.ReadBytes(chunkSize));
-                    }
-                    else if (Encoding.UTF8.GetString(chunkId, 0, 4) == "data")
-                    {
-                        ParseDataChunk(reader, chunkSize);
-                        break;
-                    }
-                    else
-                        reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
+                    ParseFmtChunk(reader, structure);
                 }
-
-                if (AudioStream.Channels.Count == 0)
+                else if (Encoding.UTF8.GetString(chunkId, 0, 4) == "data")
                 {
-                    throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
+                    if (!readAudioData)
+                    {
+                        structure.NumSamples = chunkSize / structure.BytesPerSample / structure.NumChannels;
+                        return structure;
+                    }
+                    ParseDataChunk(reader, chunkSize, structure);
+                    break;
                 }
+                else
+                    reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
             }
+
+            if (AudioStream.Channels.Count == 0)
+            {
+                throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
+            }
+
+            return structure;
         }
 
-        private static void ParseRiffHeader(BinaryReader reader)
+        private static void ParseRiffHeader(BinaryReader reader, WaveStructure structure)
         {
             byte[] riffChunkId = reader.ReadBytes(4);
-            int fileSize = reader.ReadInt32();
+            structure.RiffSize = reader.ReadInt32();
             byte[] riffType = reader.ReadBytes(4);
 
             if (Encoding.UTF8.GetString(riffChunkId, 0, 4) != "RIFF")
@@ -221,117 +239,119 @@ namespace DspAdpcm.Lib.Pcm.Formats
             }
         }
 
-        private void ParseFmtChunk(byte[] chunk)
+        private static void ParseFmtChunk(BinaryReader reader, WaveStructure structure)
         {
-            using (var reader = new BinaryReader(new MemoryStream(chunk)))
+            structure.FormatTag = reader.ReadUInt16();
+            structure.NumChannels = reader.ReadInt16();
+            structure.SampleRate = reader.ReadInt32();
+            structure.AvgBytesPerSec = reader.ReadInt32();
+            structure.BlockAlign = reader.ReadInt16();
+            structure.BitsPerSample = reader.ReadInt16();
+
+            if (structure.FormatTag == WAVE_FORMAT_EXTENSIBLE)
             {
-                int fmtCode = reader.ReadUInt16();
-                NumChannelsReading = reader.ReadInt16();
-                AudioStream.SampleRate = reader.ReadInt32();
-                int fmtAvgBps = reader.ReadInt32();
-                int blockAlign = reader.ReadInt16();
-                BitDepth = reader.ReadInt16();
+                ParseWaveFormatExtensible(reader, structure);
+            }
 
-                if (fmtCode == WAVE_FORMAT_EXTENSIBLE)
-                {
-                    ParseWaveFormatExtensible(reader);
-                }
+            if (structure.FormatTag != WAVE_FORMAT_PCM && structure.FormatTag != WAVE_FORMAT_EXTENSIBLE)
+            {
+                throw new InvalidDataException($"Must contain PCM data. Has invalid format {structure.FormatTag}");
+            }
 
-                if (fmtCode != WAVE_FORMAT_PCM && fmtCode != WAVE_FORMAT_EXTENSIBLE)
-                {
-                    throw new InvalidDataException($"Must contain PCM data. Has invalid format {fmtCode}");
-                }
+            if (structure.BitsPerSample != 16)
+            {
+                throw new InvalidDataException($"Must have 16 bits per sample, not {structure.BitsPerSample} bits per sample");
+            }
 
-                if (BitDepth != 16)
-                {
-                    throw new InvalidDataException($"Must have 16 bits per sample, not {BitDepth} bits per sample");
-                }
-
-                if (blockAlign != BytesPerSample * NumChannelsReading)
-                {
-                    throw new InvalidDataException("File has invalid block alignment");
-                }
+            if (structure.BlockAlign != structure.BytesPerSample * structure.NumChannels)
+            {
+                throw new InvalidDataException("File has invalid block alignment");
             }
         }
 
-        private void ParseWaveFormatExtensible(BinaryReader reader)
+        private static void ParseWaveFormatExtensible(BinaryReader reader, WaveStructure structure)
         {
-            int cbSize = reader.ReadInt16();
-            if (cbSize != 22) return;
+            structure.CbSize = reader.ReadInt16();
+            if (structure.CbSize != 22) return;
 
-            int wValidBitsPerSample = reader.ReadInt16();
-            if (wValidBitsPerSample > BitDepth)
+            structure.ValidBitsPerSample = reader.ReadInt16();
+            if (structure.ValidBitsPerSample > structure.BitsPerSample)
             {
                 throw new InvalidDataException("Inconsistent bits per sample");
             }
-            uint channelMask = reader.ReadUInt32();
+            structure.ChannelMask = reader.ReadUInt32();
 
-            var subFormat = new Guid(reader.ReadBytes(16));
-            if (!subFormat.Equals(KSDATAFORMAT_SUBTYPE_PCM))
+            structure.SubFormat = new Guid(reader.ReadBytes(16));
+            if (!structure.SubFormat.Equals(KSDATAFORMAT_SUBTYPE_PCM))
             {
-                throw new InvalidDataException($"Must contain PCM data. Has invalid format {subFormat}");
+                throw new InvalidDataException($"Must contain PCM data. Has invalid format {structure.SubFormat}");
             }
         }
 
-        private void ParseDataChunk(BinaryReader reader, int chunkSize)
+        private void ParseDataChunk(BinaryReader reader, int chunkSize, WaveStructure structure)
         {
-            AudioStream.NumSamples = chunkSize / 2 / NumChannelsReading;
+            structure.NumSamples = chunkSize / structure.BytesPerSample / structure.NumChannels;
 
-            int extraBytes = chunkSize % (NumChannelsReading * BytesPerSample);
+            int extraBytes = chunkSize % (structure.NumChannels * structure.BytesPerSample);
             if (extraBytes != 0)
             {
                 throw new InvalidDataException($"{extraBytes} extra bytes at end of audio data chunk");
             }
 
-            ReadDataChunkInMemory(reader);
-        }
+            AudioStream = new PcmStream(structure.NumSamples, structure.SampleRate);
 
-        //Much faster, but 3X memory usage
-        private void ReadDataChunkInMemory(BinaryReader reader)
-        {
-            byte[] audioBytes = reader.ReadBytes(NumSamples * NumChannelsReading * 2);
-            if (audioBytes.Length != NumSamples * NumChannelsReading * 2)
+            byte[] interleavedAudio = reader.ReadBytes(chunkSize);
+            if (interleavedAudio.Length != chunkSize)
             {
                 throw new InvalidDataException("Incomplete Wave file");
             }
 
-            var interlacedSamples = new short[NumSamples * NumChannelsReading];
-            Buffer.BlockCopy(audioBytes, 0, interlacedSamples, 0, audioBytes.Length);
+            var samples = InterleavedByteToShort(interleavedAudio, structure.NumChannels);
 
-            if (NumChannelsReading == 1)
+            for (int i = 0; i < structure.NumChannels; i++)
             {
-                Channels.Add(new PcmChannel(NumSamples, interlacedSamples));
-                return;
-            }
-
-            for (int i = 0; i < NumChannelsReading; i++)
-            {
-                Channels.Add(new PcmChannel(NumSamples));
-            }
-
-            for (int s = 0; s < NumSamples; s++)
-            {
-                for (int c = 0; c < NumChannelsReading; c++)
-                {
-                    Channels[c].AddSample(interlacedSamples[s * NumChannelsReading + c]);
-                }
+                AudioStream.Channels.Add(new PcmChannel(structure.NumSamples, samples[i]));
             }
         }
 
-        private void ReadDataChunk(BinaryReader reader)
+        private short[][] InterleavedByteToShort(byte[] input, int numOutputs)
         {
-            for (int i = 0; i < NumChannelsReading; i++)
+            int numItems = input.Length / 2 / numOutputs;
+            short[][] output = new short[numOutputs][];
+            for (int i = 0; i < numOutputs; i++)
             {
-                Channels.Add(new PcmChannel(NumSamples));
+                output[i] = new short[numItems];
             }
 
-            for (int s = 0; s < NumSamples; s++)
+            for (int i = 0; i < numItems; i++)
             {
-                for (int c = 0; c < NumChannelsReading; c++)
+                for (int o = 0; o < numOutputs; o++)
                 {
-                    Channels[c].AddSample(reader.ReadInt16());
+                    int offset = (i * numOutputs + o) * 2;
+                    output[o][i] = (short)(input[offset] | (input[offset + 1] << 8));
                 }
             }
+
+            return output;
+        }
+
+        private byte[] ShortToInterleavedByte(short[][] input)
+        {
+            int numInputs = input.Length;
+            int length = input[0].Length;
+            byte[] output = new byte[numInputs * length * 2];
+
+            for (int i = 0; i < length; i++)
+            {
+                for (int j = 0; j < numInputs; j++)
+                {
+                    int offset = (i * numInputs + j) * 2;
+                    output[offset] = (byte)input[j][i];
+                    output[offset + 1] = (byte)(input[j][i] >> 8);
+                }
+            }
+
+            return output;
         }
     }
 }
