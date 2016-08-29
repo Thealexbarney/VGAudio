@@ -225,16 +225,17 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             RecalculateData();
 
-            BinaryWriter writer = new BinaryWriter(stream);
-
-            stream.Position = 0;
-            GetCstmHeader(writer);
-            stream.Position = HeadChunkOffset;
-            GetInfoChunk(writer);
-            stream.Position = SeekChunkOffset;
-            GetSeekChunk(writer);
-            stream.Position = DataChunkOffset;
-            GetDataChunk(writer);
+            using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, true))
+            {
+                stream.Position = 0;
+                GetCstmHeader(writer);
+                stream.Position = HeadChunkOffset;
+                GetInfoChunk(writer);
+                stream.Position = SeekChunkOffset;
+                GetSeekChunk(writer);
+                stream.Position = DataChunkOffset;
+                GetDataChunk(writer);
+            }
         }
 
         private void GetCstmHeader(BinaryWriter writer)
@@ -402,74 +403,76 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private BcstmStructure ReadBcstmFile(Stream stream, bool readAudioData = true)
         {
-            var reader = new BinaryReader(stream);
-            if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "CSTM")
+            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true))
             {
-                throw new InvalidDataException("File has no CSTM header");
-            }
-
-            var structure = new BcstmStructure();
-
-            reader.Expect((ushort)0xfeff);
-            structure.CstmHeaderLength = reader.ReadInt32();
-            structure.Version = reader.ReadInt16();
-            structure.FileLength = reader.ReadInt32();
-
-            if (stream.Length < structure.FileLength)
-            {
-                throw new InvalidDataException("Actual file length is less than stated length");
-            }
-
-            structure.CstmHeaderSections = reader.ReadInt32();
-
-            for (int i = 0; i < structure.CstmHeaderSections; i++)
-            {
-                int type = reader.ReadInt32();
-                switch (type)
+                if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "CSTM")
                 {
-                    case 0x4000:
-                        structure.InfoChunkOffset = reader.ReadInt32();
-                        structure.InfoChunkLengthCstm = reader.ReadInt32();
-                        break;
-                    case 0x4001:
-                        structure.SeekChunkOffset = reader.ReadInt32();
-                        structure.SeekChunkLengthCstm = reader.ReadInt32();
-                        break;
-                    case 0x4002:
-                        structure.DataChunkOffset = reader.ReadInt32();
-                        structure.DataChunkLengthCstm = reader.ReadInt32();
-                        break;
-                    default:
-                        throw new InvalidDataException($"Unknown section type {type}");
+                    throw new InvalidDataException("File has no CSTM header");
                 }
-            }
 
-            ParseInfoChunk(reader, structure);
-            ParseSeekChunk(reader, structure);
+                var structure = new BcstmStructure();
 
-            if (!readAudioData)
-            {
-                reader.BaseStream.Position = structure.DataChunkOffset + 4;
-                structure.DataChunkLength = reader.ReadInt32();
+                reader.Expect((ushort)0xfeff);
+                structure.CstmHeaderLength = reader.ReadInt32();
+                structure.Version = reader.ReadInt16();
+                structure.FileLength = reader.ReadInt32();
+
+                if (stream.Length < structure.FileLength)
+                {
+                    throw new InvalidDataException("Actual file length is less than stated length");
+                }
+
+                structure.CstmHeaderSections = reader.ReadInt32();
+
+                for (int i = 0; i < structure.CstmHeaderSections; i++)
+                {
+                    int type = reader.ReadInt32();
+                    switch (type)
+                    {
+                        case 0x4000:
+                            structure.InfoChunkOffset = reader.ReadInt32();
+                            structure.InfoChunkLengthCstm = reader.ReadInt32();
+                            break;
+                        case 0x4001:
+                            structure.SeekChunkOffset = reader.ReadInt32();
+                            structure.SeekChunkLengthCstm = reader.ReadInt32();
+                            break;
+                        case 0x4002:
+                            structure.DataChunkOffset = reader.ReadInt32();
+                            structure.DataChunkLengthCstm = reader.ReadInt32();
+                            break;
+                        default:
+                            throw new InvalidDataException($"Unknown section type {type}");
+                    }
+                }
+
+                ParseInfoChunk(reader, structure);
+                ParseSeekChunk(reader, structure);
+
+                if (!readAudioData)
+                {
+                    reader.BaseStream.Position = structure.DataChunkOffset + 4;
+                    structure.DataChunkLength = reader.ReadInt32();
+                    return structure;
+                }
+
+                Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
+                Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
+
+                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+                if (structure.Looping)
+                {
+                    AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+                }
+                AudioStream.Tracks = structure.Tracks;
+                Configuration.IncludeTrackInformation = structure.IncludeTracks;
+                Configuration.InfoPart1Extra = structure.InfoPart1Extra;
+                Version = structure.Version;
+
+                ParseDataChunk(reader, structure);
+
                 return structure;
             }
-
-            Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
-            Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
-
-            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
-            if (structure.Looping)
-            {
-                AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
-            }
-            AudioStream.Tracks = structure.Tracks;
-            Configuration.IncludeTrackInformation = structure.IncludeTracks;
-            Configuration.InfoPart1Extra = structure.InfoPart1Extra;
-            Version = structure.Version;
-
-            ParseDataChunk(reader, structure);
-
-            return structure;
         }
 
         private static void ParseInfoChunk(BinaryReader reader, BcstmStructure structure)

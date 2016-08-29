@@ -204,16 +204,17 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             RecalculateData();
 
-            BinaryWriter writer = new BinaryWriterBE(stream);
-
-            stream.Position = 0;
-            GetRstmHeader(writer);
-            stream.Position = HeadChunkOffset;
-            GetHeadChunk(writer);
-            stream.Position = AdpcChunkOffset;
-            GetAdpcChunk(writer);
-            stream.Position = DataChunkOffset;
-            GetDataChunk(writer);
+            using (BinaryWriter writer = new BinaryWriterBE(stream, Encoding.UTF8, true))
+            {
+                stream.Position = 0;
+                GetRstmHeader(writer);
+                stream.Position = HeadChunkOffset;
+                GetHeadChunk(writer);
+                stream.Position = AdpcChunkOffset;
+                GetAdpcChunk(writer);
+                stream.Position = DataChunkOffset;
+                GetDataChunk(writer);
+            }
         }
 
         private void GetRstmHeader(BinaryWriter writer)
@@ -358,61 +359,63 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
         {
-            BinaryReader reader = new BinaryReaderBE(stream);
-            if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "RSTM")
+            using (BinaryReader reader = new BinaryReaderBE(stream, Encoding.UTF8, true))
             {
-                throw new InvalidDataException("File has no RSTM header");
-            }
+                if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "RSTM")
+                {
+                    throw new InvalidDataException("File has no RSTM header");
+                }
 
-            var structure = new BrstmStructure();
+                var structure = new BrstmStructure();
 
-            reader.Expect((ushort)0xfeff);
-            structure.Version = reader.ReadInt16();
-            structure.FileLength = reader.ReadInt32();
+                reader.Expect((ushort)0xfeff);
+                structure.Version = reader.ReadInt16();
+                structure.FileLength = reader.ReadInt32();
 
-            if (stream.Length < structure.FileLength)
-            {
-                throw new InvalidDataException("Actual file length is less than stated length");
-            }
+                if (stream.Length < structure.FileLength)
+                {
+                    throw new InvalidDataException("Actual file length is less than stated length");
+                }
 
-            structure.RstmHeaderLength = reader.ReadInt16();
-            structure.RstmHeaderSections = reader.ReadInt16();
+                structure.RstmHeaderLength = reader.ReadInt16();
+                structure.RstmHeaderSections = reader.ReadInt16();
 
-            structure.HeadChunkOffset = reader.ReadInt32();
-            structure.HeadChunkLengthRstm = reader.ReadInt32();
-            structure.AdpcChunkOffset = reader.ReadInt32();
-            structure.AdpcChunkLengthRstm = reader.ReadInt32();
-            structure.DataChunkOffset = reader.ReadInt32();
-            structure.DataChunkLengthRstm = reader.ReadInt32();
+                structure.HeadChunkOffset = reader.ReadInt32();
+                structure.HeadChunkLengthRstm = reader.ReadInt32();
+                structure.AdpcChunkOffset = reader.ReadInt32();
+                structure.AdpcChunkLengthRstm = reader.ReadInt32();
+                structure.DataChunkOffset = reader.ReadInt32();
+                structure.DataChunkLengthRstm = reader.ReadInt32();
 
-            reader.BaseStream.Position = structure.HeadChunkOffset;
-            ParseHeadChunk(reader, structure);
+                reader.BaseStream.Position = structure.HeadChunkOffset;
+                ParseHeadChunk(reader, structure);
 
-            Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
-            Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
-            Configuration.TrackType = structure.HeaderType;
+                Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
+                Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
+                Configuration.TrackType = structure.HeaderType;
 
-            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
-            if (structure.Looping)
-            {
-                AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
-            }
-            AudioStream.Tracks = structure.Tracks;
+                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+                if (structure.Looping)
+                {
+                    AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+                }
+                AudioStream.Tracks = structure.Tracks;
 
-            ParseAdpcChunk(reader, structure);
+                ParseAdpcChunk(reader, structure);
 
-            if (!readAudioData)
-            {
-                reader.BaseStream.Position = structure.DataChunkOffset + 4;
-                structure.DataChunkLength = reader.ReadInt32();
+                if (!readAudioData)
+                {
+                    reader.BaseStream.Position = structure.DataChunkOffset + 4;
+                    structure.DataChunkLength = reader.ReadInt32();
+                    return structure;
+                }
+
+                ParseDataChunk(reader, structure);
+
+                Configuration.SeekTableType = structure.SeekTableType;
+
                 return structure;
             }
-
-            ParseDataChunk(reader, structure);
-
-            Configuration.SeekTableType = structure.SeekTableType;
-
-            return structure;
         }
 
         private static void ParseHeadChunk(BinaryReader reader, BrstmStructure structure)

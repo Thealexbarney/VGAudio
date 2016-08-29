@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using static DspAdpcm.Lib.Helpers;
 
 namespace DspAdpcm.Lib.Adpcm.Formats
@@ -166,13 +167,14 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             RecalculateData();
 
-            BinaryWriter writer = new BinaryWriterBE(stream);
+            using (BinaryWriter writer = new BinaryWriterBE(stream, Encoding.UTF8, true))
+            {
+                stream.Position = 0;
+                GetHeader(writer);
+                stream.Position = HeaderSize;
 
-            stream.Position = 0;
-            GetHeader(writer);
-            stream.Position = HeaderSize;
-
-            stream.Write(AudioChannel.GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
+                stream.Write(AudioChannel.GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
+            }
         }
 
         private void GetHeader(BinaryWriter writer)
@@ -197,29 +199,29 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private DspStructure ReadDspFile(Stream stream, bool readAudioData = true)
         {
-            BinaryReader reader = new BinaryReaderBE(stream);
-
-            var structure = new DspStructure();
-
-            ParseHeader(reader, structure);
-
-            if (!readAudioData)
+            using (BinaryReader reader = new BinaryReaderBE(stream, Encoding.UTF8, true))
             {
+                var structure = new DspStructure();
+
+                ParseHeader(reader, structure);
+
+                if (!readAudioData)
+                {
+                    return structure;
+                }
+
+                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+
+                if (structure.Looping)
+                {
+                    AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
+                }
+
+                reader.BaseStream.Position = HeaderSize;
+                ParseData(reader, structure);
+
                 return structure;
             }
-
-            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
-
-            if (structure.Looping)
-            {
-                AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
-            }
-
-            reader.BaseStream.Position = HeaderSize;
-            ParseData(reader, structure);
-
-            return structure;
-
         }
 
         private static void ParseHeader(BinaryReader reader, DspStructure structure)

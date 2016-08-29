@@ -117,12 +117,13 @@ namespace DspAdpcm.Lib.Pcm.Formats
                 }
             }
 
-            BinaryWriter writer = new BinaryWriter(stream);
-
-            stream.Position = 0;
-            GetRiffHeader(writer);
-            GetFmtChunk(writer);
-            GetDataChunk(writer);
+            using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, true))
+            {
+                stream.Position = 0;
+                GetRiffHeader(writer);
+                GetFmtChunk(writer);
+                GetDataChunk(writer);
+            }
         }
 
         private void GetRiffHeader(BinaryWriter writer)
@@ -187,39 +188,41 @@ namespace DspAdpcm.Lib.Pcm.Formats
 
         private WaveStructure ReadWaveFile(Stream stream, bool readAudioData = true)
         {
-            var reader = new BinaryReader(stream);
-            var structure = new WaveStructure();
-
-            ParseRiffHeader(reader, structure);
-
-            byte[] chunkId = new byte[4];
-            while (reader.Read(chunkId, 0, 4) == 4)
+            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true))
             {
-                int chunkSize = reader.ReadInt32();
-                if (Encoding.UTF8.GetString(chunkId, 0, 4) == "fmt ")
+                var structure = new WaveStructure();
+
+                ParseRiffHeader(reader, structure);
+
+                byte[] chunkId = new byte[4];
+                while (reader.Read(chunkId, 0, 4) == 4)
                 {
-                    ParseFmtChunk(reader, structure);
-                }
-                else if (Encoding.UTF8.GetString(chunkId, 0, 4) == "data")
-                {
-                    if (!readAudioData)
+                    int chunkSize = reader.ReadInt32();
+                    if (Encoding.UTF8.GetString(chunkId, 0, 4) == "fmt ")
                     {
-                        structure.NumSamples = chunkSize / structure.BytesPerSample / structure.NumChannels;
-                        return structure;
+                        ParseFmtChunk(reader, structure);
                     }
-                    ParseDataChunk(reader, chunkSize, structure);
-                    break;
+                    else if (Encoding.UTF8.GetString(chunkId, 0, 4) == "data")
+                    {
+                        if (!readAudioData)
+                        {
+                            structure.NumSamples = chunkSize / structure.BytesPerSample / structure.NumChannels;
+                            return structure;
+                        }
+                        ParseDataChunk(reader, chunkSize, structure);
+                        break;
+                    }
+                    else
+                        reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
                 }
-                else
-                    reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
-            }
 
-            if (AudioStream.Channels.Count == 0)
-            {
-                throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
-            }
+                if (AudioStream.Channels.Count == 0)
+                {
+                    throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
+                }
 
-            return structure;
+                return structure;
+            }
         }
 
         private static void ParseRiffHeader(BinaryReader reader, WaveStructure structure)

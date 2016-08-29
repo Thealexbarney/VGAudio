@@ -1,11 +1,14 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace DspAdpcm.Lib
 {
     internal class BinaryReaderBE : BinaryReader
     {
         public BinaryReaderBE(Stream input) : base(input) { }
+
+        public BinaryReaderBE(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen) { }
 
         public override short ReadInt16()
         {

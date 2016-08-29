@@ -1,15 +1,15 @@
 ﻿using System.IO;
+using System.Text;
 
 namespace DspAdpcm.Lib
 {
     internal class BinaryWriterBE : BinaryWriter
     {
-        public BinaryWriterBE(Stream input) : base(input)
-        {
-            _buffer = new byte[16];
-        }
+        public BinaryWriterBE(Stream input) : base(input) { }
 
-        private byte[] _buffer;
+        public BinaryWriterBE(Stream output, Encoding encoding, bool leaveOpen) : base(output, encoding, leaveOpen) { }
+
+        private readonly byte[] _buffer = new byte[16];
 
         public override void Write(short value)
         {
