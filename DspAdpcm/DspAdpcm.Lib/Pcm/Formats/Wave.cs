@@ -94,59 +94,51 @@ namespace DspAdpcm.Lib.Pcm.Formats
                 }
             }
 
+            BinaryWriter writer = new BinaryWriter(stream);
+
             stream.Position = 0;
-            GetRiffHeader(stream);
-            GetFmtChunk(stream);
-            GetDataChunk(stream);
+            GetRiffHeader(writer);
+            GetFmtChunk(writer);
+            GetDataChunk(writer);
         }
 
-        private void GetRiffHeader(Stream stream)
+        private void GetRiffHeader(BinaryWriter writer)
         {
-            var header = new BinaryWriter(stream);
-
-            header.WriteASCII("RIFF");
-            header.Write(RiffChunkLength);
-            header.WriteASCII("WAVE");
+            writer.WriteASCII("RIFF");
+            writer.Write(RiffChunkLength);
+            writer.WriteASCII("WAVE");
         }
 
-        private void GetFmtChunk(Stream stream)
+        private void GetFmtChunk(BinaryWriter writer)
         {
-            var chunk = new BinaryWriter(stream);
-
-            chunk.WriteASCII("fmt ");
-            chunk.Write(FmtChunkLength);
-            chunk.Write((short)(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
-            chunk.Write((short)NumChannels);
-            chunk.Write(SampleRate);
-            chunk.Write(BytesPerSecond);
-            chunk.Write((short)BlockAlign);
-            chunk.Write((short)BitDepth);
+            writer.WriteASCII("fmt ");
+            writer.Write(FmtChunkLength);
+            writer.Write((short)(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
+            writer.Write((short)NumChannels);
+            writer.Write(SampleRate);
+            writer.Write(BytesPerSecond);
+            writer.Write((short)BlockAlign);
+            writer.Write((short)BitDepth);
 
             if (NumChannels > 2)
             {
-                chunk.Write((short)22);
-                chunk.Write((short)BitDepth);
-                chunk.Write(GetChannelMask(NumChannels));
-                chunk.Write(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
+                writer.Write((short)22);
+                writer.Write((short)BitDepth);
+                writer.Write(GetChannelMask(NumChannels));
+                writer.Write(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
             }
         }
 
-        private void GetDataChunk(Stream stream)
+        private void GetDataChunk(BinaryWriter writer)
         {
-            var chunk = new BinaryWriter(stream);
-
-            chunk.WriteASCII("data");
-            chunk.Write(DataChunkLength);
-            byte[][] channels = AudioStream.Channels
-                .Select(x =>
-                {
-                    byte[] bytes = new byte[x.AudioData.Length * sizeof(short)];
-                    Buffer.BlockCopy(x.AudioData, 0, bytes, 0, bytes.Length);
-                    return bytes;
-                })
+            writer.WriteASCII("data");
+            writer.Write(DataChunkLength);
+            short[][] channels = AudioStream.Channels
+                .Select(x => x.AudioData)
                 .ToArray();
 
-            channels.Interleave(stream, NumSamples * BytesPerSample, BytesPerSample);
+            var audioData = ShortToInterleavedByte(channels);
+            writer.BaseStream.Write(audioData, 0, audioData.Length);
         }
 
         private static int GetChannelMask(int numChannels)
@@ -305,8 +297,27 @@ namespace DspAdpcm.Lib.Pcm.Formats
             {
                 for (int o = 0; o < numOutputs; o++)
                 {
-                    int j = (i * numOutputs + o) * 2;
-                    output[o][i] = (short)(input[j] | (input[j + 1] << 8));
+                    int offset = (i * numOutputs + o) * 2;
+                    output[o][i] = (short)(input[offset] | (input[offset + 1] << 8));
+                }
+            }
+
+            return output;
+        }
+
+        private byte[] ShortToInterleavedByte(short[][] input)
+        {
+            int numInputs = input.Length;
+            int length = input[0].Length;
+            byte[] output = new byte[numInputs * length * 2];
+
+            for (int i = 0; i < length; i++)
+            {
+                for (int j = 0; j < numInputs; j++)
+                {
+                    int offset = (i * numInputs + j) * 2;
+                    output[offset] = (byte)input[j][i];
+                    output[offset + 1] = (byte)(input[j][i] >> 8);
                 }
             }
 
