@@ -125,6 +125,20 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         }
 
         /// <summary>
+        /// Initializes a new <see cref="Bcstm"/> by parsing an existing
+        /// BCSTM file.
+        /// </summary>
+        /// <param name="file">A <c>byte[]</c> containing 
+        /// the BCSTM file.</param>
+        public Bcstm(byte[] file)
+        {
+            using (var stream = new MemoryStream(file))
+            {
+                ReadBcstmFile(stream);
+            }
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="Bcstm"/> from an <see cref="AdpcmStream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="AdpcmStream"/> used to
@@ -145,6 +159,19 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <param name="configuration">A <see cref="BcstmConfiguration"/>
         /// to use for the <see cref="Bcstm"/></param>
         public Bcstm(Stream stream, BcstmConfiguration configuration) : this(stream)
+        {
+            Configuration = configuration;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Bcstm"/> by parsing an existing
+        /// BCSTM file.
+        /// </summary>
+        /// <param name="file">A <c>byte[]</c> containing 
+        /// the BCSTM file.</param>
+        /// <param name="configuration">A <see cref="BcstmConfiguration"/>
+        /// to use for the <see cref="Bcstm"/></param>
+        public Bcstm(byte[] file, BcstmConfiguration configuration) : this(file)
         {
             Configuration = configuration;
         }

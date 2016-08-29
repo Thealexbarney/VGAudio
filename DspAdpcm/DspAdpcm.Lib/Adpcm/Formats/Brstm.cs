@@ -104,6 +104,20 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         }
 
         /// <summary>
+        /// Initializes a new <see cref="Brstm"/> by parsing an existing
+        /// BRSTM file.
+        /// </summary>
+        /// <param name="file">A <c>byte[]</c> containing 
+        /// the BRSTM file.</param>
+        public Brstm(byte[] file)
+        {
+            using (var stream = new MemoryStream(file))
+            {
+                ReadBrstmFile(stream);
+            }
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="Brstm"/> from an <see cref="AdpcmStream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="AdpcmStream"/> used to
@@ -124,6 +138,19 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// <param name="configuration">A <see cref="BrstmConfiguration"/>
         /// to use for the <see cref="Brstm"/></param>
         public Brstm(Stream stream, BrstmConfiguration configuration) : this(stream)
+        {
+            Configuration = configuration;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Brstm"/> by parsing an existing
+        /// BRSTM file.
+        /// </summary>
+        /// <param name="file">A <c>byte[]</c> containing 
+        /// the BRSTM file.</param>
+        /// <param name="configuration">A <see cref="BrstmConfiguration"/>
+        /// to use for the <see cref="Brstm"/></param>
+        public Brstm(byte[] file, BrstmConfiguration configuration) : this(file)
         {
             Configuration = configuration;
         }
@@ -399,7 +426,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private static void ParseRstmHeader(BinaryReader reader, BrstmStructure structure)
         {
-            reader.Expect((ushort) 0xfeff);
+            reader.Expect((ushort)0xfeff);
             structure.Version = reader.ReadInt16();
             structure.FileLength = reader.ReadInt32();
 

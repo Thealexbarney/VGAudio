@@ -39,6 +39,16 @@ namespace DspAdpcm.Lib.Pcm.Formats
         private int BlockAlign => BytesPerSample * NumChannels;
 
         /// <summary>
+        /// Initializes a new <see cref="Wave"/> from a <see cref="PcmStream"/>
+        /// </summary>
+        /// <param name="stream">The <see cref="PcmStream"/> used to
+        /// create the <see cref="Wave"/></param>
+        public Wave(PcmStream stream)
+        {
+            AudioStream = stream;
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="Wave"/> by parsing an existing
         /// WAVE file.
         /// </summary>
@@ -55,13 +65,17 @@ namespace DspAdpcm.Lib.Pcm.Formats
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Wave"/> from a <see cref="PcmStream"/>
+        /// Initializes a new <see cref="Wave"/> by parsing an existing
+        /// WAVE file.
         /// </summary>
-        /// <param name="stream">The <see cref="PcmStream"/> used to
-        /// create the <see cref="Wave"/></param>
-        public Wave(PcmStream stream)
+        /// <param name="file">A <c>byte[]</c> containing 
+        /// the WAVE file.</param>
+        public Wave(byte[] file)
         {
-            AudioStream = stream;
+            using (var stream = new MemoryStream(file))
+            {
+                ReadWaveFile(stream);
+            }
         }
 
         private Wave() { }
