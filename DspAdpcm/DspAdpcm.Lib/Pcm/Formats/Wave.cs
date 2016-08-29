@@ -25,7 +25,10 @@ namespace DspAdpcm.Lib.Pcm.Formats
         private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
         // ReSharper restore InconsistentNaming
 
-        private int FileLength => 8 + RiffChunkLength;
+        /// <summary>
+        /// The size in bytes of the WAVE file.
+        /// </summary>
+        public int FileLength => 8 + RiffChunkLength;
         private int RiffChunkLength => 4 + 8 + FmtChunkLength + 8 + DataChunkLength;
         private int FmtChunkLength => NumChannels > 2 ? 40 : 16;
         private int DataChunkLength => NumChannels * NumSamples * sizeof(short);
