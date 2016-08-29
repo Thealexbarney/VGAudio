@@ -61,6 +61,26 @@ namespace DspAdpcm.Lib.Pcm.Formats
             AudioStream = stream;
         }
 
+        private Wave() { }
+
+        /// <summary>
+        /// Parses the header of a WAVE file and returns the metadata
+        /// and structure data of that file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the WAVE file. Must be seekable.</param>
+        /// <returns>A <see cref="WaveStructure"/> containing
+        /// the data from the WAVE header.</returns>
+        public static WaveStructure ReadMetadata(Stream stream)
+        {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
+            return new Wave().ReadWaveFile(stream, false);
+        }
+
         /// <summary>
         /// Builds a WAVE file from the current <see cref="AudioStream"/>.
         /// </summary>
@@ -162,7 +182,7 @@ namespace DspAdpcm.Lib.Pcm.Formats
             }
         }
 
-        private void ReadWaveFile(Stream stream)
+        private WaveStructure ReadWaveFile(Stream stream, bool readAudioData = true)
         {
             var reader = new BinaryReader(stream);
             var structure = new WaveStructure();
@@ -179,6 +199,11 @@ namespace DspAdpcm.Lib.Pcm.Formats
                 }
                 else if (Encoding.UTF8.GetString(chunkId, 0, 4) == "data")
                 {
+                    if (!readAudioData)
+                    {
+                        structure.NumSamples = chunkSize / structure.BytesPerSample / structure.NumChannels;
+                        return structure;
+                    }
                     ParseDataChunk(reader, chunkSize, structure);
                     break;
                 }
@@ -190,6 +215,8 @@ namespace DspAdpcm.Lib.Pcm.Formats
             {
                 throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
             }
+
+            return structure;
         }
 
         private static void ParseRiffHeader(BinaryReader reader, WaveStructure structure)
