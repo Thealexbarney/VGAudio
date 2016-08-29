@@ -237,18 +237,35 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     return structure;
                 }
 
-                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
-
-                if (structure.Looping)
-                {
-                    AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
-                }
-
                 reader.BaseStream.Position = HeaderSize;
                 ParseData(reader, structure);
 
+                SetProperties(structure);
+
                 return structure;
             }
+        }
+
+        private void SetProperties(DspStructure structure)
+        {
+            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+
+            if (structure.Looping)
+            {
+                AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
+            }
+
+            var channel = new AdpcmChannel(structure.NumSamples, structure.AudioData)
+            {
+                Coefs = structure.Channels[0].Coefs,
+                Gain = structure.Channels[0].Gain,
+                Hist1 = structure.Channels[0].Hist1,
+                Hist2 = structure.Channels[0].Hist2
+            };
+            channel.SetLoopContext(structure.Channels[0].LoopPredScale, structure.Channels[0].LoopHist1,
+                    structure.Channels[0].LoopHist2);
+
+            AudioStream.Channels.Add(channel);
         }
 
         private static void ParseHeader(BinaryReader reader, DspStructure structure)
@@ -292,21 +309,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
         }
 
-        private void ParseData(BinaryReader reader, DspStructure structure)
+        private static void ParseData(BinaryReader reader, DspStructure structure)
         {
-            byte[] audio = reader.ReadBytes(GetBytesForAdpcmSamples(structure.NumSamples));
-
-            var channel = new AdpcmChannel(structure.NumSamples, audio)
-            {
-                Coefs = structure.Channels[0].Coefs,
-                Gain = structure.Channels[0].Gain,
-                Hist1 = structure.Channels[0].Hist1,
-                Hist2 = structure.Channels[0].Hist2
-            };
-            channel.SetLoopContext(structure.Channels[0].LoopPredScale, structure.Channels[0].LoopHist1,
-                    structure.Channels[0].LoopHist2);
-
-            AudioStream.Channels.Add(channel);
+            structure.AudioData = reader.ReadBytes(GetBytesForAdpcmSamples(structure.NumSamples));
         }
 
         /// <summary>

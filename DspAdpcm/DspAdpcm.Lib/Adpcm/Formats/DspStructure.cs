@@ -56,5 +56,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// The end loop point in samples.
         /// </summary>
         public int LoopEnd => GetSampleFromNibble(EndAddress);
+        internal byte[] AudioData { get; set; }
     }
 }

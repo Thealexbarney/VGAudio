@@ -89,6 +89,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// from throughout the audio stream.
         /// </summary>
         public short[][] SeekTable { get; set; }
+        internal byte[][] AudioData { get; set; }
     }
 
     /// <summary>

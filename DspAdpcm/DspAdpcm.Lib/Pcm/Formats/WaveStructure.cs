@@ -63,5 +63,6 @@ namespace DspAdpcm.Lib.Pcm.Formats
         /// The number of samples in the audio file.
         /// </summary>
         public int NumSamples { get; set; }
+        internal short[][] AudioData { get; set; }
     }
 }

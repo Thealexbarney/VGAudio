@@ -398,29 +398,43 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 ParseRstmHeader(reader, structure);
                 ParseHeadChunk(reader, structure);
                 ParseAdpcChunk(reader, structure);
+                ParseDataChunk(reader, structure, readAudioData);
 
-                if (!readAudioData)
-                {
-                    reader.BaseStream.Position = structure.DataChunkOffset + 4;
-                    structure.DataChunkLength = reader.ReadInt32();
-                    return structure;
-                }
-
-                Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
-                Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
-                Configuration.TrackType = structure.HeaderType;
-                Configuration.SeekTableType = structure.SeekTableType;
-
-                AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
-                if (structure.Looping)
-                {
-                    AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
-                }
-                AudioStream.Tracks = structure.Tracks;
-
-                ParseDataChunk(reader, structure);
+                if (readAudioData)
+                    SetProperties(structure);
 
                 return structure;
+            }
+        }
+
+        private void SetProperties(BrstmStructure structure)
+        {
+            Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
+            Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
+            Configuration.TrackType = structure.HeaderType;
+            Configuration.SeekTableType = structure.SeekTableType;
+
+            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+            if (structure.Looping)
+            {
+                AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+            }
+            AudioStream.Tracks = structure.Tracks;
+
+            for (int c = 0; c < structure.NumChannels; c++)
+            {
+                var channel = new AdpcmChannel(structure.NumSamples, structure.AudioData[c])
+                {
+                    Coefs = structure.Channels[c].Coefs,
+                    Gain = structure.Channels[c].Gain,
+                    Hist1 = structure.Channels[c].Hist1,
+                    Hist2 = structure.Channels[c].Hist2,
+                    SeekTable = structure.SeekTable?[c],
+                    SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry
+                };
+                channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
+                    structure.Channels[c].LoopHist2);
+                AudioStream.Channels.Add(channel);
             }
         }
 
@@ -617,7 +631,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 .DeInterleave(2, structure.NumChannels);
         }
 
-        private void ParseDataChunk(BinaryReader reader, BrstmStructure structure)
+        private static void ParseDataChunk(BinaryReader reader, BrstmStructure structure, bool readAudioData)
         {
             reader.BaseStream.Position = structure.DataChunkOffset;
 
@@ -632,27 +646,13 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 throw new InvalidDataException("DATA chunk length in RSTM header doesn't match length in DATA header");
             }
 
+            if (!readAudioData) return;
+
             reader.BaseStream.Position = structure.AudioDataOffset;
             int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
 
-            byte[][] deInterleavedAudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
+            structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
                 structure.NumChannels);
-
-            for (int c = 0; c < structure.NumChannels; c++)
-            {
-                var channel = new AdpcmChannel(structure.NumSamples, deInterleavedAudioData[c])
-                {
-                    Coefs = structure.Channels[c].Coefs,
-                    Gain = structure.Channels[c].Gain,
-                    Hist1 = structure.Channels[c].Hist1,
-                    Hist2 = structure.Channels[c].Hist2,
-                    SeekTable = structure.SeekTable?[c],
-                    SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry
-                };
-                channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
-                    structure.Channels[c].LoopHist2);
-                AudioStream.Channels.Add(channel);
-            }
         }
 
         /// <summary>

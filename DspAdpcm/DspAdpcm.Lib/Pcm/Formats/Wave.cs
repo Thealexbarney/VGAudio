@@ -230,12 +230,24 @@ namespace DspAdpcm.Lib.Pcm.Formats
                         reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
                 }
 
-                if (AudioStream.Channels.Count == 0)
+                if ((structure.AudioData?.Length ?? 0) == 0)
                 {
                     throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
                 }
 
+                SetProperties(structure);
+
                 return structure;
+            }
+        }
+
+        private void SetProperties(WaveStructure structure)
+        {
+            AudioStream = new PcmStream(structure.NumSamples, structure.SampleRate);
+
+            for (int i = 0; i < structure.NumChannels; i++)
+            {
+                AudioStream.Channels.Add(new PcmChannel(structure.NumSamples, structure.AudioData[i]));
             }
         }
 
@@ -305,7 +317,7 @@ namespace DspAdpcm.Lib.Pcm.Formats
             }
         }
 
-        private void ParseDataChunk(BinaryReader reader, int chunkSize, WaveStructure structure)
+        private static void ParseDataChunk(BinaryReader reader, int chunkSize, WaveStructure structure)
         {
             structure.NumSamples = chunkSize / structure.BytesPerSample / structure.NumChannels;
 
@@ -315,23 +327,16 @@ namespace DspAdpcm.Lib.Pcm.Formats
                 throw new InvalidDataException($"{extraBytes} extra bytes at end of audio data chunk");
             }
 
-            AudioStream = new PcmStream(structure.NumSamples, structure.SampleRate);
-
             byte[] interleavedAudio = reader.ReadBytes(chunkSize);
             if (interleavedAudio.Length != chunkSize)
             {
                 throw new InvalidDataException("Incomplete Wave file");
             }
 
-            var samples = InterleavedByteToShort(interleavedAudio, structure.NumChannels);
-
-            for (int i = 0; i < structure.NumChannels; i++)
-            {
-                AudioStream.Channels.Add(new PcmChannel(structure.NumSamples, samples[i]));
-            }
+            structure.AudioData = InterleavedByteToShort(interleavedAudio, structure.NumChannels);
         }
 
-        private short[][] InterleavedByteToShort(byte[] input, int numOutputs)
+        private static short[][] InterleavedByteToShort(byte[] input, int numOutputs)
         {
             int numItems = input.Length / 2 / numOutputs;
             short[][] output = new short[numOutputs][];
@@ -352,7 +357,7 @@ namespace DspAdpcm.Lib.Pcm.Formats
             return output;
         }
 
-        private byte[] ShortToInterleavedByte(short[][] input)
+        private static byte[] ShortToInterleavedByte(short[][] input)
         {
             int numInputs = input.Length;
             int length = input[0].Length;
