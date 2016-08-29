@@ -412,40 +412,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
                 var structure = new BcstmStructure();
 
-                reader.Expect((ushort)0xfeff);
-                structure.CstmHeaderLength = reader.ReadInt32();
-                structure.Version = reader.ReadInt16();
-                structure.FileLength = reader.ReadInt32();
-
-                if (stream.Length < structure.FileLength)
-                {
-                    throw new InvalidDataException("Actual file length is less than stated length");
-                }
-
-                structure.CstmHeaderSections = reader.ReadInt32();
-
-                for (int i = 0; i < structure.CstmHeaderSections; i++)
-                {
-                    int type = reader.ReadInt32();
-                    switch (type)
-                    {
-                        case 0x4000:
-                            structure.InfoChunkOffset = reader.ReadInt32();
-                            structure.InfoChunkLengthCstm = reader.ReadInt32();
-                            break;
-                        case 0x4001:
-                            structure.SeekChunkOffset = reader.ReadInt32();
-                            structure.SeekChunkLengthCstm = reader.ReadInt32();
-                            break;
-                        case 0x4002:
-                            structure.DataChunkOffset = reader.ReadInt32();
-                            structure.DataChunkLengthCstm = reader.ReadInt32();
-                            break;
-                        default:
-                            throw new InvalidDataException($"Unknown section type {type}");
-                    }
-                }
-
+                ParseCstmHeader(reader, structure);
                 ParseInfoChunk(reader, structure);
                 ParseSeekChunk(reader, structure);
 
@@ -458,6 +425,9 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
                 Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
                 Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
+                Configuration.IncludeTrackInformation = structure.IncludeTracks;
+                Configuration.InfoPart1Extra = structure.InfoPart1Extra;
+                Version = structure.Version;
 
                 AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
                 if (structure.Looping)
@@ -465,13 +435,47 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
                 }
                 AudioStream.Tracks = structure.Tracks;
-                Configuration.IncludeTrackInformation = structure.IncludeTracks;
-                Configuration.InfoPart1Extra = structure.InfoPart1Extra;
-                Version = structure.Version;
 
                 ParseDataChunk(reader, structure);
 
                 return structure;
+            }
+        }
+
+        private static void ParseCstmHeader(BinaryReader reader, BcstmStructure structure)
+        {
+            reader.Expect((ushort) 0xfeff);
+            structure.CstmHeaderLength = reader.ReadInt32();
+            structure.Version = reader.ReadInt16();
+            structure.FileLength = reader.ReadInt32();
+
+            if (reader.BaseStream.Length < structure.FileLength)
+            {
+                throw new InvalidDataException("Actual file length is less than stated length");
+            }
+
+            structure.CstmHeaderSections = reader.ReadInt32();
+
+            for (int i = 0; i < structure.CstmHeaderSections; i++)
+            {
+                int type = reader.ReadInt32();
+                switch (type)
+                {
+                    case 0x4000:
+                        structure.InfoChunkOffset = reader.ReadInt32();
+                        structure.InfoChunkLengthCstm = reader.ReadInt32();
+                        break;
+                    case 0x4001:
+                        structure.SeekChunkOffset = reader.ReadInt32();
+                        structure.SeekChunkLengthCstm = reader.ReadInt32();
+                        break;
+                    case 0x4002:
+                        structure.DataChunkOffset = reader.ReadInt32();
+                        structure.DataChunkLengthCstm = reader.ReadInt32();
+                        break;
+                    default:
+                        throw new InvalidDataException($"Unknown section type {type}");
+                }
             }
         }
 
