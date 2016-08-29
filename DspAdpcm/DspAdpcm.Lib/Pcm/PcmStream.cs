@@ -16,14 +16,8 @@ namespace DspAdpcm.Lib.Pcm
         /// The sample rate of the <see cref="PcmStream"/> in Hz
         /// </summary>
         public int SampleRate { get; set; }
-        private int BitDepth { get; set; } = 16;
 
         internal IList<PcmChannel> Channels { get; set; } = new List<PcmChannel>();
-
-        /// <summary>
-        /// Creates an empty <see cref="PcmStream"/>.
-        /// </summary>
-        public PcmStream() { }
 
         /// <summary>
         /// Creates an empty <see cref="PcmStream"/> and sets the
