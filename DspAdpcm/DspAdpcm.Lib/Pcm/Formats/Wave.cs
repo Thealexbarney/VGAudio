@@ -283,14 +283,34 @@ namespace DspAdpcm.Lib.Pcm.Formats
             {
                 throw new InvalidDataException("Incomplete Wave file");
             }
-            byte[][] deinterleavedAudio = interleavedAudio.DeInterleave(structure.BlockAlign / structure.NumChannels, structure.NumChannels);
+
+            var samples = InterleavedByteToShort(interleavedAudio, structure.NumChannels);
 
             for (int i = 0; i < structure.NumChannels; i++)
             {
-                var samples = new short[structure.NumSamples];
-                Buffer.BlockCopy(deinterleavedAudio[i], 0, samples, 0, deinterleavedAudio[i].Length);
-                AudioStream.Channels.Add(new PcmChannel(structure.NumSamples, samples));
+                AudioStream.Channels.Add(new PcmChannel(structure.NumSamples, samples[i]));
             }
+        }
+
+        private short[][] InterleavedByteToShort(byte[] input, int numOutputs)
+        {
+            int numItems = input.Length / 2 / numOutputs;
+            short[][] output = new short[numOutputs][];
+            for (int i = 0; i < numOutputs; i++)
+            {
+                output[i] = new short[numItems];
+            }
+
+            for (int i = 0; i < numItems; i++)
+            {
+                for (int o = 0; o < numOutputs; o++)
+                {
+                    int j = (i * numOutputs + o) * 2;
+                    output[o][i] = (short)(input[j] | (input[j + 1] << 8));
+                }
+            }
+
+            return output;
         }
     }
 }
