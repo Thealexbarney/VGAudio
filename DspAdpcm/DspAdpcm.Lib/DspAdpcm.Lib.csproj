@@ -46,8 +46,10 @@
     <Compile Include="Adpcm\Decode.cs" />
     <Compile Include="Adpcm\Encode.cs" />
     <Compile Include="Adpcm\Formats\BCFstm.cs" />
+    <Compile Include="Adpcm\Formats\Bfstm.cs" />
     <Compile Include="Adpcm\Formats\Bcstm.cs" />
     <Compile Include="Adpcm\Formats\BCFstmStructure.cs" />
+    <Compile Include="Adpcm\Formats\BfstmStructure.cs" />
     <Compile Include="Adpcm\Formats\BcstmStructure.cs" />
     <Compile Include="Adpcm\Formats\Brstm.cs" />
     <Compile Include="Adpcm\Formats\BrstmStructure.cs" />

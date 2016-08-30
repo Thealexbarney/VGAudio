@@ -4,49 +4,49 @@ using System.IO;
 namespace DspAdpcm.Lib.Adpcm.Formats
 {
     /// <summary>
-    /// Represents a BCSTM file.
+    /// Represents a BFSTM file.
     /// </summary>
-    public class Bcstm
+    public class Bfstm
     {
         private BCFstm BCFstm { get; set; }
 
         /// <summary>
-        /// The underlying <see cref="AdpcmStream"/> used to build the BCSTM file.
+        /// The underlying <see cref="AdpcmStream"/> used to build the BFSTM file.
         /// </summary>
         public AdpcmStream AudioStream => BCFstm.AudioStream;
 
         /// <summary>
-        /// Contains various settings used when building the BCSTM file.
+        /// Contains various settings used when building the BFSTM file.
         /// </summary>
-        public BcstmConfiguration Configuration { get; } = new BcstmConfiguration();
+        public BfstmConfiguration Configuration { get; } = new BfstmConfiguration();
 
         /// <summary>
-        /// The size in bytes of the BCSTM file.
+        /// The size in bytes of the BFSTM file.
         /// </summary>
         public int FileLength => BCFstm.FileLength;
 
         /// <summary>
-        /// Initializes a new <see cref="Bcstm"/> from an <see cref="AdpcmStream"/>.
+        /// Initializes a new <see cref="Bfstm"/> from an <see cref="AdpcmStream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="AdpcmStream"/> used to
-        /// create the <see cref="Bcstm"/>.</param>
-        public Bcstm(AdpcmStream stream)
+        /// create the <see cref="Bfstm"/>.</param>
+        public Bfstm(AdpcmStream stream)
         {
             if (stream.Channels.Count < 1)
             {
                 throw new InvalidDataException("Stream must have at least one channel ");
             }
 
-            BCFstm = new BCFstm {AudioStream = stream};
+            BCFstm = new BCFstm { AudioStream = stream };
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Bcstm"/> by parsing an existing
-        /// BCSTM file.
+        /// Initializes a new <see cref="Bfstm"/> by parsing an existing
+        /// BFSTM file.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
-        /// the BCSTM file. Must be seekable.</param>
-        public Bcstm(Stream stream)
+        /// the BFSTM file. Must be seekable.</param>
+        public Bfstm(Stream stream)
         {
             if (!stream.CanSeek)
             {
@@ -54,86 +54,86 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
 
             BCFstm = new BCFstm();
-            BCFstm.ReadBcstmFile(stream);
+            BCFstm.ReadBfstmFile(stream);
             Configuration.Configuration = BCFstm.Configuration;
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Bcstm"/> by parsing an existing
-        /// BCSTM file.
+        /// Initializes a new <see cref="Bfstm"/> by parsing an existing
+        /// BFSTM file.
         /// </summary>
         /// <param name="file">A <c>byte[]</c> containing 
-        /// the BCSTM file.</param>
-        public Bcstm(byte[] file)
+        /// the BFSTM file.</param>
+        public Bfstm(byte[] file)
         {
             using (var stream = new MemoryStream(file))
             {
                 BCFstm = new BCFstm();
-                BCFstm.ReadBcstmFile(stream);
+                BCFstm.ReadBfstmFile(stream);
                 Configuration.Configuration = BCFstm.Configuration;
             }
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Bcstm"/> from an <see cref="AdpcmStream"/>.
+        /// Initializes a new <see cref="Bfstm"/> from an <see cref="AdpcmStream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="AdpcmStream"/> used to
-        /// create the <see cref="Bcstm"/>.</param>
-        /// <param name="configuration">A <see cref="BcstmConfiguration"/>
-        /// to use for the <see cref="Bcstm"/></param>
-        public Bcstm(AdpcmStream stream, BcstmConfiguration configuration) : this(stream)
+        /// create the <see cref="Bfstm"/>.</param>
+        /// <param name="configuration">A <see cref="BfstmConfiguration"/>
+        /// to use for the <see cref="Bfstm"/></param>
+        public Bfstm(AdpcmStream stream, BfstmConfiguration configuration) : this(stream)
         {
             Configuration = configuration;
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Bcstm"/> by parsing an existing
-        /// BCSTM file.
+        /// Initializes a new <see cref="Bfstm"/> by parsing an existing
+        /// BFSTM file.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
-        /// the BCSTM file. Must be seekable.</param>
-        /// <param name="configuration">A <see cref="BcstmConfiguration"/>
-        /// to use for the <see cref="Bcstm"/></param>
-        public Bcstm(Stream stream, BcstmConfiguration configuration) : this(stream)
+        /// the BFSTM file. Must be seekable.</param>
+        /// <param name="configuration">A <see cref="BfstmConfiguration"/>
+        /// to use for the <see cref="Bfstm"/></param>
+        public Bfstm(Stream stream, BfstmConfiguration configuration) : this(stream)
         {
             Configuration = configuration;
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Bcstm"/> by parsing an existing
-        /// BCSTM file.
+        /// Initializes a new <see cref="Bfstm"/> by parsing an existing
+        /// BFSTM file.
         /// </summary>
         /// <param name="file">A <c>byte[]</c> containing 
-        /// the BCSTM file.</param>
-        /// <param name="configuration">A <see cref="BcstmConfiguration"/>
-        /// to use for the <see cref="Bcstm"/></param>
-        public Bcstm(byte[] file, BcstmConfiguration configuration) : this(file)
+        /// the BFSTM file.</param>
+        /// <param name="configuration">A <see cref="BfstmConfiguration"/>
+        /// to use for the <see cref="Bfstm"/></param>
+        public Bfstm(byte[] file, BfstmConfiguration configuration) : this(file)
         {
             Configuration = configuration;
         }
 
         /// <summary>
-        /// Parses the header of a BCSTM file and returns the metadata
+        /// Parses the header of a BFSTM file and returns the metadata
         /// and structure data of that file.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
-        /// the BCSTM file. Must be seekable.</param>
-        /// <returns>A <see cref="BcstmStructure"/> containing
-        /// the data from the BCSTM header.</returns>
-        public static BcstmStructure ReadMetadata(Stream stream)
+        /// the BFSTM file. Must be seekable.</param>
+        /// <returns>A <see cref="BCFstmStructure"/> containing
+        /// the data from the BFSTM header.</returns>
+        public static BfstmStructure ReadMetadata(Stream stream)
         {
             if (!stream.CanSeek)
             {
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            return new BCFstm().ReadBcstmFile(stream, false);
+            return new BCFstm().ReadBfstmFile(stream, false);
         }
 
         /// <summary>
-        /// Builds a BCSTM file from the current <see cref="AudioStream"/>.
+        /// Builds a BFSTM file from the current <see cref="AudioStream"/>.
         /// </summary>
-        /// <returns>A BCSTM file</returns>
+        /// <returns>A BFSTM file.</returns>
         public byte[] GetFile()
         {
             var file = new byte[FileLength];
@@ -143,25 +143,29 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         }
 
         /// <summary>
-        /// Writes the BCSTM file to a <see cref="Stream"/>.
+        /// Writes the BFSTM file to a <see cref="Stream"/>.
         /// The file is written starting at the beginning
         /// of the <see cref="Stream"/>.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to write the
-        /// BCSTM to.</param>
+        /// BFSTM file to.</param>
         public void WriteFile(Stream stream)
         {
             BCFstm.Configuration = Configuration.Configuration;
-            BCFstm.WriteBCFstmFile(stream, BCFstm.BCFstmType.Bcstm);
+            BCFstm.WriteBCFstmFile(stream, BCFstm.BCFstmType.Bfstm);
         }
     }
 
     /// <summary>
-    /// Contains the options used to build the BCSTM file.
+    /// Contains the options used to build the BFSTM file.
     /// </summary>
-    public class BcstmConfiguration
+    public class BfstmConfiguration
     {
-        internal BCFstmConfiguration Configuration { get; set; } = new BCFstmConfiguration();
+        internal BCFstmConfiguration Configuration { get; set; } = new BCFstmConfiguration()
+        {
+            IncludeTrackInformation = false,
+            InfoPart1Extra = true
+        };
 
         /// <summary>
         /// <inheritdoc cref="B_stmConfiguration.RecalculateSeekTable"/>
@@ -206,28 +210,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         {
             get { return Configuration.LoopPointAlignment; }
             set { Configuration.LoopPointAlignment = value; }
-        }
-
-        /// <summary>
-        /// If <c>true</c>, include track information in the BCSTM
-        /// header. Default is <c>true</c>.
-        /// </summary>
-        public bool IncludeTrackInformation
-        {
-            get { return Configuration.IncludeTrackInformation; }
-            set { Configuration.IncludeTrackInformation = value; }
-        }
-
-        /// <summary>
-        /// If <c>true</c>, include an extra chunk in the header
-        /// after the stream info and before the track offset table.
-        /// The purpose of this chunk is unknown.
-        /// Default is <c>false</c>.
-        /// </summary>
-        public bool InfoPart1Extra
-        {
-            get { return Configuration.InfoPart1Extra; }
-            set { Configuration.InfoPart1Extra = value; }
         }
     }
 }

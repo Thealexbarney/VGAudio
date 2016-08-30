@@ -8,18 +8,12 @@ using static DspAdpcm.Lib.Helpers;
 namespace DspAdpcm.Lib.Adpcm.Formats
 {
     /// <summary>
-    /// Represents a BCSTM file.
-    /// </summary>
-    public class BCFstm
+    /// Represents a BCSTM or BFSTM file.
+    /// </summary> 
+    internal class BCFstm
     {
-        /// <summary>
-        /// The underlying <see cref="AdpcmStream"/> used to build the BCSTM file.
-        /// </summary>
         public AdpcmStream AudioStream { get; set; }
 
-        /// <summary>
-        /// Contains various settings used when building the BCSTM file.
-        /// </summary>
         public BCFstmConfiguration Configuration { get; internal set; } = new BCFstmConfiguration();
 
         private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
@@ -93,8 +87,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// </summary>
         public int FileLength => HeaderLength + InfoChunkLength + SeekChunkLength + DataChunkLength;
 
-        internal BCFstm() { }
-
         private void RecalculateData()
         {
             var seekTableToCalculate = Configuration.RecalculateSeekTable
@@ -131,7 +123,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
 
             Endianness endianness = type == BCFstmType.Bcstm ? Endianness.LittleEndian : Endianness.BigEndian;
-            
+
             RecalculateData();
 
             using (BinaryWriter writer = endianness == Endianness.LittleEndian ?
@@ -154,8 +146,16 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             writer.WriteUTF8(type == BCFstmType.Bcstm ? "CSTM" : "FSTM");
             writer.Write((ushort)0xfeff); //Endianness
             writer.Write((short)HeaderLength);
-            writer.Write((short)0);
-            writer.Write((short)Version);
+            if (type == BCFstmType.Bcstm)
+            {
+                writer.Write((short)0);
+                writer.Write((short)Version);
+            }
+            if (type == BCFstmType.Bfstm)
+            {
+                writer.Write((short)3);
+                writer.Write((short)0);
+            }
             writer.Write(FileLength);
 
             writer.Write((short)3); // NumEntries
@@ -338,6 +338,29 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 ParseHeader(reader, structure);
                 ParseInfoChunk(reader, structure);
                 ParseSeekChunk(reader, structure, Endianness.LittleEndian);
+                ParseDataChunk(reader, structure, readAudioData);
+
+                if (readAudioData)
+                    SetProperties(structure);
+
+                return structure;
+            }
+        }
+
+        internal BfstmStructure ReadBfstmFile(Stream stream, bool readAudioData = true)
+        {
+            using (BinaryReader reader = new BinaryReaderBE(stream, Encoding.UTF8, true))
+            {
+                if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "FSTM")
+                {
+                    throw new InvalidDataException("File has no FSTM header");
+                }
+
+                BfstmStructure structure = new BfstmStructure();
+
+                ParseHeader(reader, structure);
+                ParseInfoChunk(reader, structure);
+                ParseSeekChunk(reader, structure, Endianness.BigEndian);
                 ParseDataChunk(reader, structure, readAudioData);
 
                 if (readAudioData)
@@ -610,21 +633,21 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             Bcstm,
             Bfstm
         }
+    }
 
-        public class BCFstmConfiguration : B_stmConfiguration
-        {
-            /// <summary>
-            /// If <c>true</c>, include track information in the BCSTM
-            /// header. Default is <c>true</c>.
-            /// </summary>
-            public bool IncludeTrackInformation { get; set; } = true;
-            /// <summary>
-            /// If <c>true</c>, include an extra chunk in the header
-            /// after the stream info and before the track offset table.
-            /// The purpose of this chunk is unknown.
-            /// Default is <c>false</c>.
-            /// </summary>
-            public bool InfoPart1Extra { get; set; }
-        }
+    internal class BCFstmConfiguration : B_stmConfiguration
+    {
+        /// <summary>
+        /// If <c>true</c>, include track information in the BCSTM
+        /// header. Default is <c>true</c>.
+        /// </summary>
+        public bool IncludeTrackInformation { get; set; } = true;
+        /// <summary>
+        /// If <c>true</c>, include an extra chunk in the header
+        /// after the stream info and before the track offset table.
+        /// The purpose of this chunk is unknown.
+        /// Default is <c>false</c>.
+        /// </summary>
+        public bool InfoPart1Extra { get; set; }
     }
 }
