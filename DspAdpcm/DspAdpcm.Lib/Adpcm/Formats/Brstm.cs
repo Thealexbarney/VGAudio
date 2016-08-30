@@ -349,7 +349,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 AdpcmChannel channel = AudioStream.Channels[i];
                 writer.Write(0x01000000);
                 writer.Write(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
-                writer.Write(channel.Coefs.ToFlippedBytes());
+                writer.Write(channel.Coefs.ToByteArray(Endianness.BigEndian));
                 writer.Write(channel.Gain);
                 writer.Write((short)channel.GetAudioData[0]);
                 writer.Write(channel.Hist1);
@@ -366,7 +366,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             writer.WriteASCII("ADPC");
             writer.Write(AdpcChunkLength);
 
-            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries);
+            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, Endianness.BigEndian);
 
             writer.Write(table);
         }
@@ -627,7 +627,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             byte[] tableBytes = reader.ReadBytes(structure.SeekTableLength);
 
-            structure.SeekTable = tableBytes.ToShortArrayFlippedBytes()
+            structure.SeekTable = tableBytes.ToShortArray(Endianness.BigEndian)
                 .DeInterleave(2, structure.NumChannels);
         }
 

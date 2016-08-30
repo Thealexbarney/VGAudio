@@ -149,41 +149,39 @@ namespace DspAdpcm.Lib
             return outputs;
         }
 
-        public static byte[] ToByteArray(this short[] array)
+        public static byte[] ToByteArray(this short[] array, Endianness endianness = Endianness.LittleEndian)
         {
             var output = new byte[array.Length * 2];
-            Buffer.BlockCopy(array, 0, output, 0, output.Length);
-            return output;
-        }
-
-        public static byte[] ToFlippedBytes(this short[] array)
-        {
-            var output = new byte[array.Length * 2];
-
-            for (int i = 0; i < array.Length; i++)
+            if (endianness == Endianness.LittleEndian)
             {
-                output[i * 2] = (byte)(array[i] >> 8);
-                output[i * 2 + 1] = (byte)array[i];
+                Buffer.BlockCopy(array, 0, output, 0, output.Length);
             }
-
+            else
+            {
+                for (int i = 0; i < array.Length; i++)
+                {
+                    output[i * 2] = (byte)(array[i] >> 8);
+                    output[i * 2 + 1] = (byte)array[i];
+                }
+            }
             return output;
         }
 
-        public static short[] ToShortArray(this byte[] array)
-        {
-            var output = new short[array.Length.DivideByRoundUp(2)];
-            Buffer.BlockCopy(array, 0, output, 0, array.Length);
-            return output;
-        }
-
-        public static short[] ToShortArrayFlippedBytes(this byte[] array)
+        public static short[] ToShortArray(this byte[] array, Endianness endianness = Endianness.LittleEndian)
         {
             int length = array.Length.DivideByRoundUp(2);
-
             var output = new short[length];
-            for (int i = 0; i < length; i++)
+
+            if (endianness == Endianness.LittleEndian)
             {
-                output[i] = (short)((array[i * 2] << 8) | array[i * 2 + 1]);
+                Buffer.BlockCopy(array, 0, output, 0, array.Length);
+            }
+            else
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    output[i] = (short)((array[i * 2] << 8) | array[i * 2 + 1]);
+                }
             }
 
             return output;

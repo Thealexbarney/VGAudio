@@ -407,8 +407,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             foreach (var channel in AudioStream.Channels)
             {
-                foreach (short coef in channel.Coefs)
-                    writer.Write(coef);
+                writer.Write(channel.Coefs.ToByteArray(Endianness.LittleEndian));
                 writer.Write((short)channel.GetAudioData[0]);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
@@ -424,7 +423,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             writer.WriteASCII("SEEK");
             writer.Write(SeekChunkLength);
 
-            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, false);
+            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, Endianness.LittleEndian);
 
             writer.Write(table);
         }
