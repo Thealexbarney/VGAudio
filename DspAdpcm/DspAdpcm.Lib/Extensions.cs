@@ -187,9 +187,9 @@ namespace DspAdpcm.Lib
             return output;
         }
 
-        public static void WriteASCII(this BinaryWriter writer, string value)
+        public static void WriteUTF8(this BinaryWriter writer, string value)
         {
-            byte[] text = Encoding.ASCII.GetBytes(value);
+            byte[] text = Encoding.UTF8.GetBytes(value);
             writer.Write(text);
         }
 

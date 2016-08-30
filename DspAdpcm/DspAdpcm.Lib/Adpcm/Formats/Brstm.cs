@@ -246,7 +246,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetRstmHeader(BinaryWriter writer)
         {
-            writer.WriteASCII("RSTM");
+            writer.WriteUTF8("RSTM");
             writer.Write((ushort)0xfeff); //Endianness
             writer.Write((short)0x0100); //BRSTM format version
             writer.Write(FileLength);
@@ -262,7 +262,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetHeadChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("HEAD");
+            writer.WriteUTF8("HEAD");
             writer.Write(HeadChunkLength);
 
             writer.Write(0x01000000);
@@ -363,7 +363,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetAdpcChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("ADPC");
+            writer.WriteUTF8("ADPC");
             writer.Write(AdpcChunkLength);
 
             var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, Endianness.BigEndian);
@@ -373,7 +373,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetDataChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("DATA");
+            writer.WriteUTF8("DATA");
             writer.Write(DataChunkLength);
             writer.Write(0x18);
 

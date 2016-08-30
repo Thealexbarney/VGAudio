@@ -267,7 +267,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetCstmHeader(BinaryWriter writer)
         {
-            writer.WriteASCII("CSTM");
+            writer.WriteUTF8("CSTM");
             writer.Write((ushort)0xfeff); //Endianness
             writer.Write((short)CstmHeaderLength);
             writer.Write((short)0);
@@ -292,7 +292,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetInfoChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("INFO");
+            writer.WriteUTF8("INFO");
             writer.Write(InfoChunkLength);
 
             int headerTableLength = 8 * 3;
@@ -420,7 +420,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetSeekChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("SEEK");
+            writer.WriteUTF8("SEEK");
             writer.Write(SeekChunkLength);
 
             var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, Endianness.LittleEndian);
@@ -430,7 +430,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetDataChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("DATA");
+            writer.WriteUTF8("DATA");
             writer.Write(DataChunkLength);
 
             writer.BaseStream.Position = AudioDataOffset;

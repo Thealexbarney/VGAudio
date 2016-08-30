@@ -142,14 +142,14 @@ namespace DspAdpcm.Lib.Pcm.Formats
 
         private void GetRiffHeader(BinaryWriter writer)
         {
-            writer.WriteASCII("RIFF");
+            writer.WriteUTF8("RIFF");
             writer.Write(RiffChunkLength);
-            writer.WriteASCII("WAVE");
+            writer.WriteUTF8("WAVE");
         }
 
         private void GetFmtChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("fmt ");
+            writer.WriteUTF8("fmt ");
             writer.Write(FmtChunkLength);
             writer.Write((short)(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
             writer.Write((short)NumChannels);
@@ -169,7 +169,7 @@ namespace DspAdpcm.Lib.Pcm.Formats
 
         private void GetDataChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("data");
+            writer.WriteUTF8("data");
             writer.Write(DataChunkLength);
             short[][] channels = AudioStream.Channels
                 .Select(x => x.AudioData)
