@@ -269,18 +269,23 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         {
             writer.WriteASCII("CSTM");
             writer.Write((ushort)0xfeff); //Endianness
-            writer.Write(CstmHeaderLength);
+            writer.Write((short)CstmHeaderLength);
+            writer.Write((short)0);
             writer.Write((short)Version);
             writer.Write(FileLength);
 
-            writer.Write(3); // NumEntries
-            writer.Write(0x4000);
+            writer.Write((short)3); // NumEntries
+            writer.Write((short)0);
+            writer.Write((short)0x4000);
+            writer.Write((short)0);
             writer.Write(InfoChunkOffset);
             writer.Write(InfoChunkLength);
-            writer.Write(0x4001);
+            writer.Write((short)0x4001);
+            writer.Write((short)0);
             writer.Write(SeekChunkOffset);
             writer.Write(SeekChunkLength);
-            writer.Write(0x4002);
+            writer.Write((short)0x4002);
+            writer.Write((short)0);
             writer.Write(DataChunkOffset);
             writer.Write(DataChunkLength);
         }
@@ -292,11 +297,13 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             int headerTableLength = 8 * 3;
 
-            writer.Write(0x4100);
+            writer.Write((short)0x4100);
+            writer.Write((short)0);
             writer.Write(headerTableLength);
             if (Configuration.IncludeTrackInformation)
             {
-                writer.Write(0x0101);
+                writer.Write((short)0x0101);
+                writer.Write((short)0);
                 writer.Write(headerTableLength + InfoChunk1Length);
             }
             else
@@ -304,7 +311,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 writer.Write(0);
                 writer.Write(-1);
             }
-            writer.Write(0x0101);
+            writer.Write((short)0x0101);
+            writer.Write((short)0);
             writer.Write(headerTableLength + InfoChunk1Length + InfoChunk2Length);
 
             GetInfoChunk1(writer);
@@ -318,8 +326,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             writer.Write(Looping);
             writer.Write((byte)NumChannels);
             writer.Write((byte)0);
-            writer.Write((ushort)AudioStream.SampleRate);
-            writer.Write((short)0);
+            writer.Write(AudioStream.SampleRate);
             writer.Write(LoopStart);
             writer.Write(NumSamples);
             writer.Write(InterleaveCount);
@@ -330,12 +337,14 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             writer.Write(LastBlockSize);
             writer.Write(BytesPerSeekTableEntry);
             writer.Write(SamplesPerSeekTableEntry);
-            writer.Write(0x1f00);
+            writer.Write((short)0x1f00);
+            writer.Write((short)0);
             writer.Write(0x18);
 
             if (Configuration.InfoPart1Extra)
             {
-                writer.Write(0x100);
+                writer.Write((short)0x0100);
+                writer.Write((short)0);
                 writer.Write(0);
                 writer.Write(-1);
             }
@@ -353,7 +362,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             for (int i = 0; i < NumTracks; i++)
             {
-                writer.Write(0x4101);
+                writer.Write((short)0x4101);
+                writer.Write((short)0);
                 writer.Write(trackTableLength + channelTableLength + trackLength * i);
             }
         }
@@ -366,7 +376,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             writer.Write(NumChannels);
             for (int i = 0; i < NumChannels; i++)
             {
-                writer.Write(0x4102);
+                writer.Write((short)0x4102);
+                writer.Write((short)0);
                 writer.Write(channelTableLength + trackTableLength + 8 * i);
             }
 
@@ -377,7 +388,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                     writer.Write((byte)track.Volume);
                     writer.Write((byte)track.Panning);
                     writer.Write((short)0);
-                    writer.Write(0x100);
+                    writer.Write(0x0100);
                     writer.Write(0xc);
                     writer.Write(track.NumChannels);
                     writer.Write((byte)track.ChannelLeft);
@@ -389,13 +400,15 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int channelTable2Length = 8 * NumChannels;
             for (int i = 0; i < NumChannels; i++)
             {
-                writer.Write(0x300);
+                writer.Write((short)0x0300);
+                writer.Write((short)0);
                 writer.Write(channelTable2Length - 8 * i + ChannelInfoLength * i);
             }
 
             foreach (var channel in AudioStream.Channels)
             {
-                writer.Write(channel.Coefs.ToByteArray());
+                foreach (short coef in channel.Coefs)
+                    writer.Write(coef);
                 writer.Write((short)channel.GetAudioData[0]);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
@@ -495,11 +508,13 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 throw new InvalidDataException("Actual file length is less than stated length");
             }
 
-            structure.CstmHeaderSections = reader.ReadInt32();
+            structure.CstmHeaderSections = reader.ReadInt16();
+            reader.BaseStream.Position += 2;
 
             for (int i = 0; i < structure.CstmHeaderSections; i++)
             {
-                int type = reader.ReadInt32();
+                int type = reader.ReadInt16();
+                reader.BaseStream.Position += 2;
                 switch (type)
                 {
                     case 0x4000:
@@ -534,11 +549,14 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 throw new InvalidDataException("INFO chunk length in CSTM header doesn't match length in INFO header");
             }
 
-            reader.Expect(0x4100);
+            reader.Expect((short)0x4100);
+            reader.BaseStream.Position += 2;
             structure.InfoChunk1Offset = reader.ReadInt32();
-            reader.Expect(0x0101, 0);
+            reader.Expect((short)0x0101, (short)0);
+            reader.BaseStream.Position += 2;
             structure.InfoChunk2Offset = reader.ReadInt32();
-            reader.Expect(0x0101);
+            reader.Expect((short)0x0101);
+            reader.BaseStream.Position += 2;
             structure.InfoChunk3Offset = reader.ReadInt32();
 
             ParseInfoChunk1(reader, structure);
@@ -559,8 +577,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             structure.NumChannels = reader.ReadByte();
             reader.BaseStream.Position += 1;
 
-            structure.SampleRate = reader.ReadUInt16();
-            reader.BaseStream.Position += 2;
+            structure.SampleRate = reader.ReadInt32();
 
             structure.LoopStart = reader.ReadInt32();
             structure.NumSamples = reader.ReadInt32();
@@ -574,7 +591,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             structure.BytesPerSeekTableEntry = reader.ReadInt32();
             structure.SamplesPerSeekTableEntry = reader.ReadInt32();
 
-            reader.Expect(0x1f00);
+            reader.Expect((short)0x1f00);
+            reader.BaseStream.Position += 2;
             structure.AudioDataOffset = reader.ReadInt32() + structure.DataChunkOffset + 8;
             structure.InfoPart1Extra = reader.ReadInt32() == 0x100;
         }
@@ -596,7 +614,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int[] trackOffsets = new int[numTracks];
             for (int i = 0; i < numTracks; i++)
             {
-                reader.Expect(0x4101);
+                reader.Expect((short)0x4101);
+                reader.BaseStream.Position += 2;
                 trackOffsets[i] = reader.ReadInt32();
             }
 
@@ -622,13 +641,13 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             int part3Offset = structure.InfoChunkOffset + 8 + structure.InfoChunk3Offset;
             reader.BaseStream.Position = part3Offset;
 
-            reader.Expect((byte)structure.NumChannels);
-            reader.BaseStream.Position += 3;
+            reader.Expect(structure.NumChannels);
 
             for (int i = 0; i < structure.NumChannels; i++)
             {
                 var channel = new B_stmChannelInfo();
-                reader.Expect(0x4102);
+                reader.Expect((short)0x4102);
+                reader.BaseStream.Position += 2;
                 channel.Offset = reader.ReadInt32();
                 structure.Channels.Add(channel);
             }
@@ -637,7 +656,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             {
                 int channelInfoOffset = part3Offset + channel.Offset;
                 reader.BaseStream.Position = channelInfoOffset;
-                reader.Expect(0x0300);
+                reader.Expect((short)0x0300);
+                reader.BaseStream.Position += 2;
                 int coefsOffset = reader.ReadInt32() + channelInfoOffset;
                 reader.BaseStream.Position = coefsOffset;
 
