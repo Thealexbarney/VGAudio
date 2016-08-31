@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using static DspAdpcm.Lib.Helpers;
+using static DspAdpcm.Helpers;
 
-namespace DspAdpcm.Lib
+namespace DspAdpcm
 {
     internal static class Extensions
     {

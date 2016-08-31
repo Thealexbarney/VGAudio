@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static DspAdpcm.Lib.Helpers;
+using static DspAdpcm.Helpers;
 using System.Threading.Tasks;
-using DspAdpcm.Lib.Pcm;
+using DspAdpcm.Pcm;
 
-namespace DspAdpcm.Lib.Adpcm
+namespace DspAdpcm.Adpcm
 {
     /// <summary>
     /// This class contains functions used for decoding

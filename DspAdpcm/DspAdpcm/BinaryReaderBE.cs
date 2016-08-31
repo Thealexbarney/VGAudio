@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace DspAdpcm.Lib
+namespace DspAdpcm
 {
     internal class BinaryReaderBE : BinaryReader
     {

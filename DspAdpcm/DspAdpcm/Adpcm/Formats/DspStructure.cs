@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using static DspAdpcm.Lib.Helpers;
+using static DspAdpcm.Helpers;
 
-namespace DspAdpcm.Lib.Adpcm.Formats
+namespace DspAdpcm.Adpcm.Formats
 {
     /// <summary>
     /// Defines the structure of a DSP file.

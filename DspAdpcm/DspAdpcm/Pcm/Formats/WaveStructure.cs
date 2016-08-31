@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DspAdpcm.Lib.Pcm.Formats
+namespace DspAdpcm.Pcm.Formats
 {
     /// <summary>
     /// Defines the structure and metadata

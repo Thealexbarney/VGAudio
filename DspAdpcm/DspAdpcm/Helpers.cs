@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace DspAdpcm.Lib
+namespace DspAdpcm
 {
     internal static class Helpers
     {

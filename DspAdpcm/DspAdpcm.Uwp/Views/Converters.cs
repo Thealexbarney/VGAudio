@@ -1,7 +1,7 @@
 ﻿using System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
-using DspAdpcm.Lib.Adpcm.Formats;
+using DspAdpcm.Adpcm.Formats;
 using DspAdpcm.Uwp.ViewModels;
 
 namespace DspAdpcm.Uwp.Views

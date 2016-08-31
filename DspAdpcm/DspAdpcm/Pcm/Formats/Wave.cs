@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace DspAdpcm.Lib.Pcm.Formats
+namespace DspAdpcm.Pcm.Formats
 {
     /// <summary>
     /// Represents a PCM WAVE file

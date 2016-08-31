@@ -1,7 +1,7 @@
 ﻿using System;
-using static DspAdpcm.Lib.Helpers;
+using static DspAdpcm.Helpers;
 
-namespace DspAdpcm.Lib.Adpcm.Formats
+namespace DspAdpcm.Adpcm.Formats
 {
     /// <summary>
     /// Contains the options used to build audio files.

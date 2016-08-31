@@ -1,7 +1,7 @@
 ﻿using System;
-using static DspAdpcm.Lib.Helpers;
+using static DspAdpcm.Helpers;
 
-namespace DspAdpcm.Lib.Adpcm
+namespace DspAdpcm.Adpcm
 {
     internal class AdpcmChannel
     {

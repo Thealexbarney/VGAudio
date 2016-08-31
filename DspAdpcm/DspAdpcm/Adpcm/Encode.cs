@@ -6,10 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DspAdpcm.Lib.Pcm;
-using static DspAdpcm.Lib.Helpers;
+using DspAdpcm.Pcm;
+using static DspAdpcm.Helpers;
 
-namespace DspAdpcm.Lib.Adpcm
+namespace DspAdpcm.Adpcm
 {
     /// <summary>
     /// This class contains functions used for encoding

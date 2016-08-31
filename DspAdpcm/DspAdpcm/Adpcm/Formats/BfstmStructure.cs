@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Lib.Adpcm.Formats
+﻿namespace DspAdpcm.Adpcm.Formats
 {
     public class BfstmStructure : BCFstmStructure
     {

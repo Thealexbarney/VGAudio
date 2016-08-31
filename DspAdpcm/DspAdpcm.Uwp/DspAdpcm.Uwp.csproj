@@ -195,9 +195,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\DspAdpcm.Lib\DspAdpcm.Lib.csproj">
+    <ProjectReference Include="..\DspAdpcm\DspAdpcm.csproj">
       <Project>{2414daa9-779c-4e7e-a97f-4de09b22b88f}</Project>
-      <Name>DspAdpcm.Lib</Name>
+      <Name>DspAdpcm</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

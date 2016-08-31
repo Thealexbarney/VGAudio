@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DspAdpcm.Lib.Pcm
+namespace DspAdpcm.Pcm
 {
     internal class PcmChannel
     {

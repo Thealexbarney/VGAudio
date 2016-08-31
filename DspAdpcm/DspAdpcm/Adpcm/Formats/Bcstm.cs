@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace DspAdpcm.Lib.Adpcm.Formats
+namespace DspAdpcm.Adpcm.Formats
 {
     /// <summary>
     /// Represents a BCSTM file.

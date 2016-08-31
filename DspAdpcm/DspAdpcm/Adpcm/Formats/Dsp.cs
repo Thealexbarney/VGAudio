@@ -2,9 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using static DspAdpcm.Lib.Helpers;
+using static DspAdpcm.Helpers;
 
-namespace DspAdpcm.Lib.Adpcm.Formats
+namespace DspAdpcm.Adpcm.Formats
 {
     /// <summary>
     /// Represents a DSP file.
