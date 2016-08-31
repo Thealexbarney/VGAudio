@@ -15,7 +15,7 @@ namespace DspAdpcm.Adpcm
         private List<AdpcmTrack> _tracks;
         internal List<AdpcmTrack> Tracks
         {
-            get { return _tracks ?? GetDefaultTrackList().ToList(); }
+            get { return _tracks == null || _tracks.Count == 0 ? GetDefaultTrackList().ToList() : _tracks; }
             set { _tracks = value; }
         }
 
