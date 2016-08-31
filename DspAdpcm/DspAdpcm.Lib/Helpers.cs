@@ -70,5 +70,11 @@ namespace DspAdpcm.Lib
 
             return value + multiple - value % multiple;
         }
+
+        public enum Endianness
+        {
+            BigEndian,
+            LittleEndian
+        }
     }
 }

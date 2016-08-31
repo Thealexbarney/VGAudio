@@ -214,7 +214,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             writer.Write(StartAddr);
             writer.Write(EndAddr);
             writer.Write(CurAddr);
-            writer.Write(AudioChannel.Coefs.ToFlippedBytes());
+            writer.Write(AudioChannel.Coefs.ToByteArray(Endianness.BigEndian));
             writer.Write(AudioChannel.Gain);
             writer.Write(PredScale);
             writer.Write(AudioChannel.Hist1);

@@ -246,7 +246,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetRstmHeader(BinaryWriter writer)
         {
-            writer.WriteASCII("RSTM");
+            writer.WriteUTF8("RSTM");
             writer.Write((ushort)0xfeff); //Endianness
             writer.Write((short)0x0100); //BRSTM format version
             writer.Write(FileLength);
@@ -262,7 +262,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetHeadChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("HEAD");
+            writer.WriteUTF8("HEAD");
             writer.Write(HeadChunkLength);
 
             writer.Write(0x01000000);
@@ -349,7 +349,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 AdpcmChannel channel = AudioStream.Channels[i];
                 writer.Write(0x01000000);
                 writer.Write(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
-                writer.Write(channel.Coefs.ToFlippedBytes());
+                writer.Write(channel.Coefs.ToByteArray(Endianness.BigEndian));
                 writer.Write(channel.Gain);
                 writer.Write((short)channel.GetAudioData[0]);
                 writer.Write(channel.Hist1);
@@ -363,17 +363,17 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
         private void GetAdpcChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("ADPC");
+            writer.WriteUTF8("ADPC");
             writer.Write(AdpcChunkLength);
 
-            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries);
+            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, Endianness.BigEndian);
 
             writer.Write(table);
         }
 
         private void GetDataChunk(BinaryWriter writer)
         {
-            writer.WriteASCII("DATA");
+            writer.WriteUTF8("DATA");
             writer.Write(DataChunkLength);
             writer.Write(0x18);
 
@@ -627,7 +627,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             byte[] tableBytes = reader.ReadBytes(structure.SeekTableLength);
 
-            structure.SeekTable = tableBytes.ToShortArrayFlippedBytes()
+            structure.SeekTable = tableBytes.ToShortArray(Endianness.BigEndian)
                 .DeInterleave(2, structure.NumChannels);
         }
 

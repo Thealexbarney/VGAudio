@@ -244,7 +244,7 @@ namespace DspAdpcm.Lib.Adpcm
             Parallel.ForEach(channels, channel => CalculateSeekTable(channel, samplesPerEntry));
         }
 
-        internal static byte[] BuildSeekTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry, int numEntries, bool bigEndian = true)
+        internal static byte[] BuildSeekTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry, int numEntries, Endianness endianness)
         {
             channels = channels.ToList();
             CalculateSeekTable(channels.Where(x =>
@@ -256,7 +256,7 @@ namespace DspAdpcm.Lib.Adpcm
                 .Interleave(2);
 
             Array.Resize(ref table, numEntries * 2 * channels.Count());
-            return bigEndian ? table.ToFlippedBytes() : table.ToByteArray();
+            return table.ToByteArray(endianness);
         }
 
         internal static void CalculateLoopAlignment(IEnumerable<AdpcmChannel> channels, int alignment, int loopStart, int loopEnd)
