@@ -94,6 +94,14 @@
         /// included in it.
         /// </summary>
         public bool IncludeTracks { get; set; }
+        /// <summary>
+        /// The start loop point before alignment.
+        /// </summary>
+        public int LoopStartUnaligned { get; set; }
+        /// <summary>
+        /// The end loop point before alignment.
+        /// </summary>
+        public int LoopEndUnaligned { get; set; }
     }
 
     /// <summary>

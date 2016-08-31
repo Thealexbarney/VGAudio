@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -49,7 +48,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             InfoChunk1Length + InfoChunk2Length + InfoChunk3Length, 0x20);
         private int InfoChunkHeaderLength => 8;
         private int InfoChunkTableLength => 8 * 3;
-        private int InfoChunk1Length => 0x38 + (!Configuration.InfoPart1Extra ? 0 : 0xc);
+        private int InfoChunk1Length => 0x38 + (!Configuration.InfoPart1Extra ? 0 : 0xc) + (!Configuration.IncludeUnalignedLoopPoints ? 0 : 8);
         private int InfoChunk2Length => Configuration.IncludeTrackInformation ? 4 + 8 * NumTracks : 0;
         private int InfoChunk3Length => (4 + 8 * NumChannels) +
             (Configuration.IncludeTrackInformation ? 0x14 * NumTracks : 0) +
@@ -64,23 +63,22 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private int DataChunkOffset => HeaderLength + InfoChunkLength + SeekChunkLength;
         private int DataChunkLength => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), 0x20) * NumChannels;
 
-        private int? _version;
-        private int Version
+        private int GetVersion(BCFstmType type)
         {
-            get
+            if (type == BCFstmType.Bfstm)
             {
-                return _version ?? VersionDictionary[new Tuple<bool, bool>(Configuration.IncludeTrackInformation, Configuration.InfoPart1Extra)];
+                return Configuration.IncludeUnalignedLoopPoints ? 4 : 3;
             }
-            set { _version = value; }
+
+            //All BCSTM files I've seen follow this pattern except for Kingdom Hearts 3D
+            if (Configuration.IncludeTrackInformation && Configuration.InfoPart1Extra)
+                return 0x201;
+
+            if (!Configuration.IncludeTrackInformation && Configuration.InfoPart1Extra)
+                return 0x202;
+
+            return 0x200;
         }
-        //All BCSTM files I've seen follow this format except for Kingdom Hearts 3D
-        private Dictionary<Tuple<bool, bool>, int> VersionDictionary { get; } = new Dictionary<Tuple<bool, bool>, int>()
-        {
-            [new Tuple<bool, bool>(true, false)] = 0x200,
-            [new Tuple<bool, bool>(true, true)] = 0x201,
-            [new Tuple<bool, bool>(false, true)] = 0x202,
-            [new Tuple<bool, bool>(false, false)] = 0x200 //Unused in any BCSTM I've seen. Here for completion
-        };
 
         /// <summary>
         /// The size in bytes of the file.
@@ -146,16 +144,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             writer.WriteUTF8(type == BCFstmType.Bcstm ? "CSTM" : "FSTM");
             writer.Write((ushort)0xfeff); //Endianness
             writer.Write((short)HeaderLength);
-            if (type == BCFstmType.Bcstm)
-            {
-                writer.Write((short)0);
-                writer.Write((short)Version);
-            }
-            if (type == BCFstmType.Bfstm)
-            {
-                writer.Write((short)3);
-                writer.Write((short)0);
-            }
+            writer.Write(GetVersion(type) << 16);
             writer.Write(FileLength);
 
             writer.Write((short)3); // NumEntries
@@ -231,6 +220,12 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 writer.Write((short)0);
                 writer.Write(0);
                 writer.Write(-1);
+            }
+
+            if (Configuration.IncludeUnalignedLoopPoints)
+            {
+                writer.Write(AudioStream.LoopStart);
+                writer.Write(AudioStream.LoopEnd);
             }
         }
 
@@ -376,7 +371,10 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
             Configuration.IncludeTrackInformation = structure.IncludeTracks;
             Configuration.InfoPart1Extra = structure.InfoPart1Extra;
-            Version = structure.Version;
+            if (structure.Version == 4)
+            {
+                Configuration.IncludeUnalignedLoopPoints = true;
+            }
 
             AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
             if (structure.Looping)
@@ -405,8 +403,8 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         private static void ParseHeader(BinaryReader reader, BCFstmStructure structure)
         {
             reader.Expect((ushort)0xfeff);
-            structure.HeaderLength = reader.ReadInt32();
-            structure.Version = reader.ReadInt16();
+            structure.HeaderLength = reader.ReadInt16();
+            structure.Version = reader.ReadInt32() >> 16;
             structure.FileLength = reader.ReadInt32();
 
             if (reader.BaseStream.Length < structure.FileLength)
@@ -500,7 +498,16 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             reader.Expect((short)0x1f00);
             reader.BaseStream.Position += 2;
             structure.AudioDataOffset = reader.ReadInt32() + structure.DataChunkOffset + 8;
-            structure.InfoPart1Extra = reader.ReadInt32() == 0x100;
+            structure.InfoPart1Extra = reader.ReadInt16() == 0x100;
+            if (structure.InfoPart1Extra)
+            {
+                reader.BaseStream.Position += 10;
+            }
+            if (structure.Version == 4)
+            {
+                structure.LoopStartUnaligned = reader.ReadInt32();
+                structure.LoopEndUnaligned = reader.ReadInt32();
+            }
         }
 
         private static void ParseInfoChunk2(BinaryReader reader, BCFstmStructure structure)
@@ -649,5 +656,6 @@ namespace DspAdpcm.Lib.Adpcm.Formats
         /// Default is <c>false</c>.
         /// </summary>
         public bool InfoPart1Extra { get; set; }
+        public bool IncludeUnalignedLoopPoints { get; set; }
     }
 }

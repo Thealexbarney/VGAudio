@@ -211,5 +211,15 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             get { return Configuration.LoopPointAlignment; }
             set { Configuration.LoopPointAlignment = value; }
         }
+
+        /// <summary>
+        /// If <c>true</c>, include the loop points, before alignment,
+        /// in the header of the BFSTM.
+        /// </summary>
+        public bool IncludeUnalignedLoopPoints
+        {
+            get { return Configuration.IncludeUnalignedLoopPoints; }
+            set { Configuration.IncludeUnalignedLoopPoints = value; }
+        }
     }
 }
