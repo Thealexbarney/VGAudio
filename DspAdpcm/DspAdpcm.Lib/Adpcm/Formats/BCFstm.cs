@@ -135,7 +135,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
                 stream.Position = HeadChunkOffset;
                 GetInfoChunk(writer, endianness);
                 stream.Position = SeekChunkOffset;
-                GetSeekChunk(writer, endianness);
+                GetSeekChunk(writer);
                 stream.Position = DataChunkOffset;
                 GetDataChunk(writer);
             }
@@ -302,12 +302,12 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
         }
 
-        private void GetSeekChunk(BinaryWriter writer, Endianness endianness)
+        private void GetSeekChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("SEEK");
             writer.Write(SeekChunkLength);
 
-            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, endianness);
+            var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, Endianness.LittleEndian);
 
             writer.Write(table);
         }
@@ -337,7 +337,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
                 ParseHeader(reader, structure);
                 ParseInfoChunk(reader, structure);
-                ParseSeekChunk(reader, structure, Endianness.LittleEndian);
+                ParseSeekChunk(reader, structure);
                 ParseDataChunk(reader, structure, readAudioData);
 
                 if (readAudioData)
@@ -360,7 +360,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
                 ParseHeader(reader, structure);
                 ParseInfoChunk(reader, structure);
-                ParseSeekChunk(reader, structure, Endianness.BigEndian);
+                ParseSeekChunk(reader, structure);
                 ParseDataChunk(reader, structure, readAudioData);
 
                 if (readAudioData)
@@ -578,7 +578,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
             }
         }
 
-        private static void ParseSeekChunk(BinaryReader reader, BCFstmStructure structure, Endianness endianness)
+        private static void ParseSeekChunk(BinaryReader reader, BCFstmStructure structure)
         {
             reader.BaseStream.Position = structure.SeekChunkOffset;
 
@@ -600,7 +600,7 @@ namespace DspAdpcm.Lib.Adpcm.Formats
 
             byte[] tableBytes = reader.ReadBytes(structure.SeekTableLength);
 
-            structure.SeekTable = tableBytes.ToShortArray(endianness)
+            structure.SeekTable = tableBytes.ToShortArray()
                 .DeInterleave(2, structure.NumChannels);
         }
 
