@@ -43,9 +43,9 @@ namespace DspAdpcm.Uwp.ViewModels
         public double Samples { get; set; }
         public double SamplesPerMs => Samples / (Time * 1000);
 
-        public Dsp.DspConfiguration DspConfiguration { get; set; } = new Dsp.DspConfiguration();
-        public Brstm.BrstmConfiguration BrstmConfiguration { get; set; } = new Brstm.BrstmConfiguration();
-        public Bcstm.BcstmConfiguration BcstmConfiguration { get; set; } = new Bcstm.BcstmConfiguration();
+        public DspConfiguration DspConfiguration { get; set; } = new DspConfiguration();
+        public BrstmConfiguration BrstmConfiguration { get; set; } = new BrstmConfiguration();
+        public BcstmConfiguration BcstmConfiguration { get; set; } = new BcstmConfiguration();
 
         public Dictionary<AdpcmTypes, AudioFileType> FileTypes { get; }
 
