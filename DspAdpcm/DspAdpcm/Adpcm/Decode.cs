@@ -197,6 +197,9 @@ namespace DspAdpcm.Adpcm
             }
 
             int entry = firstSample / audio.SamplesPerSeekTableEntry;
+            while (entry * 2 + 1 > audio.SeekTable.Length)
+                entry--;
+
             int sample = entry * audio.SamplesPerSeekTableEntry;
             short hist1 = audio.SeekTable[entry * 2];
             short hist2 = audio.SeekTable[entry * 2 + 1];
