@@ -351,10 +351,10 @@ namespace DspAdpcm.Adpcm.Formats
                 writer.Write(baseOffset + offsetTableLength + ChannelInfoLength * i + 8);
                 writer.Write(channel.Coefs.ToByteArray(Endianness.BigEndian));
                 writer.Write(channel.Gain);
-                writer.Write((short)channel.GetAudioData[0]);
+                writer.Write(channel.PredScale);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
-                writer.Write(AudioStream.Looping ? channel.LoopPredScale : channel.GetAudioData[0]);
+                writer.Write(AudioStream.Looping ? channel.LoopPredScale : channel.PredScale);
                 writer.Write(AudioStream.Looping ? channel.LoopHist1 : (short)0);
                 writer.Write(AudioStream.Looping ? channel.LoopHist2 : (short)0);
                 writer.Write((short)0);

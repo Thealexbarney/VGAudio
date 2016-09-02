@@ -287,7 +287,7 @@ namespace DspAdpcm.Adpcm.Formats
             foreach (var channel in AudioStream.Channels)
             {
                 writer.Write(channel.Coefs.ToByteArray(endianness));
-                writer.Write((short)channel.GetAudioData[0]);
+                writer.Write(channel.PredScale);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
                 writer.Write(channel.LoopPredScale);

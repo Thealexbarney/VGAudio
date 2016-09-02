@@ -40,8 +40,6 @@ namespace DspAdpcm.Adpcm.Formats
         private int EndAddr => GetNibbleAddress(AudioStream.Looping ? LoopEnd : NumSamples - 1);
         private static int CurAddr => GetNibbleAddress(0);
 
-        private short PredScale => AudioChannel.GetAudioData[0];
-
         /// <summary>
         /// Initializes a new <see cref="Dsp"/> from an <see cref="AdpcmStream"/>.
         /// </summary>
@@ -216,7 +214,7 @@ namespace DspAdpcm.Adpcm.Formats
             writer.Write(CurAddr);
             writer.Write(AudioChannel.Coefs.ToByteArray(Endianness.BigEndian));
             writer.Write(AudioChannel.Gain);
-            writer.Write(PredScale);
+            writer.Write(AudioChannel.PredScale);
             writer.Write(AudioChannel.Hist1);
             writer.Write(AudioChannel.Hist2);
             writer.Write(AudioChannel.LoopPredScale);
