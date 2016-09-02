@@ -29,7 +29,8 @@ namespace DspAdpcm.Adpcm.Formats
         private const int HeaderSize = 0x60;
         private AdpcmChannel AudioChannel => AudioStream.Channels[0];
 
-        private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples) + AlignmentSamples;
+        private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? LoopEnd :
+            Math.Max(AudioStream.NumSamples, LoopEnd));
         private short Format { get; } = 0; /* 0 for ADPCM */
 
         private int AlignmentSamples => GetNextMultiple(AudioStream.LoopStart, Configuration.LoopPointAlignment) - AudioStream.LoopStart;

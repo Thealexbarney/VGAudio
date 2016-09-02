@@ -21,7 +21,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         public IdspConfiguration Configuration { get; } = new IdspConfiguration();
 
-        private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples) + AlignmentSamples;
+        private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? LoopEnd : 
+            Math.Max(AudioStream.NumSamples, LoopEnd));
+
         private int NumChannels => AudioStream.Channels.Count;
 
         private int AlignmentSamples => GetNextMultiple(AudioStream.LoopStart, Configuration.LoopPointAlignment) - AudioStream.LoopStart;
