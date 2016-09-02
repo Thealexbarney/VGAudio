@@ -53,11 +53,11 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// The length, in bytes, of the audio data of each channel.
         /// </summary>
-        public int ChannelSize { get; set; }
+        public int AudioDataLength { get; set; }
         /// <summary>
         /// The ADPCM information for each channel.
         /// </summary>
-        public List<IDSPChannelInfo> Channels { get; set; } = new List<IDSPChannelInfo>();
+        public List<IdspChannelInfo> Channels { get; set; } = new List<IdspChannelInfo>();
         internal byte[][] AudioData { get; set; }
     }
 
@@ -66,7 +66,7 @@ namespace DspAdpcm.Adpcm.Formats
     /// ADPCM channel.
     /// Used in IDSP files.
     /// </summary>
-    public class IDSPChannelInfo : AdpcmChannelInfo
+    public class IdspChannelInfo : AdpcmChannelInfo
     {
         /// <summary>
         /// The number of samples in the channel.
@@ -85,16 +85,19 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         public bool Looping { get; set; }
         /// <summary>
-        /// The end loop point in nibbles.
+        /// The address, in nibbles, of the start
+        /// loop point.
         /// </summary>
-        public int StartLoop { get; set; }
+        public int StartAddress { get; set; }
         /// <summary>
-        /// The end loop point in nibbles.
+        /// The address, in nibbles, of the end
+        /// loop point.
         /// </summary>
-        public int EndLoop { get; set; }
+        public int EndAddress { get; set; }
         /// <summary>
-        /// Not sure what this value is used for.
+        /// The address, in nibbles, of the initial
+        /// playback position.
         /// </summary>
-        public int Unknown { get; set; }
+        public int CurrentAddress { get; set; }
     }
 }
