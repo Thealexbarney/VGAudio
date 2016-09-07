@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DspAdpcm.Adpcm.Formats
+namespace DspAdpcm.Adpcm.Formats.Internal
 {
     /// <summary>
     /// Defines the partial common structure and metadata
@@ -100,6 +100,7 @@ namespace DspAdpcm.Adpcm.Formats
     // ReSharper disable once InconsistentNaming
     public class B_stmChannelInfo : AdpcmChannelInfo
     {
+        internal B_stmChannelInfo() { }
         /// <summary>
         /// The offset of the channel information. 
         /// Used in a B_STM header.

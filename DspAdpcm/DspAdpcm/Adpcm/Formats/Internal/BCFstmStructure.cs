@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Adpcm.Formats
+﻿namespace DspAdpcm.Adpcm.Formats.Internal
 {
     /// <summary>
     /// Defines the structure and metadata
@@ -6,6 +6,7 @@
     /// </summary>
     public class BCFstmStructure : B_stmStructure
     {
+        internal BCFstmStructure() { }
         /// <summary>
         /// The length of the entire file.
         /// </summary>

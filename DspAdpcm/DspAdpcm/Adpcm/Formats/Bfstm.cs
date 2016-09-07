@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using DspAdpcm.Adpcm.Formats.Internal;
+using DspAdpcm.Adpcm.Formats.Structures;
 
 namespace DspAdpcm.Adpcm.Formats
 {
@@ -118,7 +120,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
         /// the BFSTM file. Must be seekable.</param>
-        /// <returns>A <see cref="BCFstmStructure"/> containing
+        /// <returns>A <see cref="BfstmStructure"/> containing
         /// the data from the BFSTM header.</returns>
         public static BfstmStructure ReadMetadata(Stream stream)
         {

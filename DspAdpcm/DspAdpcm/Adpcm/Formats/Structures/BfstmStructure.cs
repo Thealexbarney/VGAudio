@@ -1,4 +1,6 @@
-﻿namespace DspAdpcm.Adpcm.Formats
+﻿using DspAdpcm.Adpcm.Formats.Internal;
+
+namespace DspAdpcm.Adpcm.Formats.Structures
 {
     /// <summary>
     /// Defines the structure and metadata

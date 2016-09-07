@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using DspAdpcm.Adpcm.Formats.Internal;
+using DspAdpcm.Adpcm.Formats.Structures;
 using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Adpcm.Formats

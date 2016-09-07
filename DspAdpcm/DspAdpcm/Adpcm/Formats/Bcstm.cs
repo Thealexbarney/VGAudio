@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using DspAdpcm.Adpcm.Formats.Internal;
+using DspAdpcm.Adpcm.Formats.Structures;
 
 namespace DspAdpcm.Adpcm.Formats
 {

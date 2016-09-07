@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DspAdpcm.Adpcm.Formats
+namespace DspAdpcm.Adpcm.Formats.Structures
 {
     /// <summary>
     /// Defines the partial common structure and metadata
