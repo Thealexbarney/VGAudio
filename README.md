@@ -5,6 +5,7 @@ Currently supports reading and writing:
 * BRSTM
 * BCSTM
 * BFSTM
+* IDSP
 * WAVE
 
 Universal Windows app can be found [in the Windows Store](https://www.microsoft.com/store/apps/9nblggh4s2wn)

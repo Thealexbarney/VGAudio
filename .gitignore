@@ -261,4 +261,7 @@ paket-files/
 *.brstm
 *.bcstm
 *.bfstm
+*.idsp
+*.hps
+
 /DspAdpcm/DspAdpcm.Cli/Properties/launchSettings.json
