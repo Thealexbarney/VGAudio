@@ -29,7 +29,8 @@ namespace DspAdpcm.Adpcm.Formats
         private const int HeaderSize = 0x60;
         private AdpcmChannel AudioChannel => AudioStream.Channels[0];
 
-        private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? AudioStream.LoopEnd : AudioStream.NumSamples) + AlignmentSamples;
+        private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? LoopEnd :
+            Math.Max(AudioStream.NumSamples, LoopEnd));
         private short Format { get; } = 0; /* 0 for ADPCM */
 
         private int AlignmentSamples => GetNextMultiple(AudioStream.LoopStart, Configuration.LoopPointAlignment) - AudioStream.LoopStart;
@@ -39,8 +40,6 @@ namespace DspAdpcm.Adpcm.Formats
         private int StartAddr => GetNibbleAddress(AudioStream.Looping ? LoopStart : 0);
         private int EndAddr => GetNibbleAddress(AudioStream.Looping ? LoopEnd : NumSamples - 1);
         private static int CurAddr => GetNibbleAddress(0);
-
-        private short PredScale => AudioChannel.GetAudioData[0];
 
         /// <summary>
         /// Initializes a new <see cref="Dsp"/> from an <see cref="AdpcmStream"/>.
@@ -216,7 +215,7 @@ namespace DspAdpcm.Adpcm.Formats
             writer.Write(CurAddr);
             writer.Write(AudioChannel.Coefs.ToByteArray(Endianness.BigEndian));
             writer.Write(AudioChannel.Gain);
-            writer.Write(PredScale);
+            writer.Write(AudioChannel.PredScale);
             writer.Write(AudioChannel.Hist1);
             writer.Write(AudioChannel.Hist2);
             writer.Write(AudioChannel.LoopPredScale);

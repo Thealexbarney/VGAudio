@@ -9,9 +9,11 @@ namespace DspAdpcm.Adpcm
         public byte[] AudioByteArray { get; set; }
 
         public int NumSamples => AudioByteArrayAligned == null ? _numSamples : NumSamplesAligned;
+        public int NumNibbles => GetNibbleFromSample(NumSamples);
 
         public short Gain { get; set; }
         public short[] Coefs { get; set; }
+        public short PredScale => GetAudioData[0];
         public short Hist1 { get; set; }
         public short Hist2 { get; set; }
 
