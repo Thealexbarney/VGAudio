@@ -68,6 +68,8 @@ namespace DspAdpcm.Adpcm
     /// </summary>
     public class AdpcmChannelInfo
     {
+        internal AdpcmChannelInfo() { }
+
         /// <summary>
         /// The ADPCM coefficients of the channel.
         /// </summary>

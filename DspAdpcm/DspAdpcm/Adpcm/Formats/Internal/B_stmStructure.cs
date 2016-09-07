@@ -9,6 +9,8 @@ namespace DspAdpcm.Adpcm.Formats.Internal
     // ReSharper disable once InconsistentNaming
     public abstract class B_stmStructure
     {
+        internal B_stmStructure() { }
+
         /// <summary>
         /// This flag is set if the file loops.
         /// </summary>

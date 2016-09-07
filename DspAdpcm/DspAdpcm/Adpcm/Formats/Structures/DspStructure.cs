@@ -8,6 +8,8 @@ namespace DspAdpcm.Adpcm.Formats.Structures
     /// </summary>
     public class DspStructure
     {
+        internal DspStructure() { }
+
         /// <summary>
         /// The number of samples in the DSP.
         /// </summary>

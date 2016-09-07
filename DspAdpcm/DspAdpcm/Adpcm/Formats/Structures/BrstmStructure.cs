@@ -8,6 +8,8 @@ namespace DspAdpcm.Adpcm.Formats.Structures
     /// </summary>
     public class BrstmStructure : B_stmStructure
     {
+        internal BrstmStructure() { }
+
         /// <summary>
         /// The length of the entire BRSTM file.
         /// </summary>

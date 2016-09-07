@@ -8,5 +8,6 @@ namespace DspAdpcm.Adpcm.Formats.Structures
     /// </summary>
     public class BcstmStructure : BCFstmStructure
     {
+        internal BcstmStructure() { }
     }
 }

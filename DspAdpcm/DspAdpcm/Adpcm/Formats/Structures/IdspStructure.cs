@@ -8,6 +8,8 @@ namespace DspAdpcm.Adpcm.Formats.Structures
     /// </summary>
     public class IdspStructure
     {
+        internal IdspStructure() { }
+
         /// <summary>
         /// This flag is set if the file loops.
         /// </summary>
@@ -68,6 +70,8 @@ namespace DspAdpcm.Adpcm.Formats.Structures
     /// </summary>
     public class IdspChannelInfo : AdpcmChannelInfo
     {
+        internal IdspChannelInfo() { }
+
         /// <summary>
         /// The number of samples in the channel.
         /// </summary>
