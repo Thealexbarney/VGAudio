@@ -55,7 +55,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="stream">The <see cref="AdpcmStream"/> used to
         /// create the <see cref="Idsp"/>.</param>
-        public Idsp(AdpcmStream stream)
+        /// <param name="configuration">A <see cref="IdspConfiguration"/>
+        /// to use for the <see cref="Idsp"/></param>
+        public Idsp(AdpcmStream stream, IdspConfiguration configuration = null)
         {
             if (stream.Channels.Count < 1)
             {
@@ -63,6 +65,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             AudioStream = stream;
+            Configuration = configuration ?? Configuration;
         }
 
         /// <summary>
@@ -71,7 +74,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
         /// the IDSP file. Must be seekable.</param>
-        public Idsp(Stream stream)
+        /// <param name="configuration">A <see cref="IdspConfiguration"/>
+        /// to use for the <see cref="Idsp"/></param>
+        public Idsp(Stream stream, IdspConfiguration configuration = null)
         {
             if (!stream.CanSeek)
             {
@@ -79,6 +84,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             ReadIdspFile(stream);
+            Configuration = configuration ?? Configuration;
         }
 
         /// <summary>
@@ -87,50 +93,15 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="file">A <c>byte[]</c> containing 
         /// the IDSP file.</param>
-        public Idsp(byte[] file)
+        /// <param name="configuration">A <see cref="IdspConfiguration"/>
+        /// to use for the <see cref="Idsp"/></param>
+        public Idsp(byte[] file, IdspConfiguration configuration = null)
         {
             using (var stream = new MemoryStream(file))
             {
                 ReadIdspFile(stream);
             }
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Idsp"/> from an <see cref="AdpcmStream"/>.
-        /// </summary>
-        /// <param name="stream">The <see cref="AdpcmStream"/> used to
-        /// create the <see cref="Idsp"/>.</param>
-        /// <param name="configuration">A <see cref="IdspConfiguration"/>
-        /// to use for the <see cref="Idsp"/></param>
-        public Idsp(AdpcmStream stream, IdspConfiguration configuration) : this(stream)
-        {
-            Configuration = configuration;
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Idsp"/> by parsing an existing
-        /// IDSP file.
-        /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> containing 
-        /// the IDSP file. Must be seekable.</param>
-        /// <param name="configuration">A <see cref="IdspConfiguration"/>
-        /// to use for the <see cref="Idsp"/></param>
-        public Idsp(Stream stream, IdspConfiguration configuration) : this(stream)
-        {
-            Configuration = configuration;
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Idsp"/> by parsing an existing
-        /// IDSP file.
-        /// </summary>
-        /// <param name="file">A <c>byte[]</c> containing 
-        /// the IDSP file.</param>
-        /// <param name="configuration">A <see cref="IdspConfiguration"/>
-        /// to use for the <see cref="Idsp"/></param>
-        public Idsp(byte[] file, IdspConfiguration configuration) : this(file)
-        {
-            Configuration = configuration;
+            Configuration = configuration ?? Configuration;
         }
 
         private Idsp() { }

@@ -32,7 +32,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="stream">The <see cref="AdpcmStream"/> used to
         /// create the <see cref="Bfstm"/>.</param>
-        public Bfstm(AdpcmStream stream)
+        /// <param name="configuration">A <see cref="BfstmConfiguration"/>
+        /// to use for the <see cref="Bfstm"/></param>
+        public Bfstm(AdpcmStream stream, BfstmConfiguration configuration = null)
         {
             if (stream.Channels.Count < 1)
             {
@@ -40,6 +42,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             BCFstm = new BCFstm { AudioStream = stream };
+            Configuration = configuration ?? Configuration;
         }
 
         /// <summary>
@@ -48,7 +51,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
         /// the BFSTM file. Must be seekable.</param>
-        public Bfstm(Stream stream)
+        /// <param name="configuration">A <see cref="BfstmConfiguration"/>
+        /// to use for the <see cref="Bfstm"/></param>
+        public Bfstm(Stream stream, BfstmConfiguration configuration = null)
         {
             if (!stream.CanSeek)
             {
@@ -58,6 +63,7 @@ namespace DspAdpcm.Adpcm.Formats
             BCFstm = new BCFstm();
             BCFstm.ReadBfstmFile(stream);
             Configuration.Configuration = BCFstm.Configuration;
+            Configuration = configuration ?? Configuration;
         }
 
         /// <summary>
@@ -66,7 +72,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="file">A <c>byte[]</c> containing 
         /// the BFSTM file.</param>
-        public Bfstm(byte[] file)
+        /// <param name="configuration">A <see cref="BfstmConfiguration"/>
+        /// to use for the <see cref="Bfstm"/></param>
+        public Bfstm(byte[] file, BfstmConfiguration configuration = null)
         {
             using (var stream = new MemoryStream(file))
             {
@@ -74,46 +82,9 @@ namespace DspAdpcm.Adpcm.Formats
                 BCFstm.ReadBfstmFile(stream);
                 Configuration.Configuration = BCFstm.Configuration;
             }
+            Configuration = configuration ?? Configuration;
         }
-
-        /// <summary>
-        /// Initializes a new <see cref="Bfstm"/> from an <see cref="AdpcmStream"/>.
-        /// </summary>
-        /// <param name="stream">The <see cref="AdpcmStream"/> used to
-        /// create the <see cref="Bfstm"/>.</param>
-        /// <param name="configuration">A <see cref="BfstmConfiguration"/>
-        /// to use for the <see cref="Bfstm"/></param>
-        public Bfstm(AdpcmStream stream, BfstmConfiguration configuration) : this(stream)
-        {
-            Configuration = configuration;
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Bfstm"/> by parsing an existing
-        /// BFSTM file.
-        /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> containing 
-        /// the BFSTM file. Must be seekable.</param>
-        /// <param name="configuration">A <see cref="BfstmConfiguration"/>
-        /// to use for the <see cref="Bfstm"/></param>
-        public Bfstm(Stream stream, BfstmConfiguration configuration) : this(stream)
-        {
-            Configuration = configuration;
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Bfstm"/> by parsing an existing
-        /// BFSTM file.
-        /// </summary>
-        /// <param name="file">A <c>byte[]</c> containing 
-        /// the BFSTM file.</param>
-        /// <param name="configuration">A <see cref="BfstmConfiguration"/>
-        /// to use for the <see cref="Bfstm"/></param>
-        public Bfstm(byte[] file, BfstmConfiguration configuration) : this(file)
-        {
-            Configuration = configuration;
-        }
-
+        
         /// <summary>
         /// Parses the header of a BFSTM file and returns the metadata
         /// and structure data of that file.

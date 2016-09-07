@@ -79,7 +79,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="stream">The <see cref="AdpcmStream"/> used to
         /// create the <see cref="Brstm"/>.</param>
-        public Brstm(AdpcmStream stream)
+        /// <param name="configuration">A <see cref="BrstmConfiguration"/>
+        /// to use for the <see cref="Brstm"/></param>
+        public Brstm(AdpcmStream stream, BrstmConfiguration configuration = null)
         {
             if (stream.Channels.Count < 1)
             {
@@ -87,6 +89,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             AudioStream = stream;
+            Configuration = configuration ?? Configuration;
         }
 
         /// <summary>
@@ -95,7 +98,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
         /// the BRSTM file. Must be seekable.</param>
-        public Brstm(Stream stream)
+        /// <param name="configuration">A <see cref="BrstmConfiguration"/>
+        /// to use for the <see cref="Brstm"/></param>
+        public Brstm(Stream stream, BrstmConfiguration configuration = null)
         {
             if (!stream.CanSeek)
             {
@@ -103,6 +108,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             ReadBrstmFile(stream);
+            Configuration = configuration ?? Configuration;
         }
 
         /// <summary>
@@ -111,50 +117,15 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="file">A <c>byte[]</c> containing 
         /// the BRSTM file.</param>
-        public Brstm(byte[] file)
+        /// <param name="configuration">A <see cref="BrstmConfiguration"/>
+        /// to use for the <see cref="Brstm"/></param>
+        public Brstm(byte[] file, BrstmConfiguration configuration = null)
         {
             using (var stream = new MemoryStream(file))
             {
                 ReadBrstmFile(stream);
             }
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Brstm"/> from an <see cref="AdpcmStream"/>.
-        /// </summary>
-        /// <param name="stream">The <see cref="AdpcmStream"/> used to
-        /// create the <see cref="Brstm"/>.</param>
-        /// <param name="configuration">A <see cref="BrstmConfiguration"/>
-        /// to use for the <see cref="Brstm"/></param>
-        public Brstm(AdpcmStream stream, BrstmConfiguration configuration) : this(stream)
-        {
-            Configuration = configuration;
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Brstm"/> by parsing an existing
-        /// BRSTM file.
-        /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> containing 
-        /// the BRSTM file. Must be seekable.</param>
-        /// <param name="configuration">A <see cref="BrstmConfiguration"/>
-        /// to use for the <see cref="Brstm"/></param>
-        public Brstm(Stream stream, BrstmConfiguration configuration) : this(stream)
-        {
-            Configuration = configuration;
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Brstm"/> by parsing an existing
-        /// BRSTM file.
-        /// </summary>
-        /// <param name="file">A <c>byte[]</c> containing 
-        /// the BRSTM file.</param>
-        /// <param name="configuration">A <see cref="BrstmConfiguration"/>
-        /// to use for the <see cref="Brstm"/></param>
-        public Brstm(byte[] file, BrstmConfiguration configuration) : this(file)
-        {
-            Configuration = configuration;
+            Configuration = configuration ?? Configuration;
         }
 
         private Brstm() { }

@@ -47,7 +47,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="stream">The <see cref="AdpcmStream"/> used to
         /// create the <see cref="Dsp"/>.</param>
-        public Dsp(AdpcmStream stream)
+        /// <param name="configuration">A <see cref="DspConfiguration"/>
+        /// to use for the <see cref="Dsp"/></param>
+        public Dsp(AdpcmStream stream, DspConfiguration configuration = null)
         {
             if (stream.Channels.Count != 1)
             {
@@ -55,6 +57,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             AudioStream = stream;
+            Configuration = configuration ?? Configuration;
         }
 
         /// <summary>
@@ -63,7 +66,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
         /// the DSP file. Must be seekable.</param>
-        public Dsp(Stream stream)
+        /// <param name="configuration">A <see cref="DspConfiguration"/>
+        /// to use for the <see cref="Dsp"/></param>
+        public Dsp(Stream stream, DspConfiguration configuration = null)
         {
             if (!stream.CanSeek)
             {
@@ -71,6 +76,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             ReadDspFile(stream);
+            Configuration = configuration ?? Configuration;
         }
 
         /// <summary>
@@ -79,50 +85,15 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         /// <param name="file">A <c>byte[]</c> containing 
         /// the DSP file.</param>
-        public Dsp(byte[] file)
+        /// <param name="configuration">A <see cref="DspConfiguration"/>
+        /// to use for the <see cref="Dsp"/></param>
+        public Dsp(byte[] file, DspConfiguration configuration = null)
         {
             using (var stream = new MemoryStream(file))
             {
                 ReadDspFile(stream);
             }
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Dsp"/> from an <see cref="AdpcmStream"/>.
-        /// </summary>
-        /// <param name="stream">The <see cref="AdpcmStream"/> used to
-        /// create the <see cref="Dsp"/>.</param>
-        /// <param name="configuration">A <see cref="DspConfiguration"/>
-        /// to use for the <see cref="Dsp"/></param>
-        public Dsp(AdpcmStream stream, DspConfiguration configuration) : this(stream)
-        {
-            Configuration = configuration;
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Dsp"/> by parsing an existing
-        /// DSP file.
-        /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> containing 
-        /// the DSP file. Must be seekable.</param>
-        /// <param name="configuration">A <see cref="DspConfiguration"/>
-        /// to use for the <see cref="Dsp"/></param>
-        public Dsp(Stream stream, DspConfiguration configuration) : this(stream)
-        {
-            Configuration = configuration;
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="Dsp"/> by parsing an existing
-        /// DSP file.
-        /// </summary>
-        /// <param name="file">A <c>byte[]</c> containing 
-        /// the DSP file.</param>
-        /// <param name="configuration">A <see cref="DspConfiguration"/>
-        /// to use for the <see cref="Dsp"/></param>
-        public Dsp(byte[] file, DspConfiguration configuration) : this(file)
-        {
-            Configuration = configuration;
+            Configuration = configuration ?? Configuration;
         }
 
         private Dsp() { }
