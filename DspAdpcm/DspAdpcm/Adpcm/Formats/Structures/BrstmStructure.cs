@@ -94,7 +94,7 @@ namespace DspAdpcm.Adpcm.Formats.Structures
         /// <summary>
         /// The audio codec.
         /// </summary>
-        public BrstmCodec Codec { get; set; }
+        public B_stmCodec Codec { get; set; }
 
         /// <summary>
         /// The type of description used for the tracks
@@ -134,24 +134,5 @@ namespace DspAdpcm.Adpcm.Formats.Structures
         /// It does not contain values for volume or panning.
         /// </summary>
         Short
-    }
-
-    /// <summary>
-    /// The different audio codecs used in BRSTM files.
-    /// </summary>
-    public enum BrstmCodec
-    {
-        /// <summary>
-        /// Big-endian, 8-bit PCM
-        /// </summary>
-        Pcm8Bit = 0,
-        /// <summary>
-        /// Big-endian, 16-bit PCM
-        /// </summary>
-        Pcm16Bit = 1,
-        /// <summary>
-        /// Nintendo's 4-Bit ADPCM
-        /// </summary>
-        Adpcm = 2
     }
 }

@@ -1,10 +1,12 @@
-﻿namespace DspAdpcm.Adpcm.Formats.Internal
+﻿using DspAdpcm.Adpcm.Formats.Structures;
+
+namespace DspAdpcm.Adpcm.Formats.Internal
 {
     /// <summary>
     /// Defines the structure and metadata
-    /// of a BCSTM file.
+    /// of a BCSTM or BFSTM file.
     /// </summary>
-    public class BCFstmStructure : B_stmStructure
+    public abstract class BCFstmStructure : B_stmStructure
     {
         internal BCFstmStructure() { }
         /// <summary>
@@ -81,7 +83,7 @@
         /// <summary>
         /// The audio codec.
         /// </summary>
-        public BcstmCodec Codec { get; set; }
+        public B_stmCodec Codec { get; set; }
 
         /// <summary>
         /// Specifies whether the BCSTM includes an extra chunk in the header
@@ -103,24 +105,5 @@
         /// The end loop point before alignment.
         /// </summary>
         public int LoopEndUnaligned { get; set; }
-    }
-
-    /// <summary>
-    /// The different audio codecs used in BCSTM files.
-    /// </summary>
-    public enum BcstmCodec
-    {
-        /// <summary>
-        /// Big-endian, 8-bit PCM
-        /// </summary>
-        Pcm8Bit = 0,
-        /// <summary>
-        /// Big-endian, 16-bit PCM
-        /// </summary>
-        Pcm16Bit = 1,
-        /// <summary>
-        /// Nintendo's 4-Bit ADPCM
-        /// </summary>
-        Adpcm = 2
     }
 }

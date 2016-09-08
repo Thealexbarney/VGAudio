@@ -24,7 +24,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
         private int LoopEnd => AudioStream.LoopEnd + AlignmentSamples;
 
-        private BcstmCodec Codec { get; } = BcstmCodec.Adpcm;
+        private B_stmCodec Codec { get; } = B_stmCodec.Adpcm;
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
 
@@ -472,8 +472,8 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         private static void ParseInfoChunk1(BinaryReader reader, BCFstmStructure structure)
         {
             reader.BaseStream.Position = structure.InfoChunkOffset + 8 + structure.InfoChunk1Offset;
-            structure.Codec = (BcstmCodec)reader.ReadByte();
-            if (structure.Codec != BcstmCodec.Adpcm)
+            structure.Codec = (B_stmCodec)reader.ReadByte();
+            if (structure.Codec != B_stmCodec.Adpcm)
             {
                 throw new InvalidDataException("File must contain 4-bit ADPCM encoded audio");
             }
