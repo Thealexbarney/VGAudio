@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DspAdpcm.Adpcm.Formats.Structures;
 
 namespace DspAdpcm.Adpcm.Formats.Internal
 {
@@ -92,21 +93,5 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         /// </summary>
         public short[][] SeekTable { get; set; }
         internal byte[][] AudioData { get; set; }
-    }
-
-    /// <summary>
-    /// Defines the ADPCM information for a single
-    /// ADPCM channel.
-    /// Used in B_STM files.
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    public class B_stmChannelInfo : AdpcmChannelInfo
-    {
-        internal B_stmChannelInfo() { }
-        /// <summary>
-        /// The offset of the channel information. 
-        /// Used in a B_STM header.
-        /// </summary>
-        public int Offset { get; set; }
     }
 }
