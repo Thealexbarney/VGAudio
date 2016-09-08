@@ -45,6 +45,11 @@
     <Compile Include="Adpcm\AdpcmStream.cs" />
     <Compile Include="Adpcm\Decode.cs" />
     <Compile Include="Adpcm\Encode.cs" />
+    <Compile Include="Adpcm\Formats\Configuration\BcstmConfiguration.cs" />
+    <Compile Include="Adpcm\Formats\Configuration\BfstmConfiguration.cs" />
+    <Compile Include="Adpcm\Formats\Configuration\BrstmConfiguration.cs" />
+    <Compile Include="Adpcm\Formats\Configuration\DspConfiguration.cs" />
+    <Compile Include="Adpcm\Formats\Configuration\IdspConfiguration.cs" />
     <Compile Include="Adpcm\Formats\Internal\BCFstm.cs" />
     <Compile Include="Adpcm\Formats\Bfstm.cs" />
     <Compile Include="Adpcm\Formats\Bcstm.cs" />
