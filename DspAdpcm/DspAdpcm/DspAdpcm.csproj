@@ -69,6 +69,7 @@
     <Compile Include="Helpers.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Adpcm\Formats\Dsp.cs" />
+    <Compile Include="NamespaceDoc.cs" />
     <Compile Include="Pcm\Formats\Wave.cs" />
     <Compile Include="Pcm\Formats\WaveStructure.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
