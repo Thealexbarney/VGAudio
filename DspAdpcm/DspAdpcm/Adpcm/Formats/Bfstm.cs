@@ -61,10 +61,8 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            BCFstm = new BCFstm();
-            BCFstm.ReadBfstmFile(stream);
+            BCFstm = new BCFstm(stream, configuration?.Configuration);
             Configuration.Configuration = BCFstm.Configuration;
-            Configuration = configuration ?? Configuration;
         }
 
         /// <summary>
@@ -79,11 +77,9 @@ namespace DspAdpcm.Adpcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                BCFstm = new BCFstm();
-                BCFstm.ReadBfstmFile(stream);
+                BCFstm = new BCFstm(stream, configuration?.Configuration);
                 Configuration.Configuration = BCFstm.Configuration;
             }
-            Configuration = configuration ?? Configuration;
         }
         
         /// <summary>
@@ -101,7 +97,7 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            return new BCFstm().ReadBfstmFile(stream, false);
+            return (BfstmStructure) BCFstm.ReadBCFstmFile(stream, false);
         }
 
         /// <summary>

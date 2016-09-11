@@ -14,7 +14,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
     {
         public AdpcmStream AudioStream { get; set; }
 
-        public BCFstmConfiguration Configuration { get; internal set; } = new BCFstmConfiguration();
+        public BCFstmConfiguration Configuration { get; internal set; }
 
         private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
@@ -24,7 +24,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
         private int LoopEnd => AudioStream.LoopEnd + AlignmentSamples;
 
-        private B_stmCodec Codec { get; } = B_stmCodec.Adpcm;
+        private static B_stmCodec Codec => B_stmCodec.Adpcm;
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
 
@@ -85,6 +85,20 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         /// The size in bytes of the file.
         /// </summary>
         public int FileLength => HeaderLength + InfoChunkLength + SeekChunkLength + DataChunkLength;
+
+        public BCFstm(Stream stream, BCFstmConfiguration configuration = null)
+        {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
+            BCFstmStructure bcfstm = ReadBCFstmFile(stream);
+            AudioStream = GetAdpcmStream(bcfstm);
+            Configuration = configuration ?? GetConfiguration(bcfstm);
+        }
+
+        public BCFstm() { }
 
         private void RecalculateData()
         {
@@ -320,69 +334,60 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, 0x20);
         }
 
-        internal BcstmStructure ReadBcstmFile(Stream stream, bool readAudioData = true)
+        internal static BCFstmStructure ReadBCFstmFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true))
+            BCFstmType type;
+            using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
             {
-                if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "CSTM")
+                string magic = Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4);
+                switch (magic)
                 {
-                    throw new InvalidDataException("File has no CSTM header");
+                    case "CSTM":
+                        type = BCFstmType.Bcstm;
+                        break;
+                    case "FSTM":
+                        type = BCFstmType.Bfstm;
+                        break;
+                    default:
+                        throw new InvalidDataException("File has no CSTM or FSTM header");
                 }
+            }
 
-                BcstmStructure structure = new BcstmStructure();
+            using (BinaryReader reader = type == BCFstmType.Bcstm ?
+                new BinaryReader(stream, Encoding.UTF8, true) :
+                new BinaryReaderBE(stream, Encoding.UTF8, true))
+            {
+                BCFstmStructure structure = new BcstmStructure();
 
                 ParseHeader(reader, structure);
                 ParseInfoChunk(reader, structure);
                 ParseSeekChunk(reader, structure);
                 ParseDataChunk(reader, structure, readAudioData);
 
-                if (readAudioData)
-                    SetProperties(structure);
-
                 return structure;
             }
         }
 
-        internal BfstmStructure ReadBfstmFile(Stream stream, bool readAudioData = true)
+        private static BCFstmConfiguration GetConfiguration(BCFstmStructure structure)
         {
-            using (BinaryReader reader = new BinaryReaderBE(stream, Encoding.UTF8, true))
+            return new BCFstmConfiguration
             {
-                if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "FSTM")
-                {
-                    throw new InvalidDataException("File has no FSTM header");
-                }
-
-                BfstmStructure structure = new BfstmStructure();
-
-                ParseHeader(reader, structure);
-                ParseInfoChunk(reader, structure);
-                ParseSeekChunk(reader, structure);
-                ParseDataChunk(reader, structure, readAudioData);
-
-                if (readAudioData)
-                    SetProperties(structure);
-
-                return structure;
-            }
+                SamplesPerInterleave = structure.SamplesPerInterleave,
+                SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry,
+                IncludeTrackInformation = structure.IncludeTracks,
+                InfoPart1Extra = structure.InfoPart1Extra,
+                IncludeUnalignedLoopPoints = structure.Version == 4
+            };
         }
 
-        private void SetProperties(BCFstmStructure structure)
+        private static AdpcmStream GetAdpcmStream(BCFstmStructure structure)
         {
-            Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
-            Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
-            Configuration.IncludeTrackInformation = structure.IncludeTracks;
-            Configuration.InfoPart1Extra = structure.InfoPart1Extra;
-            if (structure.Version == 4)
-            {
-                Configuration.IncludeUnalignedLoopPoints = true;
-            }
-
-            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+            var audioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
             if (structure.Looping)
             {
-                AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+                audioStream.SetLoop(structure.LoopStart, structure.NumSamples);
             }
-            AudioStream.Tracks = structure.Tracks;
+            audioStream.Tracks = structure.Tracks;
 
             for (int c = 0; c < structure.NumChannels; c++)
             {
@@ -397,8 +402,10 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                 };
                 channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
                     structure.Channels[c].LoopHist2);
-                AudioStream.Channels.Add(channel);
+                audioStream.Channels.Add(channel);
             }
+
+            return audioStream;
         }
 
         private static void ParseHeader(BinaryReader reader, BCFstmStructure structure)

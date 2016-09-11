@@ -33,7 +33,7 @@ namespace DspAdpcm.Pcm.Formats
         private int FmtChunkLength => NumChannels > 2 ? 40 : 16;
         private int DataChunkLength => NumChannels * NumSamples * sizeof(short);
 
-        private int BitDepth { get; set; } = 16;
+        private int BitDepth => 16;
         private int BytesPerSample => BitDepth.DivideByRoundUp(8);
         private int BytesPerSecond => SampleRate * BytesPerSample * NumChannels;
         private int BlockAlign => BytesPerSample * NumChannels;
@@ -61,7 +61,8 @@ namespace DspAdpcm.Pcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            ReadWaveFile(stream);
+            WaveStructure wave = ReadWaveFile(stream);
+            AudioStream = GetPcmStream(wave);
         }
 
         /// <summary>
@@ -74,11 +75,10 @@ namespace DspAdpcm.Pcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                ReadWaveFile(stream);
+                WaveStructure wave = ReadWaveFile(stream);
+                AudioStream = GetPcmStream(wave);
             }
         }
-
-        private Wave() { }
 
         /// <summary>
         /// Parses the header of a WAVE file and returns the metadata
@@ -95,7 +95,7 @@ namespace DspAdpcm.Pcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            return new Wave().ReadWaveFile(stream, false);
+            return ReadWaveFile(stream, false);
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace DspAdpcm.Pcm.Formats
             }
         }
 
-        private WaveStructure ReadWaveFile(Stream stream, bool readAudioData = true)
+        private static WaveStructure ReadWaveFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true))
             {
@@ -235,20 +235,20 @@ namespace DspAdpcm.Pcm.Formats
                     throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
                 }
 
-                SetProperties(structure);
-
                 return structure;
             }
         }
 
-        private void SetProperties(WaveStructure structure)
+        private PcmStream GetPcmStream(WaveStructure structure)
         {
-            AudioStream = new PcmStream(structure.NumSamples, structure.SampleRate);
+            var audioStream = new PcmStream(structure.NumSamples, structure.SampleRate);
 
             for (int i = 0; i < structure.NumChannels; i++)
             {
-                AudioStream.Channels.Add(new PcmChannel(structure.NumSamples, structure.AudioData[i]));
+                audioStream.Channels.Add(new PcmChannel(structure.NumSamples, structure.AudioData[i]));
             }
+
+            return audioStream;
         }
 
         private static void ParseRiffHeader(BinaryReader reader, WaveStructure structure)

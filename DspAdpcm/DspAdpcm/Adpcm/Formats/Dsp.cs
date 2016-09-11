@@ -21,7 +21,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// Contains various settings used when building the BRSTM file.
         /// </summary>
-        public DspConfiguration Configuration { get; } = new DspConfiguration();
+        public DspConfiguration Configuration { get; }
 
         /// <summary>
         /// The size in bytes of the DSP file.
@@ -58,7 +58,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             AudioStream = stream;
-            Configuration = configuration ?? Configuration;
+            Configuration = configuration ?? new DspConfiguration();
         }
 
         /// <summary>
@@ -76,8 +76,9 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            ReadDspFile(stream);
-            Configuration = configuration ?? Configuration;
+            DspStructure dsp = ReadDspFile(stream);
+            AudioStream = GetAdpcmStream(dsp);
+            Configuration = configuration ?? new DspConfiguration();
         }
 
         /// <summary>
@@ -92,12 +93,11 @@ namespace DspAdpcm.Adpcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                ReadDspFile(stream);
+                DspStructure dsp = ReadDspFile(stream);
+                AudioStream = GetAdpcmStream(dsp);
             }
-            Configuration = configuration ?? Configuration;
+            Configuration = configuration ?? new DspConfiguration();
         }
-
-        private Dsp() { }
 
         /// <summary>
         /// Parses the header of a DSP file and returns the metadata
@@ -114,7 +114,7 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            return new Dsp().ReadDspFile(stream, false);
+            return ReadDspFile(stream, false);
         }
 
         private void RecalculateData()
@@ -170,9 +170,7 @@ namespace DspAdpcm.Adpcm.Formats
             {
                 stream.Position = 0;
                 GetHeader(writer);
-                stream.Position = HeaderSize;
-
-                stream.Write(AudioChannel.GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
+                GetData(writer);
             }
         }
 
@@ -196,7 +194,13 @@ namespace DspAdpcm.Adpcm.Formats
             writer.Write(AudioChannel.LoopHist2);
         }
 
-        private DspStructure ReadDspFile(Stream stream, bool readAudioData = true)
+        private void GetData(BinaryWriter writer)
+        {
+            writer.BaseStream.Position = HeaderSize;
+            writer.Write(AudioChannel.GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
+        }
+
+        private static DspStructure ReadDspFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = new BinaryReaderBE(stream, Encoding.UTF8, true))
             {
@@ -204,40 +208,39 @@ namespace DspAdpcm.Adpcm.Formats
 
                 ParseHeader(reader, structure);
 
-                if (!readAudioData)
+                if (readAudioData)
                 {
-                    return structure;
+                    reader.BaseStream.Position = HeaderSize;
+                    ParseData(reader, structure);
                 }
-
-                reader.BaseStream.Position = HeaderSize;
-                ParseData(reader, structure);
-
-                SetProperties(structure);
 
                 return structure;
             }
         }
 
-        private void SetProperties(DspStructure structure)
+        private static AdpcmStream GetAdpcmStream(DspStructure structure)
         {
-            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
-
+            var audioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
             if (structure.Looping)
             {
-                AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
+                audioStream.SetLoop(structure.LoopStart, structure.NumSamples);
             }
 
-            var channel = new AdpcmChannel(structure.NumSamples, structure.AudioData)
+            for (int c = 0; c < 1; c++)
             {
-                Coefs = structure.Channels[0].Coefs,
-                Gain = structure.Channels[0].Gain,
-                Hist1 = structure.Channels[0].Hist1,
-                Hist2 = structure.Channels[0].Hist2
-            };
-            channel.SetLoopContext(structure.Channels[0].LoopPredScale, structure.Channels[0].LoopHist1,
-                    structure.Channels[0].LoopHist2);
+                var channel = new AdpcmChannel(structure.NumSamples, structure.AudioData)
+                {
+                    Coefs = structure.Channels[c].Coefs,
+                    Gain = structure.Channels[c].Gain,
+                    Hist1 = structure.Channels[c].Hist1,
+                    Hist2 = structure.Channels[c].Hist2,
+                };
+                channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
+                    structure.Channels[c].LoopHist2);
+                audioStream.Channels.Add(channel);
+            }
 
-            AudioStream.Channels.Add(channel);
+            return audioStream;
         }
 
         private static void ParseHeader(BinaryReader reader, DspStructure structure)

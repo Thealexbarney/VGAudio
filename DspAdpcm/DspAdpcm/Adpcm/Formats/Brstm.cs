@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using DspAdpcm.Adpcm.Formats.Configuration;
-using DspAdpcm.Adpcm.Formats.Internal;
 using DspAdpcm.Adpcm.Formats.Structures;
 using static DspAdpcm.Helpers;
 
@@ -22,7 +21,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// Contains various settings used when building the BRSTM file.
         /// </summary>
-        public BrstmConfiguration Configuration { get; } = new BrstmConfiguration();
+        public BrstmConfiguration Configuration { get; }
 
         private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
@@ -32,7 +31,7 @@ namespace DspAdpcm.Adpcm.Formats
         private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
         private int LoopEnd => AudioStream.LoopEnd + AlignmentSamples;
 
-        private B_stmCodec Codec { get; } = B_stmCodec.Adpcm;
+        private static B_stmCodec Codec => B_stmCodec.Adpcm;
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
 
@@ -90,7 +89,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             AudioStream = stream;
-            Configuration = configuration ?? Configuration;
+            Configuration = configuration ?? new BrstmConfiguration();
         }
 
         /// <summary>
@@ -108,8 +107,9 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            ReadBrstmFile(stream);
-            Configuration = configuration ?? Configuration;
+            BrstmStructure brstm = ReadBrstmFile(stream);
+            AudioStream = GetAdpcmStream(brstm);
+            Configuration = configuration ?? GetConfiguration(brstm);
         }
 
         /// <summary>
@@ -124,12 +124,11 @@ namespace DspAdpcm.Adpcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                ReadBrstmFile(stream);
+                BrstmStructure brstm = ReadBrstmFile(stream);
+                AudioStream = GetAdpcmStream(brstm);
+                Configuration = configuration ?? GetConfiguration(brstm);
             }
-            Configuration = configuration ?? Configuration;
         }
-
-        private Brstm() { }
 
         /// <summary>
         /// Parses the header of a BRSTM file and returns the metadata
@@ -146,7 +145,7 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            return new Brstm().ReadBrstmFile(stream, false);
+            return ReadBrstmFile(stream, false);
         }
 
         private void RecalculateData()
@@ -358,7 +357,7 @@ namespace DspAdpcm.Adpcm.Formats
             channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, 0x20);
         }
 
-        private BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
+        private static BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = new BinaryReaderBE(stream, Encoding.UTF8, true))
             {
@@ -374,26 +373,29 @@ namespace DspAdpcm.Adpcm.Formats
                 ParseAdpcChunk(reader, structure);
                 ParseDataChunk(reader, structure, readAudioData);
 
-                if (readAudioData)
-                    SetProperties(structure);
-
                 return structure;
             }
         }
 
-        private void SetProperties(BrstmStructure structure)
+        private static BrstmConfiguration GetConfiguration(BrstmStructure structure)
         {
-            Configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
-            Configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
-            Configuration.TrackType = structure.HeaderType;
-            Configuration.SeekTableType = structure.SeekTableType;
+            return new BrstmConfiguration()
+            {
+                SamplesPerInterleave = structure.SamplesPerInterleave,
+                SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry,
+                TrackType = structure.HeaderType,
+                SeekTableType = structure.SeekTableType
+            };
+        }
 
-            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+        private static AdpcmStream GetAdpcmStream(BrstmStructure structure)
+        {
+            var audioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
             if (structure.Looping)
             {
-                AudioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+                audioStream.SetLoop(structure.LoopStart, structure.NumSamples);
             }
-            AudioStream.Tracks = structure.Tracks;
+            audioStream.Tracks = structure.Tracks;
 
             for (int c = 0; c < structure.NumChannels; c++)
             {
@@ -408,8 +410,10 @@ namespace DspAdpcm.Adpcm.Formats
                 };
                 channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
                     structure.Channels[c].LoopHist2);
-                AudioStream.Channels.Add(channel);
+                audioStream.Channels.Add(channel);
             }
+
+            return audioStream;
         }
 
         private static void ParseRstmHeader(BinaryReader reader, BrstmStructure structure)

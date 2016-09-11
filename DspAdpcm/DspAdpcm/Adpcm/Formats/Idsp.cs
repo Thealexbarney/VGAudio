@@ -21,9 +21,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// Contains various settings used when building the IDSP file.
         /// </summary>
-        public IdspConfiguration Configuration { get; } = new IdspConfiguration();
+        public IdspConfiguration Configuration { get; }
 
-        private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? LoopEnd : 
+        private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? LoopEnd :
             Math.Max(AudioStream.NumSamples, LoopEnd));
 
         private int NumChannels => AudioStream.Channels.Count;
@@ -66,7 +66,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             AudioStream = stream;
-            Configuration = configuration ?? Configuration;
+            Configuration = configuration ?? new IdspConfiguration();
         }
 
         /// <summary>
@@ -84,8 +84,9 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            ReadIdspFile(stream);
-            Configuration = configuration ?? Configuration;
+            IdspStructure idsp = ReadIdspFile(stream);
+            AudioStream = GetAdpcmStream(idsp);
+            Configuration = configuration ?? GetConfiguration(idsp);
         }
 
         /// <summary>
@@ -100,12 +101,11 @@ namespace DspAdpcm.Adpcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                ReadIdspFile(stream);
+                IdspStructure idsp = ReadIdspFile(stream);
+                AudioStream = GetAdpcmStream(idsp);
+                Configuration = configuration ?? GetConfiguration(idsp);
             }
-            Configuration = configuration ?? Configuration;
         }
-
-        private Idsp() { }
 
         /// <summary>
         /// Parses the header of an IDSP file and returns the metadata
@@ -122,7 +122,7 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            return new Idsp().ReadIdspFile(stream, false);
+            return ReadIdspFile(stream, false);
         }
 
         private void RecalculateData()
@@ -196,7 +196,7 @@ namespace DspAdpcm.Adpcm.Formats
             writer.Write(ChannelInfoSize);
             writer.Write(HeaderLength);
             writer.Write(AudioDataLength);
-            
+
             for (int i = 0; i < NumChannels; i++)
             {
                 writer.BaseStream.Position = StreamInfoSize + i * ChannelInfoSize;
@@ -229,7 +229,7 @@ namespace DspAdpcm.Adpcm.Formats
             channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, InterleaveSize);
         }
 
-        private IdspStructure ReadIdspFile(Stream stream, bool readAudioData = true)
+        private static IdspStructure ReadIdspFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = new BinaryReaderBE(stream, Encoding.UTF8, true))
             {
@@ -244,21 +244,26 @@ namespace DspAdpcm.Adpcm.Formats
                 if (readAudioData)
                 {
                     ParseIdspData(reader, structure);
-                    SetProperties(structure);
                 }
 
                 return structure;
             }
         }
 
-        private void SetProperties(IdspStructure structure)
+        private static IdspConfiguration GetConfiguration(IdspStructure structure)
         {
-            Configuration.BytesPerInterleave = structure.InterleaveSize;
+            return new IdspConfiguration()
+            {
+                BytesPerInterleave = structure.InterleaveSize
+            };
+        }
 
-            AudioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
+        private static AdpcmStream GetAdpcmStream(IdspStructure structure)
+        {
+            var audioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
             if (structure.Looping)
             {
-                AudioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
+                audioStream.SetLoop(structure.LoopStart, structure.NumSamples);
             }
 
             for (int c = 0; c < structure.NumChannels; c++)
@@ -272,8 +277,10 @@ namespace DspAdpcm.Adpcm.Formats
                 };
                 channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
                     structure.Channels[c].LoopHist2);
-                AudioStream.Channels.Add(channel);
+                audioStream.Channels.Add(channel);
             }
+
+            return audioStream;
         }
 
         private static void ParseIdspHeader(BinaryReader reader, IdspStructure structure)
