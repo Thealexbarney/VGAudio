@@ -26,14 +26,18 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// The size in bytes of the DSP file.
         /// </summary>
-        public int FileLength => HeaderSize + GetBytesForAdpcmSamples(NumSamples);
+        public int FileLength => (HeaderSize + AudioDataLength) * NumChannels;
 
         private const int HeaderSize = 0x60;
-        private AdpcmChannel AudioChannel => AudioStream.Channels[0];
+        private int NumChannels => AudioStream.Channels.Count;
 
         private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? LoopEnd :
             Math.Max(AudioStream.NumSamples, LoopEnd));
         private short Format { get; } = 0; /* 0 for ADPCM */
+
+        private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
+        private int BytesPerInterleave => GetBytesForAdpcmSamples(SamplesPerInterleave);
+        private int FramesPerInterleave => BytesPerInterleave / BytesPerBlock;
 
         private int AlignmentSamples => GetNextMultiple(AudioStream.LoopStart, Configuration.LoopPointAlignment) - AudioStream.LoopStart;
         private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
@@ -42,6 +46,9 @@ namespace DspAdpcm.Adpcm.Formats
         private int StartAddr => GetNibbleAddress(AudioStream.Looping ? LoopStart : 0);
         private int EndAddr => GetNibbleAddress(AudioStream.Looping ? LoopEnd : NumSamples - 1);
         private static int CurAddr => GetNibbleAddress(0);
+
+        private int AudioDataLength
+            => GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), NumChannels == 1 ? 1 : BytesPerBlock);
 
         /// <summary>
         /// Initializes a new <see cref="Dsp"/> from an <see cref="AdpcmStream"/>.
@@ -127,8 +134,8 @@ namespace DspAdpcm.Adpcm.Formats
             {
                 Decode.CalculateLoopAlignment(AudioStream.Channels, Configuration.LoopPointAlignment,
                     AudioStream.LoopStart, AudioStream.LoopEnd);
+                Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? LoopStart : 0);
             }
-            Decode.CalculateLoopContext(loopContextToCalculate, AudioStream.Looping ? LoopStart : 0);
         }
 
         /// <summary>
@@ -176,28 +183,43 @@ namespace DspAdpcm.Adpcm.Formats
 
         private void GetHeader(BinaryWriter writer)
         {
-            writer.Write(NumSamples);
-            writer.Write(GetNibbleFromSample(NumSamples));
-            writer.Write(AudioStream.SampleRate);
-            writer.Write((short)(AudioStream.Looping ? 1 : 0));
-            writer.Write(Format);
-            writer.Write(StartAddr);
-            writer.Write(EndAddr);
-            writer.Write(CurAddr);
-            writer.Write(AudioChannel.Coefs.ToByteArray(Endianness.BigEndian));
-            writer.Write(AudioChannel.Gain);
-            writer.Write(AudioChannel.PredScale);
-            writer.Write(AudioChannel.Hist1);
-            writer.Write(AudioChannel.Hist2);
-            writer.Write(AudioChannel.LoopPredScale);
-            writer.Write(AudioChannel.LoopHist1);
-            writer.Write(AudioChannel.LoopHist2);
+            for (int i = 0; i < NumChannels; i++)
+            {
+                var channel = AudioStream.Channels[i];
+                writer.BaseStream.Position = HeaderSize * i;
+                writer.Write(NumSamples);
+                writer.Write(GetNibbleFromSample(NumSamples));
+                writer.Write(AudioStream.SampleRate);
+                writer.Write((short)(AudioStream.Looping ? 1 : 0));
+                writer.Write(Format);
+                writer.Write(StartAddr);
+                writer.Write(EndAddr);
+                writer.Write(CurAddr);
+                writer.Write(channel.Coefs.ToByteArray(Endianness.BigEndian));
+                writer.Write(channel.Gain);
+                writer.Write(channel.PredScale);
+                writer.Write(channel.Hist1);
+                writer.Write(channel.Hist2);
+                writer.Write(channel.LoopPredScale);
+                writer.Write(channel.LoopHist1);
+                writer.Write(channel.LoopHist2);
+                writer.Write((short)(NumChannels == 1 ? 0 : NumChannels));
+                writer.Write((short)(NumChannels == 1 ? 0 : FramesPerInterleave));
+            }
         }
 
         private void GetData(BinaryWriter writer)
         {
-            writer.BaseStream.Position = HeaderSize;
-            writer.Write(AudioChannel.GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
+            writer.BaseStream.Position = HeaderSize * NumChannels;
+            if (NumChannels == 1)
+            {
+                writer.Write(AudioStream.Channels[0].GetAudioData, 0, GetBytesForAdpcmSamples(NumSamples));
+            }
+            else
+            {
+                byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
+                channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), BytesPerInterleave, BytesPerBlock);
+            }
         }
 
         private static DspStructure ReadDspFile(Stream stream, bool readAudioData = true)
