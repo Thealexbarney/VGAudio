@@ -52,9 +52,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// to use for the <see cref="Dsp"/></param>
         public Dsp(AdpcmStream stream, DspConfiguration configuration = null)
         {
-            if (stream.Channels.Count != 1)
+            if (stream.Channels.Count < 1)
             {
-                throw new InvalidDataException($"Stream has {stream.Channels.Count} channels, not 1");
+                throw new InvalidDataException("Stream must have at least one channel ");
             }
 
             AudioStream = stream;
@@ -210,7 +210,7 @@ namespace DspAdpcm.Adpcm.Formats
 
                 if (readAudioData)
                 {
-                    reader.BaseStream.Position = HeaderSize;
+                    reader.BaseStream.Position = HeaderSize * structure.NumChannels;
                     ParseData(reader, structure);
                 }
 
@@ -226,9 +226,9 @@ namespace DspAdpcm.Adpcm.Formats
                 audioStream.SetLoop(structure.LoopStart, structure.NumSamples);
             }
 
-            for (int c = 0; c < 1; c++)
+            for (int c = 0; c < structure.NumChannels; c++)
             {
-                var channel = new AdpcmChannel(structure.NumSamples, structure.AudioData)
+                var channel = new AdpcmChannel(structure.NumSamples, structure.AudioData[c])
                 {
                     Coefs = structure.Channels[c].Coefs,
                     Gain = structure.Channels[c].Gain,
@@ -254,19 +254,28 @@ namespace DspAdpcm.Adpcm.Formats
             structure.EndAddress = reader.ReadInt32();
             structure.CurrentAddress = reader.ReadInt32();
 
-            var channel = new AdpcmChannelInfo
-            {
-                Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray(),
-                Gain = reader.ReadInt16(),
-                PredScale = reader.ReadInt16(),
-                Hist1 = reader.ReadInt16(),
-                Hist2 = reader.ReadInt16(),
-                LoopPredScale = reader.ReadInt16(),
-                LoopHist1 = reader.ReadInt16(),
-                LoopHist2 = reader.ReadInt16()
-            };
+            reader.BaseStream.Position = 0x4a;
+            structure.NumChannels = reader.ReadInt16();
+            structure.FramesPerInterleave = reader.ReadInt16();
+            structure.NumChannels = structure.NumChannels == 0 ? 1 : structure.NumChannels;
 
-            structure.Channels.Add(channel);
+            for (int i = 0; i < structure.NumChannels; i++)
+            {
+                reader.BaseStream.Position = HeaderSize * i + 0x1c;
+                var channel = new AdpcmChannelInfo
+                {
+                    Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray(),
+                    Gain = reader.ReadInt16(),
+                    PredScale = reader.ReadInt16(),
+                    Hist1 = reader.ReadInt16(),
+                    Hist2 = reader.ReadInt16(),
+                    LoopPredScale = reader.ReadInt16(),
+                    LoopHist1 = reader.ReadInt16(),
+                    LoopHist2 = reader.ReadInt16()
+                };
+
+                structure.Channels.Add(channel);
+            }
 
             if (reader.BaseStream.Length < HeaderSize + GetBytesForAdpcmSamples(structure.NumSamples))
             {
@@ -286,7 +295,16 @@ namespace DspAdpcm.Adpcm.Formats
 
         private static void ParseData(BinaryReader reader, DspStructure structure)
         {
-            structure.AudioData = reader.ReadBytes(GetBytesForAdpcmSamples(structure.NumSamples));
+            if (structure.NumChannels == 1)
+            {
+                structure.AudioData = new[] { reader.ReadBytes(GetBytesForAdpcmSamples(structure.NumSamples)) };
+            }
+            else
+            {
+                int dataLength = GetNextMultiple(GetBytesForAdpcmSamples(structure.NumSamples), 8) * structure.NumChannels;
+                int interleaveSize = structure.FramesPerInterleave * BytesPerBlock;
+                structure.AudioData = reader.BaseStream.DeInterleave(dataLength, interleaveSize, structure.NumChannels);
+            }
         }
     }
 }

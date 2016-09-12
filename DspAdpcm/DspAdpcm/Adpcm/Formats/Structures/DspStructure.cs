@@ -46,6 +46,17 @@ namespace DspAdpcm.Adpcm.Formats.Structures
         /// </summary>
         public int CurrentAddress { get; set; }
         /// <summary>
+        /// The number of channels in the DSP file.
+        /// Only used in multi-channel DSP files.
+        /// </summary>
+        public int NumChannels { get; set; }
+        /// <summary>
+        /// The number of ADPCM frames in each
+        /// interleaved audio data block.
+        /// Only used in multi-channel DSP files.
+        /// </summary>
+        public int FramesPerInterleave { get; set; }
+        /// <summary>
         /// The ADPCM information for each channel.
         /// </summary>
         public IList<AdpcmChannelInfo> Channels { get; } = new List<AdpcmChannelInfo>();
@@ -58,6 +69,6 @@ namespace DspAdpcm.Adpcm.Formats.Structures
         /// The end loop point in samples.
         /// </summary>
         public int LoopEnd => GetSampleFromNibble(EndAddress);
-        internal byte[] AudioData { get; set; }
+        internal byte[][] AudioData { get; set; }
     }
 }

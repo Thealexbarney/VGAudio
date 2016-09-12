@@ -239,7 +239,7 @@ namespace DspAdpcm.Pcm.Formats
             }
         }
 
-        private PcmStream GetPcmStream(WaveStructure structure)
+        private static PcmStream GetPcmStream(WaveStructure structure)
         {
             var audioStream = new PcmStream(structure.NumSamples, structure.SampleRate);
 
