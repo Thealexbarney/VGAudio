@@ -50,6 +50,7 @@
     <Compile Include="Adpcm\Formats\Configuration\BrstmConfiguration.cs" />
     <Compile Include="Adpcm\Formats\Configuration\DspConfiguration.cs" />
     <Compile Include="Adpcm\Formats\Configuration\IdspConfiguration.cs" />
+    <Compile Include="Adpcm\Formats\Genh.cs" />
     <Compile Include="Adpcm\Formats\Internal\BCFstm.cs" />
     <Compile Include="Adpcm\Formats\Bfstm.cs" />
     <Compile Include="Adpcm\Formats\Bcstm.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="Adpcm\Formats\Internal\B_stmStructure.cs" />
     <Compile Include="Adpcm\Formats\Structures\DspStructure.cs" />
     <Compile Include="Adpcm\Formats\Idsp.cs" />
+    <Compile Include="Adpcm\Formats\Structures\GenhStructure.cs" />
     <Compile Include="Adpcm\Formats\Structures\IdspStructure.cs" />
     <Compile Include="BinaryReaderBE.cs" />
     <Compile Include="BinaryWriterBE.cs" />
