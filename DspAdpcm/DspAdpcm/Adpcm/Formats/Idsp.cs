@@ -263,7 +263,7 @@ namespace DspAdpcm.Adpcm.Formats
             var audioStream = new AdpcmStream(structure.NumSamples, structure.SampleRate);
             if (structure.Looping)
             {
-                audioStream.SetLoop(structure.LoopStart, structure.NumSamples);
+                audioStream.SetLoop(structure.LoopStart, structure.LoopEnd);
             }
 
             for (int c = 0; c < structure.NumChannels; c++)
