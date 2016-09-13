@@ -7,10 +7,23 @@ using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Adpcm.Formats
 {
+    /// <summary>
+    /// Represents a DSP file.
+    /// Only reading of Nintendo 4-bit DSP-ADPCM is supported.
+    /// </summary>
     public class Genh
     {
+        /// <summary>
+        /// The underlying <see cref="AdpcmStream"/> used to build the GENH file.
+        /// </summary>
         public AdpcmStream AudioStream { get; set; }
 
+        /// <summary>
+        /// Initializes a new <see cref="Genh"/> by parsing an existing
+        /// GENH file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the DSP file. Must be seekable.</param>
         public Genh(Stream stream)
         {
             if (!stream.CanSeek)
@@ -22,6 +35,12 @@ namespace DspAdpcm.Adpcm.Formats
             AudioStream = GetAdpcmStream(genh);
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="Genh"/> by parsing an existing
+        /// GENH file.
+        /// </summary>
+        /// <param name="file">A <c>byte[]</c> containing 
+        /// the GENH file.</param>
         public Genh(byte[] file)
         {
             using (var stream = new MemoryStream(file))
@@ -31,6 +50,14 @@ namespace DspAdpcm.Adpcm.Formats
             }
         }
 
+        /// <summary>
+        /// Parses the header of a GENH file and returns the metadata
+        /// and structure data of that file.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> containing 
+        /// the GENH file. Must be seekable.</param>
+        /// <returns>A <see cref="GenhStructure"/> containing
+        /// the data from the GENH header.</returns>
         public static GenhStructure ReadMetadata(Stream stream)
         {
             if (!stream.CanSeek)
