@@ -83,7 +83,7 @@ namespace DspAdpcm.Adpcm.Formats.Structures
     public enum GenhCoefType
     {
         /// <summary>
-        /// Set if the ADPCM coefficients are split into 2 different places.
+        /// Set if the ADPCM coefficients are in column-major order.
         /// </summary>
         Split = 1,
         /// <summary>

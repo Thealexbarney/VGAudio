@@ -145,18 +145,39 @@ namespace DspAdpcm.Adpcm.Formats
 
             for (int i = 0; i < structure.NumChannels; i++)
             {
-                using (BinaryReader coefReader = structure.CoefType.HasFlag(GenhCoefType.LittleEndian)
-                    ? new BinaryReader(reader.BaseStream, Encoding.UTF8, true)
-                    : new BinaryReaderBE(reader.BaseStream, Encoding.UTF8, true))
-                {
-                    reader.BaseStream.Position = structure.Coefs[i];
-                    var channel = new AdpcmChannelInfo
-                    {
-                        Coefs = Enumerable.Range(0, 16).Select(x => coefReader.ReadInt16()).ToArray(),
-                    };
+                ReadCoefs(reader, structure, i);
+            }
+        }
 
-                    structure.Channels.Add(channel);
+        private static void ReadCoefs(BinaryReader reader, GenhStructure structure, int channelNum)
+        {
+            using (BinaryReader coefReader = structure.CoefType.HasFlag(GenhCoefType.LittleEndian)
+                ? new BinaryReader(reader.BaseStream, Encoding.UTF8, true)
+                : new BinaryReaderBE(reader.BaseStream, Encoding.UTF8, true))
+            {
+                coefReader.BaseStream.Position = structure.Coefs[channelNum];
+                var channel = new AdpcmChannelInfo();
+
+                if (structure.CoefType.HasFlag(GenhCoefType.Split))
+                {
+                    channel.Coefs = new short[16];
+                    for (int c = 0; c < 8; c++)
+                    {
+                        channel.Coefs[c * 2] = coefReader.ReadInt16();
+                    }
+
+                    coefReader.BaseStream.Position = structure.CoefsSplit[channelNum];
+                    for (int c = 0; c < 8; c++)
+                    {
+                        channel.Coefs[c * 2 + 1] = coefReader.ReadInt16();
+                    }
                 }
+                else
+                {
+                    channel.Coefs = Enumerable.Range(0, 16).Select(x => coefReader.ReadInt16()).ToArray();
+                }
+
+                structure.Channels.Add(channel);
             }
         }
 
