@@ -12,6 +12,7 @@ using Windows.UI.Core;
 using Windows.UI.Popups;
 using DspAdpcm.Adpcm;
 using DspAdpcm.Adpcm.Formats;
+using DspAdpcm.Adpcm.Formats.Configuration;
 using DspAdpcm.Pcm;
 using DspAdpcm.Pcm.Formats;
 using GalaSoft.MvvmLight.Command;
