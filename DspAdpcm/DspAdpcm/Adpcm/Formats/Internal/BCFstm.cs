@@ -14,7 +14,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
     {
         public AdpcmStream AudioStream { get; set; }
 
-        public BCFstmConfiguration Configuration { get; internal set; }
+        public BCFstmConfiguration Configuration { get; internal set; } = new BCFstmConfiguration();
 
         private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
