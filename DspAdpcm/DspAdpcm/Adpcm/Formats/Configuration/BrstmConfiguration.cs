@@ -11,9 +11,9 @@ namespace DspAdpcm.Adpcm.Formats.Configuration
         /// <summary>
         /// The type of track description to be used when building the 
         /// BRSTM header.
-        /// Default is <see cref="BrstmTrackType.Short"/>
+        /// Default is <see cref="BrstmTrackType.Standard"/>
         /// </summary>
-        public BrstmTrackType TrackType { get; set; } = BrstmTrackType.Short;
+        public BrstmTrackType TrackType { get; set; } = BrstmTrackType.Standard;
 
         /// <summary>
         /// The type of seek table to use when building the BRSTM
