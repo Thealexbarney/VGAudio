@@ -467,7 +467,7 @@ namespace DspAdpcm.Adpcm.Formats
             structure.Codec = (B_stmCodec)reader.ReadByte();
             if (structure.Codec != B_stmCodec.Adpcm)
             {
-                throw new InvalidDataException("File must contain 4-bit ADPCM encoded audio");
+                throw new NotSupportedException("File must contain 4-bit ADPCM encoded audio");
             }
 
             structure.Looping = reader.ReadByte() == 1;
