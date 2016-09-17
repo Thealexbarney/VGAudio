@@ -78,14 +78,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// to use for the <see cref="Dsp"/></param>
         public Dsp(Stream stream, DspConfiguration configuration = null)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
-            DspStructure dsp = ReadDspFile(stream);
-            AudioStream = GetAdpcmStream(dsp);
-            Configuration = configuration ?? new DspConfiguration();
+            ReadStream(stream, configuration);
         }
 
         /// <summary>
@@ -100,10 +93,8 @@ namespace DspAdpcm.Adpcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                DspStructure dsp = ReadDspFile(stream);
-                AudioStream = GetAdpcmStream(dsp);
+                ReadStream(stream, configuration);
             }
-            Configuration = configuration ?? new DspConfiguration();
         }
 
         /// <summary>
@@ -116,12 +107,17 @@ namespace DspAdpcm.Adpcm.Formats
         /// the data from the DSP header.</returns>
         public static DspStructure ReadMetadata(Stream stream)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
+            CheckStream(stream, HeaderSize);
             return ReadDspFile(stream, false);
+        }
+
+        private void ReadStream(Stream stream, DspConfiguration configuration = null)
+        {
+            CheckStream(stream, HeaderSize);
+
+            DspStructure dsp = ReadDspFile(stream);
+            AudioStream = GetAdpcmStream(dsp);
+            Configuration = configuration ?? new DspConfiguration();
         }
 
         private void RecalculateData()

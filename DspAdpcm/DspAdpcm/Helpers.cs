@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace DspAdpcm
@@ -69,6 +69,19 @@ namespace DspAdpcm
                 return value;
 
             return value + multiple - value % multiple;
+        }
+
+        public static void CheckStream(Stream stream, int minLength)
+        {
+            if (!stream.CanSeek)
+            {
+                throw new NotSupportedException("A seekable stream is required");
+            }
+
+            if (stream.Length < minLength)
+            {
+                throw new InvalidDataException($"File is only {stream.Length} bytes long");
+            }
         }
 
         public enum Endianness

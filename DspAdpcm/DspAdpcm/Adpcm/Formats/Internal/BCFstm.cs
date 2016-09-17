@@ -40,7 +40,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         private int BytesPerSeekTableEntry => 4;
         private int NumSeekTableEntries => NumSamples.DivideByRoundUp(SamplesPerSeekTableEntry);
 
-        private int HeaderLength => 0x40;
+        private const int HeaderLength = 0x40;
 
         private int HeadChunkOffset => HeaderLength;
 
@@ -88,10 +88,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
 
         public BCFstm(Stream stream, BCFstmConfiguration configuration = null)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
+            CheckStream(stream, HeaderLength);
 
             BCFstmStructure bcfstm = ReadBCFstmFile(stream);
             AudioStream = GetAdpcmStream(bcfstm);

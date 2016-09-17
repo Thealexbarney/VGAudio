@@ -39,7 +39,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private int InterleaveSize => Configuration.BytesPerInterleave == 0 ?
             AudioDataLength : Configuration.BytesPerInterleave;
-        private int StreamInfoSize => 0x40;
+        private const int StreamInfoSize = 0x40;
         private int ChannelInfoSize => 0x60;
         private int HeaderLength => StreamInfoSize + NumChannels * ChannelInfoSize;
 
@@ -79,14 +79,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// to use for the <see cref="Idsp"/></param>
         public Idsp(Stream stream, IdspConfiguration configuration = null)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
-            IdspStructure idsp = ReadIdspFile(stream);
-            AudioStream = GetAdpcmStream(idsp);
-            Configuration = configuration ?? GetConfiguration(idsp);
+            ReadStream(stream, configuration);
         }
 
         /// <summary>
@@ -101,9 +94,7 @@ namespace DspAdpcm.Adpcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                IdspStructure idsp = ReadIdspFile(stream);
-                AudioStream = GetAdpcmStream(idsp);
-                Configuration = configuration ?? GetConfiguration(idsp);
+                ReadStream(stream, configuration);
             }
         }
 
@@ -117,12 +108,17 @@ namespace DspAdpcm.Adpcm.Formats
         /// the data from the IDSP header.</returns>
         public static IdspStructure ReadMetadata(Stream stream)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
+            CheckStream(stream, StreamInfoSize);
             return ReadIdspFile(stream, false);
+        }
+
+        private void ReadStream(Stream stream, IdspConfiguration configuration = null)
+        {
+            CheckStream(stream, StreamInfoSize);
+
+            IdspStructure idsp = ReadIdspFile(stream);
+            AudioStream = GetAdpcmStream(idsp);
+            Configuration = configuration ?? GetConfiguration(idsp);
         }
 
         private void RecalculateData()

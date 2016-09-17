@@ -49,7 +49,7 @@ namespace DspAdpcm.Adpcm.Formats
             ? NumSamples.DivideByRoundUp(SamplesPerSeekTableEntry)
             : (GetBytesForAdpcmSamples(NumSamples) / SamplesPerSeekTableEntry) + 1;
 
-        private int RstmHeaderLength => 0x40;
+        private const int RstmHeaderLength = 0x40;
 
         private int HeadChunkOffset => RstmHeaderLength;
         private int HeadChunkLength => GetNextMultiple(HeadChunkHeaderLength + HeadChunkTableLength +
@@ -102,14 +102,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// to use for the <see cref="Brstm"/></param>
         public Brstm(Stream stream, BrstmConfiguration configuration = null)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
-            BrstmStructure brstm = ReadBrstmFile(stream);
-            AudioStream = GetAdpcmStream(brstm);
-            Configuration = configuration ?? GetConfiguration(brstm);
+            ReadStream(stream, configuration);
         }
 
         /// <summary>
@@ -124,9 +117,7 @@ namespace DspAdpcm.Adpcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                BrstmStructure brstm = ReadBrstmFile(stream);
-                AudioStream = GetAdpcmStream(brstm);
-                Configuration = configuration ?? GetConfiguration(brstm);
+                ReadStream(stream, configuration);
             }
         }
 
@@ -140,12 +131,17 @@ namespace DspAdpcm.Adpcm.Formats
         /// the data from the BRSTM header.</returns>
         public static BrstmStructure ReadMetadata(Stream stream)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
+            CheckStream(stream, RstmHeaderLength);
             return ReadBrstmFile(stream, false);
+        }
+
+        private void ReadStream(Stream stream, BrstmConfiguration configuration = null)
+        {
+            CheckStream(stream, RstmHeaderLength);
+
+            BrstmStructure brstm = ReadBrstmFile(stream);
+            AudioStream = GetAdpcmStream(brstm);
+            Configuration = configuration ?? GetConfiguration(brstm);
         }
 
         private void RecalculateData()

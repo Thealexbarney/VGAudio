@@ -18,6 +18,8 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         public AdpcmStream AudioStream { get; set; }
 
+        private const int HeaderLength = 0x60;
+
         /// <summary>
         /// Initializes a new <see cref="Genh"/> by parsing an existing
         /// GENH file.
@@ -26,13 +28,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// the GENH file. Must be seekable.</param>
         public Genh(Stream stream)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
-            GenhStructure genh = ReadGenhFile(stream);
-            AudioStream = GetAdpcmStream(genh);
+            ReadStream(stream);
         }
 
         /// <summary>
@@ -45,8 +41,7 @@ namespace DspAdpcm.Adpcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                GenhStructure genh = ReadGenhFile(stream);
-                AudioStream = GetAdpcmStream(genh);
+                ReadStream(stream);
             }
         }
 
@@ -60,12 +55,16 @@ namespace DspAdpcm.Adpcm.Formats
         /// the data from the GENH header.</returns>
         public static GenhStructure ReadMetadata(Stream stream)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
+            CheckStream(stream, HeaderLength);
             return ReadGenhFile(stream, false);
+        }
+
+        private void ReadStream(Stream stream)
+        {
+            CheckStream(stream, HeaderLength);
+
+            GenhStructure genh = ReadGenhFile(stream);
+            AudioStream = GetAdpcmStream(genh);
         }
 
         private static GenhStructure ReadGenhFile(Stream stream, bool readAudioData = true)

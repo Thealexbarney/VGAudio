@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using DspAdpcm.Adpcm.Formats.Configuration;
 using DspAdpcm.Adpcm.Formats.Internal;
 using DspAdpcm.Adpcm.Formats.Structures;
+using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Adpcm.Formats
 {
@@ -12,6 +12,7 @@ namespace DspAdpcm.Adpcm.Formats
     public class Bfstm
     {
         private BCFstm BCFstm { get; set; }
+        private const int HeaderLength = 0x40;
 
         /// <summary>
         /// The underlying <see cref="AdpcmStream"/> used to build the BFSTM file.
@@ -56,13 +57,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// to use for the <see cref="Bfstm"/></param>
         public Bfstm(Stream stream, BfstmConfiguration configuration = null)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
-            BCFstm = new BCFstm(stream, configuration?.Configuration);
-            Configuration.Configuration = BCFstm.Configuration;
+            ReadStream(stream, Configuration);
         }
 
         /// <summary>
@@ -77,8 +72,7 @@ namespace DspAdpcm.Adpcm.Formats
         {
             using (var stream = new MemoryStream(file))
             {
-                BCFstm = new BCFstm(stream, configuration?.Configuration);
-                Configuration.Configuration = BCFstm.Configuration;
+                ReadStream(stream, Configuration);
             }
         }
 
@@ -92,11 +86,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// the data from the BFSTM header.</returns>
         public static BfstmStructure ReadMetadata(Stream stream)
         {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
+            CheckStream(stream, HeaderLength);
             return (BfstmStructure)BCFstm.ReadBCFstmFile(stream, false);
         }
 
@@ -123,6 +113,12 @@ namespace DspAdpcm.Adpcm.Formats
         {
             BCFstm.Configuration = Configuration.Configuration;
             BCFstm.WriteBCFstmFile(stream, BCFstm.BCFstmType.Bfstm);
+        }
+
+        private void ReadStream(Stream stream, BfstmConfiguration configuration = null)
+        {
+            BCFstm = new BCFstm(stream, configuration?.Configuration);
+            Configuration.Configuration = BCFstm.Configuration;
         }
     }
 }
