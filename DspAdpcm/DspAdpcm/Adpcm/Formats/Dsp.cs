@@ -21,7 +21,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// Contains various settings used when building the BRSTM file.
         /// </summary>
-        public DspConfiguration Configuration { get; }
+        public DspConfiguration Configuration { get; set; }
 
         /// <summary>
         /// The size in bytes of the DSP file.

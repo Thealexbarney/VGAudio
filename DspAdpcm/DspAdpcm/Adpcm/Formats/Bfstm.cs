@@ -21,7 +21,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// Contains various settings used when building the BFSTM file.
         /// </summary>
-        public BfstmConfiguration Configuration { get; } = new BfstmConfiguration();
+        public BfstmConfiguration Configuration { get; set; } = new BfstmConfiguration();
 
         /// <summary>
         /// The size in bytes of the BFSTM file.
@@ -81,7 +81,7 @@ namespace DspAdpcm.Adpcm.Formats
                 Configuration.Configuration = BCFstm.Configuration;
             }
         }
-        
+
         /// <summary>
         /// Parses the header of a BFSTM file and returns the metadata
         /// and structure data of that file.
@@ -97,7 +97,7 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            return (BfstmStructure) BCFstm.ReadBCFstmFile(stream, false);
+            return (BfstmStructure)BCFstm.ReadBCFstmFile(stream, false);
         }
 
         /// <summary>

@@ -21,7 +21,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// Contains various settings used when building the IDSP file.
         /// </summary>
-        public IdspConfiguration Configuration { get; }
+        public IdspConfiguration Configuration { get; set; }
 
         private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? LoopEnd :
             Math.Max(AudioStream.NumSamples, LoopEnd));

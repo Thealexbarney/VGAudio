@@ -21,7 +21,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// Contains various settings used when building the BCSTM file.
         /// </summary>
-        public BcstmConfiguration Configuration { get; } = new BcstmConfiguration();
+        public BcstmConfiguration Configuration { get; set; } = new BcstmConfiguration();
 
         /// <summary>
         /// The size in bytes of the BCSTM file.
@@ -42,7 +42,7 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new InvalidDataException("Stream must have at least one channel ");
             }
 
-            BCFstm = new BCFstm {AudioStream = stream};
+            BCFstm = new BCFstm { AudioStream = stream };
             Configuration = configuration ?? Configuration;
         }
 
@@ -97,7 +97,7 @@ namespace DspAdpcm.Adpcm.Formats
                 throw new NotSupportedException("A seekable stream is required");
             }
 
-            return (BcstmStructure) BCFstm.ReadBCFstmFile(stream, false);
+            return (BcstmStructure)BCFstm.ReadBCFstmFile(stream, false);
         }
 
         /// <summary>

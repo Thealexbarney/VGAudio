@@ -21,7 +21,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// Contains various settings used when building the BRSTM file.
         /// </summary>
-        public BrstmConfiguration Configuration { get; }
+        public BrstmConfiguration Configuration { get; set; }
 
         private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
         private int NumChannels => AudioStream.Channels.Count;
