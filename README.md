@@ -1,5 +1,6 @@
 # LibDspAdpcm
 A library for encoding, decoding, and manipulating audio files in Nintendo's DSP-ADPCM format.
+
 Currently supports reading and writing:
 * DSP
 * BRSTM

@@ -8,8 +8,8 @@ using static DspAdpcm.Helpers;
 namespace DspAdpcm.Adpcm.Formats
 {
     /// <summary>
-    /// Represents a DSP file.
-    /// Only reading of Nintendo 4-bit DSP-ADPCM is supported.
+    /// Represents a GENH file.
+    /// Only reading of Nintendo 4-bit DSP-ADPCM audio is supported.
     /// </summary>
     public class Genh
     {
@@ -23,7 +23,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// GENH file.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> containing 
-        /// the DSP file. Must be seekable.</param>
+        /// the GENH file. Must be seekable.</param>
         public Genh(Stream stream)
         {
             if (!stream.CanSeek)
