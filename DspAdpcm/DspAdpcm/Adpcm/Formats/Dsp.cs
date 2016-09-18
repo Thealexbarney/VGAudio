@@ -19,7 +19,7 @@ namespace DspAdpcm.Adpcm.Formats
         public AdpcmStream AudioStream { get; set; }
 
         /// <summary>
-        /// Contains various settings used when building the BRSTM file.
+        /// Contains various settings used when building the DSP file.
         /// </summary>
         public DspConfiguration Configuration { get; set; }
 

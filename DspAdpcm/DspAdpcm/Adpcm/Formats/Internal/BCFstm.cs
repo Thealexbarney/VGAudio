@@ -415,10 +415,10 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                 throw new InvalidDataException("Actual file length is less than stated length");
             }
 
-            structure.CstmHeaderSections = reader.ReadInt16();
+            structure.HeaderSections = reader.ReadInt16();
             reader.BaseStream.Position += 2;
 
-            for (int i = 0; i < structure.CstmHeaderSections; i++)
+            for (int i = 0; i < structure.HeaderSections; i++)
             {
                 int type = reader.ReadInt16();
                 reader.BaseStream.Position += 2;

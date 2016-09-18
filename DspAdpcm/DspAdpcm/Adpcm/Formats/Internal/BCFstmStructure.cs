@@ -18,13 +18,13 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         /// </summary>
         public int Version { get; set; }
         /// <summary>
-        /// The size of the CSTM header.
+        /// The size of the file header.
         /// </summary>
         public int HeaderSize { get; set; }
         /// <summary>
         /// The number of sections listed in the header.
         /// </summary>
-        public int CstmHeaderSections { get; set; }
+        public int HeaderSections { get; set; }
         /// <summary>
         /// The offset of the INFO chunk.
         /// </summary>
@@ -86,14 +86,14 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         public B_stmCodec Codec { get; set; }
 
         /// <summary>
-        /// Specifies whether the BCSTM includes an extra chunk in the header
+        /// Specifies whether the file includes an extra chunk in the header
         /// after the stream info and before the track offset table.
         /// The purpose of this chunk is unknown.
         /// </summary>
         public bool InfoPart1Extra { get; set; }
 
         /// <summary>
-        /// Specifies whether the BCSTM lists the tracks
+        /// Specifies whether the file lists the tracks
         /// included in it.
         /// </summary>
         public bool IncludeTracks { get; set; }
