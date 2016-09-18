@@ -43,7 +43,7 @@
                 </StackPanel>
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                     <TextBlock Text="Samples per seek table entry:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BrstmConfiguration.SamplesPerAdpcEntry, Mode=TwoWay}"/>
+                    <TextBox Margin="10, 0" Text="{Binding BrstmConfiguration.SamplesPerSeekTableEntry, Mode=TwoWay}"/>
                 </StackPanel>
             </StackPanel>
         </StackPanel>

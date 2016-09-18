@@ -47,6 +47,8 @@ namespace DspAdpcm.Uwp.ViewModels
         public DspConfiguration DspConfiguration { get; set; } = new DspConfiguration();
         public BrstmConfiguration BrstmConfiguration { get; set; } = new BrstmConfiguration();
         public BcstmConfiguration BcstmConfiguration { get; set; } = new BcstmConfiguration();
+        public BfstmConfiguration BfstmConfiguration { get; set; } = new BfstmConfiguration();
+        public IdspConfiguration IdspConfiguration { get; set; } = new IdspConfiguration();
 
         public Dictionary<AdpcmTypes, AudioFileType> FileTypes { get; }
 
@@ -94,10 +96,35 @@ namespace DspAdpcm.Uwp.ViewModels
                            CoreDispatcherPriority.Normal, () => { BcstmConfiguration = bcstm.Configuration; });
                         return bcstm.AudioStream;
                     },
-                    adpcmStream => new Bcstm(adpcmStream, BcstmConfiguration).GetFile())
+                    adpcmStream => new Bcstm(adpcmStream, BcstmConfiguration).GetFile()),
+                [AdpcmTypes.Bfstm] = new AudioFileType("BFSTM", ".bfstm", "BFSTM Audio File",
+                    async fileName =>
+                    {
+                        var bfstm = new Bfstm(new FileStream(fileName, FileMode.Open));
+                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                           CoreDispatcherPriority.Normal, () => { BfstmConfiguration = bfstm.Configuration; });
+                        return bfstm.AudioStream;
+                    },
+                    adpcmStream => new Bfstm(adpcmStream, BfstmConfiguration).GetFile()),
+                [AdpcmTypes.Idsp] = new AudioFileType("IDSP", ".idsp", "IDSP Audio File",
+                    async fileName =>
+                    {
+                        var idsp = new Idsp(new FileStream(fileName, FileMode.Open));
+                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                           CoreDispatcherPriority.Normal, () => { IdspConfiguration = idsp.Configuration; });
+                        return idsp.AudioStream;
+                    },
+                    adpcmStream => new Idsp(adpcmStream, IdspConfiguration).GetFile()),
+                [AdpcmTypes.Genh] = new AudioFileType("GENH", ".genh", "GENH Audio File",
+                    async fileName =>
+                    {
+                        var bfstm = new Genh(new FileStream(fileName, FileMode.Open));
+                        return await Task.FromResult(bfstm.AudioStream);
+                    },
+                    null)
             };
 
-            FileTypesBinding = FileTypes.ToDictionary(x => (int)x.Key, x => x.Value);
+            FileTypesBinding = FileTypes.Where(x => x.Value.GetFileFunc != null).ToDictionary(x => (int)x.Key, x => x.Value);
 
             EncodeCommand = new RelayCommand(Encode, CanEncode);
             SaveFileCommand = new RelayCommand(SaveFile);
@@ -118,6 +145,9 @@ namespace DspAdpcm.Uwp.ViewModels
             picker.FileTypeFilter.Add(".dsp");
             picker.FileTypeFilter.Add(".brstm");
             picker.FileTypeFilter.Add(".bcstm");
+            picker.FileTypeFilter.Add(".bfstm");
+            picker.FileTypeFilter.Add(".idsp");
+            picker.FileTypeFilter.Add(".genh");
 
             StorageFile file = await picker.PickSingleFileAsync();
 
@@ -233,7 +263,10 @@ namespace DspAdpcm.Uwp.ViewModels
         {
             Dsp,
             Brstm,
-            Bcstm
+            Bcstm,
+            Bfstm,
+            Idsp,
+            Genh
         }
     }
 
