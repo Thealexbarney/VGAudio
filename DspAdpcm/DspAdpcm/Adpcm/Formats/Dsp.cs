@@ -37,7 +37,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
         private int BytesPerInterleave => GetBytesForAdpcmSamples(SamplesPerInterleave);
-        private int FramesPerInterleave => BytesPerInterleave / BytesPerBlock;
+        private int FramesPerInterleave => BytesPerInterleave / BytesPerFrame;
 
         private int AlignmentSamples => GetNextMultiple(AudioStream.LoopStart, Configuration.LoopPointAlignment) - AudioStream.LoopStart;
         private int LoopStart => AudioStream.LoopStart + AlignmentSamples;
@@ -48,7 +48,7 @@ namespace DspAdpcm.Adpcm.Formats
         private static int CurAddr => GetNibbleAddress(0);
 
         private int AudioDataLength
-            => GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), NumChannels == 1 ? 1 : BytesPerBlock);
+            => GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), NumChannels == 1 ? 1 : BytesPerFrame);
 
         /// <summary>
         /// Initializes a new <see cref="Dsp"/> from an <see cref="AdpcmStream"/>.
@@ -214,7 +214,7 @@ namespace DspAdpcm.Adpcm.Formats
             else
             {
                 byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
-                channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), BytesPerInterleave, BytesPerBlock);
+                channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), BytesPerInterleave, BytesPerFrame);
             }
         }
 
@@ -320,7 +320,7 @@ namespace DspAdpcm.Adpcm.Formats
             else
             {
                 int dataLength = GetNextMultiple(GetBytesForAdpcmSamples(structure.NumSamples), 8) * structure.NumChannels;
-                int interleaveSize = structure.FramesPerInterleave * BytesPerBlock;
+                int interleaveSize = structure.FramesPerInterleave * BytesPerFrame;
                 structure.AudioData = reader.BaseStream.DeInterleave(dataLength, interleaveSize, structure.NumChannels);
             }
         }

@@ -44,7 +44,7 @@ namespace DspAdpcm.Adpcm.Formats
         private int HeaderSize => StreamInfoSize + NumChannels * ChannelInfoSize;
 
         private int AudioDataLength => GetNextMultiple(GetBytesForAdpcmSamples(NumSamples),
-            Configuration.BytesPerInterleave == 0 ? BytesPerBlock : InterleaveSize);
+            Configuration.BytesPerInterleave == 0 ? BytesPerFrame : InterleaveSize);
 
         /// <summary>
         /// The size in bytes of the IDSP file.

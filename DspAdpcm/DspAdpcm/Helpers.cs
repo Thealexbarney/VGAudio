@@ -6,48 +6,48 @@ namespace DspAdpcm
 {
     internal static class Helpers
     {
-        public const int BytesPerBlock = 8;
-        public const int SamplesPerBlock = 14;
-        public const int NibblesPerBlock = 16;
+        public const int BytesPerFrame = 8;
+        public const int SamplesPerFrame = 14;
+        public const int NibblesPerFrame = 16;
 
         public static int GetNibbleFromSample(int samples)
         {
-            int blocks = samples / SamplesPerBlock;
-            int extraSamples = samples % SamplesPerBlock;
+            int frames = samples / SamplesPerFrame;
+            int extraSamples = samples % SamplesPerFrame;
             int extraNibbles = extraSamples == 0 ? 0 : extraSamples + 2;
 
-            return NibblesPerBlock * blocks + extraNibbles;
+            return NibblesPerFrame * frames + extraNibbles;
         }
 
         public static int GetSampleFromNibble(int nibble)
         {
-            int blocks = nibble / NibblesPerBlock;
-            int extraNibbles = nibble % NibblesPerBlock;
-            int samples = SamplesPerBlock * blocks;
+            int frames = nibble / NibblesPerFrame;
+            int extraNibbles = nibble % NibblesPerFrame;
+            int samples = SamplesPerFrame * frames;
 
             return samples + extraNibbles - (extraNibbles != 0 ? 2 : 0);
         }
 
         public static int GetNibbleAddress(int sample)
         {
-            int blocks = sample / SamplesPerBlock;
-            int extraSamples = sample % SamplesPerBlock;
+            int frames = sample / SamplesPerFrame;
+            int extraSamples = sample % SamplesPerFrame;
 
-            return NibblesPerBlock * blocks + extraSamples + 2;
+            return NibblesPerFrame * frames + extraSamples + 2;
         }
 
         public static int GetBytesForAdpcmSamples(int samples)
         {
             int extraBytes = 0;
-            int blocks = samples / SamplesPerBlock;
-            int extraSamples = samples % SamplesPerBlock;
+            int frames = samples / SamplesPerFrame;
+            int extraSamples = samples % SamplesPerFrame;
 
             if (extraSamples != 0)
             {
                 extraBytes = (extraSamples / 2) + (extraSamples % 2) + 1;
             }
 
-            return BytesPerBlock * blocks + extraBytes;
+            return BytesPerFrame * frames + extraBytes;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

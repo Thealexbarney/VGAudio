@@ -113,13 +113,13 @@ namespace DspAdpcm.Adpcm
             short hist1 = history.Item2;
             short hist2 = history.Item3;
             var adpcm = audio.GetAudioData;
-            int numBlocks = adpcm.Length.DivideByRoundUp(BytesPerBlock);
+            int numFrames = adpcm.Length.DivideByRoundUp(BytesPerFrame);
 
             short[] pcm;
             int numHistSamples = 0;
             int currentSample = history.Item1;
             int outSample = 0;
-            int inByte = currentSample / SamplesPerBlock * BytesPerBlock;
+            int inByte = currentSample / SamplesPerFrame * BytesPerFrame;
 
             if (includeHistorySamples)
             {
@@ -148,7 +148,7 @@ namespace DspAdpcm.Adpcm
                 return pcm;
             }
 
-            for (int i = 0; i < numBlocks; i++)
+            for (int i = 0; i < numFrames; i++)
             {
                 byte ps = adpcm[inByte++];
                 int scale = 1 << (ps & 0xf);
@@ -209,7 +209,7 @@ namespace DspAdpcm.Adpcm
 
         private static byte GetPredictorScale(this AdpcmChannel audio, int sample)
         {
-            return audio.GetAudioData[sample / SamplesPerBlock * BytesPerBlock];
+            return audio.GetAudioData[sample / SamplesPerFrame * BytesPerFrame];
         }
 
         internal static void CalculateLoopContext(IEnumerable<AdpcmChannel> channels, int loopStart)
@@ -290,9 +290,9 @@ namespace DspAdpcm.Adpcm
             int outputLength = GetBytesForAdpcmSamples(audio.NumSamples + samplesToAdd);
             var output = new byte[outputLength];
 
-            int blocksToCopy = loopEnd / SamplesPerBlock;
-            int bytesToCopy = blocksToCopy * BytesPerBlock;
-            int samplesToCopy = blocksToCopy * SamplesPerBlock;
+            int framesToCopy = loopEnd / SamplesPerFrame;
+            int bytesToCopy = framesToCopy * BytesPerFrame;
+            int samplesToCopy = framesToCopy * SamplesPerFrame;
             Array.Copy(audio.AudioByteArray, 0, output, 0, bytesToCopy);
 
             //We're gonna be doing a lot of seeking, so make sure the seek table is built

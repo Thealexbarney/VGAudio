@@ -333,10 +333,10 @@ namespace DspAdpcm.Adpcm
                 vecBest[i] = new double[3];
             }
 
-            /* Iterate though one block at a time */
-            foreach (var block in source.Batch(14))
+            /* Iterate though one frame at a time */
+            foreach (var frame in source.Batch(14))
             {
-                Array.Copy(block, 0, pcmHistBuffer, 14, 14);
+                Array.Copy(frame, 0, pcmHistBuffer, 14, 14);
 
                 InnerProductMerge(vec1, pcmHistBuffer);
                 if (Math.Abs(vec1[0]) > 10.0)
@@ -547,22 +547,22 @@ namespace DspAdpcm.Adpcm
             var channel = new AdpcmChannel(pcmChannel.NumSamples);
             channel.Coefs = DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
 
-            /* Execute encoding-predictor for each block */
-            var convSamps = new short[2 + SamplesPerBlock];
-            var block = new byte[BytesPerBlock];
+            /* Execute encoding-predictor for each frame */
+            var convSamps = new short[2 + SamplesPerFrame];
+            var frame = new byte[BytesPerFrame];
 
-            int blockCount = 0;
-            foreach (short[] inBlock in pcmChannel.GetAudioData().Batch(SamplesPerBlock))
+            int frameCount = 0;
+            foreach (short[] inFrame in pcmChannel.GetAudioData().Batch(SamplesPerFrame))
             {
-                Array.Copy(inBlock, 0, convSamps, 2, SamplesPerBlock);
+                Array.Copy(inFrame, 0, convSamps, 2, SamplesPerFrame);
 
-                DspEncodeFrame(convSamps, SamplesPerBlock, block, channel.Coefs);
+                DspEncodeFrame(convSamps, SamplesPerFrame, frame, channel.Coefs);
 
                 convSamps[0] = convSamps[14];
                 convSamps[1] = convSamps[15];
 
-                int numSamples = Math.Min(pcmChannel.NumSamples - blockCount * SamplesPerBlock, SamplesPerBlock);
-                Array.Copy(block, 0, channel.AudioByteArray, blockCount++ * BytesPerBlock, GetBytesForAdpcmSamples(numSamples));
+                int numSamples = Math.Min(pcmChannel.NumSamples - frameCount * SamplesPerFrame, SamplesPerFrame);
+                Array.Copy(frame, 0, channel.AudioByteArray, frameCount++ * BytesPerFrame, GetBytesForAdpcmSamples(numSamples));
             }
             return channel;
         }
@@ -617,24 +617,24 @@ namespace DspAdpcm.Adpcm
         internal static byte[] EncodeAdpcm(short[] pcm, short[] coefs, short hist1, short hist2, int samples)
         {
             var adpcm = new byte[GetBytesForAdpcmSamples(samples)];
-            var convSamps = new short[2 + SamplesPerBlock];
-            var block = new byte[BytesPerBlock];
+            var convSamps = new short[2 + SamplesPerFrame];
+            var frame = new byte[BytesPerFrame];
 
             convSamps[0] = hist2;
             convSamps[1] = hist1;
 
-            int blockCount = 0;
-            foreach (short[] inBlock in pcm.Batch(SamplesPerBlock))
+            int frameCount = 0;
+            foreach (short[] inFrame in pcm.Batch(SamplesPerFrame))
             {
-                Array.Copy(inBlock, 0, convSamps, 2, SamplesPerBlock);
+                Array.Copy(inFrame, 0, convSamps, 2, SamplesPerFrame);
 
-                DspEncodeFrame(convSamps, SamplesPerBlock, block, coefs);
+                DspEncodeFrame(convSamps, SamplesPerFrame, frame, coefs);
 
                 convSamps[0] = convSamps[14];
                 convSamps[1] = convSamps[15];
 
-                int numSamples = Math.Min(samples - blockCount * SamplesPerBlock, SamplesPerBlock);
-                Array.Copy(block, 0, adpcm, blockCount++ * BytesPerBlock, GetBytesForAdpcmSamples(numSamples));
+                int numSamples = Math.Min(samples - frameCount * SamplesPerFrame, SamplesPerFrame);
+                Array.Copy(frame, 0, adpcm, frameCount++ * BytesPerFrame, GetBytesForAdpcmSamples(numSamples));
             }
             return adpcm;
         }

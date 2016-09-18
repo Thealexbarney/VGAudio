@@ -47,7 +47,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                     throw new ArgumentOutOfRangeException(nameof(value), value,
                         "Number of samples per interleave must be positive");
                 }
-                if (value % SamplesPerBlock != 0)
+                if (value % SamplesPerFrame != 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), value,
                         "Number of samples per interleave must be divisible by 14");
