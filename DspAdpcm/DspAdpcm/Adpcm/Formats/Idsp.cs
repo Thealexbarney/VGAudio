@@ -41,7 +41,7 @@ namespace DspAdpcm.Adpcm.Formats
             AudioDataLength : Configuration.BytesPerInterleave;
         private const int StreamInfoSize = 0x40;
         private int ChannelInfoSize => 0x60;
-        private int HeaderLength => StreamInfoSize + NumChannels * ChannelInfoSize;
+        private int HeaderSize => StreamInfoSize + NumChannels * ChannelInfoSize;
 
         private int AudioDataLength => GetNextMultiple(GetBytesForAdpcmSamples(NumSamples),
             Configuration.BytesPerInterleave == 0 ? BytesPerBlock : InterleaveSize);
@@ -49,7 +49,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// The size in bytes of the IDSP file.
         /// </summary>
-        public int FileLength => HeaderLength + AudioDataLength * NumChannels;
+        public int FileSize => HeaderSize + AudioDataLength * NumChannels;
 
         /// <summary>
         /// Initializes a new <see cref="Idsp"/> from an <see cref="AdpcmStream"/>.
@@ -141,7 +141,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <returns>An IDSP file</returns>
         public byte[] GetFile()
         {
-            var file = new byte[FileLength];
+            var file = new byte[FileSize];
             var stream = new MemoryStream(file);
             WriteFile(stream);
             return file;
@@ -156,11 +156,11 @@ namespace DspAdpcm.Adpcm.Formats
         /// IDSP to.</param>
         public void WriteFile(Stream stream)
         {
-            if (stream.Length != FileLength)
+            if (stream.Length != FileSize)
             {
                 try
                 {
-                    stream.SetLength(FileLength);
+                    stream.SetLength(FileSize);
                 }
                 catch (NotSupportedException ex)
                 {
@@ -190,7 +190,7 @@ namespace DspAdpcm.Adpcm.Formats
             writer.Write(Configuration.BytesPerInterleave);
             writer.Write(StreamInfoSize);
             writer.Write(ChannelInfoSize);
-            writer.Write(HeaderLength);
+            writer.Write(HeaderSize);
             writer.Write(AudioDataLength);
 
             for (int i = 0; i < NumChannels; i++)
@@ -219,7 +219,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private void GetData(BinaryWriter writer)
         {
-            writer.BaseStream.Position = HeaderLength;
+            writer.BaseStream.Position = HeaderSize;
 
             byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
             channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, InterleaveSize);

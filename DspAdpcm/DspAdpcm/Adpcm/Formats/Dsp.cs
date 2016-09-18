@@ -26,9 +26,9 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// The size in bytes of the DSP file.
         /// </summary>
-        public int FileLength => (HeaderSize + AudioDataLength) * NumChannels;
+        public int FileSize => (HeaderSize + AudioDataLength) * NumChannels;
 
-        private const int HeaderSize = 0x60;
+        private static int HeaderSize => 0x60;
         private int NumChannels => AudioStream.Channels.Count;
 
         private int NumSamples => (Configuration.TrimFile && AudioStream.Looping ? LoopEnd :
@@ -140,7 +140,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <returns>A DSP file</returns>
         public byte[] GetFile()
         {
-            var file = new byte[FileLength];
+            var file = new byte[FileSize];
             var stream = new MemoryStream(file);
             WriteFile(stream);
             return file;
@@ -155,11 +155,11 @@ namespace DspAdpcm.Adpcm.Formats
         /// DSP to.</param>
         public void WriteFile(Stream stream)
         {
-            if (stream.Length != FileLength)
+            if (stream.Length != FileSize)
             {
                 try
                 {
-                    stream.SetLength(FileLength);
+                    stream.SetLength(FileSize);
                 }
                 catch (NotSupportedException ex)
                 {

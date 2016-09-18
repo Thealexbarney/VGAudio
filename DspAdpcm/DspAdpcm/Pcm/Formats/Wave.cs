@@ -28,10 +28,10 @@ namespace DspAdpcm.Pcm.Formats
         /// <summary>
         /// The size in bytes of the WAVE file.
         /// </summary>
-        public int FileLength => 8 + RiffChunkLength;
-        private int RiffChunkLength => 4 + 8 + FmtChunkLength + 8 + DataChunkLength;
-        private int FmtChunkLength => NumChannels > 2 ? 40 : 16;
-        private int DataChunkLength => NumChannels * NumSamples * sizeof(short);
+        public int FileSize => 8 + RiffChunkSize;
+        private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize;
+        private int FmtChunkSize => NumChannels > 2 ? 40 : 16;
+        private int DataChunkSize => NumChannels * NumSamples * sizeof(short);
 
         private int BitDepth => 16;
         private int BytesPerSample => BitDepth.DivideByRoundUp(8);
@@ -104,7 +104,7 @@ namespace DspAdpcm.Pcm.Formats
         /// <returns>A WAVE file</returns>
         public byte[] GetFile()
         {
-            var file = new byte[FileLength];
+            var file = new byte[FileSize];
             var stream = new MemoryStream(file);
             WriteFile(stream);
             return file;
@@ -119,11 +119,11 @@ namespace DspAdpcm.Pcm.Formats
         /// WAVE to.</param>
         public void WriteFile(Stream stream)
         {
-            if (stream.Length != FileLength)
+            if (stream.Length != FileSize)
             {
                 try
                 {
-                    stream.SetLength(FileLength);
+                    stream.SetLength(FileSize);
                 }
                 catch (NotSupportedException ex)
                 {
@@ -143,14 +143,14 @@ namespace DspAdpcm.Pcm.Formats
         private void GetRiffHeader(BinaryWriter writer)
         {
             writer.WriteUTF8("RIFF");
-            writer.Write(RiffChunkLength);
+            writer.Write(RiffChunkSize);
             writer.WriteUTF8("WAVE");
         }
 
         private void GetFmtChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("fmt ");
-            writer.Write(FmtChunkLength);
+            writer.Write(FmtChunkSize);
             writer.Write((short)(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
             writer.Write((short)NumChannels);
             writer.Write(SampleRate);
@@ -170,7 +170,7 @@ namespace DspAdpcm.Pcm.Formats
         private void GetDataChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("data");
-            writer.Write(DataChunkLength);
+            writer.Write(DataChunkSize);
             short[][] channels = AudioStream.Channels
                 .Select(x => x.AudioData)
                 .ToArray();

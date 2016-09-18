@@ -84,9 +84,9 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         /// </summary>
         public List<B_stmChannelInfo> Channels { get; set; } = new List<B_stmChannelInfo>();
         /// <summary>
-        /// The length of the seek table in the file.
+        /// The size of the seek table in the file.
         /// </summary>
-        public int SeekTableLength { get; set; }
+        public int SeekTableSize { get; set; }
         /// <summary>
         /// The seek table containing PCM samples
         /// from throughout the audio stream.

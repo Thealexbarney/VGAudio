@@ -18,7 +18,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         public AdpcmStream AudioStream { get; set; }
 
-        private const int HeaderLength = 0x60;
+        private static int HeaderSize => 0x60;
 
         /// <summary>
         /// Initializes a new <see cref="Genh"/> by parsing an existing
@@ -55,13 +55,13 @@ namespace DspAdpcm.Adpcm.Formats
         /// the data from the GENH header.</returns>
         public static GenhStructure ReadMetadata(Stream stream)
         {
-            CheckStream(stream, HeaderLength);
+            CheckStream(stream, HeaderSize);
             return ReadGenhFile(stream, false);
         }
 
         private void ReadStream(Stream stream)
         {
-            CheckStream(stream, HeaderLength);
+            CheckStream(stream, HeaderSize);
 
             GenhStructure genh = ReadGenhFile(stream);
             AudioStream = GetAdpcmStream(genh);

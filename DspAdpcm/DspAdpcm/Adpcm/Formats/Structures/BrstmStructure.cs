@@ -11,17 +11,17 @@ namespace DspAdpcm.Adpcm.Formats.Structures
         internal BrstmStructure() { }
 
         /// <summary>
-        /// The length of the entire BRSTM file.
+        /// The size of the entire BRSTM file.
         /// </summary>
-        public int FileLength { get; set; }
+        public int FileSize { get; set; }
         /// <summary>
         /// The version listed in the RSTM header.
         /// </summary>
         public int Version { get; set; }
         /// <summary>
-        /// The length of the RSTM header.
+        /// The size of the RSTM header.
         /// </summary>
-        public int RstmHeaderLength { get; set; }
+        public int RstmHeaderSize { get; set; }
         /// <summary>
         /// The number of sections listed in the RSTM header.
         /// </summary>
@@ -31,34 +31,34 @@ namespace DspAdpcm.Adpcm.Formats.Structures
         /// </summary>
         public int HeadChunkOffset { get; set; }
         /// <summary>
-        /// The length of the HEAD chunk as stated in the
+        /// The size of the HEAD chunk as stated in the
         /// RSTM header.
         /// </summary>
-        public int HeadChunkLengthRstm { get; set; }
+        public int HeadChunkSizeRstm { get; set; }
         /// <summary>
         /// The offset of the ADPC chunk.
         /// </summary>
         public int AdpcChunkOffset { get; set; }
         /// <summary>
-        /// The length of the ADPC chunk as stated in the
+        /// The size of the ADPC chunk as stated in the
         /// RSTM header.
         /// </summary>
-        public int AdpcChunkLengthRstm { get; set; }
+        public int AdpcChunkSizeRstm { get; set; }
         /// <summary>
         /// The offset of the DATA chunk.
         /// </summary>
         public int DataChunkOffset { get; set; }
         /// <summary>
-        /// The length of the DATA chunk as stated in the
+        /// The size of the DATA chunk as stated in the
         /// RSTM header.
         /// </summary>
-        public int DataChunkLengthRstm { get; set; }
+        public int DataChunkSizeRstm { get; set; }
 
         /// <summary>
-        /// The length of the HEAD chunk as stated in the
+        /// The size of the HEAD chunk as stated in the
         /// HEAD chunk header.
         /// </summary>
-        public int HeadChunkLength { get; set; }
+        public int HeadChunkSize { get; set; }
         /// <summary>
         /// The offset of part 1 of the HEAD chunk.
         /// </summary>
@@ -73,10 +73,10 @@ namespace DspAdpcm.Adpcm.Formats.Structures
         public int HeadChunk3Offset { get; set; }
 
         /// <summary>
-        /// The length of the ADPC chunk as stated in the
+        /// The size of the ADPC chunk as stated in the
         /// ADPC chunk header.
         /// </summary>
-        public int AdpcChunkLength { get; set; }
+        public int AdpcChunkSize { get; set; }
         /// <summary>
         /// Specifies whether the seek table is full
         /// length, or a truncated table used in some
@@ -86,10 +86,10 @@ namespace DspAdpcm.Adpcm.Formats.Structures
         public BrstmSeekTableType SeekTableType { get; set; }
 
         /// <summary>
-        /// The length of the DATA chunk as stated in the
+        /// The size of the DATA chunk as stated in the
         /// DATA chunk header.
         /// </summary>
-        public int DataChunkLength { get; set; }
+        public int DataChunkSize { get; set; }
 
         /// <summary>
         /// The audio codec.

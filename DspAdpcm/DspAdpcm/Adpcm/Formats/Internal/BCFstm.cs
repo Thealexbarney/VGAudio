@@ -40,29 +40,27 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         private int BytesPerSeekTableEntry => 4;
         private int NumSeekTableEntries => NumSamples.DivideByRoundUp(SamplesPerSeekTableEntry);
 
-        private const int HeaderLength = 0x40;
+        private static int HeaderSize => 0x40;
 
-        private int HeadChunkOffset => HeaderLength;
-
-        private int InfoChunkOffset => HeaderLength;
-        private int InfoChunkLength => GetNextMultiple(InfoChunkHeaderLength + InfoChunkTableLength +
-            InfoChunk1Length + InfoChunk2Length + InfoChunk3Length, 0x20);
-        private int InfoChunkHeaderLength => 8;
-        private int InfoChunkTableLength => 8 * 3;
-        private int InfoChunk1Length => 0x38 + (!Configuration.InfoPart1Extra ? 0 : 0xc) + (!Configuration.IncludeUnalignedLoopPoints ? 0 : 8);
-        private int InfoChunk2Length => Configuration.IncludeTrackInformation ? 4 + 8 * NumTracks : 0;
-        private int InfoChunk3Length => (4 + 8 * NumChannels) +
+        private int InfoChunkOffset => HeaderSize;
+        private int InfoChunkSize => GetNextMultiple(InfoChunkHeaderSize + InfoChunkTableSize +
+            InfoChunk1Size + InfoChunk2Size + InfoChunk3Size, 0x20);
+        private int InfoChunkHeaderSize => 8;
+        private int InfoChunkTableSize => 8 * 3;
+        private int InfoChunk1Size => 0x38 + (!Configuration.InfoPart1Extra ? 0 : 0xc) + (!Configuration.IncludeUnalignedLoopPoints ? 0 : 8);
+        private int InfoChunk2Size => Configuration.IncludeTrackInformation ? 4 + 8 * NumTracks : 0;
+        private int InfoChunk3Size => (4 + 8 * NumChannels) +
             (Configuration.IncludeTrackInformation ? 0x14 * NumTracks : 0) +
             8 * NumChannels +
-            ChannelInfoLength * NumChannels;
+            ChannelInfoSize * NumChannels;
 
-        private int ChannelInfoLength => 0x2e;
+        private int ChannelInfoSize => 0x2e;
 
-        private int SeekChunkOffset => HeaderLength + InfoChunkLength;
-        private int SeekChunkLength => GetNextMultiple(8 + NumSeekTableEntries * NumChannels * BytesPerSeekTableEntry, 0x20);
+        private int SeekChunkOffset => HeaderSize + InfoChunkSize;
+        private int SeekChunkSize => GetNextMultiple(8 + NumSeekTableEntries * NumChannels * BytesPerSeekTableEntry, 0x20);
 
-        private int DataChunkOffset => HeaderLength + InfoChunkLength + SeekChunkLength;
-        private int DataChunkLength => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), 0x20) * NumChannels;
+        private int DataChunkOffset => HeaderSize + InfoChunkSize + SeekChunkSize;
+        private int DataChunkSize => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), 0x20) * NumChannels;
 
         private int GetVersion(BCFstmType type)
         {
@@ -84,11 +82,11 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         /// <summary>
         /// The size in bytes of the file.
         /// </summary>
-        public int FileLength => HeaderLength + InfoChunkLength + SeekChunkLength + DataChunkLength;
+        public int FileSize => HeaderSize + InfoChunkSize + SeekChunkSize + DataChunkSize;
 
         public BCFstm(Stream stream, BCFstmConfiguration configuration = null)
         {
-            CheckStream(stream, HeaderLength);
+            CheckStream(stream, HeaderSize);
 
             BCFstmStructure bcfstm = ReadBCFstmFile(stream);
             AudioStream = GetAdpcmStream(bcfstm);
@@ -120,11 +118,11 @@ namespace DspAdpcm.Adpcm.Formats.Internal
 
         internal void WriteBCFstmFile(Stream stream, BCFstmType type)
         {
-            if (stream.Length != FileLength)
+            if (stream.Length != FileSize)
             {
                 try
                 {
-                    stream.SetLength(FileLength);
+                    stream.SetLength(FileSize);
                 }
                 catch (NotSupportedException ex)
                 {
@@ -142,7 +140,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             {
                 stream.Position = 0;
                 GetHeader(writer, type);
-                stream.Position = HeadChunkOffset;
+                stream.Position = InfoChunkOffset;
                 GetInfoChunk(writer, endianness);
                 stream.Position = SeekChunkOffset;
                 GetSeekChunk(writer);
@@ -155,41 +153,41 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         {
             writer.WriteUTF8(type == BCFstmType.Bcstm ? "CSTM" : "FSTM");
             writer.Write((ushort)0xfeff); //Endianness
-            writer.Write((short)HeaderLength);
+            writer.Write((short)HeaderSize);
             writer.Write(GetVersion(type) << 16);
-            writer.Write(FileLength);
+            writer.Write(FileSize);
 
             writer.Write((short)3); // NumEntries
             writer.Write((short)0);
             writer.Write((short)0x4000);
             writer.Write((short)0);
             writer.Write(InfoChunkOffset);
-            writer.Write(InfoChunkLength);
+            writer.Write(InfoChunkSize);
             writer.Write((short)0x4001);
             writer.Write((short)0);
             writer.Write(SeekChunkOffset);
-            writer.Write(SeekChunkLength);
+            writer.Write(SeekChunkSize);
             writer.Write((short)0x4002);
             writer.Write((short)0);
             writer.Write(DataChunkOffset);
-            writer.Write(DataChunkLength);
+            writer.Write(DataChunkSize);
         }
 
         private void GetInfoChunk(BinaryWriter writer, Endianness endianness)
         {
             writer.WriteUTF8("INFO");
-            writer.Write(InfoChunkLength);
+            writer.Write(InfoChunkSize);
 
-            int headerTableLength = 8 * 3;
+            int headerTableSize = 8 * 3;
 
             writer.Write((short)0x4100);
             writer.Write((short)0);
-            writer.Write(headerTableLength);
+            writer.Write(headerTableSize);
             if (Configuration.IncludeTrackInformation)
             {
                 writer.Write((short)0x0101);
                 writer.Write((short)0);
-                writer.Write(headerTableLength + InfoChunk1Length);
+                writer.Write(headerTableSize + InfoChunk1Size);
             }
             else
             {
@@ -198,7 +196,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             }
             writer.Write((short)0x0101);
             writer.Write((short)0);
-            writer.Write(headerTableLength + InfoChunk1Length + InfoChunk2Length);
+            writer.Write(headerTableSize + InfoChunk1Size + InfoChunk2Size);
 
             GetInfoChunk1(writer);
             GetInfoChunk2(writer);
@@ -245,9 +243,9 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         {
             if (!Configuration.IncludeTrackInformation) return;
 
-            int trackTableLength = 4 + 8 * NumTracks;
-            int channelTableLength = 4 + 8 * NumChannels;
-            int trackLength = 0x14;
+            int trackTableSize = 4 + 8 * NumTracks;
+            int channelTableSize = 4 + 8 * NumChannels;
+            int trackSize = 0x14;
 
             writer.Write(NumTracks);
 
@@ -255,21 +253,21 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             {
                 writer.Write((short)0x4101);
                 writer.Write((short)0);
-                writer.Write(trackTableLength + channelTableLength + trackLength * i);
+                writer.Write(trackTableSize + channelTableSize + trackSize * i);
             }
         }
 
         private void GetInfoChunk3(BinaryWriter writer, Endianness endianness)
         {
-            int channelTableLength = 4 + 8 * NumChannels;
-            int trackTableLength = Configuration.IncludeTrackInformation ? 0x14 * NumTracks : 0;
+            int channelTableSize = 4 + 8 * NumChannels;
+            int trackTableSize = Configuration.IncludeTrackInformation ? 0x14 * NumTracks : 0;
 
             writer.Write(NumChannels);
             for (int i = 0; i < NumChannels; i++)
             {
                 writer.Write((short)0x4102);
                 writer.Write((short)0);
-                writer.Write(channelTableLength + trackTableLength + 8 * i);
+                writer.Write(channelTableSize + trackTableSize + 8 * i);
             }
 
             if (Configuration.IncludeTrackInformation)
@@ -288,12 +286,12 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                 }
             }
 
-            int channelTable2Length = 8 * NumChannels;
+            int channelTable2Size = 8 * NumChannels;
             for (int i = 0; i < NumChannels; i++)
             {
                 writer.Write((short)0x0300);
                 writer.Write((short)0);
-                writer.Write(channelTable2Length - 8 * i + ChannelInfoLength * i);
+                writer.Write(channelTable2Size - 8 * i + ChannelInfoSize * i);
             }
 
             foreach (var channel in AudioStream.Channels)
@@ -312,7 +310,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         private void GetSeekChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("SEEK");
-            writer.Write(SeekChunkLength);
+            writer.Write(SeekChunkSize);
 
             var table = Decode.BuildSeekTable(AudioStream.Channels, SamplesPerSeekTableEntry, NumSeekTableEntries, Endianness.LittleEndian);
 
@@ -322,7 +320,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         private void GetDataChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("DATA");
-            writer.Write(DataChunkLength);
+            writer.Write(DataChunkSize);
 
             writer.BaseStream.Position = AudioDataOffset;
 
@@ -408,11 +406,11 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         private static void ParseHeader(BinaryReader reader, BCFstmStructure structure)
         {
             reader.Expect((ushort)0xfeff);
-            structure.HeaderLength = reader.ReadInt16();
+            structure.HeaderSize = reader.ReadInt16();
             structure.Version = reader.ReadInt32() >> 16;
-            structure.FileLength = reader.ReadInt32();
+            structure.FileSize = reader.ReadInt32();
 
-            if (reader.BaseStream.Length < structure.FileLength)
+            if (reader.BaseStream.Length < structure.FileSize)
             {
                 throw new InvalidDataException("Actual file length is less than stated length");
             }
@@ -428,15 +426,15 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                 {
                     case 0x4000:
                         structure.InfoChunkOffset = reader.ReadInt32();
-                        structure.InfoChunkLengthHeader = reader.ReadInt32();
+                        structure.InfoChunkSizeHeader = reader.ReadInt32();
                         break;
                     case 0x4001:
                         structure.SeekChunkOffset = reader.ReadInt32();
-                        structure.SeekChunkLengthHeader = reader.ReadInt32();
+                        structure.SeekChunkSizeHeader = reader.ReadInt32();
                         break;
                     case 0x4002:
                         structure.DataChunkOffset = reader.ReadInt32();
-                        structure.DataChunkLengthHeader = reader.ReadInt32();
+                        structure.DataChunkSizeHeader = reader.ReadInt32();
                         break;
                     default:
                         throw new InvalidDataException($"Unknown section type {type}");
@@ -452,10 +450,10 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                 throw new InvalidDataException("Unknown or invalid INFO chunk");
             }
 
-            structure.InfoChunkLength = reader.ReadInt32();
-            if (structure.InfoChunkLength != structure.InfoChunkLengthHeader)
+            structure.InfoChunkSize = reader.ReadInt32();
+            if (structure.InfoChunkSize != structure.InfoChunkSizeHeader)
             {
-                throw new InvalidDataException("INFO chunk length in CSTM header doesn't match length in INFO header");
+                throw new InvalidDataException("INFO chunk size in CSTM header doesn't match size in INFO header");
             }
 
             reader.Expect((short)0x4100);
@@ -598,19 +596,19 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             {
                 throw new InvalidDataException("Unknown or invalid SEEK chunk");
             }
-            structure.SeekChunkLength = reader.ReadInt32();
+            structure.SeekChunkSize = reader.ReadInt32();
 
-            if (structure.SeekChunkLengthHeader != structure.SeekChunkLength)
+            if (structure.SeekChunkSizeHeader != structure.SeekChunkSize)
             {
-                throw new InvalidDataException("SEEK chunk length in header doesn't match length in SEEK header");
+                throw new InvalidDataException("SEEK chunk size in header doesn't match size in SEEK header");
             }
 
             int bytesPerEntry = 4 * structure.NumChannels;
             int numSeekTableEntries = structure.NumSamples.DivideByRoundUp(structure.SamplesPerSeekTableEntry);
 
-            structure.SeekTableLength = bytesPerEntry * numSeekTableEntries;
+            structure.SeekTableSize = bytesPerEntry * numSeekTableEntries;
 
-            byte[] tableBytes = reader.ReadBytes(structure.SeekTableLength);
+            byte[] tableBytes = reader.ReadBytes(structure.SeekTableSize);
 
             structure.SeekTable = tableBytes.ToShortArray()
                 .DeInterleave(2, structure.NumChannels);
@@ -624,17 +622,17 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             {
                 throw new InvalidDataException("Unknown or invalid DATA chunk");
             }
-            structure.DataChunkLength = reader.ReadInt32();
+            structure.DataChunkSize = reader.ReadInt32();
 
-            if (structure.DataChunkLengthHeader != structure.DataChunkLength)
+            if (structure.DataChunkSizeHeader != structure.DataChunkSize)
             {
-                throw new InvalidDataException("DATA chunk length in header doesn't match length in DATA header");
+                throw new InvalidDataException("DATA chunk size in header doesn't match size in DATA header");
             }
 
             if (!readAudioData) return;
 
             reader.BaseStream.Position = structure.AudioDataOffset;
-            int audioDataLength = structure.DataChunkLength - (structure.AudioDataOffset - structure.DataChunkOffset);
+            int audioDataLength = structure.DataChunkSize - (structure.AudioDataOffset - structure.DataChunkOffset);
 
             structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
                 structure.NumChannels);

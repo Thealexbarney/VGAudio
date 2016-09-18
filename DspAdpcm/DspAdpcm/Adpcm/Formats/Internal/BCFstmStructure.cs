@@ -10,17 +10,17 @@ namespace DspAdpcm.Adpcm.Formats.Internal
     {
         internal BCFstmStructure() { }
         /// <summary>
-        /// The length of the entire file.
+        /// The size of the entire file.
         /// </summary>
-        public int FileLength { get; set; }
+        public int FileSize { get; set; }
         /// <summary>
         /// The version listed in the header.
         /// </summary>
         public int Version { get; set; }
         /// <summary>
-        /// The length of the CSTM header.
+        /// The size of the CSTM header.
         /// </summary>
-        public int HeaderLength { get; set; }
+        public int HeaderSize { get; set; }
         /// <summary>
         /// The number of sections listed in the header.
         /// </summary>
@@ -30,31 +30,31 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         /// </summary>
         public int InfoChunkOffset { get; set; }
         /// <summary>
-        /// The length of the INFO chunk as stated in the header.
+        /// The size of the INFO chunk as stated in the header.
         /// </summary>
-        public int InfoChunkLengthHeader { get; set; }
+        public int InfoChunkSizeHeader { get; set; }
         /// <summary>
         /// The offset of the SEEK chunk.
         /// </summary>
         public int SeekChunkOffset { get; set; }
         /// <summary>
-        /// The length of the SEEK chunk as stated in the header.
+        /// The size of the SEEK chunk as stated in the header.
         /// </summary>
-        public int SeekChunkLengthHeader { get; set; }
+        public int SeekChunkSizeHeader { get; set; }
         /// <summary>
         /// The offset of the DATA chunk.
         /// </summary>
         public int DataChunkOffset { get; set; }
         /// <summary>
-        /// The length of the DATA chunk as stated in the header.
+        /// The size of the DATA chunk as stated in the header.
         /// </summary>
-        public int DataChunkLengthHeader { get; set; }
+        public int DataChunkSizeHeader { get; set; }
 
         /// <summary>
-        /// The length of the INFO chunk as stated in the
+        /// The size of the INFO chunk as stated in the
         /// INFO chunk header.
         /// </summary>
-        public int InfoChunkLength { get; set; }
+        public int InfoChunkSize { get; set; }
         /// <summary>
         /// The offset of part 1 of the INFO chunk.
         /// </summary>
@@ -69,16 +69,16 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         public int InfoChunk3Offset { get; set; }
 
         /// <summary>
-        /// The length of the SEEK chunk as stated in the
+        /// The size of the SEEK chunk as stated in the
         /// SEEK chunk header.
         /// </summary>
-        public int SeekChunkLength { get; set; }
+        public int SeekChunkSize { get; set; }
 
         /// <summary>
-        /// The length of the DATA chunk as stated in the
+        /// The size of the DATA chunk as stated in the
         /// DATA chunk header.
         /// </summary>
-        public int DataChunkLength { get; set; }
+        public int DataChunkSize { get; set; }
 
         /// <summary>
         /// The audio codec.

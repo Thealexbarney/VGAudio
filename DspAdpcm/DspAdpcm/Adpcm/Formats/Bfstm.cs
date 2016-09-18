@@ -12,7 +12,7 @@ namespace DspAdpcm.Adpcm.Formats
     public class Bfstm
     {
         private BCFstm BCFstm { get; set; }
-        private const int HeaderLength = 0x40;
+        private static int HeaderSize => 0x40;
 
         /// <summary>
         /// The underlying <see cref="AdpcmStream"/> used to build the BFSTM file.
@@ -27,7 +27,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// The size in bytes of the BFSTM file.
         /// </summary>
-        public int FileLength => BCFstm.FileLength;
+        public int FileSize => BCFstm.FileSize;
 
         /// <summary>
         /// Initializes a new <see cref="Bfstm"/> from an <see cref="AdpcmStream"/>.
@@ -86,7 +86,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// the data from the BFSTM header.</returns>
         public static BfstmStructure ReadMetadata(Stream stream)
         {
-            CheckStream(stream, HeaderLength);
+            CheckStream(stream, HeaderSize);
             return (BfstmStructure)BCFstm.ReadBCFstmFile(stream, false);
         }
 
@@ -96,7 +96,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <returns>A BFSTM file.</returns>
         public byte[] GetFile()
         {
-            var file = new byte[FileLength];
+            var file = new byte[FileSize];
             var stream = new MemoryStream(file);
             WriteFile(stream);
             return file;
