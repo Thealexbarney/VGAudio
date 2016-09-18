@@ -19,7 +19,7 @@
     <PackageCertificateKeyFile>DspAdpcm.Uwp_StoreKey.pfx</PackageCertificateKeyFile>
     <PackageCertificateThumbprint>19047632D8CDD8EB880EBE427CD61F35D64D938B</PackageCertificateThumbprint>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
-    <AppxBundle>Auto</AppxBundle>
+    <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
