@@ -16,4 +16,8 @@ dotnet build src/DspAdpcm -c release -f netstandard1.1 -o bin/DspAdpcm/netstanda
 dotnet build src/DspAdpcm.Cli -c release -f net45 -o bin/Cli/net45
 dotnet build src/DspAdpcm.Cli -c release -f netcoreapp1.0 -o bin/Cli/netcoreapp1.0
 
+dotnet test src/DspAdpcm.Tests -c release -f netcoreapp1.0
+
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
 dotnet pack src/DspAdpcm -c release -o bin/NuGet

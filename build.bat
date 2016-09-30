@@ -16,4 +16,10 @@ dotnet build src\DspAdpcm -c release -f netstandard1.1 -o bin\DspAdpcm\netstanda
 dotnet build src\DspAdpcm.Cli -c release -f net45 -o bin\Cli\net45
 dotnet build src\DspAdpcm.Cli -c release -f netcoreapp1.0 -o bin\Cli\netcoreapp1.0
 
+dotnet test src\DspAdpcm.Tests -c release
+
+if %errorlevel% neq 0 (
+  exit /b
+)
+
 dotnet pack src\DspAdpcm -c release -o bin\NuGet
