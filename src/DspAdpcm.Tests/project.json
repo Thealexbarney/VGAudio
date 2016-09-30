@@ -19,8 +19,6 @@
         "net46": {}
     },
     "runtimes": {
-        "win": {},
-        "osx": {},
-        "linux": {}
+        "win": {}
     }
 }
