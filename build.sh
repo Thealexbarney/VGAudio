@@ -5,6 +5,8 @@ rm -r src/DspAdpcm/bin
 rm -r src/DspAdpcm/obj
 rm -r src/DspAdpcm.Cli/bin
 rm -r src/DspAdpcm.Cli/obj
+rm -r src/DspAdpcm.Tests/bin
+rm -r src/DspAdpcm.Tests/obj
 
 find . -type f -name "*.lock.json" -delete
 find . -type f -name "*.nuget.targets" -delete

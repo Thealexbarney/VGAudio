@@ -5,6 +5,8 @@ rmdir /s /q src\DspAdpcm\bin 2>NUL
 rmdir /s /q src\DspAdpcm\obj 2>NUL
 rmdir /s /q src\DspAdpcm.Cli\bin 2>NUL
 rmdir /s /q src\DspAdpcm.Cli\obj 2>NUL
+rmdir /s /q src\DspAdpcm.Tests\bin 2>NUL
+rmdir /s /q src\DspAdpcm.Tests\obj 2>NUL
 
 del /s *.lock.json 2>NUL
 del /s *.nuget.targets 2>NUL
