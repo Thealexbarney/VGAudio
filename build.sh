@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-rm -r bin
-rm -r src/DspAdpcm/bin
-rm -r src/DspAdpcm/obj
-rm -r src/DspAdpcm.Cli/bin
-rm -r src/DspAdpcm.Cli/obj
-rm -r src/DspAdpcm.Tests/bin
-rm -r src/DspAdpcm.Tests/obj
+rm -r bin 2> /dev/null
+rm -r src/DspAdpcm/bin 2> /dev/null
+rm -r src/DspAdpcm/obj 2> /dev/null
+rm -r src/DspAdpcm.Cli/bin 2> /dev/null
+rm -r src/DspAdpcm.Cli/obj 2> /dev/null
+rm -r src/DspAdpcm.Tests/bin 2> /dev/null
+rm -r src/DspAdpcm.Tests/obj 2> /dev/null
 
 find . -type f -name "*.lock.json" -delete
 find . -type f -name "*.nuget.targets" -delete
