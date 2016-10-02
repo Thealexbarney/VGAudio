@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Adpcm
@@ -60,6 +61,42 @@ namespace DspAdpcm.Adpcm
         }
 
         public byte[] GetAudioData => AudioByteArrayAligned ?? AudioByteArray;
+
+        public override bool Equals(object obj)
+        {
+            var item = obj as AdpcmChannel;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return
+                item.NumSamples == NumSamples &&
+                item.Gain == Gain &&
+                item.Hist1 == Hist1 &&
+                item.Hist2 == Hist2 &&
+                item.LoopPredScale == LoopPredScale &&
+                item.LoopHist1 == LoopHist1 &&
+                item.LoopHist2 == LoopHist2 &&
+                item.Coefs.SequenceEqual(Coefs) &&
+                ByteArraysEqual(item.AudioByteArray, AudioByteArray);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = Gain.GetHashCode();
+                hashCode = (hashCode * 397) ^ Hist1.GetHashCode();
+                hashCode = (hashCode * 397) ^ Hist2.GetHashCode();
+                hashCode = (hashCode * 397) ^ LoopPredScale.GetHashCode();
+                hashCode = (hashCode * 397) ^ LoopHist1.GetHashCode();
+                hashCode = (hashCode * 397) ^ LoopHist2.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Coefs?.GetHashCode() ?? 0);
+                return hashCode;
+            }
+        }
     }
 
     /// <summary>
