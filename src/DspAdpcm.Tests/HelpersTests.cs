@@ -3,7 +3,7 @@ using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Tests
 {
-    public class Helpers
+    public class HelpersTests
     {
         [Fact]
         public void SampleToNibbleConversionIsReversable()
