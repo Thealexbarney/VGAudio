@@ -40,9 +40,14 @@
   <ItemGroup>
     <Compile Include="Benchmark\BrstmBenchmarks.cs" />
     <Compile Include="Benchmark\Runner.cs" />
-    <Compile Include="BrstmTests.cs" />
+    <Compile Include="Formats\BfstmTests.cs" />
+    <Compile Include="Formats\BcstmTests.cs" />
+    <Compile Include="Formats\BrstmTests.cs" />
+    <Compile Include="BuildParseTests.cs" />
+    <Compile Include="Formats\DspTests.cs" />
     <Compile Include="GenerateAudio.cs" />
     <Compile Include="HelpersTests.cs" />
+    <Compile Include="Formats\IdspTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
