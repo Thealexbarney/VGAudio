@@ -84,7 +84,7 @@ namespace DspAdpcm
             }
         }
 
-        public static bool ByteArraysEqual(byte[] a1, byte[] a2)
+        public static bool ArraysEqual<T>(T[] a1, T[] a2)
         {
             if (a1 == null || a2 == null) return false;
             if (a1 == a2) return true;
@@ -92,7 +92,7 @@ namespace DspAdpcm
 
             for (int i = 0; i < a1.Length; i++)
             {
-                if (a1[i] != a2[i])
+                if (!a1[i].Equals(a2[i]))
                 {
                     return false;
                 }

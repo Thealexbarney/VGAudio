@@ -165,8 +165,8 @@ namespace DspAdpcm.Adpcm
                 item.LoopStart == LoopStart &&
                 item.LoopEnd == LoopEnd &&
                 item.Looping == Looping &&
-                item.Tracks.SequenceEqual(Tracks) &&
-                item.Channels.SequenceEqual(Channels);
+                ArraysEqual(item.Tracks.ToArray(), Tracks.ToArray()) &&
+                ArraysEqual(item.Channels.ToArray(), Channels.ToArray());
         }
 
         /// <summary>

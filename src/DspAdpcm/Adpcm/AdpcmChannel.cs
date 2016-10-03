@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Adpcm
@@ -79,8 +78,8 @@ namespace DspAdpcm.Adpcm
                 item.LoopPredScale == LoopPredScale &&
                 item.LoopHist1 == LoopHist1 &&
                 item.LoopHist2 == LoopHist2 &&
-                item.Coefs.SequenceEqual(Coefs) &&
-                ByteArraysEqual(item.AudioByteArray, AudioByteArray);
+                ArraysEqual(item.Coefs, Coefs) &&
+                ArraysEqual(item.AudioByteArray, AudioByteArray);
         }
 
         public override int GetHashCode()
