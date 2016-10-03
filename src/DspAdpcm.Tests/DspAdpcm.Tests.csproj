@@ -46,8 +46,9 @@
     <Compile Include="BuildParseTests.cs" />
     <Compile Include="Formats\DspTests.cs" />
     <Compile Include="GenerateAudio.cs" />
-    <Compile Include="HelpersTests.cs" />
     <Compile Include="Formats\IdspTests.cs" />
+    <Compile Include="Helpers\AdpcmMathTests.cs" />
+    <Compile Include="Helpers\DeinterleaveTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

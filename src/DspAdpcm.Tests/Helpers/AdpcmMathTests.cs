@@ -1,9 +1,9 @@
 ﻿using Xunit;
 using static DspAdpcm.Helpers;
 
-namespace DspAdpcm.Tests
+namespace DspAdpcm.Tests.Helpers
 {
-    public class HelpersTests
+    public class AdpcmMathTests
     {
         [Fact]
         public void SampleToNibbleConversionIsReversable()
