@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{FE3C83A1-1BEA-4CB3-BD50-D6EE9BCFA27C}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DspAdpcm.Tests</RootNamespace>
     <AssemblyName>DspAdpcm.Tests</AssemblyName>
@@ -38,6 +38,8 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Benchmark\BrstmBenchmarks.cs" />
+    <Compile Include="Benchmark\Runner.cs" />
     <Compile Include="BrstmTests.cs" />
     <Compile Include="GenerateAudio.cs" />
     <Compile Include="HelpersTests.cs" />

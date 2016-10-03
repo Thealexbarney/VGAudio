@@ -42,5 +42,13 @@ namespace DspAdpcm.Tests
 
             return adpcm;
         }
+
+        public static AdpcmStream GenerateAdpcmEmpty(int samples)
+        {
+            var adpcm = new AdpcmStream(samples, 48000);
+            adpcm.Channels.Add(new AdpcmChannel(samples) { Coefs = new short[16] });
+
+            return adpcm;
+        }
     }
 }

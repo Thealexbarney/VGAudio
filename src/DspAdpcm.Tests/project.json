@@ -1,7 +1,11 @@
 ﻿{
     "version": "1.0.0-*",
+    "buildOptions": {
+        "emitEntryPoint": true
+    },
     "testRunner": "xunit",
     "dependencies": {
+        "BenchmarkDotNet": "0.9.9",
         "dotnet-test-xunit": "2.2.0-preview2-build1029",
         "DspAdpcm": "1.1.0",
         "xunit": "2.2.0-beta2-build3300",
@@ -16,7 +20,11 @@
                 }
             }
         },
-        "net46": {}
+        "net46": {
+            "dependencies": {
+                "BenchmarkDotNet.Diagnostics.Windows": "0.9.9"
+            }
+        }
     },
     "runtimes": {
         "win": {}
