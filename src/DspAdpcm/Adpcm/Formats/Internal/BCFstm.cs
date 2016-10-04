@@ -436,6 +436,14 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                         structure.DataChunkOffset = reader.ReadInt32();
                         structure.DataChunkSizeHeader = reader.ReadInt32();
                         break;
+                    case 0x4003:
+                        structure.RegnChunkOffset = reader.ReadInt32();
+                        structure.RegnChunkSizeHeader = reader.ReadInt32();
+                        break;
+                    case 0x4004:
+                        structure.PdatChunkOffset = reader.ReadInt32();
+                        structure.PdatChunkSizeHeader = reader.ReadInt32();
+                        break;
                     default:
                         throw new InvalidDataException($"Unknown section type {type}");
                 }
