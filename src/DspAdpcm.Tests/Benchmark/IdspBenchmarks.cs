@@ -4,33 +4,33 @@ using DspAdpcm.Adpcm.Formats;
 
 namespace DspAdpcm.Tests.Benchmark
 {
-    public class BrstmBenchmarks
+    public class IdspBenchmarks
     {
         [Params(360)]
         public double lengthSeconds;
-        [Params(1)]
+        [Params(8)]
         public int numChannels;
         private int sampleRate = 48000;
         private AdpcmStream adpcm;
-        private byte[] brstm;
+        private byte[] idsp;
 
         [Setup]
         public void Setup()
         {
             adpcm = GenerateAudio.GenerateAdpcmEmpty((int)(sampleRate * lengthSeconds), numChannels);
-            brstm = new Brstm(adpcm).GetFile();
+            idsp = new Idsp(adpcm).GetFile();
         }
 
         [Benchmark]
-        public byte[] BuildBrstmBenchmark()
+        public byte[] BuildIdspBenchmark()
         {
-            return new Brstm(adpcm).GetFile();
+            return new Idsp(adpcm).GetFile();
         }
 
         [Benchmark]
-        public Brstm ParseBrstmBenchmark()
+        public Idsp ParseIdspBenchmark()
         {
-            return new Brstm(brstm);
+            return new Idsp(idsp);
         }
     }
 }

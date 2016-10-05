@@ -38,6 +38,7 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Benchmark\IdspBenchmarks.cs" />
     <Compile Include="Benchmark\BrstmBenchmarks.cs" />
     <Compile Include="Benchmark\Runner.cs" />
     <Compile Include="Formats\BfstmTests.cs" />

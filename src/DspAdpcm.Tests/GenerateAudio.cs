@@ -53,10 +53,14 @@ namespace DspAdpcm.Tests
             return Encode.PcmToAdpcm(pcm);
         }
 
-        public static AdpcmStream GenerateAdpcmEmpty(int samples)
+        public static AdpcmStream GenerateAdpcmEmpty(int samples, int channels)
         {
             var adpcm = new AdpcmStream(samples, 48000);
-            adpcm.Channels.Add(new AdpcmChannel(samples) { Coefs = new short[16] });
+
+            for (int i = 0; i < channels; i++)
+            {
+                adpcm.Channels.Add(new AdpcmChannel(samples) {Coefs = new short[16]});
+            }
 
             return adpcm;
         }
