@@ -31,6 +31,11 @@
             }
         },
         "net45": {},
-        "net40": {} 
+        "net40": {},
+        "net35": {
+            "buildOptions": {
+                "define": [ "NOPARALLEL" ]
+            }
+        }
     }
 }

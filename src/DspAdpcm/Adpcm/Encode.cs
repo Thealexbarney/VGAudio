@@ -5,9 +5,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using DspAdpcm.Pcm;
 using static DspAdpcm.Helpers;
+
+#if !NOPARALLEL
+using System.Threading.Tasks;
+#endif
 
 namespace DspAdpcm.Adpcm
 {
@@ -590,6 +593,7 @@ namespace DspAdpcm.Adpcm
             return adpcm;
         }
 
+#if !NOPARALLEL
         /// <summary>
         /// Encodes a <see cref="PcmStream"/> to a <see cref="AdpcmStream"/>.
         /// Each channel will be encoded in parallel.
@@ -613,6 +617,7 @@ namespace DspAdpcm.Adpcm
 
             return adpcm;
         }
+#endif
 
         internal static byte[] EncodeAdpcm(short[] pcm, short[] coefs, short hist1, short hist2, int samples)
         {

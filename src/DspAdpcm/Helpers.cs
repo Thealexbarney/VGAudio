@@ -50,7 +50,7 @@ namespace DspAdpcm
             return BytesPerFrame * frames + extraBytes;
         }
 
-#if !NET40
+#if !(NET35 || NET40)
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
         public static short Clamp16(int value)

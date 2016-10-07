@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using static DspAdpcm.Helpers;
-using System.Threading.Tasks;
 using DspAdpcm.Pcm;
+
+#if !NOPARALLEL
+using System.Threading.Tasks;
+#endif
 
 namespace DspAdpcm.Adpcm
 {
@@ -36,6 +39,7 @@ namespace DspAdpcm.Adpcm
             return pcm;
         }
 
+#if !NOPARALLEL
         /// <summary>
         /// Decodes an <see cref="AdpcmStream"/> to a <see cref="PcmStream"/>.
         /// Each channel will be decoded in parallel.
@@ -59,6 +63,7 @@ namespace DspAdpcm.Adpcm
 
             return pcm;
         }
+#endif
 
         private static PcmChannel AdpcmtoPcm(AdpcmChannel adpcmChannel)
         {
@@ -214,7 +219,14 @@ namespace DspAdpcm.Adpcm
 
         internal static void CalculateLoopContext(IEnumerable<AdpcmChannel> channels, int loopStart)
         {
+#if !NOPARALLEL
             Parallel.ForEach(channels, channel => CalculateLoopContext(channel, loopStart));
+#else
+            foreach (AdpcmChannel channel in channels)
+            {
+                CalculateLoopContext(channel, loopStart);
+            }
+#endif
         }
 
         internal static void CalculateLoopContext(this AdpcmChannel audio, int loopStart)
@@ -244,7 +256,14 @@ namespace DspAdpcm.Adpcm
 
         internal static void CalculateSeekTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry)
         {
+#if !NOPARALLEL
             Parallel.ForEach(channels, channel => CalculateSeekTable(channel, samplesPerEntry));
+#else
+            foreach (AdpcmChannel channel in channels)
+            {
+                CalculateSeekTable(channel, samplesPerEntry);
+            }
+#endif
         }
 
         internal static byte[] BuildSeekTable(IEnumerable<AdpcmChannel> channels, int samplesPerEntry, int numEntries, Endianness endianness)
@@ -264,7 +283,14 @@ namespace DspAdpcm.Adpcm
 
         internal static void CalculateLoopAlignment(IEnumerable<AdpcmChannel> channels, int alignment, int loopStart, int loopEnd)
         {
+#if !NOPARALLEL
             Parallel.ForEach(channels, channel => CalculateLoopAlignment(channel, alignment, loopStart, loopEnd));
+#else
+            foreach (AdpcmChannel channel in channels)
+            {
+                CalculateLoopAlignment(channel, alignment, loopStart, loopEnd);
+            }
+#endif
         }
 
         internal static void CalculateLoopAlignment(this AdpcmChannel audio, int alignment, int loopStart, int loopEnd)
