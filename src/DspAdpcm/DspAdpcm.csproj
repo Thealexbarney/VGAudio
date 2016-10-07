@@ -68,6 +68,7 @@
     <Compile Include="Adpcm\Formats\Structures\IdspStructure.cs" />
     <Compile Include="BinaryReaderBE.cs" />
     <Compile Include="BinaryWriterBE.cs" />
+    <Compile Include="Compatibility\Stream.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Adpcm\Formats\Dsp.cs" />

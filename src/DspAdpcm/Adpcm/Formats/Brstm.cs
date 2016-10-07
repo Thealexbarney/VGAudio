@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using DspAdpcm.Adpcm.Formats.Configuration;
 using DspAdpcm.Adpcm.Formats.Structures;
+using DspAdpcm.Compatibility;
 using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Adpcm.Formats
@@ -200,7 +201,7 @@ namespace DspAdpcm.Adpcm.Formats
 
             RecalculateData();
 
-            using (BinaryWriter writer = new BinaryWriterBE(stream, Encoding.UTF8, true))
+            using (BinaryWriter writer = GetStream.GetBinaryWriterBE(stream))
             {
                 stream.Position = 0;
                 GetRstmHeader(writer);
@@ -355,7 +356,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private static BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = new BinaryReaderBE(stream, Encoding.UTF8, true))
+            using (BinaryReader reader = GetStream.GetBinaryReaderBE(stream))
             {
                 if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "RSTM")
                 {

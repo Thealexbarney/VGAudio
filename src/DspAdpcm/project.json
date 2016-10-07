@@ -30,6 +30,7 @@
                 "System.Threading.Tasks.Parallel": "4.0.1"
             }
         },
-        "net45": {}
+        "net45": {},
+        "net40": {} 
     }
 }

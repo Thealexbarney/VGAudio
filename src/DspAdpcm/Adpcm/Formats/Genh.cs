@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using DspAdpcm.Adpcm.Formats.Structures;
+using DspAdpcm.Compatibility;
 using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Adpcm.Formats
@@ -69,7 +69,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private static GenhStructure ReadGenhFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true))
+            using (BinaryReader reader = GetStream.GetBinaryReader(stream))
             {
                 var structure = new GenhStructure();
 
@@ -151,8 +151,8 @@ namespace DspAdpcm.Adpcm.Formats
         private static void ReadCoefs(BinaryReader reader, GenhStructure structure, int channelNum)
         {
             using (BinaryReader coefReader = structure.CoefType.HasFlag(GenhCoefType.LittleEndian)
-                ? new BinaryReader(reader.BaseStream, Encoding.UTF8, true)
-                : new BinaryReaderBE(reader.BaseStream, Encoding.UTF8, true))
+                ? GetStream.GetBinaryReader(reader.BaseStream)
+                : GetStream.GetBinaryReaderBE(reader.BaseStream))
             {
                 coefReader.BaseStream.Position = structure.Coefs[channelNum];
                 var channel = new AdpcmChannelInfo();

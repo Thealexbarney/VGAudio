@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using DspAdpcm.Adpcm.Formats.Structures;
+using DspAdpcm.Compatibility;
 using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Adpcm.Formats.Internal
@@ -135,8 +136,8 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             RecalculateData();
 
             using (BinaryWriter writer = endianness == Endianness.LittleEndian ?
-                new BinaryWriter(stream, Encoding.UTF8, true) :
-                new BinaryWriterBE(stream, Encoding.UTF8, true))
+                GetStream.GetBinaryWriter(stream) :
+                GetStream.GetBinaryWriterBE(stream))
             {
                 stream.Position = 0;
                 GetHeader(writer, type);
@@ -332,7 +333,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         internal static BCFstmStructure ReadBCFstmFile(Stream stream, bool readAudioData = true)
         {
             BCFstmType type;
-            using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
+            using (BinaryReader reader = GetStream.GetBinaryReader(stream))
             {
                 string magic = Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4);
                 switch (magic)
@@ -349,8 +350,8 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             }
 
             using (BinaryReader reader = type == BCFstmType.Bcstm ?
-                new BinaryReader(stream, Encoding.UTF8, true) :
-                new BinaryReaderBE(stream, Encoding.UTF8, true))
+                GetStream.GetBinaryReader(stream) :
+                GetStream.GetBinaryReaderBE(stream))
             {
                 BCFstmStructure structure = new BcstmStructure();
 
