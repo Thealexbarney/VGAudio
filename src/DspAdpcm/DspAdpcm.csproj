@@ -69,6 +69,7 @@
     <Compile Include="BinaryReaderBE.cs" />
     <Compile Include="BinaryWriterBE.cs" />
     <Compile Include="Compatibility\EnumFlag.cs" />
+    <Compile Include="Compatibility\Extensions.cs" />
     <Compile Include="Compatibility\Stream.cs" />
     <Compile Include="Compatibility\Tuple.cs" />
     <Compile Include="Helpers.cs" />

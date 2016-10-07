@@ -5,7 +5,7 @@ namespace DspAdpcm.Compatibility
 {
     internal static class GetStream
     {
-#if !(NET35 || NET40)
+#if !(NET20 || NET35 || NET40)
         public static BinaryReader GetBinaryReader(Stream stream) => new BinaryReader(stream, Encoding.UTF8, true);
         public static BinaryReaderBE GetBinaryReaderBE(Stream stream) => new BinaryReaderBE(stream, Encoding.UTF8, true);
         public static BinaryWriter GetBinaryWriter(Stream stream) => new BinaryWriter(stream, Encoding.UTF8, true);
@@ -18,7 +18,7 @@ namespace DspAdpcm.Compatibility
 #endif
     }
 
-#if NET35 || NET40
+#if NET20 || NET35 || NET40
     internal sealed class StreamNoDispose : Stream
     {
         private Stream BaseStream { get; }

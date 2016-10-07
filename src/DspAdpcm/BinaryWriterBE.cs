@@ -7,7 +7,7 @@ namespace DspAdpcm
     {
         public BinaryWriterBE(Stream input) : base(input) { }
 
-#if !(NET35 || NET40)
+#if !(NET20 || NET35 || NET40)
         public BinaryWriterBE(Stream output, Encoding encoding, bool leaveOpen) : base(output, encoding, leaveOpen) { }
 #endif
 

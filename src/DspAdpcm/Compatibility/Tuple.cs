@@ -1,4 +1,4 @@
-﻿#if NET35
+﻿#if NET20 || NET35
 namespace System
 {
     internal class Tuple<T1, T2, T3>

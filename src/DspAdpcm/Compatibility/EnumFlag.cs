@@ -1,4 +1,4 @@
-﻿#if NET35
+﻿#if NET20 || NET35
 using System;
 
 namespace DspAdpcm.Compatibility
