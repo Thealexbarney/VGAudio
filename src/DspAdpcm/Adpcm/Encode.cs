@@ -5,12 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DspAdpcm.Pcm;
 using static DspAdpcm.Helpers;
-
-#if !NOPARALLEL
-using System.Threading.Tasks;
-#endif
 
 namespace DspAdpcm.Adpcm
 {
