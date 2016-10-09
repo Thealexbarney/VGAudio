@@ -68,7 +68,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private static GenhStructure ReadGenhFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = GetBinaryReader(stream))
+            using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 var structure = new GenhStructure();
 
@@ -149,9 +149,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private static void ReadCoefs(BinaryReader reader, GenhStructure structure, int channelNum)
         {
-            using (BinaryReader coefReader = structure.CoefType.HasFlag(GenhCoefType.LittleEndian)
-                ? GetBinaryReader(reader.BaseStream)
-                : GetBinaryReaderBE(reader.BaseStream))
+            using (BinaryReader coefReader = GetBinaryReader(reader.BaseStream, structure.CoefType.Endianness()))
             {
                 coefReader.BaseStream.Position = structure.Coefs[channelNum];
                 var channel = new AdpcmChannelInfo();

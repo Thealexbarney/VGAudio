@@ -93,12 +93,14 @@ namespace DspAdpcm
             LittleEndian
         }
 
-        public static BinaryReader GetBinaryReader(Stream stream) => GetStream.GetBinaryReader(stream);
+        public static BinaryReader GetBinaryReader(Stream stream, Endianness endianness) =>
+            endianness == Endianness.LittleEndian
+                ? GetStream.GetBinaryReader(stream)
+                : GetStream.GetBinaryReaderBE(stream);
 
-        public static BinaryReaderBE GetBinaryReaderBE(Stream stream) => GetStream.GetBinaryReaderBE(stream);
-
-        public static BinaryWriter GetBinaryWriter(Stream stream) => GetStream.GetBinaryWriter(stream);
-
-        public static BinaryWriterBE GetBinaryWriterBE(Stream stream) => GetStream.GetBinaryWriterBE(stream);
+        public static BinaryWriter GetBinaryWriter(Stream stream, Endianness endianness) =>
+            endianness == Endianness.LittleEndian
+                ? GetStream.GetBinaryWriter(stream)
+                : GetStream.GetBinaryWriterBE(stream);
     }
 }

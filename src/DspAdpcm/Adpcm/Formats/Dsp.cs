@@ -168,7 +168,7 @@ namespace DspAdpcm.Adpcm.Formats
 
             RecalculateData();
 
-            using (BinaryWriter writer = GetBinaryWriterBE(stream))
+            using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.BigEndian))
             {
                 stream.Position = 0;
                 GetHeader(writer);
@@ -219,7 +219,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private static DspStructure ReadDspFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = GetBinaryReaderBE(stream))
+            using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
             {
                 var structure = new DspStructure();
 

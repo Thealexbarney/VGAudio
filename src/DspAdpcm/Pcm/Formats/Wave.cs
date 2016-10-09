@@ -132,7 +132,7 @@ namespace DspAdpcm.Pcm.Formats
                 }
             }
 
-            using (BinaryWriter writer = GetBinaryWriter(stream))
+            using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.LittleEndian))
             {
                 stream.Position = 0;
                 GetRiffHeader(writer);
@@ -203,7 +203,7 @@ namespace DspAdpcm.Pcm.Formats
 
         private static WaveStructure ReadWaveFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = GetBinaryReader(stream))
+            using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 var structure = new WaveStructure();
 

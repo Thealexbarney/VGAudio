@@ -170,7 +170,7 @@ namespace DspAdpcm.Adpcm.Formats
 
             RecalculateData();
 
-            using (BinaryWriter writer = GetBinaryWriterBE(stream))
+            using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.BigEndian))
             {
                 stream.Position = 0;
                 GetHeader(writer);
@@ -227,7 +227,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private static IdspStructure ReadIdspFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = GetBinaryReaderBE(stream))
+            using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
             {
                 if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "IDSP")
                 {
