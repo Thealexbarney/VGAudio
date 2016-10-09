@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using DspAdpcm.Compatibility;
 
 namespace DspAdpcm
 {
@@ -91,5 +92,13 @@ namespace DspAdpcm
             BigEndian,
             LittleEndian
         }
+
+        public static BinaryReader GetBinaryReader(Stream stream) => GetStream.GetBinaryReader(stream);
+
+        public static BinaryReaderBE GetBinaryReaderBE(Stream stream) => GetStream.GetBinaryReaderBE(stream);
+
+        public static BinaryWriter GetBinaryWriter(Stream stream) => GetStream.GetBinaryWriter(stream);
+
+        public static BinaryWriterBE GetBinaryWriterBE(Stream stream) => GetStream.GetBinaryWriterBE(stream);
     }
 }

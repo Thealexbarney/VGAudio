@@ -1,7 +1,8 @@
 ﻿#if NET20 || NET35
 using System;
 
-namespace DspAdpcm.Compatibility
+// ReSharper disable once CheckNamespace
+namespace DspAdpcm
 {
     internal static class EnumFlag
     {
