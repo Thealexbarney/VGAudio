@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static DspAdpcm.Helpers;
 using System.Threading.Tasks;
+using static DspAdpcm.Helpers;
 using DspAdpcm.Pcm;
 
 namespace DspAdpcm.Adpcm
@@ -36,6 +36,7 @@ namespace DspAdpcm.Adpcm
             return pcm;
         }
 
+#if !NOPARALLEL
         /// <summary>
         /// Decodes an <see cref="AdpcmStream"/> to a <see cref="PcmStream"/>.
         /// Each channel will be decoded in parallel.
@@ -59,6 +60,7 @@ namespace DspAdpcm.Adpcm
 
             return pcm;
         }
+#endif
 
         private static PcmChannel AdpcmtoPcm(AdpcmChannel adpcmChannel)
         {
