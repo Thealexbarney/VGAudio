@@ -200,7 +200,7 @@ namespace DspAdpcm.Adpcm.Formats
 
             RecalculateData();
 
-            using (BinaryWriter writer = new BinaryWriterBE(stream, Encoding.UTF8, true))
+            using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.BigEndian))
             {
                 stream.Position = 0;
                 GetRstmHeader(writer);
@@ -355,7 +355,7 @@ namespace DspAdpcm.Adpcm.Formats
 
         private static BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = new BinaryReaderBE(stream, Encoding.UTF8, true))
+            using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
             {
                 if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "RSTM")
                 {

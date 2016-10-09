@@ -49,6 +49,22 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         /// The size of the DATA chunk as stated in the header.
         /// </summary>
         public int DataChunkSizeHeader { get; set; }
+        /// <summary>
+        /// The offset of the REGN chunk.
+        /// </summary>
+        public int RegnChunkOffset { get; set; }
+        /// <summary>
+        /// The size of the REGN chunk as stated in the header.
+        /// </summary>
+        public int RegnChunkSizeHeader { get; set; }
+        /// <summary>
+        /// The offset of the PDAT chunk.
+        /// </summary>
+        public int PdatChunkOffset { get; set; }
+        /// <summary>
+        /// The size of the PDAT chunk as stated in the header.
+        /// </summary>
+        public int PdatChunkSizeHeader { get; set; }
 
         /// <summary>
         /// The size of the INFO chunk as stated in the

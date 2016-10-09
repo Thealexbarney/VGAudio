@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using DspAdpcm.Compatibility;
 
 namespace DspAdpcm
 {
@@ -50,7 +51,9 @@ namespace DspAdpcm
             return BytesPerFrame * frames + extraBytes;
         }
 
+#if !(NET20 || NET35 || NET40)
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static short Clamp16(int value)
         {
             if (value > short.MaxValue)
@@ -105,5 +108,15 @@ namespace DspAdpcm
             BigEndian,
             LittleEndian
         }
+
+        public static BinaryReader GetBinaryReader(Stream stream, Endianness endianness) =>
+            endianness == Endianness.LittleEndian
+                ? GetStream.GetBinaryReader(stream)
+                : GetStream.GetBinaryReaderBE(stream);
+
+        public static BinaryWriter GetBinaryWriter(Stream stream, Endianness endianness) =>
+            endianness == Endianness.LittleEndian
+                ? GetStream.GetBinaryWriter(stream)
+                : GetStream.GetBinaryWriterBE(stream);
     }
 }

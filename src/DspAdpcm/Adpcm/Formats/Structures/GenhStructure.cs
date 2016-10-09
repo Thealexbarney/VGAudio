@@ -91,4 +91,12 @@ namespace DspAdpcm.Adpcm.Formats.Structures
         /// </summary>
         LittleEndian = 2
     }
+
+    internal static class GenhCoefTypeExtension
+    {
+        public static Helpers.Endianness Endianness(this GenhCoefType coefType) =>
+            coefType.HasFlag(GenhCoefType.LittleEndian)
+                ? Helpers.Endianness.LittleEndian
+                : Helpers.Endianness.BigEndian;
+    }
 }

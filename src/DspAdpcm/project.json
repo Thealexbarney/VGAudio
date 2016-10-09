@@ -30,6 +30,20 @@
                 "System.Threading.Tasks.Parallel": "4.0.1"
             }
         },
-        "net45": {}
+        "net45": {},
+        "net40": {},
+        "net35": {
+            "buildOptions": {
+                "define": [ "NOPARALLEL" ]
+            }
+        },
+        "net20": {
+            "dependencies": {
+                "LinqBridge": "1.3.0"
+            },
+            "buildOptions": {
+                "define": [ "NOPARALLEL" ]
+            }
+        }
     }
 }

@@ -130,18 +130,14 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                 }
             }
 
-            Endianness endianness = type == BCFstmType.Bcstm ? Endianness.LittleEndian : Endianness.BigEndian;
-
             RecalculateData();
 
-            using (BinaryWriter writer = endianness == Endianness.LittleEndian ?
-                new BinaryWriter(stream, Encoding.UTF8, true) :
-                new BinaryWriterBE(stream, Encoding.UTF8, true))
+            using (BinaryWriter writer = GetBinaryWriter(stream, GetTypeEndianess(type)))
             {
                 stream.Position = 0;
                 GetHeader(writer, type);
                 stream.Position = InfoChunkOffset;
-                GetInfoChunk(writer, endianness);
+                GetInfoChunk(writer, GetTypeEndianess(type));
                 stream.Position = SeekChunkOffset;
                 GetSeekChunk(writer);
                 stream.Position = DataChunkOffset;
@@ -332,7 +328,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         internal static BCFstmStructure ReadBCFstmFile(Stream stream, bool readAudioData = true)
         {
             BCFstmType type;
-            using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
+            using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 string magic = Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4);
                 switch (magic)
@@ -348,9 +344,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                 }
             }
 
-            using (BinaryReader reader = type == BCFstmType.Bcstm ?
-                new BinaryReader(stream, Encoding.UTF8, true) :
-                new BinaryReaderBE(stream, Encoding.UTF8, true))
+            using (BinaryReader reader = GetBinaryReader(stream, GetTypeEndianess(type)))
             {
                 BCFstmStructure structure = new BcstmStructure();
 
@@ -435,6 +429,14 @@ namespace DspAdpcm.Adpcm.Formats.Internal
                     case 0x4002:
                         structure.DataChunkOffset = reader.ReadInt32();
                         structure.DataChunkSizeHeader = reader.ReadInt32();
+                        break;
+                    case 0x4003:
+                        structure.RegnChunkOffset = reader.ReadInt32();
+                        structure.RegnChunkSizeHeader = reader.ReadInt32();
+                        break;
+                    case 0x4004:
+                        structure.PdatChunkOffset = reader.ReadInt32();
+                        structure.PdatChunkSizeHeader = reader.ReadInt32();
                         break;
                     default:
                         throw new InvalidDataException($"Unknown section type {type}");
@@ -643,6 +645,9 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             Bcstm,
             Bfstm
         }
+
+        private static Endianness GetTypeEndianess(BCFstmType type) =>
+            type == BCFstmType.Bcstm ? Endianness.LittleEndian : Endianness.BigEndian;
     }
 
     internal class BCFstmConfiguration : B_stmConfiguration

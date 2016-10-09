@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Pcm.Formats
 {
@@ -131,7 +132,7 @@ namespace DspAdpcm.Pcm.Formats
                 }
             }
 
-            using (BinaryWriter writer = new BinaryWriter(stream, Encoding.UTF8, true))
+            using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.LittleEndian))
             {
                 stream.Position = 0;
                 GetRiffHeader(writer);
@@ -202,7 +203,7 @@ namespace DspAdpcm.Pcm.Formats
 
         private static WaveStructure ReadWaveFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = new BinaryReader(stream, Encoding.UTF8, true))
+            using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 var structure = new WaveStructure();
 
