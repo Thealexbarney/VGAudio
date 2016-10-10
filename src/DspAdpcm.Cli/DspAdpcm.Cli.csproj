@@ -54,6 +54,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="DspAdpcm.Cli.project.json" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
