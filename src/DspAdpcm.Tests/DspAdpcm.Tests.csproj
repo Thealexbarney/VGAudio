@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{FE3C83A1-1BEA-4CB3-BD50-D6EE9BCFA27C}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DspAdpcm.Tests</RootNamespace>
     <AssemblyName>DspAdpcm.Tests</AssemblyName>
@@ -33,14 +33,15 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
+    <None Include="DspAdpcm.Tests.project.json" />
     <None Include="project.json" />
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Benchmark\IdspBenchmarks.cs" />
-    <Compile Include="Benchmark\BrstmBenchmarks.cs" />
-    <Compile Include="Benchmark\Runner.cs" />
     <Compile Include="Formats\BfstmTests.cs" />
     <Compile Include="Formats\BcstmTests.cs" />
     <Compile Include="Formats\BrstmTests.cs" />
