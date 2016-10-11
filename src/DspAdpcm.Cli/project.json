@@ -5,7 +5,9 @@
     },
 
     "dependencies": {
-        "DspAdpcm": "1.1.0"
+        "DspAdpcm": {
+            "target": "project"
+        }
     },
 
     "frameworks": {
