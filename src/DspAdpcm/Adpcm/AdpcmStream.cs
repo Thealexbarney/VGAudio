@@ -142,6 +142,51 @@ namespace DspAdpcm.Adpcm
                 };
             }
         }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="Object"/> is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="Object"/> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="Object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
+        {
+            var item = obj as AdpcmStream;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return
+                item.NumSamples == NumSamples &&
+                item.SampleRate == SampleRate &&
+                item.LoopStart == LoopStart &&
+                item.LoopEnd == LoopEnd &&
+                item.Looping == Looping &&
+                ArraysEqual(item.Tracks.ToArray(), Tracks.ToArray()) &&
+                ArraysEqual(item.Channels.ToArray(), Channels.ToArray());
+        }
+
+        /// <summary>
+        /// Returns a hash code for the <see cref="AdpcmStream"/> instance.
+        /// </summary>
+        /// <returns>A hash code for the <see cref="AdpcmStream"/> instance.</returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = NumSamples.GetHashCode();
+                hashCode = (hashCode * 397) ^ SampleRate.GetHashCode();
+                hashCode = (hashCode * 397) ^ LoopStart.GetHashCode();
+                hashCode = (hashCode * 397) ^ LoopEnd.GetHashCode();
+                hashCode = (hashCode * 397) ^ Looping.GetHashCode();
+                hashCode = (hashCode * 397) ^ Tracks.GetHashCode();
+                hashCode = (hashCode * 397) ^ Channels.GetHashCode();
+                return hashCode;
+            }
+        }
     }
 
     /// <summary>
@@ -181,6 +226,47 @@ namespace DspAdpcm.Adpcm
         /// a stereo track.
         /// </summary>
         public int ChannelRight { get; set; }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="Object"/> is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="Object"/> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="Object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
+        {
+            var item = obj as AdpcmTrack;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return
+                item.Volume == Volume &&
+                item.Panning == Panning &&
+                item.NumChannels == NumChannels &&
+                item.ChannelLeft == ChannelLeft &&
+                item.ChannelRight == ChannelRight;
+        }
+
+        /// <summary>
+        /// Returns a hash code for the <see cref="AdpcmTrack"/> instance.
+        /// </summary>
+        /// <returns>A hash code for the <see cref="AdpcmTrack"/> instance.</returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = Volume.GetHashCode();
+                hashCode = (hashCode * 397) ^ Panning.GetHashCode();
+                hashCode = (hashCode * 397) ^ NumChannels.GetHashCode();
+                hashCode = (hashCode * 397) ^ ChannelLeft.GetHashCode();
+                hashCode = (hashCode * 397) ^ ChannelRight.GetHashCode();
+                return hashCode;
+            }
+        }
 
         internal AdpcmTrack Clone() => (AdpcmTrack)MemberwiseClone();
     }
