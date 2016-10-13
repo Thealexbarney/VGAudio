@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using static DspAdpcm.Helpers;
 using DspAdpcm.Pcm;
+
+#if NET20
+using DspAdpcm.Compatibility.LinqBridge;
+#else
+using System.Linq;
+#endif
 
 namespace DspAdpcm.Adpcm
 {

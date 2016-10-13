@@ -1,8 +1,13 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using static DspAdpcm.Helpers;
+
+#if NET20
+using DspAdpcm.Compatibility.LinqBridge;
+#else
+using System.Linq;
+#endif
 
 namespace DspAdpcm.Pcm.Formats
 {
