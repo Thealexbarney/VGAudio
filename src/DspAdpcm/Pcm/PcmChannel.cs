@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using static DspAdpcm.Helpers;
 
 namespace DspAdpcm.Pcm
 {
@@ -25,5 +26,29 @@ namespace DspAdpcm.Pcm
         }
 
         public IEnumerable<short> GetAudioData() => AudioData;
+
+        public override bool Equals(object obj)
+        {
+            var item = obj as PcmChannel;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return
+                item.NumSamples == NumSamples &&
+                ArraysEqual(item.AudioData, AudioData);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = NumSamples.GetHashCode();
+                hashCode = (hashCode * 397) ^ AudioData.GetHashCode();
+                return hashCode;
+            }
+        }
     }
 }

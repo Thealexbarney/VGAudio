@@ -1,5 +1,6 @@
 ﻿using System;
 using DspAdpcm.Adpcm;
+using DspAdpcm.Pcm;
 using Xunit;
 
 namespace DspAdpcm.Tests
@@ -11,6 +12,13 @@ namespace DspAdpcm.Tests
             var builtFile = buildFunc(adpcm);
             var parsedAdpcm = parseFunc(builtFile);
             Assert.Equal(adpcm, parsedAdpcm);
+        }
+
+        public static void BuildParseComparePcm(Func<PcmStream, byte[]> buildFunc, Func<byte[], PcmStream> parseFunc, PcmStream pcm)
+        {
+            var builtFile = buildFunc(pcm);
+            var parsedPcm = parseFunc(builtFile);
+            Assert.Equal(pcm, parsedPcm);
         }
     }
 }

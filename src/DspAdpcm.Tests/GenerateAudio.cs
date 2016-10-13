@@ -29,17 +29,7 @@ namespace DspAdpcm.Tests
             return wave;
         }
 
-        public static PcmStream GeneratePcmSineWave(int samples, double frequency)
-        {
-            int sampleRate = 48000;
-
-            var pcm = new PcmStream(samples, sampleRate);
-            pcm.Channels.Add(new PcmChannel(samples, GenerateSineWave(samples, frequency, sampleRate)));
-
-            return pcm;
-        }
-
-        public static AdpcmStream GenerateAdpcmSineWave(int samples, int channels)
+        public static PcmStream GeneratePcmSineWave(int samples, int channels)
         {
             int sampleRate = 48000;
             IEnumerable<double> frequencies = Frequencies.Take(channels);
@@ -50,6 +40,12 @@ namespace DspAdpcm.Tests
                 pcm.Channels.Add(new PcmChannel(samples, GenerateSineWave(samples, frequency, sampleRate)));
             }
 
+            return pcm;
+        }
+
+        public static AdpcmStream GenerateAdpcmSineWave(int samples, int channels)
+        {
+            PcmStream pcm = GeneratePcmSineWave(samples, channels);
             return Encode.PcmToAdpcm(pcm);
         }
 
