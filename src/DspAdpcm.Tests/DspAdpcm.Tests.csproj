@@ -46,6 +46,7 @@
     <Compile Include="Formats\BcstmTests.cs" />
     <Compile Include="Formats\BrstmTests.cs" />
     <Compile Include="BuildParseTests.cs" />
+    <Compile Include="Formats\BuildParseTestOptions.cs" />
     <Compile Include="Formats\DspTests.cs" />
     <Compile Include="Formats\WaveTests.cs" />
     <Compile Include="GenerateAudio.cs" />

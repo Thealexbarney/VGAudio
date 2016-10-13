@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using DspAdpcm.Adpcm;
 using DspAdpcm.Pcm;
+using DspAdpcm.Tests.Formats;
 
 namespace DspAdpcm.Tests
 {
     public class GenerateAudio
     {
-        public static double[] Frequencies { get; } = {261.63, 329.63, 392, 523.25, 659.25, 783.99, 1046.50, 130.81};
+        private static double[] Frequencies { get; } = {261.63, 329.63, 392, 523.25, 659.25, 783.99, 1046.50, 130.81};
 
         /// <summary>
         /// Generates a sine wave.
@@ -31,7 +32,7 @@ namespace DspAdpcm.Tests
 
         public static PcmStream GeneratePcmSineWave(int samples, int channels)
         {
-            int sampleRate = 48000;
+            int sampleRate = BuildParseTestOptions.Frequency;
             IEnumerable<double> frequencies = Frequencies.Take(channels);
 
             var pcm = new PcmStream(samples, sampleRate);
@@ -51,7 +52,7 @@ namespace DspAdpcm.Tests
 
         public static AdpcmStream GenerateAdpcmEmpty(int samples, int channels)
         {
-            var adpcm = new AdpcmStream(samples, 48000);
+            var adpcm = new AdpcmStream(samples, BuildParseTestOptions.Frequency);
 
             for (int i = 0; i < channels; i++)
             {
