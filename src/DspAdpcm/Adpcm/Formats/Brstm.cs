@@ -35,6 +35,11 @@ namespace DspAdpcm.Adpcm.Formats
         private byte Looping => (byte)(AudioStream.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
 
+        /// <summary>
+        /// Size of a single channel's ADPCM audio data with padding when written to a file
+        /// </summary>
+        private int AudioDataSize => GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), 0x20);
+
         private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
         private int InterleaveSize => GetBytesForAdpcmSamples(SamplesPerInterleave);
         private int InterleaveCount => NumSamples.DivideByRoundUp(SamplesPerInterleave);
@@ -67,7 +72,7 @@ namespace DspAdpcm.Adpcm.Formats
         private int AdpcChunkSize => GetNextMultiple(8 + NumSeekTableEntries * NumChannels * BytesPerSeekTableEntry, 0x20);
 
         private int DataChunkOffset => RstmHeaderSize + HeadChunkSize + AdpcChunkSize;
-        private int DataChunkSize => 0x20 + GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), 0x20) * NumChannels;
+        private int DataChunkSize => 0x20 + AudioDataSize * NumChannels;
 
         /// <summary>
         /// The size in bytes of the BRSTM file.
@@ -350,7 +355,7 @@ namespace DspAdpcm.Adpcm.Formats
 
             byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
 
-            channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, 0x20);
+            channels.Interleave(writer.BaseStream, InterleaveSize, AudioDataSize);
         }
 
         private static BrstmStructure ReadBrstmFile(Stream stream, bool readAudioData = true)
@@ -626,7 +631,7 @@ namespace DspAdpcm.Adpcm.Formats
             int audioDataLength = structure.DataChunkSize - (structure.AudioDataOffset - structure.DataChunkOffset);
 
             structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.NumChannels);
+                structure.NumChannels, GetBytesForAdpcmSamples(structure.NumSamples));
         }
     }
 }

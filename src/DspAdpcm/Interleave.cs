@@ -1,60 +1,76 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using static DspAdpcm.Helpers;
 
 namespace DspAdpcm
 {
     internal static class InterleaveExtensions
     {
-        public static T[] Interleave<T>(this T[][] inputs, int interleaveSize, int paddingAlignment = 0)
+        public static T[] Interleave<T>(this T[][] inputs, int interleaveSize, int outputSize = -1)
         {
-            int length = inputs[0].Length;
-            if (inputs.Any(x => x.Length != length))
+            int inputSize = inputs[0].Length;
+            if (outputSize == -1)
+                outputSize = inputSize;
+
+            if (inputs.Any(x => x.Length != inputSize))
                 throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be of equal length");
 
             int numInputs = inputs.Length;
-            int numBlocks = length.DivideByRoundUp(interleaveSize);
-            int lastInterleaveSize = length - (numBlocks - 1) * interleaveSize;
-            int padding = GetNextMultiple(lastInterleaveSize, paddingAlignment) - lastInterleaveSize;
+            int numBlocks = outputSize.DivideByRoundUp(interleaveSize);
+            int lastInputInterleaveSize = inputSize - (numBlocks - 1) * interleaveSize;
+            int lastOutputInterleaveSize = outputSize - (numBlocks - 1) * interleaveSize;
+            lastInputInterleaveSize = Math.Min(lastOutputInterleaveSize, lastInputInterleaveSize);
 
-            var output = new T[(interleaveSize * (numBlocks - 1) + lastInterleaveSize + padding) * numInputs];
+            var output = new T[outputSize * numInputs];
 
             for (int b = 0; b < numBlocks; b++)
             {
                 for (int i = 0; i < numInputs; i++)
                 {
-                    int currentInterleaveSize = b == numBlocks - 1 ? lastInterleaveSize : interleaveSize;
+                    int currentInputInterleaveSize = b == numBlocks - 1 ? lastInputInterleaveSize : interleaveSize;
+                    int currentOutputInterleaveSize = b == numBlocks - 1 ? lastOutputInterleaveSize : interleaveSize;
+
                     Array.Copy(inputs[i], interleaveSize * b,
-                        output, interleaveSize * b * numInputs + currentInterleaveSize * i,
-                        currentInterleaveSize);
+                        output, interleaveSize * b * numInputs + currentOutputInterleaveSize * i,
+                        currentInputInterleaveSize);
                 }
             }
 
             return output;
         }
 
-        public static void Interleave(this byte[][] inputs, Stream output, int length, int interleaveSize, int paddingAlignment = 0)
+        public static void Interleave(this byte[][] inputs, Stream output, int interleaveSize, int outputSize = -1)
         {
-            if (inputs.Any(x => x.Length < length))
-                throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be as long as the specified length");
+            int inputSize = inputs[0].Length;
+            if (outputSize == -1)
+                outputSize = inputSize;
+
+            if (inputs.Any(x => x.Length != inputSize))
+                throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be of equal length");
 
             int numInputs = inputs.Length;
-            int numBlocks = length.DivideByRoundUp(interleaveSize);
-            int lastInterleaveSize = length - (numBlocks - 1) * interleaveSize;
-            int padding = GetNextMultiple(lastInterleaveSize, paddingAlignment) - lastInterleaveSize;
+            int numBlocks = outputSize.DivideByRoundUp(interleaveSize);
+            int lastInputInterleaveSize = inputSize - (numBlocks - 1) * interleaveSize;
+            int lastOutputInterleaveSize = outputSize - (numBlocks - 1) * interleaveSize;
+            lastInputInterleaveSize = Math.Min(lastOutputInterleaveSize, lastInputInterleaveSize);
 
-            for (int b = 0; b < numBlocks; b++)
+            for (int b = 0; b < numBlocks - 1; b++)
             {
                 for (int o = 0; o < numInputs; o++)
                 {
-                    output.Write(inputs[o], interleaveSize * b, b != numBlocks - 1 ? interleaveSize : lastInterleaveSize);
-                    if (b == numBlocks - 1)
-                    {
-                        output.Position += padding;
-                    }
+                    output.Write(inputs[o], interleaveSize * b, interleaveSize);
                 }
             }
+
+            for (int o = 0; o < numInputs; o++)
+            {
+                output.Write(inputs[o], interleaveSize * (numBlocks - 1), lastInputInterleaveSize);
+                output.Position += lastOutputInterleaveSize - lastInputInterleaveSize;
+            }
+
+            //Simply setting the position past the end of the stream doesn't expand the stream,
+            //so we do that manually if necessary
+            output.SetLength(Math.Max(output.Position, output.Length));
         }
 
         public static T[][] DeInterleave<T>(this T[] input, int interleaveSize, int numOutputs, int outputSize = -1)
@@ -66,7 +82,7 @@ namespace DspAdpcm
             int inputSize = input.Length / numOutputs;
             if (outputSize == -1)
                 outputSize = inputSize;
-            
+
             int numBlocks = inputSize.DivideByRoundUp(interleaveSize);
             int lastInputInterleaveSize = inputSize - (numBlocks - 1) * interleaveSize;
             int lastOutputInterleaveSize = outputSize - (numBlocks - 1) * interleaveSize;
@@ -113,7 +129,7 @@ namespace DspAdpcm
             int inputSize = length / numOutputs;
             if (outputSize == -1)
                 outputSize = inputSize;
-            
+
             int numBlocks = inputSize.DivideByRoundUp(interleaveSize);
             int lastInputInterleaveSize = inputSize - (numBlocks - 1) * interleaveSize;
             int lastOutputInterleaveSize = outputSize - (numBlocks - 1) * interleaveSize;

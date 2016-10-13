@@ -25,7 +25,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <summary>
         /// The size in bytes of the DSP file.
         /// </summary>
-        public int FileSize => (HeaderSize + AudioDataLength) * NumChannels;
+        public int FileSize => (HeaderSize + AudioDataSize) * NumChannels;
 
         private static int HeaderSize => 0x60;
         private int NumChannels => AudioStream.Channels.Count;
@@ -46,7 +46,10 @@ namespace DspAdpcm.Adpcm.Formats
         private int EndAddr => GetNibbleAddress(AudioStream.Looping ? LoopEnd : NumSamples - 1);
         private static int CurAddr => GetNibbleAddress(0);
 
-        private int AudioDataLength
+        /// <summary>
+        /// Size of a single channel's ADPCM audio data with padding when written to a file
+        /// </summary>
+        private int AudioDataSize
             => GetNextMultiple(GetBytesForAdpcmSamples(NumSamples), NumChannels == 1 ? 1 : BytesPerFrame);
 
         /// <summary>
@@ -213,7 +216,7 @@ namespace DspAdpcm.Adpcm.Formats
             else
             {
                 byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
-                channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), BytesPerInterleave, BytesPerFrame);
+                channels.Interleave(writer.BaseStream, BytesPerInterleave, AudioDataSize);
             }
         }
 
@@ -320,7 +323,7 @@ namespace DspAdpcm.Adpcm.Formats
             {
                 int dataLength = GetNextMultiple(GetBytesForAdpcmSamples(structure.NumSamples), 8) * structure.NumChannels;
                 int interleaveSize = structure.FramesPerInterleave * BytesPerFrame;
-                structure.AudioData = reader.BaseStream.DeInterleave(dataLength, interleaveSize, structure.NumChannels);
+                structure.AudioData = reader.BaseStream.DeInterleave(dataLength, interleaveSize, structure.NumChannels, GetBytesForAdpcmSamples(structure.NumSamples));
             }
         }
     }
