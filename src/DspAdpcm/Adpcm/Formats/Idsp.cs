@@ -38,18 +38,21 @@ namespace DspAdpcm.Adpcm.Formats
         private static int CurAddr => GetNibbleAddress(0);
 
         private int InterleaveSize => Configuration.BytesPerInterleave == 0 ?
-            AudioDataLength : Configuration.BytesPerInterleave;
+            AudioDataSize : Configuration.BytesPerInterleave;
         private const int StreamInfoSize = 0x40;
         private int ChannelInfoSize => 0x60;
         private int HeaderSize => StreamInfoSize + NumChannels * ChannelInfoSize;
 
-        private int AudioDataLength => GetNextMultiple(GetBytesForAdpcmSamples(NumSamples),
+        /// <summary>
+        /// Size of a single channel's ADPCM audio data with padding when written to a file
+        /// </summary>
+        private int AudioDataSize => GetNextMultiple(GetBytesForAdpcmSamples(NumSamples),
             Configuration.BytesPerInterleave == 0 ? BytesPerFrame : InterleaveSize);
 
         /// <summary>
         /// The size in bytes of the IDSP file.
         /// </summary>
-        public int FileSize => HeaderSize + AudioDataLength * NumChannels;
+        public int FileSize => HeaderSize + AudioDataSize * NumChannels;
 
         /// <summary>
         /// Initializes a new <see cref="Idsp"/> from an <see cref="AdpcmStream"/>.
@@ -191,7 +194,7 @@ namespace DspAdpcm.Adpcm.Formats
             writer.Write(StreamInfoSize);
             writer.Write(ChannelInfoSize);
             writer.Write(HeaderSize);
-            writer.Write(AudioDataLength);
+            writer.Write(AudioDataSize);
 
             for (int i = 0; i < NumChannels; i++)
             {
@@ -222,7 +225,7 @@ namespace DspAdpcm.Adpcm.Formats
             writer.BaseStream.Position = HeaderSize;
 
             byte[][] channels = AudioStream.Channels.Select(x => x.GetAudioData).ToArray();
-            channels.Interleave(writer.BaseStream, GetBytesForAdpcmSamples(NumSamples), InterleaveSize, InterleaveSize);
+            channels.Interleave(writer.BaseStream, InterleaveSize, AudioDataSize);
         }
 
         private static IdspStructure ReadIdspFile(Stream stream, bool readAudioData = true)
@@ -328,7 +331,7 @@ namespace DspAdpcm.Adpcm.Formats
             int interleave = structure.InterleaveSize == 0 ? structure.AudioDataLength : structure.InterleaveSize;
             //If the file isn't interleaved, there is no padding/alignment at the break between channels.
             structure.AudioData = reader.BaseStream.DeInterleave(structure.NumChannels * structure.AudioDataLength, interleave,
-                structure.NumChannels);
+                structure.NumChannels, GetBytesForAdpcmSamples(structure.NumSamples));
         }
     }
 }

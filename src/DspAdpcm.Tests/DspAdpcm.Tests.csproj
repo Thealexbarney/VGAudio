@@ -51,6 +51,7 @@
     <Compile Include="Formats\IdspTests.cs" />
     <Compile Include="Helpers\AdpcmMathTests.cs" />
     <Compile Include="Helpers\DeinterleaveTests.cs" />
+    <Compile Include="Helpers\InterleaveTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
