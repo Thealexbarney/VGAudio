@@ -10,3 +10,4 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyProduct("DspAdpcm")]
 [assembly: NeutralResourcesLanguage("en-US")]
 [assembly: InternalsVisibleTo("DspAdpcm.Tests")]
+[assembly: InternalsVisibleTo("DspAdpcm.Benchmark")]

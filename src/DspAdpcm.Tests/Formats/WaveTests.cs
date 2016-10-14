@@ -20,7 +20,7 @@ namespace DspAdpcm.Tests.Formats
         [InlineData(8)]
         public void BrstmBuildAndParseEqual(int numChannels)
         {
-            PcmStream pcm = GenerateAudio.GeneratePcmSineWave(BuildParseTestOptions.Samples, numChannels);
+            PcmStream pcm = GenerateAudio.GeneratePcmSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate);
             BuildParseTests.BuildParseComparePcm(BuildFunc, ParseFunc, pcm);
         }
     }

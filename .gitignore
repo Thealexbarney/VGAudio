@@ -265,4 +265,8 @@ paket-files/
 *.idsp
 *.hps
 
+#BenchmarkDotNet
+BDN.Auto/
+BenchmarkDotNet.Artifacts/
+
 /DspAdpcm/DspAdpcm.Cli/Properties/launchSettings.json

@@ -4,7 +4,7 @@ using System.Linq;
 using DspAdpcm.Adpcm;
 using DspAdpcm.Pcm;
 
-namespace DspAdpcm.Tests
+namespace DspAdpcm.Benchmark
 {
     public static class GenerateAudio
     {
