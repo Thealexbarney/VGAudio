@@ -304,7 +304,7 @@ namespace DspAdpcm.Adpcm
             }
         }
 
-        private static short[] DspCorrelateCoefs(IEnumerable<short> source, int samples)
+        internal static short[] DspCorrelateCoefs(IEnumerable<short> source, int samples)
         {
             int numFrames = (samples + 13) / 14;
 
@@ -405,31 +405,20 @@ namespace DspAdpcm.Adpcm
             return coefs;
         }
 
-        internal static void DspEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn)
+        internal static void DspEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn, AdpcmEncodeBuffers b = null)
         {
-            short[][] coefs = new short[8][];
+            b = b ?? new AdpcmEncodeBuffers();
+
             for (int i = 0; i < 8; i++)
             {
-                coefs[i] = new short[2];
-                coefs[i][0] = coefsIn[i * 2];
-                coefs[i][1] = coefsIn[i * 2 + 1];
+                b.Coefs[i][0] = coefsIn[i * 2];
+                b.Coefs[i][1] = coefsIn[i * 2 + 1];
             }
-
-            int[][] inSamples = new int[8][];
-            int[][] outSamples = new int[8][];
-            for (int i = 0; i < 8; i++)
-            {
-                inSamples[i] = new int[16];
-                outSamples[i] = new int[14];
-            }
-
-            int[] scale = new int[8];
-            double[] distAccum = new double[8];
 
             /* Iterate through each coef set, finding the set with the smallest error */
             for (int i = 0; i < 8; i++)
             {
-                DspEncodeCoef(pcmInOut, sampleCount, coefs[i], inSamples[i], outSamples[i], out scale[i], out distAccum[i]);
+                DspEncodeCoef(pcmInOut, sampleCount, b.Coefs[i], b.InSamples[i], b.OutSamples[i], out b.Scale[i], out b.DistAccum[i]);
             }
 
             int bestIndex = 0;
@@ -437,28 +426,28 @@ namespace DspAdpcm.Adpcm
             double min = double.MaxValue;
             for (int i = 0; i < 8; i++)
             {
-                if (distAccum[i] < min)
+                if (b.DistAccum[i] < min)
                 {
-                    min = distAccum[i];
+                    min = b.DistAccum[i];
                     bestIndex = i;
                 }
             }
 
             /* Write converted samples */
             for (int s = 0; s < sampleCount; s++)
-                pcmInOut[s + 2] = (short)inSamples[bestIndex][s + 2];
+                pcmInOut[s + 2] = (short)b.InSamples[bestIndex][s + 2];
 
             /* Write ps */
-            adpcmOut[0] = (byte)((bestIndex << 4) | (scale[bestIndex] & 0xF));
+            adpcmOut[0] = (byte)((bestIndex << 4) | (b.Scale[bestIndex] & 0xF));
 
             /* Zero remaining samples */
             for (int s = sampleCount; s < 14; s++)
-                outSamples[bestIndex][s] = 0;
+                b.OutSamples[bestIndex][s] = 0;
 
             /* Write output samples */
             for (int y = 0; y < 7; y++)
             {
-                adpcmOut[y + 1] = (byte)((outSamples[bestIndex][y * 2] << 4) | (outSamples[bestIndex][y * 2 + 1] & 0xF));
+                adpcmOut[y + 1] = (byte)((b.OutSamples[bestIndex][y * 2] << 4) | (b.OutSamples[bestIndex][y * 2 + 1] & 0xF));
             }
         }
 
@@ -544,27 +533,10 @@ namespace DspAdpcm.Adpcm
 
         private static AdpcmChannel PcmToAdpcm(PcmChannel pcmChannel)
         {
-            var channel = new AdpcmChannel(pcmChannel.NumSamples);
-            channel.Coefs = DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
+            short[] coefs = DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
+            byte[] adpcm = EncodeAdpcm(pcmChannel.AudioData, coefs);
 
-            /* Execute encoding-predictor for each frame */
-            var convSamps = new short[2 + SamplesPerFrame];
-            var frame = new byte[BytesPerFrame];
-
-            int frameCount = 0;
-            foreach (short[] inFrame in pcmChannel.GetAudioData().Batch(SamplesPerFrame))
-            {
-                Array.Copy(inFrame, 0, convSamps, 2, SamplesPerFrame);
-
-                DspEncodeFrame(convSamps, SamplesPerFrame, frame, channel.Coefs);
-
-                convSamps[0] = convSamps[14];
-                convSamps[1] = convSamps[15];
-
-                int numSamples = Math.Min(pcmChannel.NumSamples - frameCount * SamplesPerFrame, SamplesPerFrame);
-                Array.Copy(frame, 0, channel.AudioByteArray, frameCount++ * BytesPerFrame, GetBytesForAdpcmSamples(numSamples));
-            }
-            return channel;
+            return new AdpcmChannel(pcmChannel.NumSamples, adpcm) { Coefs = coefs };
         }
 
         /// <summary>
@@ -616,9 +588,12 @@ namespace DspAdpcm.Adpcm
         }
 #endif
 
-        internal static byte[] EncodeAdpcm(short[] pcm, short[] coefs, short hist1, short hist2, int samples)
+        internal static byte[] EncodeAdpcm(short[] pcm, short[] coefs, int samples = -1, short hist1 = 0, short hist2 = 0)
         {
-            var adpcm = new byte[GetBytesForAdpcmSamples(samples)];
+            int numSamples = samples == -1 ? pcm.Length : samples;
+            var adpcm = new byte[GetBytesForAdpcmSamples(numSamples)];
+
+            /* Execute encoding-predictor for each frame */
             var convSamps = new short[2 + SamplesPerFrame];
             var frame = new byte[BytesPerFrame];
 
@@ -626,19 +601,40 @@ namespace DspAdpcm.Adpcm
             convSamps[1] = hist1;
 
             int frameCount = 0;
+            var buffers = new AdpcmEncodeBuffers();
             foreach (short[] inFrame in pcm.Batch(SamplesPerFrame))
             {
                 Array.Copy(inFrame, 0, convSamps, 2, SamplesPerFrame);
 
-                DspEncodeFrame(convSamps, SamplesPerFrame, frame, coefs);
+                DspEncodeFrame(convSamps, SamplesPerFrame, frame, coefs, buffers);
 
                 convSamps[0] = convSamps[14];
                 convSamps[1] = convSamps[15];
 
-                int numSamples = Math.Min(samples - frameCount * SamplesPerFrame, SamplesPerFrame);
-                Array.Copy(frame, 0, adpcm, frameCount++ * BytesPerFrame, GetBytesForAdpcmSamples(numSamples));
+                int samplesToCopy = Math.Min(numSamples - frameCount * SamplesPerFrame, SamplesPerFrame);
+                Array.Copy(frame, 0, adpcm, frameCount++ * BytesPerFrame, GetBytesForAdpcmSamples(samplesToCopy));
             }
+
             return adpcm;
+        }
+    }
+
+    internal class AdpcmEncodeBuffers
+    {
+        public short[][] Coefs { get; } = new short[8][];
+        public int[][] InSamples { get; } = new int[8][];
+        public int[][] OutSamples { get; } = new int[8][];
+        public int[] Scale { get; } = new int[8];
+        public double[] DistAccum { get; } = new double[8];
+
+        public AdpcmEncodeBuffers()
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                InSamples[i] = new int[16];
+                OutSamples[i] = new int[14];
+                Coefs[i] = new short[2];
+            }
         }
     }
 }

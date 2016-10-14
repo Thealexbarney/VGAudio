@@ -9,18 +9,20 @@ namespace DspAdpcm.Benchmark
         [Params(1)]
         public double lengthSeconds;
         private int sampleRate = 48000;
-        private PcmStream pcm;
+        private short[] pcm;
+        private short[] coefs;
 
         [Setup]
         public void Setup()
         {
-            pcm = GenerateAudio.GeneratePcmSineWave((int)(sampleRate * lengthSeconds), 1, sampleRate);
+            pcm = GenerateAudio.GenerateSineWave((int)(sampleRate * lengthSeconds), 440, sampleRate);
+            coefs = Encode.DspCorrelateCoefs(pcm, pcm.Length);
         }
 
         [Benchmark]
-        public AdpcmStream EncodeAdpcmBenchmark()
+        public byte[] EncodeAdpcmBenchmark()
         {
-            return Encode.PcmToAdpcm(pcm);
+            return Encode.EncodeAdpcm(pcm, coefs);
         }
     }
 }

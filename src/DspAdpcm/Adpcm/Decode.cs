@@ -313,7 +313,7 @@ namespace DspAdpcm.Adpcm
 
             short[] history = audio.GetPcmAudioLooped(samplesToCopy, 16, loopStart, loopEnd, true);
             short[] pcm = audio.GetPcmAudioLooped(samplesToCopy, samplesToEncode, loopStart, loopEnd);
-            var adpcm = Encode.EncodeAdpcm(pcm, audio.Coefs, history[1], history[0], samplesToEncode);
+            var adpcm = Encode.EncodeAdpcm(pcm, audio.Coefs, samplesToEncode, history[1], history[0]);
 
             Array.Copy(adpcm, 0, output, bytesToCopy, adpcm.Length);
 
