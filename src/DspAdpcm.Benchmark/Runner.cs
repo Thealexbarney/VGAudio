@@ -3,6 +3,7 @@ using BenchmarkDotNet.Diagnostics.Windows;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Validators;
+using DspAdpcm.Benchmark.AdpcmBenchmarks;
 
 namespace DspAdpcm.Benchmark
 {
@@ -10,7 +11,7 @@ namespace DspAdpcm.Benchmark
     {
         public static void Main(string[] args)
         {
-            BenchmarkRunner.Run<EncodeBenchmarks>(
+            BenchmarkRunner.Run<CoefBenchmarks>(
                 ManualConfig
                     .Create(DefaultConfig.Instance)
                     .With(Job.RyuJitX64)

@@ -38,9 +38,10 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdpcmBenchmarks\CoefBenchmarks.cs" />
     <Compile Include="BuildParse\BrstmBenchmarks.cs" />
     <Compile Include="BuildParse\IdspBenchmarks.cs" />
-    <Compile Include="EncodeBenchmarks.cs" />
+    <Compile Include="AdpcmBenchmarks\EncodeBenchmarks.cs" />
     <Compile Include="GenerateAudio.cs" />
     <Compile Include="Runner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,8 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using DspAdpcm.Adpcm;
-using DspAdpcm.Pcm;
 
-namespace DspAdpcm.Benchmark
+namespace DspAdpcm.Benchmark.AdpcmBenchmarks
 {
     public class EncodeBenchmarks
     {
