@@ -304,9 +304,9 @@ namespace DspAdpcm.Adpcm
             }
         }
 
-        internal static short[] DspCorrelateCoefs(IEnumerable<short> source, int samples)
+        internal static short[] DspCorrelateCoefs(short[] source)
         {
-            int numFrames = (samples + 13) / 14;
+            int numFrames = source.Length.DivideByRoundUp(SamplesPerFrame);
 
             short[] pcmHistBuffer = new short[28];
 
@@ -533,7 +533,7 @@ namespace DspAdpcm.Adpcm
 
         private static AdpcmChannel PcmToAdpcm(PcmChannel pcmChannel)
         {
-            short[] coefs = DspCorrelateCoefs(pcmChannel.GetAudioData(), pcmChannel.NumSamples);
+            short[] coefs = DspCorrelateCoefs(pcmChannel.AudioData);
             byte[] adpcm = EncodeAdpcm(pcmChannel.AudioData, coefs);
 
             return new AdpcmChannel(pcmChannel.NumSamples, adpcm) { Coefs = coefs };

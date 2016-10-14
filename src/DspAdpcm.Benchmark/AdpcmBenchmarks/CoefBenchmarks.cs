@@ -19,7 +19,7 @@ namespace DspAdpcm.Benchmark.AdpcmBenchmarks
         [Benchmark]
         public short[] GenerateCoefBenchmark()
         {
-            return Encode.DspCorrelateCoefs(pcm, pcm.Length);
+            return Encode.DspCorrelateCoefs(pcm);
         }
     }
 }

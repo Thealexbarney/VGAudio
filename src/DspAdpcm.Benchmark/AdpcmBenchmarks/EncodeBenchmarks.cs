@@ -15,7 +15,7 @@ namespace DspAdpcm.Benchmark.AdpcmBenchmarks
         public void Setup()
         {
             pcm = GenerateAudio.GenerateSineWave((int)(sampleRate * lengthSeconds), 440, sampleRate);
-            coefs = Encode.DspCorrelateCoefs(pcm, pcm.Length);
+            coefs = Encode.DspCorrelateCoefs(pcm);
         }
 
         [Benchmark]

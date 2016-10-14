@@ -7,7 +7,7 @@ namespace DspAdpcm.Pcm
     internal class PcmChannel
     {
         public int NumSamples { get; set; }
-        internal short[] AudioData { get; set; }
+        public short[] AudioData { get; set; }
         
         public PcmChannel(int numSamples)
         {
@@ -24,8 +24,6 @@ namespace DspAdpcm.Pcm
             AudioData = audio;
             NumSamples = numSamples;
         }
-
-        public IEnumerable<short> GetAudioData() => AudioData;
 
         public override bool Equals(object obj)
         {
