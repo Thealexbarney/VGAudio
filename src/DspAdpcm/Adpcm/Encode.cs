@@ -405,7 +405,8 @@ namespace DspAdpcm.Adpcm
             return coefs;
         }
 
-        internal static void DspEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn, AdpcmEncodeBuffers b = null)
+        internal static void DspEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn,
+            AdpcmEncodeBuffers b = null)
         {
             b = b ?? new AdpcmEncodeBuffers();
 
@@ -418,7 +419,8 @@ namespace DspAdpcm.Adpcm
             /* Iterate through each coef set, finding the set with the smallest error */
             for (int i = 0; i < 8; i++)
             {
-                DspEncodeCoef(pcmInOut, sampleCount, b.Coefs[i], b.InSamples[i], b.OutSamples[i], out b.Scale[i], out b.DistAccum[i]);
+                DspEncodeCoef(pcmInOut, sampleCount, b.Coefs[i], b.InSamples[i], b.OutSamples[i], out b.Scale[i],
+                    out b.DistAccum[i]);
             }
 
             int bestIndex = 0;
@@ -588,31 +590,34 @@ namespace DspAdpcm.Adpcm
         }
 #endif
 
-        internal static byte[] EncodeAdpcm(short[] pcm, short[] coefs, int samples = -1, short hist1 = 0, short hist2 = 0)
+        internal static byte[] EncodeAdpcm(short[] pcm, short[] coefs, int samples = -1, short hist1 = 0,
+            short hist2 = 0)
         {
             int numSamples = samples == -1 ? pcm.Length : samples;
             var adpcm = new byte[GetBytesForAdpcmSamples(numSamples)];
 
             /* Execute encoding-predictor for each frame */
-            var convSamps = new short[2 + SamplesPerFrame];
-            var frame = new byte[BytesPerFrame];
+            var pcmBuffer = new short[2 + SamplesPerFrame];
+            var adpcmBuffer = new byte[BytesPerFrame];
 
-            convSamps[0] = hist2;
-            convSamps[1] = hist1;
+            pcmBuffer[0] = hist2;
+            pcmBuffer[1] = hist1;
 
-            int frameCount = 0;
+            int numFrames = numSamples.DivideByRoundUp(SamplesPerFrame);
             var buffers = new AdpcmEncodeBuffers();
-            foreach (short[] inFrame in pcm.Batch(SamplesPerFrame))
+
+            for (int frame = 0; frame < numFrames; frame++)
             {
-                Array.Copy(inFrame, 0, convSamps, 2, SamplesPerFrame);
+                int samplesToCopy = Math.Min(numSamples - frame * SamplesPerFrame, SamplesPerFrame);
+                Array.Copy(pcm, frame * SamplesPerFrame, pcmBuffer, 2, samplesToCopy);
+                Array.Clear(pcmBuffer, 2 + samplesToCopy, SamplesPerFrame - samplesToCopy);
 
-                DspEncodeFrame(convSamps, SamplesPerFrame, frame, coefs, buffers);
+                DspEncodeFrame(pcmBuffer, SamplesPerFrame, adpcmBuffer, coefs, buffers);
 
-                convSamps[0] = convSamps[14];
-                convSamps[1] = convSamps[15];
+                Array.Copy(adpcmBuffer, 0, adpcm, frame * BytesPerFrame, GetBytesForAdpcmSamples(samplesToCopy));
 
-                int samplesToCopy = Math.Min(numSamples - frameCount * SamplesPerFrame, SamplesPerFrame);
-                Array.Copy(frame, 0, adpcm, frameCount++ * BytesPerFrame, GetBytesForAdpcmSamples(samplesToCopy));
+                pcmBuffer[0] = pcmBuffer[14];
+                pcmBuffer[1] = pcmBuffer[15];
             }
 
             return adpcm;
