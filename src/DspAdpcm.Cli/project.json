@@ -1,7 +1,8 @@
 {
     "version": "1.1.1-*",
     "buildOptions": {
-        "emitEntryPoint": true
+        "emitEntryPoint": true,
+        "platform": "anycpu"
     },
 
     "dependencies": {
@@ -19,6 +20,17 @@
                 }
             }
         },
-        "net45": {}
+        "net45": {},
+        "net40": {},
+        "net35": {
+            "buildOptions": {
+                "define": [ "NOPARALLEL" ]
+            }
+        },
+        "net20": {
+            "buildOptions": {
+                "define": [ "NOPARALLEL" ]
+            }
+        }
     }
 }
