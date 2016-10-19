@@ -43,6 +43,7 @@
     <Compile Include="BuildParse\IdspBenchmarks.cs" />
     <Compile Include="AdpcmBenchmarks\EncodeBenchmarks.cs" />
     <Compile Include="GenerateAudio.cs" />
+    <Compile Include="HelperBenchmarks\InterleaveBenchmarks.cs" />
     <Compile Include="Runner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
