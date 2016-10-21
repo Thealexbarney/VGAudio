@@ -48,18 +48,22 @@ namespace DspAdpcm.Benchmark
             return Encode.PcmToAdpcm(pcm);
         }
 
-        public static AdpcmStream GenerateAdpcmEmpty(int samples, int channels, int sampleRate)
+        public static AdpcmStream GenerateAdpcmEmpty(int samples, int channels, int sampleRate, int samplesPerSeekTableEntry = 0x3800)
         {
             var adpcm = new AdpcmStream(samples, sampleRate);
 
             for (int i = 0; i < channels; i++)
             {
-                adpcm.Channels.Add(new AdpcmChannel(samples) { Coefs = new short[16] });
+                adpcm.Channels.Add(new AdpcmChannel(samples)
+                {
+                    Coefs = new short[16],
+                    SeekTable = new short[samples.DivideByRoundUp(samplesPerSeekTableEntry) * 2],
+                    SelfCalculatedSeekTable = true,
+                    SamplesPerSeekTableEntry = samplesPerSeekTableEntry
+                });
             }
 
             return adpcm;
         }
-
-
     }
 }
