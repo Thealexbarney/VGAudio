@@ -18,10 +18,8 @@ namespace DspAdpcm.Benchmark.AdpcmBenchmarks
             coefs = Encode.DspCorrelateCoefs(pcm);
         }
 
-        [Benchmark]
-        public byte[] EncodeAdpcmBenchmark()
-        {
-            return Encode.EncodeAdpcm(pcm, coefs);
-        }
+        [Benchmark] public short[] GenerateCoefs() => Encode.DspCorrelateCoefs(pcm);
+        [Benchmark] public byte[] EncodeAdpcm() => Encode.EncodeAdpcm(pcm, coefs);
+        [Benchmark] public byte[] GenerateCoefsAndEncodeAdpcm() => Encode.EncodeAdpcm(pcm, Encode.DspCorrelateCoefs(pcm));
     }
 }

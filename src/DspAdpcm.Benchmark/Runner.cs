@@ -14,7 +14,6 @@ namespace DspAdpcm.Benchmark
         private static Type[] Benchmarks { get; } =
         {
             typeof(BuildParseBenchmarks),
-            typeof(CoefBenchmarks),
             typeof(EncodeBenchmarks),
             typeof(InterleaveBenchmarks)
         };

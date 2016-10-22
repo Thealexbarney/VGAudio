@@ -38,7 +38,6 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdpcmBenchmarks\CoefBenchmarks.cs" />
     <Compile Include="AdpcmBenchmarks\BuildParseBenchmarks.cs" />
     <Compile Include="AdpcmBenchmarks\EncodeBenchmarks.cs" />
     <Compile Include="GenerateAudio.cs" />
