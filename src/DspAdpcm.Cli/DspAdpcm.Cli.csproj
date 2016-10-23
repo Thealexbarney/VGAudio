@@ -48,6 +48,7 @@
     <Compile Include="Convert.cs" />
     <Compile Include="DspAdpcmCli.cs" />
     <Compile Include="Options.cs" />
+    <Compile Include="CliArguments.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
