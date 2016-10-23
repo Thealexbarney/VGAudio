@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdpcmBenchmarks\BuildParseBenchmarks.cs" />
+    <Compile Include="AdpcmBenchmarks\DecodeBenchmarks.cs" />
     <Compile Include="AdpcmBenchmarks\EncodeBenchmarks.cs" />
     <Compile Include="GenerateAudio.cs" />
     <Compile Include="HelperBenchmarks\InterleaveBenchmarks.cs" />

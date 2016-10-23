@@ -15,6 +15,7 @@ namespace DspAdpcm.Benchmark
         {
             typeof(BuildParseBenchmarks),
             typeof(EncodeBenchmarks),
+            typeof(DecodeBenchmarks),
             typeof(InterleaveBenchmarks)
         };
 
