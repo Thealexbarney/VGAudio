@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}</ProjectGuid>
+    <ProjectGuid>{DFCAF2E7-1B33-4164-A4E1-3C095AB44E69}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DspAdpcm.Cli</RootNamespace>
-    <AssemblyName>DspAdpcm.Cli</AssemblyName>
+    <RootNamespace>DspAdpcm.Benchmark</RootNamespace>
+    <AssemblyName>DspAdpcm.Benchmark</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,17 +34,16 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <None Include="DspAdpcm.Benchmark.project.json" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DspAdpcmCli.cs" />
+    <Compile Include="AdpcmBenchmarks\BuildParseBenchmarks.cs" />
+    <Compile Include="AdpcmBenchmarks\DecodeBenchmarks.cs" />
+    <Compile Include="AdpcmBenchmarks\EncodeBenchmarks.cs" />
+    <Compile Include="GenerateAudio.cs" />
+    <Compile Include="HelperBenchmarks\InterleaveBenchmarks.cs" />
+    <Compile Include="Runner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -55,8 +53,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="DspAdpcm.Cli.project.json" />
-    <None Include="project.json" />
+    <Reference Include="System" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

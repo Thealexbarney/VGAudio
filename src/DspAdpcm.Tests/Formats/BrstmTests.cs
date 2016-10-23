@@ -16,7 +16,7 @@ namespace DspAdpcm.Tests.Formats
         [InlineData(8)]
         public void BrstmBuildAndParseEqual(int numChannels)
         {
-            var adpcm = GenerateAudio.GenerateAdpcmSineWave(BuildParseTestOptions.Samples, numChannels);
+            var adpcm = GenerateAudio.GenerateAdpcmSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate);
             BuildParseTests.BuildParseCompareAdpcm(BuildFunc, ParseFunc, adpcm);
         }
     }
