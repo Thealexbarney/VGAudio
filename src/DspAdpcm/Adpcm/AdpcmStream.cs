@@ -96,6 +96,18 @@ namespace DspAdpcm.Adpcm
         }
 
         /// <summary>
+        /// Sets the loop points for the <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="loop">If <c>false</c>, don't loop the <see cref="AdpcmStream"/>
+        /// If <c>true</c>, loop the <see cref="AdpcmStream"/> from 0 to <see cref="NumSamples"/></param>
+        public void SetLoop(bool loop)
+        {
+            Looping = loop;
+            LoopStart = 0;
+            LoopEnd = NumSamples;
+        }
+
+        /// <summary>
         /// Adds all the channels in the input <see cref="AdpcmStream"/>
         /// to the current one.
         /// </summary>
@@ -126,7 +138,7 @@ namespace DspAdpcm.Adpcm
         public AdpcmStream GetChannels(int startIndex, int count)
         {
             AdpcmStream copy = ShallowClone();
-            
+
             copy.Channels = Channels.GetRange(startIndex, count);
             copy._tracks = _tracks?.Select(x => x.Clone()).ToList();
 
