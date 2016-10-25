@@ -190,7 +190,7 @@ namespace DspAdpcm.Cli
             Console.WriteLine($"Usage: {GetProgramName()} [options] infile [outfile]\n");
             Console.WriteLine("  -i             Specify an input file");
             Console.WriteLine("  -o             Specify an output file");
-            Console.WriteLine("  -l<start-end>  Set the start and end loop points");
+            Console.WriteLine("  -l <start-end> Set the start and end loop points");
             Console.WriteLine("                 Loop points are given in zero-based samples");
             Console.WriteLine("      --no-loop  Sets the audio to not loop");
             Console.WriteLine("  -h, --help     Display this help and exit");
