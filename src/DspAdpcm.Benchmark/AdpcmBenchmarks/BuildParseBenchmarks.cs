@@ -14,8 +14,6 @@ namespace DspAdpcm.Benchmark.BuildParse
 
         private AdpcmStream adpcm;
         private byte[] brstm;
-        private byte[] bcstm;
-        private byte[] bfstm;
         private byte[] dsp;
         private byte[] idsp;
 
