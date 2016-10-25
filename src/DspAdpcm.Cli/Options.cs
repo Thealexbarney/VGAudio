@@ -22,6 +22,7 @@
 
     internal enum FileType
     {
+        NotSet = 0,
         Wave,
         Dsp,
         Idsp,

@@ -9,6 +9,8 @@ namespace DspAdpcm.Cli
         {
             Options options = CliArguments.Parse(args);
 
+            if (options == null) return 1;
+
             if (options.Job == JobType.Convert)
             {
                 Stopwatch watch = Stopwatch.StartNew();
@@ -18,6 +20,10 @@ namespace DspAdpcm.Cli
                 {
                     Console.WriteLine("Success!");
                     Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
+                }
+                else
+                {
+                    return 1;
                 }
             }
             
