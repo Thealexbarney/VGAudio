@@ -11,6 +11,11 @@
         public string OutFilePath { get; set; }
 
         public bool KeepConfiguration { get; set; }
+
+        public bool Loop { get; set; }
+        public bool NoLoop { get; set; }
+        public int LoopStart { get; set; }
+        public int LoopEnd { get; set; }
     }
 
     internal enum JobType

@@ -46,6 +46,47 @@ namespace DspAdpcm.Cli
                             options.OutFilePath = args[i + 1];
                             i++;
                             continue;
+                        case "L":
+                            if (options.NoLoop)
+                            {
+                                PrintWithUsage("Can't set loop points while using --no-loop.");
+                                return null;
+                            }
+
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after -l switch.");
+                                return null;
+                            }
+
+                            string[] loopPoints = args[i + 1].Split('-');
+                            if (loopPoints.Length != 2)
+                            {
+                                PrintWithUsage("-l switch requires two loop points in the format <start>-<end>.");
+                                return null;
+                            }
+
+                            int loopStart, loopEnd;
+                            if (!(int.TryParse(loopPoints[0], out loopStart) && int.TryParse(loopPoints[1], out loopEnd)))
+                            {
+                                PrintWithUsage("Error parsing loop points.");
+                                return null;
+                            }
+
+                            options.Loop = true;
+                            options.LoopStart = loopStart;
+                            options.LoopEnd = loopEnd;
+                            i++;
+                            continue;
+                        case "-NO-LOOP":
+                            if (options.Loop)
+                            {
+                                PrintWithUsage("Can't set loop points while using --no-loop.");
+                                return null;
+                            }
+
+                            options.NoLoop = true;
+                            continue;
                         case "-HELP":
                         case "H":
                             PrintUsage();
@@ -149,6 +190,9 @@ namespace DspAdpcm.Cli
             Console.WriteLine($"Usage: {GetProgramName()} [options] infile [outfile]\n");
             Console.WriteLine("  -i             Specify an input file");
             Console.WriteLine("  -o             Specify an output file");
+            Console.WriteLine("  -l<start-end>  Set the start and end loop points");
+            Console.WriteLine("                 Loop points are given in zero-based samples");
+            Console.WriteLine("      --no-loop  Sets the audio to not loop");
             Console.WriteLine("  -h, --help     Display this help and exit");
             Console.WriteLine("      --version  Display version information and exit");
         }

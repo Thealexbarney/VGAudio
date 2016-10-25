@@ -111,7 +111,6 @@ namespace DspAdpcm.Cli
         {
             AudioType inType = AudioTypes[options.InFileType];
             AudioType outType = AudioTypes[options.OutFileType];
-            if (inType == outType) return;
 
             if (inType == AudioType.Pcm && outType == AudioType.Adpcm)
             {
@@ -121,6 +120,16 @@ namespace DspAdpcm.Cli
             if (inType == AudioType.Adpcm && outType == AudioType.Pcm)
             {
                 Pcm = Decode.AdpcmtoPcm(Adpcm);
+            }
+
+            if (options.NoLoop && outType == AudioType.Adpcm)
+            {
+                Adpcm.SetLoop(false);
+            }
+
+            if (options.Loop && outType == AudioType.Adpcm)
+            {
+                Adpcm.SetLoop(options.LoopStart, options.LoopEnd);
             }
         }
 
