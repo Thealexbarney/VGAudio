@@ -114,12 +114,20 @@ namespace DspAdpcm.Cli
 
             if (inType == AudioType.Pcm && outType == AudioType.Adpcm)
             {
+#if NOPARALLEL
                 Adpcm = Encode.PcmToAdpcm(Pcm);
+#else
+                Adpcm = Encode.PcmToAdpcmParallel(Pcm);
+#endif
             }
 
             if (inType == AudioType.Adpcm && outType == AudioType.Pcm)
             {
+#if NOPARALLEL
                 Pcm = Decode.AdpcmtoPcm(Adpcm);
+#else
+                Pcm = Decode.AdpcmtoPcmParallel(Adpcm);
+#endif
             }
 
             if (options.NoLoop && outType == AudioType.Adpcm)
