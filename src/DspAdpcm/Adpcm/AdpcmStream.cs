@@ -104,7 +104,7 @@ namespace DspAdpcm.Adpcm
         {
             Looping = loop;
             LoopStart = 0;
-            LoopEnd = NumSamples;
+            LoopEnd = loop ? NumSamples : 0;
         }
 
         /// <summary>
