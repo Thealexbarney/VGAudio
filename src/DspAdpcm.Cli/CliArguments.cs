@@ -19,21 +19,16 @@ namespace DspAdpcm.Cli
                     switch (args[i].Substring(1).ToUpper())
                     {
                         case "I":
-                            if (options.InFilePath != null)
-                            {
-                                PrintWithUsage("Can't set multiple inputs.");
-                                return null;
-                            }
                             if (i + 1 >= args.Length)
                             {
                                 PrintWithUsage("No argument after -i switch.");
                                 return null;
                             }
-                            options.InFilePath = args[i + 1];
+                            options.InFiles.Add(new AudioFile { Path = args[i + 1] });
                             i++;
                             continue;
                         case "O":
-                            if (options.OutFilePath != null)
+                            if (options.OutFiles.Count > 0)
                             {
                                 PrintWithUsage("Can't set multiple outputs.");
                                 return null;
@@ -43,7 +38,7 @@ namespace DspAdpcm.Cli
                                 PrintWithUsage("No argument after -o switch.");
                                 return null;
                             }
-                            options.OutFilePath = args[i + 1];
+                            options.OutFiles.Add(new AudioFile { Path = args[i + 1] });
                             i++;
                             continue;
                         case "L":
@@ -97,14 +92,14 @@ namespace DspAdpcm.Cli
                     }
                 }
 
-                if (options.InFilePath == null)
+                if (options.InFiles.Count == 0)
                 {
-                    options.InFilePath = args[i];
+                    options.InFiles.Add(new AudioFile { Path = args[i] });
                     continue;
                 }
-                if (options.OutFilePath == null)
+                if (options.OutFiles.Count == 0)
                 {
-                    options.OutFilePath = args[i];
+                    options.OutFiles.Add(new AudioFile { Path = args[i] });
                     continue;
                 }
 
@@ -119,37 +114,45 @@ namespace DspAdpcm.Cli
 
         private static bool ValidateFileNameAndType(Options options)
         {
-            if (string.IsNullOrEmpty(options.InFilePath))
+            if (options.InFiles.Count == 0)
             {
                 PrintWithUsage("Input file must be specified.");
                 return false;
             }
 
-            if (options.InFileType == FileType.NotSet)
+            foreach (AudioFile file in options.InFiles)
             {
-                options.InFileType = GetFileTypeFromName(options.InFilePath);
+                if (file.Type != FileType.NotSet) continue;
+
+                FileType inferredType = GetFileTypeFromName(file.Path);
+
+                if (inferredType == FileType.NotSet)
+                {
+                    PrintWithUsage("Can't infer input file type from extension.");
+                    return false;
+                }
+
+                file.Type = inferredType;
             }
 
-            if (options.InFileType == FileType.NotSet)
+            if (options.OutFiles.Count == 0)
             {
-                PrintWithUsage("Can't determine input file type from extension.");
-                return false;
+                var a = new AudioFile { Path = Path.GetFileNameWithoutExtension(options.InFiles[0].Path) + ".dsp" };
             }
 
-            if (string.IsNullOrEmpty(options.OutFilePath))
+            foreach (AudioFile file in options.OutFiles)
             {
-                options.OutFilePath = Path.GetFileNameWithoutExtension(options.InFilePath) + ".dsp";
-            }
+                if (file.Type != FileType.NotSet) continue;
 
-            if (options.OutFileType == FileType.NotSet)
-            {
-                options.OutFileType = GetFileTypeFromName(options.OutFilePath);
-            }
+                FileType inferredType = GetFileTypeFromName(file.Path);
 
-            if (options.OutFileType == FileType.NotSet)
-            {
-                PrintWithUsage("Can't determine output file type from extension.");
-                return false;
+                if (inferredType == FileType.NotSet)
+                {
+                    PrintWithUsage("Can't infer output file type from extension.");
+                    return false;
+                }
+
+                file.Type = inferredType;
             }
 
             return true;
