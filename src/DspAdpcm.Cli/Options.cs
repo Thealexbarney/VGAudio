@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using DspAdpcm.Adpcm;
+using DspAdpcm.Pcm;
 
 namespace DspAdpcm.Cli
 {
@@ -21,6 +24,53 @@ namespace DspAdpcm.Cli
     {
         public string Path { get; set; }
         public FileType Type { get; set; }
+        public AudioCodec Codec => AudioTypes[Type];
+        public PcmStream Pcm { get; set; }
+        public AdpcmStream Adpcm { get; set; }
+
+        public void ConvertToPcm()
+        {
+            if (Pcm != null) return;
+
+            if (Adpcm == null)
+            {
+                throw new InvalidOperationException("Adpcm is null");
+            }
+
+#if NOPARALLEL
+            Pcm = Decode.AdpcmtoPcm(Adpcm);
+#else
+            Pcm = Decode.AdpcmtoPcmParallel(Adpcm);
+#endif
+        }
+        public void ConvertToAdpcm()
+        {
+            if (Adpcm != null) return;
+
+            if (Pcm == null)
+            {
+                throw new InvalidOperationException("Pcm is null");
+            }
+
+#if NOPARALLEL
+            Adpcm = Encode.PcmToAdpcm(Pcm);
+#else
+            Adpcm = Encode.PcmToAdpcmParallel(Pcm);
+#endif
+        }
+
+        private static readonly Dictionary<FileType, AudioCodec> AudioTypes =
+            new Dictionary<FileType, AudioCodec>
+            {
+                [FileType.NotSet] = AudioCodec.NotSet,
+                [FileType.Wave] = AudioCodec.Pcm,
+                [FileType.Dsp] = AudioCodec.Adpcm,
+                [FileType.Idsp] = AudioCodec.Adpcm,
+                [FileType.Brstm] = AudioCodec.Adpcm,
+                [FileType.Bcstm] = AudioCodec.Adpcm,
+                [FileType.Bfstm] = AudioCodec.Adpcm,
+                [FileType.Genh] = AudioCodec.Adpcm
+            };
     }
 
     internal enum JobType
@@ -42,8 +92,9 @@ namespace DspAdpcm.Cli
         Genh
     }
 
-    internal enum AudioType
+    internal enum AudioCodec
     {
+        NotSet = 0,
         Pcm,
         Adpcm
     }

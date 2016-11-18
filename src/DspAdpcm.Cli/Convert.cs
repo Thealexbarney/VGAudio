@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using DspAdpcm.Adpcm;
 using DspAdpcm.Adpcm.Formats;
@@ -24,7 +23,7 @@ namespace DspAdpcm.Cli
 
             foreach (AudioFile file in options.InFiles)
             {
-                converter.ReadFile(file.Path, file.Type);
+                converter.ReadFile(file);
             }
 
             if (!options.KeepConfiguration)
@@ -32,63 +31,52 @@ namespace DspAdpcm.Cli
                 converter.Configuration = null;
             }
 
-            converter.EncodeFile(options);
+            converter.EncodeFiles(options);
             converter.WriteFile(options.OutFiles[0].Path, options.OutFiles[0].Type);
 
             return true;
         }
 
-        private void ReadFile(string fileName, FileType fileType)
+        private void ReadFile(AudioFile file)
         {
-            AdpcmStream adpcm = null;
-            using (var stream = new FileStream(fileName, FileMode.Open))
+            using (var stream = new FileStream(file.Path, FileMode.Open))
             {
-                switch (fileType)
+                switch (file.Type)
                 {
                     case FileType.Wave:
-                        Pcm = new Wave(stream).AudioStream;
+                        file.Pcm = new Wave(stream).AudioStream;
                         break;
                     case FileType.Dsp:
                         var dsp = new Dsp(stream);
-                        adpcm = dsp.AudioStream;
+                        file.Adpcm = dsp.AudioStream;
                         Configuration = dsp.Configuration;
                         break;
                     case FileType.Idsp:
                         var idsp = new Idsp(stream);
-                        adpcm = idsp.AudioStream;
+                        file.Adpcm = idsp.AudioStream;
                         Configuration = idsp.Configuration;
                         break;
                     case FileType.Brstm:
                         var brstm = new Brstm(stream);
-                        adpcm = brstm.AudioStream;
+                        file.Adpcm = brstm.AudioStream;
                         Configuration = brstm.Configuration;
                         break;
                     case FileType.Bcstm:
                         var bcstm = new Bcstm(stream);
-                        adpcm = bcstm.AudioStream;
+                        file.Adpcm = bcstm.AudioStream;
                         Configuration = bcstm.Configuration;
                         break;
                     case FileType.Bfstm:
                         var bfstm = new Bfstm(stream);
-                        adpcm = bfstm.AudioStream;
+                        file.Adpcm = bfstm.AudioStream;
                         Configuration = bfstm.Configuration;
                         break;
                     case FileType.Genh:
-                        adpcm = new Genh(stream).AudioStream;
+                        file.Adpcm = new Genh(stream).AudioStream;
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(fileType), fileType, null);
+                        throw new ArgumentOutOfRangeException(nameof(file.Type), file.Type, null);
                 }
-            }
-            if (adpcm == null) return;
-
-            if (Adpcm == null)
-            {
-                Adpcm = adpcm;
-            }
-            else
-            {
-                Adpcm.Add(adpcm);
             }
         }
 
@@ -122,50 +110,35 @@ namespace DspAdpcm.Cli
             }
         }
 
-        private void EncodeFile(Options options)
+        private void EncodeFiles(Options options)
         {
-            AudioType inType = AudioTypes[options.InFiles[0].Type];
-            AudioType outType = AudioTypes[options.OutFiles[0].Type];
+            AudioCodec outCodec = options.OutFiles[0].Codec;
 
-            if (inType == AudioType.Pcm && outType == AudioType.Adpcm)
+            foreach (AudioFile file in options.InFiles)
             {
-#if NOPARALLEL
-                Adpcm = Encode.PcmToAdpcm(Pcm);
-#else
-                Adpcm = Encode.PcmToAdpcmParallel(Pcm);
-#endif
+                if (outCodec == AudioCodec.Adpcm)
+                {
+                    file.ConvertToAdpcm();
+                    Adpcm = Adpcm ?? new AdpcmStream(file.Adpcm.NumSamples, file.Adpcm.SampleRate);
+                    Adpcm.Add(file.Adpcm);
+                }
+                else if (outCodec == AudioCodec.Pcm)
+                {
+                    file.ConvertToPcm();
+                    Pcm = Pcm ?? new PcmStream(file.Pcm.NumSamples, file.Pcm.SampleRate);
+                    Pcm.Add(file.Pcm);
+                }
             }
 
-            if (inType == AudioType.Adpcm && outType == AudioType.Pcm)
-            {
-#if NOPARALLEL
-                Pcm = Decode.AdpcmtoPcm(Adpcm);
-#else
-                Pcm = Decode.AdpcmtoPcmParallel(Adpcm);
-#endif
-            }
-
-            if (options.NoLoop && outType == AudioType.Adpcm)
+            if (options.NoLoop && outCodec == AudioCodec.Adpcm)
             {
                 Adpcm.SetLoop(false);
             }
 
-            if (options.Loop && outType == AudioType.Adpcm)
+            if (options.Loop && outCodec == AudioCodec.Adpcm)
             {
                 Adpcm.SetLoop(options.LoopStart, options.LoopEnd);
             }
         }
-
-        private static readonly Dictionary<FileType, AudioType> AudioTypes =
-            new Dictionary<FileType, AudioType>
-            {
-                [FileType.Wave] = AudioType.Pcm,
-                [FileType.Dsp] = AudioType.Adpcm,
-                [FileType.Idsp] = AudioType.Adpcm,
-                [FileType.Brstm] = AudioType.Adpcm,
-                [FileType.Bcstm] = AudioType.Adpcm,
-                [FileType.Bfstm] = AudioType.Adpcm,
-                [FileType.Genh] = AudioType.Adpcm
-            };
     }
 }
