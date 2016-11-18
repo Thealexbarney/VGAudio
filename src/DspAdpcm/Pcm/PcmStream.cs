@@ -25,7 +25,7 @@ namespace DspAdpcm.Pcm
         /// </summary>
         public int SampleRate { get; set; }
 
-        internal IList<PcmChannel> Channels { get; set; } = new List<PcmChannel>();
+        internal List<PcmChannel> Channels { get; set; } = new List<PcmChannel>();
 
         /// <summary>
         /// Creates an empty <see cref="PcmStream"/> and sets the
@@ -37,6 +37,43 @@ namespace DspAdpcm.Pcm
         {
             NumSamples = numSamples;
             SampleRate = sampleRate;
+        }
+
+        /// <summary>
+        /// Adds all the channels in the input <see cref="PcmStream"/>
+        /// to the current one.
+        /// </summary>
+        /// <param name="pcm">The <see cref="PcmStream"/> containing
+        /// the channels to add.</param>
+        public void Add(PcmStream pcm)
+        {
+            if (pcm.NumSamples != NumSamples)
+            {
+                throw new ArgumentException("Only audio streams of the same length can be added to each other.");
+            }
+
+            Channels.AddRange(pcm.Channels);
+        }
+
+        private PcmStream ShallowClone() => (PcmStream)MemberwiseClone();
+
+        /// <summary>
+        /// Returns a new <see cref="PcmStream"/> shallow clone containing 
+        /// the specified subset of channels. The channels are the only
+        /// shallow cloned item. Everything else is deep cloned. 
+        /// </summary>
+        /// <param name="startIndex">The zero-based index at which the range starts.</param>
+        /// <param name="count">The number of channels in the range.</param>
+        /// <returns>The new <see cref="PcmStream"/> containing the specified channels.</returns>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="startIndex"/>
+        /// or <paramref name="count"/> are out of range.</exception>
+        public PcmStream GetChannels(int startIndex, int count)
+        {
+            PcmStream copy = ShallowClone();
+
+            copy.Channels = Channels.GetRange(startIndex, count);
+
+            return copy;
         }
 
         /// <summary>
