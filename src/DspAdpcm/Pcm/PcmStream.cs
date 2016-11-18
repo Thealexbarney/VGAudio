@@ -28,6 +28,11 @@ namespace DspAdpcm.Pcm
         internal List<PcmChannel> Channels { get; set; } = new List<PcmChannel>();
 
         /// <summary>
+        /// The number of channels currently in the <see cref="PcmStream"/>.
+        /// </summary>
+        public int NumChannels => Channels.Count;
+
+        /// <summary>
         /// Creates an empty <see cref="PcmStream"/> and sets the
         /// number of samples and sample rate.
         /// </summary>
@@ -72,6 +77,36 @@ namespace DspAdpcm.Pcm
             PcmStream copy = ShallowClone();
 
             copy.Channels = Channels.GetRange(startIndex, count);
+
+            return copy;
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="PcmStream"/> shallow clone containing 
+        /// the specified subset of channels. The channels are the only
+        /// shallow cloned item. Everything else is deep cloned.
+        /// Channels will be returned in the order specified.
+        /// </summary>
+        /// <param name="channelRange">The channels that will be returned.</param>
+        /// <returns>The new <see cref="PcmStream"/> containing the specified channels.</returns>
+        /// <exception cref="ArgumentException">Thrown if a channel in <paramref name="channelRange"/>
+        /// does not exist.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if
+        /// <paramref name="channelRange"/> is null</exception>
+        public PcmStream GetChannels(IEnumerable<int> channelRange)
+        {
+            if (channelRange == null)
+                throw new ArgumentNullException(nameof(channelRange));
+
+            PcmStream copy = ShallowClone();
+            copy.Channels = new List<PcmChannel>();
+
+            foreach (int i in channelRange)
+            {
+                if (i < 0 || i >= Channels.Count)
+                    throw new ArgumentException($"Channel {i} does not exist.", nameof(channelRange));
+                copy.Channels.Add(Channels[i]);
+            }
 
             return copy;
         }
