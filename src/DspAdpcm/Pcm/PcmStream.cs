@@ -25,7 +25,12 @@ namespace DspAdpcm.Pcm
         /// </summary>
         public int SampleRate { get; set; }
 
-        internal IList<PcmChannel> Channels { get; set; } = new List<PcmChannel>();
+        internal List<PcmChannel> Channels { get; set; } = new List<PcmChannel>();
+
+        /// <summary>
+        /// The number of channels currently in the <see cref="PcmStream"/>.
+        /// </summary>
+        public int NumChannels => Channels.Count;
 
         /// <summary>
         /// Creates an empty <see cref="PcmStream"/> and sets the
@@ -37,6 +42,73 @@ namespace DspAdpcm.Pcm
         {
             NumSamples = numSamples;
             SampleRate = sampleRate;
+        }
+
+        /// <summary>
+        /// Adds all the channels in the input <see cref="PcmStream"/>
+        /// to the current one.
+        /// </summary>
+        /// <param name="pcm">The <see cref="PcmStream"/> containing
+        /// the channels to add.</param>
+        public void Add(PcmStream pcm)
+        {
+            if (pcm.NumSamples != NumSamples)
+            {
+                throw new ArgumentException("Only audio streams of the same length can be added to each other.");
+            }
+
+            Channels.AddRange(pcm.Channels);
+        }
+
+        private PcmStream ShallowClone() => (PcmStream)MemberwiseClone();
+
+        /// <summary>
+        /// Returns a new <see cref="PcmStream"/> shallow clone containing 
+        /// the specified subset of channels. The channels are the only
+        /// shallow cloned item. Everything else is deep cloned. 
+        /// </summary>
+        /// <param name="startIndex">The zero-based index at which the range starts.</param>
+        /// <param name="count">The number of channels in the range.</param>
+        /// <returns>The new <see cref="PcmStream"/> containing the specified channels.</returns>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="startIndex"/>
+        /// or <paramref name="count"/> are out of range.</exception>
+        public PcmStream GetChannels(int startIndex, int count)
+        {
+            PcmStream copy = ShallowClone();
+
+            copy.Channels = Channels.GetRange(startIndex, count);
+
+            return copy;
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="PcmStream"/> shallow clone containing 
+        /// the specified subset of channels. The channels are the only
+        /// shallow cloned item. Everything else is deep cloned.
+        /// Channels will be returned in the order specified.
+        /// </summary>
+        /// <param name="channelRange">The channels that will be returned.</param>
+        /// <returns>The new <see cref="PcmStream"/> containing the specified channels.</returns>
+        /// <exception cref="ArgumentException">Thrown if a channel in <paramref name="channelRange"/>
+        /// does not exist.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if
+        /// <paramref name="channelRange"/> is null</exception>
+        public PcmStream GetChannels(IEnumerable<int> channelRange)
+        {
+            if (channelRange == null)
+                throw new ArgumentNullException(nameof(channelRange));
+
+            PcmStream copy = ShallowClone();
+            copy.Channels = new List<PcmChannel>();
+
+            foreach (int i in channelRange)
+            {
+                if (i < 0 || i >= Channels.Count)
+                    throw new ArgumentException($"Channel {i} does not exist.", nameof(channelRange));
+                copy.Channels.Add(Channels[i]);
+            }
+
+            return copy;
         }
 
         /// <summary>

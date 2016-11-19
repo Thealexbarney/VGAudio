@@ -96,6 +96,18 @@ namespace DspAdpcm.Adpcm
         }
 
         /// <summary>
+        /// Sets the loop points for the <see cref="AdpcmStream"/>.
+        /// </summary>
+        /// <param name="loop">If <c>false</c>, don't loop the <see cref="AdpcmStream"/>
+        /// If <c>true</c>, loop the <see cref="AdpcmStream"/> from 0 to <see cref="NumSamples"/></param>
+        public void SetLoop(bool loop)
+        {
+            Looping = loop;
+            LoopStart = 0;
+            LoopEnd = loop ? NumSamples : 0;
+        }
+
+        /// <summary>
         /// Adds all the channels in the input <see cref="AdpcmStream"/>
         /// to the current one.
         /// </summary>
@@ -126,9 +138,40 @@ namespace DspAdpcm.Adpcm
         public AdpcmStream GetChannels(int startIndex, int count)
         {
             AdpcmStream copy = ShallowClone();
-            
+
             copy.Channels = Channels.GetRange(startIndex, count);
             copy._tracks = _tracks?.Select(x => x.Clone()).ToList();
+
+            return copy;
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="AdpcmStream"/> shallow clone containing 
+        /// the specified subset of channels. The channels are the only
+        /// shallow cloned item. Everything else is deep cloned.
+        /// Channels will be returned in the order specified.
+        /// </summary>
+        /// <param name="channelRange">The channels that will be returned.</param>
+        /// <returns>The new <see cref="AdpcmStream"/> containing the specified channels.</returns>
+        /// <exception cref="ArgumentException">Thrown if a channel in <paramref name="channelRange"/>
+        /// does not exist.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if
+        /// <paramref name="channelRange"/> is null</exception>
+        public AdpcmStream GetChannels(IEnumerable<int> channelRange)
+        {
+            if (channelRange == null)
+                throw new ArgumentNullException(nameof(channelRange));
+
+            AdpcmStream copy = ShallowClone();
+            copy.Channels = new List<AdpcmChannel>();
+            copy._tracks = null;
+
+            foreach (int i in channelRange)
+            {
+                if (i < 0 || i >= Channels.Count)
+                    throw new ArgumentException($"Channel {i} does not exist.", nameof(channelRange));
+                copy.Channels.Add(Channels[i]);
+            }
 
             return copy;
         }
