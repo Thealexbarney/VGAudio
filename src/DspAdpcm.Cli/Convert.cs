@@ -120,13 +120,13 @@ namespace DspAdpcm.Cli
                 {
                     file.ConvertToAdpcm();
                     Adpcm = Adpcm ?? new AdpcmStream(file.Adpcm.NumSamples, file.Adpcm.SampleRate);
-                    Adpcm.Add(file.Adpcm);
+                    Adpcm.Add(file.Channels == null ? file.Adpcm : file.Adpcm.GetChannels(file.Channels));
                 }
                 else if (outCodec == AudioCodec.Pcm)
                 {
                     file.ConvertToPcm();
                     Pcm = Pcm ?? new PcmStream(file.Pcm.NumSamples, file.Pcm.SampleRate);
-                    Pcm.Add(file.Pcm);
+                    Pcm.Add(file.Channels == null ? file.Pcm : file.Pcm.GetChannels(file.Channels));
                 }
             }
 

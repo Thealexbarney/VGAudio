@@ -27,6 +27,7 @@ namespace DspAdpcm.Cli
         public AudioCodec Codec => AudioTypes[Type];
         public PcmStream Pcm { get; set; }
         public AdpcmStream Adpcm { get; set; }
+        public List<int> Channels { get; set; }
 
         public void ConvertToPcm()
         {

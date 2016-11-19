@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
@@ -16,15 +17,20 @@ namespace DspAdpcm.Cli
 
                 if (args[i][0] == '-' || args[i][0] == '/')
                 {
-                    switch (args[i].Substring(1).ToUpper())
+                    switch (args[i].Split(':')[0].Substring(1).ToUpper())
                     {
                         case "I":
+                            List<int> range = null;
                             if (i + 1 >= args.Length)
                             {
                                 PrintWithUsage("No argument after -i switch.");
                                 return null;
                             }
-                            options.InFiles.Add(new AudioFile { Path = args[i + 1] });
+                            if (args[i].Length > 2 && args[i][2] == ':')
+                            {
+                                range = ParseIntRange(args[i].Substring(3));
+                            }
+                            options.InFiles.Add(new AudioFile { Path = args[i + 1], Channels = range });
                             i++;
                             continue;
                         case "O":
@@ -182,6 +188,37 @@ namespace DspAdpcm.Cli
             }
         }
 
+        private static List<int> ParseIntRange(string input)
+        {
+            var range = new List<int>();
+
+            foreach (string s in input.Split(','))
+            {
+                int num;
+                if (int.TryParse(s, out num))
+                {
+                    range.Add(num);
+                    continue;
+                }
+
+                string[] subs = s.Split('-');
+                int start, end;
+
+                if (subs.Length > 1 &&
+                    int.TryParse(subs[0], out start) &&
+                    int.TryParse(subs[1], out end) &&
+                    end >= start)
+                {
+                    for (int i = start; i <= end; i++)
+                    {
+                        range.Add(i);
+                    }
+                }
+            }
+
+            return range;
+        }
+
         private static void PrintWithUsage(string toPrint)
         {
             Console.WriteLine(toPrint);
@@ -190,9 +227,11 @@ namespace DspAdpcm.Cli
 
         private static void PrintUsage()
         {
-            Console.WriteLine($"Usage: {GetProgramName()} [options] infile [outfile]\n");
+            Console.WriteLine($"Usage: {GetProgramName()} [options] infile [-i infile2...] [outfile]\n");
             Console.WriteLine("  -i             Specify an input file");
-            Console.WriteLine("  -o             Specify an output file");
+            Console.WriteLine("  -i:#,#-#...    Specify an input file and the channels to use");
+            Console.WriteLine("                 The index for channels is zero-based");
+            Console.WriteLine("  -o             Specify the output file");
             Console.WriteLine("  -l <start-end> Set the start and end loop points");
             Console.WriteLine("                 Loop points are given in zero-based samples");
             Console.WriteLine("      --no-loop  Sets the audio to not loop");
