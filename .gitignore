@@ -270,3 +270,6 @@ BDN.Auto/
 BenchmarkDotNet.Artifacts/
 
 /DspAdpcm/DspAdpcm.Cli/Properties/launchSettings.json
+
+#Build script output
+*runbuild.txt
