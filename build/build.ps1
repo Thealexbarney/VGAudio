@@ -7,7 +7,12 @@
 
   $libraryDir = "$sourceDir\DspAdpcm"
   $cliDir = "$sourceDir\DspAdpcm.Cli"
+  $uwpDir = "$sourceDir\DspAdpcm.Uwp"
   $testsDir = "$sourceDir\DspAdpcm.Tests"
+
+  $libraryPublishDir = "$publishDir\NuGet"
+  $cliPublishDir = "$publishDir\cli"
+  $uwpPublishDir = "$publishDir\uwp"
   
   $libraryBuilds = @(
     @{Name = "netstandard1.1"; CliFramework = "netcoreapp1.0"; Success = "false"; TestsFramework = "netcoreapp1.0" },
@@ -19,14 +24,14 @@
   )
 }
 
-framework '4.6x86'
+framework '4.6'
 
 task default -depends RebuildAll
 
 task Clean -depends CleanBuild, CleanPublish
 
 task CleanBuild {
-  $toDelete = "bin", "obj", "*.lock.json", "*.nuget.targets"
+  $toDelete = "bin", "obj", "*.lock.json", "*.nuget.targets", "AppPackages", "BundleArtifacts", "*.appx", "_pkginfo.txt"
 
   Get-ChildItem $sourceDir | ?{ $_.PSIsContainer } | 
   Foreach-Object {
@@ -43,9 +48,8 @@ task CleanPublish {
 }
 
 task BuildLib {
-  Write-Host -ForegroundColor Green "Restoring packages for library"
-  Write-Host
-  exec { dotnet restore $libraryDir | Out-Default }
+  NetCliRestore -Paths $libraryDir
+    
   foreach($build in $libraryBuilds)
   {
     NetCliBuild $build $libraryDir $build.Name
@@ -53,13 +57,19 @@ task BuildLib {
 }
 
 task BuildCli -depends BuildLib {
-  Write-Host -ForegroundColor Green "Restoring packages for CLI"
-  Write-Host
-  exec { dotnet restore $cliDir | Out-Default }
+  NetCliRestore -Paths $cliDir
   foreach($build in $libraryBuilds | Where {$_.Success -eq "true" })
   {
     NetCliBuild $build $cliDir $build.CliFramework
   }
+}
+
+task BuildUwp {
+  SetupUwpSigningCertificate
+  NetCliRestore -Paths $libraryDir,$uwpDir
+
+  $csproj = "$uwpDir\DspAdpcm.Uwp.csproj"
+  & msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m
 }
 
 task PublishLib -depends BuildLib {
@@ -75,21 +85,34 @@ task PublishCli -depends BuildCli {
   }
 }
 
+task PublishUwp -Depends BuildUwp {
+  $version = GetVersionFromAppxManifest $uwpDir\Package.appxmanifest
+  $buildDir = "$uwpDir\AppPackages"
+  $appxName = "DspAdpcm.Uwp_$version`_x86_x64_ARM"
+  $bundleDir = "$buildDir\DspAdpcm.Uwp_$version`_Test"
+
+  $appxUpload = "$buildDir\$appxName`_bundle.appxupload"
+  $appxBundle = "$bundleDir\$appxName`.appxbundle"
+  $appxCer = "$bundleDir\$appxName`.cer"
+
+  CopyItemToDirectory -Path $appxUpload -Destination $uwpPublishdir
+  CopyItemToDirectory -Path $appxBundle -Destination $uwpPublishdir
+  CopyItemToDirectory -Path $appxCer -Destination $uwpPublishdir
+}
+
 task TestLib -depends BuildLib {
-  Write-Host -ForegroundColor Green "Restoring packages for Tests"
-  Write-Host
-  exec { dotnet restore $testsDir | Out-Default }
+  NetCliRestore -Paths $testsDir
   foreach($build in $libraryBuilds | Where {($_.ContainsKey("TestsFramework"))})
   {
     $path = "$sourceDir\" + $build.TestDir
-    exec {dotnet test $testsDir -c release -f $build.TestsFramework}
+    exec { dotnet test $testsDir -c release -f $build.TestsFramework}
   }
 }
 
-task RebuildAll -depends Clean, PublishCli, PublishLib, Test
-task BuildAll -depends CleanPublish, PublishCli, PublishLib
+task RebuildAll -depends Clean, PublishCli, PublishLib, PublishUwp, TestLib
+task BuildAll -depends CleanPublish, PublishCli, PublishLib, PublishUwp, TestLib
 
-function NetCliBuild($build, $path, $framework)
+function NetCliBuild($build, [string]$path, [string]$framework)
 {
   Write-Host -ForegroundColor Green "Building $path $framework"
   & dotnet build $path -f $framework -c Release
@@ -103,7 +126,7 @@ function NetCliBuild($build, $path, $framework)
   }
 }
 
-function NetCliPublish($build, $srcPath, $outPath, $framework)
+function NetCliPublish($build, [string]$srcPath, [string]$outPath, [string]$framework)
 {
   Write-Host -ForegroundColor Green "Building $srcPath $framework"
   & dotnet publish --no-build $srcPath -f $framework -c Release -o $outPath
@@ -113,11 +136,62 @@ function NetCliPublish($build, $srcPath, $outPath, $framework)
   } 
 }
 
-function RemovePath($path)
+function NetCliRestore([string[]]$Paths)
+{
+  foreach ($path in $Paths)
+  {
+    Write-Host -ForegroundColor Green "Restoring $path"
+    exec { dotnet restore $path | Out-Default }
+  }
+}
+
+function GetVersionFromAppxManifest([string]$manifestPath)
+{
+  [xml]$manifestXml = Get-Content -Path $manifestPath
+  $manifestXml.Package.Identity.Version
+}
+
+function SetupUwpSigningCertificate()
+{
+  $csprojPath = "$uwpDir\DspAdpcm.Uwp.csproj"
+  [xml]$csprojXml = Get-Content -Path $csprojPath
+  $thumbprint = $csprojXml.Project.PropertyGroup[0].PackageCertificateThumbprint
+  $keyFile = "$uwpDir\" + $csprojXml.Project.PropertyGroup[0].PackageCertificateKeyFile
+
+  $certCount = (Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $thumbprint}).Count
+  if ($certCount -gt 0)
+  {
+    Write-Host "Using code signing certificate with thumbprint $thumbprint in certificate store."
+    return
+  }
+
+  if (Test-Path $keyFile)
+  {
+    Write-Host "Using code signing certificate at $keyFile"
+    return
+  }
+
+  $cert = New-SelfSignedCertificate -Subject CN=$env:username -Type CodeSigningCert -TextExtension @("2.5.29.19={text}") -certstorelocation cert:\currentuser\my
+  Remove-Item $cert.PSPath
+  Export-PfxCertificate -Cert $cert -FilePath $keyFile -Password (new-object System.Security.SecureString) | Out-Null
+
+  Write-Host "Created self-signed test certificate at $keyFile"
+}
+
+function RemovePath([string]$path)
 {
   If (Test-Path $path)
   {
     Write-Host Cleaning $path
     Remove-Item $path -Recurse -Force
   }
+}
+
+function CopyItemToDirectory([string]$Path, [string]$Destination)
+{
+  If (-Not (Test-Path $Destination))
+  {
+    mkdir -Path $Destination
+  }
+  Copy-Item -Path $Path -Destination $Destination
 }
