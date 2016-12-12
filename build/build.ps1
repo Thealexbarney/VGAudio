@@ -14,6 +14,9 @@
     $cliPublishDir = "$publishDir\cli"
     $uwpPublishDir = "$publishDir\uwp"
 
+    $StoreCertThumbprint = "EB553661E803DE06AA93B72183F93CA767804F1E"
+    $ReleaseCertThumbprint = "2043012AE523F7FA0F77A537387633BEB7A9F4DD"
+
     $libraryBuilds = @(
         @{ Name = "netstandard1.1"; CliFramework = "netcoreapp1.0"; Success = "false"; TestsFramework = "netcoreapp1.0" },
         @{ Name = "netstandard1.0"; CliFramework = "netcoreapp1.0"; Success = "false" },
@@ -22,6 +25,8 @@
         @{ Name = "net35"; CliFramework = "net35"; Success = "false" },
         @{ Name = "net20"; CliFramework = "net20"; Success = "false" }
     )
+
+    $signReleaseBuild = $true
 }
 
 framework '4.6'
@@ -38,13 +43,13 @@ task CleanBuild {
         foreach ($file in $toDelete)
         {
             $path = $_.FullName + "\" + $file
-            RemovePath $path
+            RemovePath -Path $path -Verbose
         }
     }
 }
 
 task CleanPublish {
-    RemovePath $publishDir
+    RemovePath -Path $publishDir -Verbose
 }
 
 task BuildLib {
@@ -65,11 +70,15 @@ task BuildCli -depends BuildLib {
 }
 
 task BuildUwp {
-    SetupUwpSigningCertificate
+    $thumbprint = SetupUwpSigningCertificate
+    if ($thumbprint) {
+        $thumbprint = "/p:PackageCertificateThumbprint=" + $thumbprint
+    }
+
     NetCliRestore -paths $libraryDir,$uwpDir
 
     $csproj = "$uwpDir\DspAdpcm.Uwp.csproj"
-    & msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m
+    & msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m $thumbprint
 }
 
 task PublishLib -depends BuildLib {
@@ -87,17 +96,27 @@ task PublishCli -depends BuildCli {
 
 task PublishUwp -depends BuildUwp {
     $version = GetVersionFromAppxManifest $uwpDir\Package.appxmanifest
-    $buildDir = "$uwpDir\AppPackages"
+    $buildDir = Join-Path $uwpDir AppPackages
     $appxName = "DspAdpcm.Uwp_$version`_x86_x64_ARM"
-    $bundleDir = "$buildDir\DspAdpcm.Uwp_$version`_Test"
+    $bundleDir = Join-Path $buildDir "DspAdpcm.Uwp_$version`_Test"
 
-    $appxUpload = "$buildDir\$appxName`_bundle.appxupload"
-    $appxBundle = "$bundleDir\$appxName`.appxbundle"
-    $appxCer = "$bundleDir\$appxName`.cer"
+    $appxUpload = Join-Path $buildDir "$appxName`_bundle.appxupload"
+    $appxBundle = Join-Path $bundleDir "$appxName`.appxbundle"
+    $appxCer = Join-Path $bundleDir "$appxName`.cer"
 
-    CopyItemToDirectory -Path $appxUpload -Destination $uwpPublishdir
-    CopyItemToDirectory -Path $appxBundle -Destination $uwpPublishdir
-    CopyItemToDirectory -Path $appxCer -Destination $uwpPublishdir
+    CopyItemToDirectory -Path $appxUpload,$appxBundle -Destination $uwpPublishdir
+
+    if (($signReleaseBuild -eq $true) -and (Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $ReleaseCertThumbprint }).Count -gt 0)
+    {
+        $publisher = (Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $ReleaseCertThumbprint}).Subject
+
+        $appxBundlePublish = Join-Path $uwpPublishdir "$appxName`.appxbundle"
+
+        ChangeAppxBundlePublisher -Path $appxBundlePublish -Publisher $publisher
+        SignAppx -Path $appxBundlePublish -Thumbprint $ReleaseCertThumbprint
+    } else {
+        CopyItemToDirectory -Path $appxCer -Destination $uwpPublishdir
+    }
 }
 
 task TestLib -depends BuildLib {
@@ -158,11 +177,16 @@ function SetupUwpSigningCertificate()
     $thumbprint = $csprojXml.Project.PropertyGroup[0].PackageCertificateThumbprint
     $keyFile = "$uwpDir\" + $csprojXml.Project.PropertyGroup[0].PackageCertificateKeyFile
 
-    $certCount = (Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $thumbprint }).Count
-    if ($certCount -gt 0)
+    if ((Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $StoreCertThumbprint }).Count -gt 0)
     {
-        Write-Host "Using code signing certificate with thumbprint $thumbprint in certificate store."
-        return
+        Write-Host "Using store code signing certificate with thumbprint $StoreCertThumbprint in certificate store."
+        return $StoreCertThumbprint
+    }
+
+    if ((Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $ReleaseCertThumbprint }).Count -gt 0)
+    {
+        Write-Host "Using release code signing certificate with thumbprint $ReleaseCertThumbprint in certificate store."
+        return $ReleaseCertThumbprint
     }
 
     if (Test-Path $keyFile)
@@ -178,20 +202,90 @@ function SetupUwpSigningCertificate()
     Write-Host "Created self-signed test certificate at $keyFile"
 }
 
-function RemovePath([string]$path)
+function ChangeAppxBundlePublisher([string]$Path, [string]$Publisher)
 {
-    if (Test-Path $path)
+    Write-Host Changing publisher of $Path
+    $dirBundle = Join-Path ([System.IO.Path]::GetDirectoryName($Path)) ([System.IO.Path]::GetFileNameWithoutExtension($Path))
+
+    RemovePath $dirBundle
+    exec { makeappx unbundle /p $Path /d $dirBundle | Out-Null }
+
+    Get-ChildItem $dirBundle -Filter *.appx | ForEach-Object { ChangeAppxPublisher -Path $_.FullName -Publisher $Publisher }    
+
+    $manifestPath = Join-Path $dirBundle "AppxMetadata\AppxBundleManifest.xml"
+    [xml]$manifestXml = Get-Content -Path $manifestPath
+        
+    $manifestXml.Bundle.Identity.Publisher = $Publisher
+    $manifestXml.Save($manifestPath)
+
+    RemovePath $Path
+    exec { makeappx bundle /d $dirBundle /p $Path | Out-Null }
+
+    RemovePath $dirBundle
+}
+
+function ChangeAppxPublisher([string]$Path, [string]$Publisher)
+{
+    Write-Host Changing publisher of $Path
+    $dirAppx = Join-Path ([System.IO.Path]::GetDirectoryName($Path)) ([System.IO.Path]::GetFileNameWithoutExtension($Path))
+
+    RemovePath $dirAppx
+    exec { makeappx unpack /l /p $Path /d $dirAppx | Out-Null }      
+
+    $manifestPath = Join-Path $dirAppx AppxManifest.xml
+    [xml]$manifestXml = Get-Content -Path $manifestPath
+        
+    $manifestXml.Package.Identity.Publisher = $Publisher
+    $manifestXml.Save($manifestPath)
+
+    RemovePath $Path
+    exec { makeappx pack /l /d $dirAppx /p $Path | Out-Null }    
+
+    RemovePath $dirAppx
+}
+
+function SignAppx([string]$Path, [string]$Thumbprint)
+{
+    $timestampServers =
+    "http://timestamp.geotrust.com/tsa",
+    "http://sha256timestamp.ws.symantec.com/sha256/timestamp",
+    "http://timestamp.comodoca.com/authenticode",
+    "http://time.certum.pl"
+
+    foreach($server in $timestampServers)
     {
-        Write-Host Cleaning $path
-        Remove-Item $path -Recurse -Force
+        for($i = 1; $i -le 4; $i++)
+        {
+            Write-Host -ForegroundColor Green "Signing $Path"
+            $global:lastexitcode = 0
+            signtool sign /fd SHA256 /a /sha1 $Thumbprint /tr $server $Path
+            if ($lastexitcode -eq 0)
+            {
+                Write-Host -ForegroundColor Green "Success"
+                return
+            }
+            Write-Host -ForegroundColor Red "Retrying..."
+            Start-Sleep -Seconds 3
+        }
     }
 }
 
-function CopyItemToDirectory([string]$Path, [string]$Destination)
+function RemovePath([string]$Path, [switch]$Verbose)
+{
+    if (Test-Path $Path)
+    {
+        if ($Verbose) {
+            Write-Host Cleaning $Path
+        }
+        Remove-Item $Path -Recurse -Force
+    }
+}
+
+function CopyItemToDirectory([string[]]$Path, [string]$Destination)
 {
     if (-not (Test-Path $Destination))
     {
-        mkdir -Path $Destination
+        mkdir -Path $Destination | Out-Null
     }
     Copy-Item -Path $Path -Destination $Destination
 }
