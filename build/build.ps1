@@ -18,13 +18,15 @@
     $ReleaseCertThumbprint = "2043012AE523F7FA0F77A537387633BEB7A9F4DD"
 
     $libraryBuilds = @(
-        @{ Name = "netstandard1.1"; CliFramework = "netcoreapp1.0"; Success = "false"; TestsFramework = "netcoreapp1.0" },
-        @{ Name = "netstandard1.0"; CliFramework = "netcoreapp1.0"; Success = "false" },
-        @{ Name = "net45"; CliFramework = "net45"; Success = "false"; TestsFramework = "net46" },
-        @{ Name = "net40"; CliFramework = "net40"; Success = "false" },
-        @{ Name = "net35"; CliFramework = "net35"; Success = "false" },
-        @{ Name = "net20"; CliFramework = "net20"; Success = "false" }
+        @{ Name = "netstandard1.1"; LibSuccess = $null; CliFramework = "netcoreapp1.0"; CliSuccess = $null; TestFramework = "netcoreapp1.0"; TestSuccess = $null },
+        @{ Name = "netstandard1.0"; LibSuccess = $null },
+        @{ Name = "net45"; LibSuccess = $null; CliFramework = "net45"; CliSuccess = $null; TestFramework = "net46"; TestSuccess = $null },
+        @{ Name = "net40"; LibSuccess = $null; CliFramework = "net40"; CliSuccess = $null },
+        @{ Name = "net35"; LibSuccess = $null; CliFramework = "net35"; CliSuccess = $null },
+        @{ Name = "net20"; LibSuccess = $null; CliFramework = "net20"; CliSuccess = $null }
     )
+
+    $buildSuccess = @{ uwp = $null }
 
     $signReleaseBuild = $true
 }
@@ -53,32 +55,53 @@ task CleanPublish {
 }
 
 task BuildLib {
-    NetCliRestore -paths $libraryDir
+    NetCliRestore -Path $libraryDir
 
     foreach ($build in $libraryBuilds)
     {
-        NetCliBuild $build $libraryDir $build.Name
+        Write-Host -ForegroundColor Green Building $libraryDir $build.Name
+        try {
+            NetCliBuild $libraryDir $build.Name
+        }
+        catch {
+            $build.LibSuccess = $false
+            continue
+        }
+        $build.LibSuccess = $true
     }
 }
 
 task BuildCli -depends BuildLib {
-    NetCliRestore -paths $cliDir
-    foreach ($build in $libraryBuilds | Where { $_.Success -eq "true" })
+    NetCliRestore -Path $cliDir
+    foreach ($build in $libraryBuilds | Where { $_.LibSuccess -ne $false -and $_.CliFramework })
     {
-        NetCliBuild $build $cliDir $build.CliFramework
+        Write-Host -ForegroundColor Green Building $cliDir $build.CliFramework
+        try {
+            NetCliBuild $cliDir $build.CliFramework
+        }
+        catch {
+            $build.CliSuccess = $false
+            continue
+        }
+        $build.CliSuccess = $true
     }
 }
 
 task BuildUwp {
-    $thumbprint = SetupUwpSigningCertificate
-    if ($thumbprint) {
-        $thumbprint = "/p:PackageCertificateThumbprint=" + $thumbprint
+    try {
+        $thumbprint = SetupUwpSigningCertificate
+        if ($thumbprint) {
+            $thumbprint = "/p:PackageCertificateThumbprint=" + $thumbprint
+        }
+
+        NetCliRestore -Path $libraryDir,$uwpDir
+
+        $csproj = "$uwpDir\DspAdpcm.Uwp.csproj"
+        exec { msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m $thumbprint }
     }
-
-    NetCliRestore -paths $libraryDir,$uwpDir
-
-    $csproj = "$uwpDir\DspAdpcm.Uwp.csproj"
-    & msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m $thumbprint
+    catch {
+        $buildSuccess.uwp = $false
+    }
 }
 
 task PublishLib -depends BuildLib {
@@ -86,15 +109,20 @@ task PublishLib -depends BuildLib {
 }
 
 task PublishCli -depends BuildCli {
-    foreach ($build in $libraryBuilds)
+    foreach ($build in $libraryBuilds | Where { $_.CliSuccess -ne $false -and $_.LibSuccess -ne $false -and $_.CliFramework })
     {
         $framework = $build.CliFramework
         Write-Host -ForegroundColor Green "Publishing CLI project $framework"
-        NetCliPublish $build $cliDir "$publishDir\cli\$framework" $framework
+        NetCliPublish $cliDir "$publishDir\cli\$framework" $framework
     }
 }
 
 task PublishUwp -depends BuildUwp {
+    if ($buildSuccess.uwp -eq $false) {
+        Write-Host -ForegroundColor Red "UWP project was not successfully built. Skipping..."
+        return
+    }
+
     $version = GetVersionFromAppxManifest $uwpDir\Package.appxmanifest
     $buildDir = Join-Path $uwpDir AppPackages
     $appxName = "DspAdpcm.Uwp_$version`_x86_x64_ARM"
@@ -120,47 +148,40 @@ task PublishUwp -depends BuildUwp {
 }
 
 task TestLib -depends BuildLib {
-    NetCliRestore -paths $testsDir
-    foreach ($build in $libraryBuilds | Where { ($_.ContainsKey("TestsFramework")) })
+    NetCliRestore -Path $testsDir
+    foreach ($build in $libraryBuilds | Where { $_.LibSuccess -ne $false -and $_.TestFramework })
     {
-        $path = "$sourceDir\" + $build.TestDir
-        exec { dotnet test $testsDir -c release -f $build.TestsFramework }
+        try {
+            $path = "$sourceDir\" + $build.TestDir
+            exec { dotnet test $testsDir -c release -f $build.TestFramework }
+        }
+        catch {
+            $build.TestSuccess = $false
+            continue
+        }
+        $build.TestSuccess = $true
     }
 }
 
 task RebuildAll -depends Clean, PublishCli, PublishLib, PublishUwp, TestLib
 task BuildAll -depends CleanPublish, PublishCli, PublishLib, PublishUwp, TestLib
 
-function NetCliBuild($build, [string]$path, [string]$framework)
+function NetCliBuild([string]$path, [string]$framework)
 {
-    Write-Host -ForegroundColor Green "Building $path $framework"
-    & dotnet build $path -f $framework -c Release
-    if ($lastexitcode -eq 0)
-    {
-        $build.Success = "true"
-    }
-    else
-    {
-        $build.Success = "false"
-    }
+    exec { dotnet build $path -f $framework -c Release }
 }
 
-function NetCliPublish($build, [string]$srcPath, [string]$outPath, [string]$framework)
+function NetCliPublish([string]$srcPath, [string]$outPath, [string]$framework)
 {
-    Write-Host -ForegroundColor Green "Building $srcPath $framework"
-    & dotnet publish --no-build $srcPath -f $framework -c Release -o $outPath
-    if ($lastexitcode -ne 0)
-    {
-        RemovePath $outPath
-    }
+    exec { dotnet publish --no-build $srcPath -f $framework -c Release -o $outPath }
 }
 
-function NetCliRestore([string[]]$Paths)
+function NetCliRestore([string[]]$Path)
 {
-    foreach ($path in $Paths)
+    foreach ($singlePath in $Path)
     {
-        Write-Host -ForegroundColor Green "Restoring $path"
-        exec { dotnet restore $path | Out-Default }
+        Write-Host -ForegroundColor Green "Restoring $singlePath"
+        exec { dotnet restore $singlePath | Out-Default }
     }
 }
 
