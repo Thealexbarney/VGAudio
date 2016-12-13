@@ -26,7 +26,9 @@
         @{ Name = "net20"; LibSuccess = $null; CliFramework = "net20"; CliSuccess = $null }
     )
 
-    $buildSuccess = @{ uwp = $null }
+    $otherBuilds = @{
+        "Uwp" = @{ Name = "UWP App"; Success = $null }
+    }
 
     $signReleaseBuild = $true
 }
@@ -100,8 +102,10 @@ task BuildUwp {
         exec { msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m $thumbprint }
     }
     catch {
-        $buildSuccess.uwp = $false
+        $otherBuilds.Uwp.Success = $false
+        continue
     }
+    $otherBuilds.Uwp.Success = $true
 }
 
 task PublishLib -depends BuildLib {
@@ -118,7 +122,7 @@ task PublishCli -depends BuildCli {
 }
 
 task PublishUwp -depends BuildUwp {
-    if ($buildSuccess.uwp -eq $false) {
+    if ($otherBuilds.Uwp.Success -eq $false) {
         Write-Host -ForegroundColor Red "UWP project was not successfully built. Skipping..."
         return
     }
@@ -163,8 +167,96 @@ task TestLib -depends BuildLib {
     }
 }
 
-task RebuildAll -depends Clean, PublishCli, PublishLib, PublishUwp, TestLib
-task BuildAll -depends CleanPublish, PublishCli, PublishLib, PublishUwp, TestLib
+task RebuildAll -depends Clean, BuildAll
+task BuildAll -depends CleanPublish, PublishCli, PublishLib, PublishUwp, TestLib {
+    Write-Host $("-" * 70)
+    Write-Host "Build Report"
+    Write-Host $("-" * 70)
+
+    Write-Host `n
+    Write-Host "Library Builds"
+    Write-Host $("-" * 35)
+    $list = @()
+
+    foreach ($build in $libraryBuilds) {
+        $status = ""
+        switch ($build.LibSuccess)
+        {
+            $true { $status = "Success" }
+            $false { $status = "Failure" }
+            $null { $status = "Not Built" }
+        }
+
+        $list += new-object PSObject -property @{
+            Name = $build.Name;
+            Status = $status
+        }
+    }
+    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+    
+    Write-Host `n
+    Write-Host "CLI Builds"
+    Write-Host $("-" * 35)
+    $list = @()
+
+    foreach ($build in $libraryBuilds | Where { $_.CliFramework }) {
+        $status = ""
+        switch ($build.CliSuccess)
+        {
+            $true { $status = "Success" }
+            $false { $status = "Failure" }
+            $null { $status = "Not Built" }
+        }
+
+        $list += new-object PSObject -property @{
+            Name = $build.CliFramework;
+            Status = $status
+        }
+    }
+    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+
+    Write-Host `n
+    Write-Host "Other Builds"
+    Write-Host $("-" * 35)
+    $list = @()
+
+    foreach ($build in $otherBuilds.Values) {
+        $status = ""
+        switch ($build.Success)
+        {
+            $true { $status = "Success" }
+            $false { $status = "Failure" }
+            $null { $status = "Not Built" }
+        }
+
+        $list += new-object PSObject -property @{
+            Name = $build.Name;
+            Status = $status
+        }
+    }
+    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+
+    Write-Host `n
+    Write-Host "Tests"
+    Write-Host $("-" * 35)
+    $list = @()
+
+    foreach ($build in $libraryBuilds | Where { $_.TestFramework }) {
+        $status = ""
+        switch ($build.TestSuccess)
+        {
+            $true { $status = "Success" }
+            $false { $status = "Failure" }
+            $null { $status = "Not Tested" }
+        }
+
+        $list += new-object PSObject -property @{
+            Name = $build.CliFramework;
+            Status = $status
+        }
+    }
+    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+}
 
 function NetCliBuild([string]$path, [string]$framework)
 {
