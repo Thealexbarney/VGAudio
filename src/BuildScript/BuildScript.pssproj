@@ -31,8 +31,8 @@
     <Compile Include="../../build/runbuild.cmd" />
     <Compile Include="../../build/runbuild.ps1" />
     <Compile Include="../../build/build.ps1" />
-    <Compile Include="../../tools/psake.psm1" />
-    <Compile Include="../../tools/psake.psd1" />
+    <Compile Include="../../tools/psake/psake.psm1" />
+    <Compile Include="../../tools/psake/psake.psd1" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
