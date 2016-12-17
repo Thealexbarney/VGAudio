@@ -14,8 +14,12 @@
     $cliPublishDir = "$publishDir\cli"
     $uwpPublishDir = "$publishDir\uwp"
 
-    $StoreCertThumbprint = "EB553661E803DE06AA93B72183F93CA767804F1E"
-    $ReleaseCertThumbprint = "2043012AE523F7FA0F77A537387633BEB7A9F4DD"
+    $storeCertThumbprint = "EB553661E803DE06AA93B72183F93CA767804F1E"
+    $releaseCertThumbprint = "2043012AE523F7FA0F77A537387633BEB7A9F4DD"
+
+    $dotnetToolsDir = Join-Path $toolsDir dotnet
+    $dotnetSdkDir = Join-Path $dotnetToolsDir sdk
+    $dotnetCliVersion = "1.0.0-preview2-003133"
 
     $libraryBuilds = @(
         @{ Name = "netstandard1.1"; LibSuccess = $null; CliFramework = "netcoreapp1.0"; CliSuccess = $null; TestFramework = "netcoreapp1.0"; TestSuccess = $null },
@@ -57,6 +61,8 @@ task CleanPublish {
 }
 
 task BuildLib {
+    SetupDotnetCli
+    
     NetCliRestore -Path $libraryDir
 
     foreach ($build in $libraryBuilds)
@@ -74,6 +80,8 @@ task BuildLib {
 }
 
 task BuildCli -depends BuildLib {
+    SetupDotnetCli
+
     NetCliRestore -Path $cliDir
     foreach ($build in $libraryBuilds | Where { $_.LibSuccess -ne $false -and $_.CliFramework })
     {
@@ -90,6 +98,8 @@ task BuildCli -depends BuildLib {
 }
 
 task BuildUwp {
+    SetupDotnetCli
+
     try {
         $thumbprint = SetupUwpSigningCertificate
         if ($thumbprint) {
@@ -138,14 +148,14 @@ task PublishUwp -depends BuildUwp {
 
     CopyItemToDirectory -Path $appxUpload,$appxBundle -Destination $uwpPublishdir
 
-    if (($signReleaseBuild -eq $true) -and (Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $ReleaseCertThumbprint }).Count -gt 0)
+    if (($signReleaseBuild -eq $true) -and (Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $releaseCertThumbprint }).Count -gt 0)
     {
-        $publisher = (Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $ReleaseCertThumbprint}).Subject
+        $publisher = (Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $releaseCertThumbprint}).Subject
 
         $appxBundlePublish = Join-Path $uwpPublishdir "$appxName`.appxbundle"
 
         ChangeAppxBundlePublisher -Path $appxBundlePublish -Publisher $publisher
-        SignAppx -Path $appxBundlePublish -Thumbprint $ReleaseCertThumbprint
+        SignAppx -Path $appxBundlePublish -Thumbprint $releaseCertThumbprint
     } else {
         CopyItemToDirectory -Path $appxCer -Destination $uwpPublishdir
     }
@@ -258,6 +268,53 @@ task BuildAll -depends CleanPublish, PublishCli, PublishLib, PublishUwp, TestLib
     $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
 }
 
+function SetupDotnetCli()
+{
+    CreateBuildGlobalJson -Path (Join-Path $buildDir global.json) -Version $dotnetCliVersion
+    if ((Get-Command "dotnet" -errorAction SilentlyContinue) -and (& dotnet --version) -eq $dotnetCliVersion)
+    {
+        return
+    }
+
+    Write-Host "Searching for Dotnet CLI version $dotnetCliVersion..."    
+    Write-Host "Checking Local AppData default install path..."
+    $appDataInstallPath = Join-Path $env:LocalAppData "Microsoft\dotnet"
+    $path = Join-Path $appDataInstallPath dotnet.exe
+    if ((Test-Path $path) -and (& $path --version) -eq $dotnetCliVersion)
+    {
+        $env:Path = "$appDataInstallPath;" + $env:path
+        Write-Host "Found Dotnet CLI version $dotnetCliVersion"        
+        return
+    }
+    
+    Write-Host "Checking project tools path..."
+    $path = Join-Path $dotnetSdkDir dotnet.exe
+    if ((Test-Path $path) -and (& $path --version) -eq $dotnetCliVersion)
+    {
+        $env:Path = "$dotnetSdkDir;" + $env:path
+        Write-Host "Found Dotnet CLI version $dotnetCliVersion"        
+        return
+    }
+    
+    Write-Host "Downloading Dotnet CLI..."
+    & (Join-Path $dotnetToolsDir dotnet-install.ps1) -InstallDir $dotnetSdkDir -Version $dotnetCliVersion -NoPath
+    if ((Test-Path $path) -and (& $path --version) -eq $dotnetCliVersion)
+    {
+        $env:Path = "$dotnetSdkDir;" + $env:path
+        Write-Host "Found Dotnet CLI version $dotnetCliVersion"        
+        return
+    }
+
+    Write-Host "Unable to find Dotnet CLI version $dotnetCliVersion"
+    exit
+}
+
+function CreateBuildGlobalJson([string] $Path, [string]$Version)
+{
+    $json = "{`"projects`":[],`"sdk`":{`"version`":`"$Version`"}}"
+    Out-File -FilePath $Path -Encoding utf8 -InputObject $json
+}
+
 function NetCliBuild([string]$path, [string]$framework)
 {
     exec { dotnet build $path -f $framework -c Release }
@@ -290,16 +347,16 @@ function SetupUwpSigningCertificate()
     $thumbprint = $csprojXml.Project.PropertyGroup[0].PackageCertificateThumbprint
     $keyFile = "$uwpDir\" + $csprojXml.Project.PropertyGroup[0].PackageCertificateKeyFile
 
-    if ((Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $StoreCertThumbprint }).Count -gt 0)
+    if ((Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $storeCertThumbprint }).Count -gt 0)
     {
-        Write-Host "Using store code signing certificate with thumbprint $StoreCertThumbprint in certificate store."
-        return $StoreCertThumbprint
+        Write-Host "Using store code signing certificate with thumbprint $storeCertThumbprint in certificate store."
+        return $storeCertThumbprint
     }
 
-    if ((Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $ReleaseCertThumbprint }).Count -gt 0)
+    if ((Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $releaseCertThumbprint }).Count -gt 0)
     {
-        Write-Host "Using release code signing certificate with thumbprint $ReleaseCertThumbprint in certificate store."
-        return $ReleaseCertThumbprint
+        Write-Host "Using release code signing certificate with thumbprint $releaseCertThumbprint in certificate store."
+        return $releaseCertThumbprint
     }
 
     if (Test-Path $keyFile)

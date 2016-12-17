@@ -270,5 +270,7 @@ BenchmarkDotNet.Artifacts/
 
 /DspAdpcm/DspAdpcm.Cli/Properties/launchSettings.json
 
-#Build script output
-*runbuild.txt
+#Build script tools
+/build/runbuild.txt
+/build/global.json
+/tools/dotnet/sdk
