@@ -98,6 +98,11 @@ task BuildCli -depends BuildLib {
 }
 
 task BuildUwp {
+    if (-not (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots")) {
+        Write-Host "Windows 10 SDK not detected. Skipping UWP build."
+        return
+    }
+
     SetupDotnetCli
 
     try {
@@ -132,6 +137,10 @@ task PublishCli -depends BuildCli {
 }
 
 task PublishUwp -depends BuildUwp {
+    if (-not (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots")) {
+        return
+    }
+
     if ($otherBuilds.Uwp.Success -eq $false) {
         Write-Host -ForegroundColor Red "UWP project was not successfully built. Skipping..."
         return
