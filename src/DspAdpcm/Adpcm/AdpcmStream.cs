@@ -14,14 +14,18 @@ namespace DspAdpcm.Adpcm
     /// A 4-bit Nintendo ADPCM audio stream.
     /// The stream can contain any number of individual channels.
     /// </summary>
-    public class AdpcmStream
+    public class AdpcmStream : BrstmCompatibleStream
     {
         internal List<AdpcmChannel> Channels { get; set; } = new List<AdpcmChannel>();
         private List<AdpcmTrack> _tracks;
-        internal List<AdpcmTrack> Tracks
+
+        /// <summary>
+        /// A list of tracks in the stream. Each track is composed of one or two channels.
+        /// </summary>
+        public List<AdpcmTrack> Tracks
         {
             get { return _tracks == null || _tracks.Count == 0 ? GetDefaultTrackList().ToList() : _tracks; }
-            set { _tracks = value; }
+            internal set { _tracks = value; }
         }
 
         /// <summary>
@@ -121,6 +125,15 @@ namespace DspAdpcm.Adpcm
             }
 
             Channels.AddRange(adpcm.Channels);
+        }
+
+        /// <summary>
+        /// Get an array of byte arrays containing the encoded audio data (one array per channel.)
+        /// </summary>
+        /// <param name="endianness">The endianness of the format (not used for ADPCM)</param>
+        /// <returns>An array that contains one byte array per channel</returns>
+        public byte[][] GetAudioData(Endianness endianness) {
+            return Channels.Select(x => x.GetAudioData).ToArray();
         }
 
         private AdpcmStream ShallowClone() => (AdpcmStream)MemberwiseClone();

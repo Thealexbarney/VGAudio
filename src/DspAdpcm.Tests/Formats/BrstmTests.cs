@@ -8,7 +8,7 @@ namespace DspAdpcm.Tests.Formats
     public class BrstmTests
     {
         private static readonly Func<AdpcmStream, byte[]> BuildFunc = adpcmStream => new Brstm(adpcmStream).GetFile();
-        private static readonly Func<byte[], AdpcmStream> ParseFunc = file => new Brstm(file).AudioStream;
+        private static readonly Func<byte[], AdpcmStream> ParseFunc = file => (AdpcmStream)new Brstm(file).AudioStream;
 
         [Theory]
         [InlineData(1)]

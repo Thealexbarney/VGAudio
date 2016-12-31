@@ -58,7 +58,7 @@ namespace DspAdpcm.Cli
                         break;
                     case FileType.Brstm:
                         var brstm = new Brstm(stream);
-                        file.Adpcm = brstm.AudioStream;
+                        file.Adpcm = (AdpcmStream)brstm.AudioStream;
                         Configuration = brstm.Configuration;
                         break;
                     case FileType.Bcstm:
