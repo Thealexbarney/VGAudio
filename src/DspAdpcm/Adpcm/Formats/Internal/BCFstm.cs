@@ -660,7 +660,7 @@ namespace DspAdpcm.Adpcm.Formats.Internal
             type == BCFstmType.Bcstm ? Endianness.LittleEndian : Endianness.BigEndian;
     }
 
-    internal class BCFstmConfiguration : B_stmConfiguration
+    internal class BCFstmConfiguration : AdpcmB_stmConfiguration
     {
         /// <summary>
         /// If <c>true</c>, include track information in the BCSTM

@@ -29,6 +29,11 @@ namespace DspAdpcm.Adpcm.Formats
         /// </summary>
         public BrstmConfiguration Configuration { get; set; }
 
+        /// <summary>
+        /// A property to get <see cref="Configuration"/> as an <see cref="AdpcmBrstmConfiguration"/> or throw an exception.
+        /// </summary>
+        private AdpcmBrstmConfiguration AdpcmConfiguration => (AdpcmBrstmConfiguration)Configuration;
+
         private int NumSamples => AudioStream.Looping ? LoopEnd : AudioStream.NumSamples;
         private int NumChannels => AudioStream.NumChannels;
         private int NumTracks => AudioStream.Tracks.Count;
@@ -54,9 +59,9 @@ namespace DspAdpcm.Adpcm.Formats
         private int LastBlockSizeWithoutPadding => GetBytesForSamples(LastBlockSamples);
         private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
 
-        private int SamplesPerSeekTableEntry => Configuration.SamplesPerSeekTableEntry;
+        private int SamplesPerSeekTableEntry => AdpcmConfiguration.SamplesPerSeekTableEntry;
         private int BytesPerSeekTableEntry => 4;
-        private int NumSeekTableEntries => Configuration.SeekTableType == BrstmSeekTableType.Standard
+        private int NumSeekTableEntries => AdpcmConfiguration.SeekTableType == BrstmSeekTableType.Standard
             ? NumSamples.DivideByRoundUp(SamplesPerSeekTableEntry)
             : (GetBytesForSamples(NumSamples) / SamplesPerSeekTableEntry) + 1;
 
@@ -103,7 +108,9 @@ namespace DspAdpcm.Adpcm.Formats
             }
 
             AudioStream = stream;
-            Configuration = configuration ?? new BrstmConfiguration();
+            Configuration = configuration ?? (stream is AdpcmStream
+                ? new AdpcmBrstmConfiguration() as BrstmConfiguration
+                : new PcmBrstmConfiguration() as BrstmConfiguration);
         }
 
         /// <summary>
@@ -163,13 +170,13 @@ namespace DspAdpcm.Adpcm.Formats
             var audioStream = AudioStream as AdpcmStream;
             if (audioStream == null) throw new InvalidOperationException("Seek tables and loop context are only applicable to ADPCM");
 
-            var seekTableToCalculate = Configuration.RecalculateSeekTable
+            var seekTableToCalculate = AdpcmConfiguration.RecalculateSeekTable
                 ? audioStream.Channels.Where(
                     x => !x.SelfCalculatedSeekTable || x.SamplesPerSeekTableEntry != SamplesPerSeekTableEntry)
                 : audioStream.Channels.Where(
                     x => x.SeekTable == null || x.SamplesPerSeekTableEntry != SamplesPerSeekTableEntry);
 
-            var loopContextToCalculate = Configuration.RecalculateLoopContext
+            var loopContextToCalculate = AdpcmConfiguration.RecalculateLoopContext
                 ? audioStream.Channels.Where(x => !x.SelfCalculatedLoopContext)
                 : audioStream.Channels.Where(x => !x.LoopContextCalculated);
 
@@ -434,13 +441,24 @@ namespace DspAdpcm.Adpcm.Formats
 
         private static BrstmConfiguration GetConfiguration(BrstmStructure structure)
         {
-            return new BrstmConfiguration()
+            if (structure.Codec == B_stmCodec.Adpcm)
             {
-                SamplesPerInterleave = structure.SamplesPerInterleave,
-                SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry,
-                TrackType = structure.HeaderType,
-                SeekTableType = structure.SeekTableType
-            };
+                return new AdpcmBrstmConfiguration()
+                {
+                    SamplesPerInterleave = structure.SamplesPerInterleave,
+                    SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry,
+                    TrackType = structure.HeaderType,
+                    SeekTableType = structure.SeekTableType
+                };
+            }
+            else
+            {
+                return new PcmBrstmConfiguration()
+                {
+                    SamplesPerInterleave = structure.SamplesPerInterleave,
+                    TrackType = structure.HeaderType
+                };
+            }
         }
 
         private static BrstmCompatibleStream GetStream(BrstmStructure structure)
@@ -472,8 +490,23 @@ namespace DspAdpcm.Adpcm.Formats
                     }
 
                     return audioStream;
+                case B_stmCodec.Pcm16Bit:
+                    var pcm16Stream = new LoopingPcmStream(structure.NumSamples, structure.SampleRate);
+                    if (structure.Looping)
+                    {
+                        pcm16Stream.SetLoop(structure.LoopStart, structure.NumSamples);
+                    }
+                    pcm16Stream.Tracks = structure.Tracks;
+
+                    for (int c = 0; c < structure.NumChannels; c++)
+                    {
+                        var channel = new PcmChannel(structure.NumSamples, structure.AudioData[c], Endianness.BigEndian);
+                        pcm16Stream.Channels.Add(channel);
+                    }
+
+                    return pcm16Stream;
                 default:
-                    throw new NotImplementedException("Cannot parse non-ADPCM streams in BRSTM files");
+                    throw new NotImplementedException("Cannot parse 8-bit PCM streams in BRSTM files");
             }
         }
 
