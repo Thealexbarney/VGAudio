@@ -164,7 +164,7 @@ task PublishUwp -depends BuildUwp {
         $appxBundlePublish = Join-Path $uwpPublishdir "$appxName`.appxbundle"
 
         ChangeAppxBundlePublisher -Path $appxBundlePublish -Publisher $publisher
-        SignAppx -Path $appxBundlePublish -Thumbprint $releaseCertThumbprint
+        SignExecutable -Path $appxBundlePublish -Thumbprint $releaseCertThumbprint
     } else {
         CopyItemToDirectory -Path $appxCer -Destination $uwpPublishdir
     }
@@ -423,12 +423,11 @@ function ChangeAppxPublisher([string]$Path, [string]$Publisher)
     RemovePath $dirAppx
 }
 
-function SignAppx([string]$Path, [string]$Thumbprint)
+function SignExecutable([string]$Path, [string]$Thumbprint)
 {
     $timestampServers =
-    "http://timestamp.geotrust.com/tsa",
     "http://sha256timestamp.ws.symantec.com/sha256/timestamp",
-    "http://timestamp.comodoca.com/authenticode",
+    "http://timestamp.globalsign.com/?signature=sha2",
     "http://time.certum.pl"
 
     foreach($server in $timestampServers)
