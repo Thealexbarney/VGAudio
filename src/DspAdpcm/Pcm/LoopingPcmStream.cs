@@ -15,7 +15,7 @@ namespace DspAdpcm.Pcm
     /// A 16-bit PCM audio stream with one or more tracks optional looping data.
     /// Each track can contain one or two channels.
     /// </summary>
-    class LoopingPcmStream : PcmStream, BrstmCompatibleStream
+    public class LoopingPcmStream : PcmStream, LoopingTrackStream
     {
         /// <summary>
         /// The loop start point in samples.
@@ -41,6 +41,12 @@ namespace DspAdpcm.Pcm
             internal set { _tracks = value; }
         }
 
+        /// <summary>
+        /// Creates an empty <see cref="LoopingPcmStream"/> and sets the
+        /// number of samples and sample rate.
+        /// </summary>
+        /// <param name="numSamples">The sample count.</param>
+        /// <param name="sampleRate">The sample rate in Hz.</param>
         public LoopingPcmStream(int numSamples, int sampleRate) : base(numSamples, sampleRate) { }
 
         /// <summary>
@@ -76,7 +82,7 @@ namespace DspAdpcm.Pcm
         /// <summary>
         /// Sets the loop points for the <see cref="LoopingPcmStream"/>.
         /// </summary>
-        /// <param name="loop">If <c>false</c>, don't loop the <see cref="AdpcmStream"/>.
+        /// <param name="loop">If <c>false</c>, don't loop the <see cref="LoopingPcmStream"/>.
         /// If <c>true</c>, loop the <see cref="LoopingPcmStream"/> from 0 to <see cref="PcmStream.NumSamples"/></param>
         public void SetLoop(bool loop)
         {

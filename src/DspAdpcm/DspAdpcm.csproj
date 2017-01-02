@@ -69,7 +69,7 @@
     <Compile Include="Adpcm\Formats\Structures\IdspStructure.cs" />
     <Compile Include="BinaryReaderBE.cs" />
     <Compile Include="BinaryWriterBE.cs" />
-    <Compile Include="BrstmCompatibleStream.cs" />
+    <Compile Include="LoopingTrackStream.cs" />
     <Compile Include="Compatibility\EnumFlag.cs" />
     <Compile Include="Compatibility\Extensions.cs" />
     <Compile Include="Compatibility\LinqBridge.cs" />

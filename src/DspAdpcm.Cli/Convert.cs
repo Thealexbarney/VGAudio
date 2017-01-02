@@ -11,7 +11,7 @@ namespace DspAdpcm.Cli
     internal class Convert
     {
         private Convert() { }
-        private PcmStream Pcm { get; set; }
+        private LoopingPcmStream Pcm { get; set; }
         private AdpcmStream Adpcm { get; set; }
         private object Configuration { get; set; }
 
@@ -97,7 +97,8 @@ namespace DspAdpcm.Cli
                         new Idsp(Adpcm, Configuration as IdspConfiguration).WriteFile(stream);
                         break;
                     case FileType.Brstm:
-                        new Brstm(Adpcm, Configuration as BrstmConfiguration).WriteFile(stream);
+                        var preferredStream = (Adpcm as LoopingTrackStream) ?? (Pcm as LoopingTrackStream);
+                        new Brstm(preferredStream, Configuration as BrstmConfiguration).WriteFile(stream);
                         break;
                     case FileType.Bcstm:
                         new Bcstm(Adpcm, Configuration as BcstmConfiguration).WriteFile(stream);
@@ -126,19 +127,23 @@ namespace DspAdpcm.Cli
                 else if (outCodec == AudioCodec.Pcm)
                 {
                     file.ConvertToPcm();
-                    Pcm = Pcm ?? new PcmStream(file.Pcm.NumSamples, file.Pcm.SampleRate);
+                    Pcm = Pcm ?? new LoopingPcmStream(file.Pcm.NumSamples, file.Pcm.SampleRate);
                     Pcm.Add(file.Channels == null ? file.Pcm : file.Pcm.GetChannels(file.Channels));
                 }
             }
 
-            if (options.NoLoop && outCodec == AudioCodec.Adpcm)
+            var outStream = (outCodec == AudioCodec.Adpcm)
+                ? Adpcm as LoopingTrackStream
+                : Pcm as LoopingTrackStream;
+
+            if (options.NoLoop)
             {
-                Adpcm.SetLoop(false);
+                outStream.SetLoop(false);
             }
 
-            if (options.Loop && outCodec == AudioCodec.Adpcm)
+            if (options.Loop)
             {
-                Adpcm.SetLoop(options.LoopStart, options.LoopEnd);
+                outStream.SetLoop(options.LoopStart, options.LoopEnd);
             }
         }
     }

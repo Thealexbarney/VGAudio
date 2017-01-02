@@ -20,9 +20,9 @@ namespace DspAdpcm.Adpcm.Formats
     public class Brstm
     {
         /// <summary>
-        /// The underlying <see cref="AdpcmStream"/> or <see cref="PcmStream"/> used to build the BRSTM file.
+        /// The underlying <see cref="AdpcmStream"/> or <see cref="LoopingPcmStream"/> used to build the BRSTM file.
         /// </summary>
-        public BrstmCompatibleStream AudioStream { get; set; }
+        public LoopingTrackStream AudioStream { get; set; }
 
         /// <summary>
         /// Contains various settings used when building the BRSTM file.
@@ -100,7 +100,7 @@ namespace DspAdpcm.Adpcm.Formats
         /// <see cref="PcmStream"/> used to create the <see cref="Brstm"/>.</param>
         /// <param name="configuration">A <see cref="BrstmConfiguration"/>
         /// to use for the <see cref="Brstm"/></param>
-        public Brstm(BrstmCompatibleStream stream, BrstmConfiguration configuration = null)
+        public Brstm(LoopingTrackStream stream, BrstmConfiguration configuration = null)
         {
             if (stream.NumChannels < 1)
             {
@@ -461,7 +461,7 @@ namespace DspAdpcm.Adpcm.Formats
             }
         }
 
-        private static BrstmCompatibleStream GetStream(BrstmStructure structure)
+        private static LoopingTrackStream GetStream(BrstmStructure structure)
         {
             switch (structure.Codec)
             {
