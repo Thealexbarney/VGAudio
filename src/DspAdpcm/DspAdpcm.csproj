@@ -83,7 +83,6 @@
     <Compile Include="NamespaceDoc.cs" />
     <Compile Include="Pcm\Formats\Wave.cs" />
     <Compile Include="Pcm\Formats\WaveStructure.cs" />
-    <Compile Include="Pcm\LoopingPcmStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Pcm\PcmChannel.cs" />
     <Compile Include="Pcm\PcmStream.cs" />

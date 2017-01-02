@@ -491,7 +491,7 @@ namespace DspAdpcm.Adpcm.Formats
 
                     return audioStream;
                 case B_stmCodec.Pcm16Bit:
-                    var pcm16Stream = new LoopingPcmStream(structure.NumSamples, structure.SampleRate);
+                    var pcm16Stream = new PcmStream(structure.NumSamples, structure.SampleRate);
                     if (structure.Looping)
                     {
                         pcm16Stream.SetLoop(structure.LoopStart, structure.NumSamples);

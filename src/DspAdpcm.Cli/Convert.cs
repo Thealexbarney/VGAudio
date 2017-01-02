@@ -11,7 +11,7 @@ namespace DspAdpcm.Cli
     internal class Convert
     {
         private Convert() { }
-        private LoopingPcmStream Pcm { get; set; }
+        private PcmStream Pcm { get; set; }
         private AdpcmStream Adpcm { get; set; }
         private object Configuration { get; set; }
 
@@ -127,7 +127,7 @@ namespace DspAdpcm.Cli
                 else if (outCodec == AudioCodec.Pcm)
                 {
                     file.ConvertToPcm();
-                    Pcm = Pcm ?? new LoopingPcmStream(file.Pcm.NumSamples, file.Pcm.SampleRate);
+                    Pcm = Pcm ?? new PcmStream(file.Pcm.NumSamples, file.Pcm.SampleRate);
                     Pcm.Add(file.Channels == null ? file.Pcm : file.Pcm.GetChannels(file.Channels));
                 }
             }
