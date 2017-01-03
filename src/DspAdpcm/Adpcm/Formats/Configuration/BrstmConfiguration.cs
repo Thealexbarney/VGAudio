@@ -13,7 +13,7 @@ namespace DspAdpcm.Adpcm.Formats.Configuration
         /// BRSTM header.
         /// Default is <see cref="BrstmTrackType.Standard"/>
         /// </summary>
-        BrstmTrackType TrackType { get; }
+        BrstmTrackType TrackType { get; set; }
     }
 
     /// <summary>
