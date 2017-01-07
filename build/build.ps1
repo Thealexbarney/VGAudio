@@ -124,10 +124,14 @@ task BuildUwp {
 }
 
 task PublishLib -depends BuildLib {
+    SignLib
     dotnet pack --no-build $libraryDir -c release -o "$publishDir\NuGet"
 }
 
 task PublishCli -depends BuildCli {
+    SignLib
+    SignCli
+
     foreach ($build in $libraryBuilds | Where { $_.CliSuccess -ne $false -and $_.LibSuccess -ne $false -and $_.CliFramework })
     {
         $framework = $build.CliFramework
@@ -187,7 +191,7 @@ task TestLib -depends BuildLib {
 }
 
 task RebuildAll -depends Clean, BuildAll
-task BuildAll -depends CleanPublish, PublishCli, PublishLib, PublishUwp, TestLib {
+task BuildAll -depends CleanPublish, PublishLib, PublishCli, PublishUwp, TestLib {
     Write-Host $("-" * 70)
     Write-Host "Build Report"
     Write-Host $("-" * 70)
@@ -275,6 +279,43 @@ task BuildAll -depends CleanPublish, PublishCli, PublishLib, PublishUwp, TestLib
         }
     }
     $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+}
+
+function SignLib()
+{
+    if (($signReleaseBuild -eq $true) -and (CertificateExists -Thumbprint $releaseCertThumbprint))
+    {
+        $projectName = [System.IO.Path]::GetFileName($libraryDir)
+        foreach ($build in $libraryBuilds | Where { $_.LibSuccess -ne $false })
+        {
+            $framework = $build.Name
+            $signPath = Join-Path $libraryDir "bin\Release\$framework\$projectName.dll"
+            SignExecutablePS -Path $signPath -Thumbprint $releaseCertThumbprint
+        }
+    }
+}
+
+function SignCli()
+{
+     if (($signReleaseBuild -eq $true) -and (CertificateExists -Thumbprint $releaseCertThumbprint))
+    {
+        $rid = "win7-x64"
+        $projectName = [System.IO.Path]::GetFileName($cliDir)
+
+        foreach ($build in $libraryBuilds | Where { $_.CliSuccess -ne $false -and $_.CliFramework })
+        {
+            $framework = $build.CliFramework
+            $paths =
+            (Join-Path $cliDir "bin\Release\$framework\$projectName.dll"),
+            (Join-Path $cliDir "bin\Release\$framework\$rid\$projectName.dll"),
+            (Join-Path $cliDir "bin\Release\$framework\$rid\$projectName.exe")
+
+            foreach ($path in $paths | Where { Test-Path $_ })
+            {
+                SignExecutablePS -Path $path -Thumbprint $releaseCertThumbprint
+            }
+        }
+    }
 }
 
 function SetupDotnetCli()
@@ -434,15 +475,50 @@ function SignExecutable([string]$Path, [string]$Thumbprint)
     {
         for($i = 1; $i -le 4; $i++)
         {
-            Write-Host -ForegroundColor Green "Signing $Path"
+            Write-Host "Signing $Path"
             $global:lastexitcode = 0
             signtool sign /fd SHA256 /a /sha1 $Thumbprint /tr $server $Path
             if ($lastexitcode -eq 0)
             {
-                Write-Host -ForegroundColor Green "Success"
                 return
             }
-            Write-Host -ForegroundColor Red "Retrying..."
+            Write-Host -ForegroundColor Red "Failed. Retrying..."
+            Start-Sleep -Seconds 3
+        }
+    }
+}
+
+function SignExecutablePS([string]$Path, [string]$Thumbprint)
+{
+    $timestampServers =
+    "http://timestamp.globalsign.com/?signature=sha2",
+    "http://time.certum.pl"
+
+    $signature = Get-AuthenticodeSignature -FilePath $Path
+    if (($signature.SignerCertificate.Thumbprint -eq $Thumbprint) -and ($signature.Status -eq "Valid"))
+    {
+        return
+    }
+
+    if ((CertificateExists -Thumbprint $Thumbprint) -eq $false)
+    {
+        throw ("SignExecutablePS: Could not find code signing certificate with thumbprint $Thumbprint")
+    }
+
+    $cert = Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $Thumbprint }
+
+    foreach($server in $timestampServers)
+    {
+        for($i = 1; $i -le 4; $i++)
+        {
+            Write-Host "Signing $Path"
+
+            $result = Set-AuthenticodeSignature -Certificate $cert -TimestampServer $server -HashAlgorithm SHA256 -FilePath $Path
+            if ($result.Status -eq "Valid")
+            {
+                return
+            }
+            Write-Host -ForegroundColor Red "Failed. Retrying..."
             Start-Sleep -Seconds 3
         }
     }
@@ -466,4 +542,13 @@ function CopyItemToDirectory([string[]]$Path, [string]$Destination)
         mkdir -Path $Destination | Out-Null
     }
     Copy-Item -Path $Path -Destination $Destination
+}
+
+function CertificateExists([string]$Thumbprint)
+{
+    if ((Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Thumbprint -eq $Thumbprint }).Count -gt 0)
+    {
+        return $true
+    }
+    return $false
 }
