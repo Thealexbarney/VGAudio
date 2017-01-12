@@ -39,7 +39,7 @@
 
 framework '4.6'
 
-task default -depends RebuildAll
+task default -depends RebuildAllAndTest
 
 task Clean -depends CleanBuild, CleanPublish
 
@@ -70,10 +70,9 @@ task PublishUwp -depends BuildUwp { PublishUwp }
 
 task TestLib -depends BuildLib { TestLib }
 
-task RebuildAll -depends Clean, BuildAll
-task BuildAll -depends CleanPublish, PublishLib, PublishCli, PublishUwp, TestLib {
-    WriteReport
-}
+task RebuildAll -depends Clean, BuildAll { WriteReport }
+task RebuildAllAndTest -depends Clean, BuildAll, TestLib { WriteReport }
+task BuildAll -depends CleanPublish, PublishLib, PublishCli, PublishUwp
 
 function BuildLib() {
     SetupDotnetCli
