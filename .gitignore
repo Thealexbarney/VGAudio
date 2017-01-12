@@ -175,7 +175,6 @@ rcf/
 # Windows Store app package directories and files
 AppPackages/
 BundleArtifacts/
-Package.StoreAssociation.xml
 _pkginfo.txt
 
 # Visual Studio cache files
@@ -270,3 +269,8 @@ BDN.Auto/
 BenchmarkDotNet.Artifacts/
 
 /DspAdpcm/DspAdpcm.Cli/Properties/launchSettings.json
+
+#Build script tools
+/build/runbuild.txt
+/build/global.json
+/tools/dotnet/sdk
