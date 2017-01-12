@@ -60,7 +60,22 @@ task CleanPublish {
     RemovePath -Path $publishDir -Verbose
 }
 
-task BuildLib {
+task BuildLib { BuildLib }
+task BuildCli -depends BuildLib { BuildCli }
+task BuildUwp { BuildUwp }
+
+task PublishLib -depends BuildLib { PublishLib }
+task PublishCli -depends BuildCli { PublishCli }
+task PublishUwp -depends BuildUwp { PublishUwp }
+
+task TestLib -depends BuildLib { TestLib }
+
+task RebuildAll -depends Clean, BuildAll
+task BuildAll -depends CleanPublish, PublishLib, PublishCli, PublishUwp, TestLib {
+    WriteReport
+}
+
+function BuildLib() {
     SetupDotnetCli
     
     NetCliRestore -Path $libraryDir
@@ -79,7 +94,7 @@ task BuildLib {
     }
 }
 
-task BuildCli -depends BuildLib {
+function BuildCli() {
     SetupDotnetCli
 
     NetCliRestore -Path $cliDir
@@ -97,7 +112,7 @@ task BuildCli -depends BuildLib {
     }
 }
 
-task BuildUwp {
+function BuildUwp() {
     if (-not (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots")) {
         Write-Host "Windows 10 SDK not detected. Skipping UWP build."
         return
@@ -118,17 +133,17 @@ task BuildUwp {
     }
     catch {
         $otherBuilds.Uwp.Success = $false
-        continue
+        return
     }
     $otherBuilds.Uwp.Success = $true
 }
 
-task PublishLib -depends BuildLib {
+function PublishLib() {
     SignLib
     dotnet pack --no-build $libraryDir -c release -o "$publishDir\NuGet"
 }
 
-task PublishCli -depends BuildCli {
+function PublishCli() {
     SignLib
     SignCli
 
@@ -140,7 +155,7 @@ task PublishCli -depends BuildCli {
     }
 }
 
-task PublishUwp -depends BuildUwp {
+function PublishUwp() {
     if (-not (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots")) {
         return
     }
@@ -174,7 +189,7 @@ task PublishUwp -depends BuildUwp {
     }
 }
 
-task TestLib -depends BuildLib {
+function TestLib() {
     NetCliRestore -Path $testsDir
     foreach ($build in $libraryBuilds | Where { $_.LibSuccess -ne $false -and $_.TestFramework })
     {
@@ -188,97 +203,6 @@ task TestLib -depends BuildLib {
         }
         $build.TestSuccess = $true
     }
-}
-
-task RebuildAll -depends Clean, BuildAll
-task BuildAll -depends CleanPublish, PublishLib, PublishCli, PublishUwp, TestLib {
-    Write-Host $("-" * 70)
-    Write-Host "Build Report"
-    Write-Host $("-" * 70)
-
-    Write-Host `n
-    Write-Host "Library Builds"
-    Write-Host $("-" * 35)
-    $list = @()
-
-    foreach ($build in $libraryBuilds) {
-        $status = ""
-        switch ($build.LibSuccess)
-        {
-            $true { $status = "Success" }
-            $false { $status = "Failure" }
-            $null { $status = "Not Built" }
-        }
-
-        $list += new-object PSObject -property @{
-            Name = $build.Name;
-            Status = $status
-        }
-    }
-    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
-    
-    Write-Host `n
-    Write-Host "CLI Builds"
-    Write-Host $("-" * 35)
-    $list = @()
-
-    foreach ($build in $libraryBuilds | Where { $_.CliFramework }) {
-        $status = ""
-        switch ($build.CliSuccess)
-        {
-            $true { $status = "Success" }
-            $false { $status = "Failure" }
-            $null { $status = "Not Built" }
-        }
-
-        $list += new-object PSObject -property @{
-            Name = $build.CliFramework;
-            Status = $status
-        }
-    }
-    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
-
-    Write-Host `n
-    Write-Host "Other Builds"
-    Write-Host $("-" * 35)
-    $list = @()
-
-    foreach ($build in $otherBuilds.Values) {
-        $status = ""
-        switch ($build.Success)
-        {
-            $true { $status = "Success" }
-            $false { $status = "Failure" }
-            $null { $status = "Not Built" }
-        }
-
-        $list += new-object PSObject -property @{
-            Name = $build.Name;
-            Status = $status
-        }
-    }
-    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
-
-    Write-Host `n
-    Write-Host "Tests"
-    Write-Host $("-" * 35)
-    $list = @()
-
-    foreach ($build in $libraryBuilds | Where { $_.TestFramework }) {
-        $status = ""
-        switch ($build.TestSuccess)
-        {
-            $true { $status = "Success" }
-            $false { $status = "Failure" }
-            $null { $status = "Not Tested" }
-        }
-
-        $list += new-object PSObject -property @{
-            Name = $build.CliFramework;
-            Status = $status
-        }
-    }
-    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
 }
 
 function SignLib()
@@ -347,7 +271,9 @@ function SetupDotnetCli()
     }
     
     Write-Host "Downloading Dotnet CLI..."
-    & (Join-Path $dotnetToolsDir dotnet-install.ps1) -InstallDir $dotnetSdkDir -Version $dotnetCliVersion -NoPath
+    try {
+        & (Join-Path $dotnetToolsDir dotnet-install.ps1) -InstallDir $dotnetSdkDir -Version $dotnetCliVersion -NoPath
+    } catch { }
     if ((Test-Path $path) -and (& $path --version) -eq $dotnetCliVersion)
     {
         $env:Path = "$dotnetSdkDir;" + $env:path
@@ -355,7 +281,7 @@ function SetupDotnetCli()
         return
     }
 
-    Write-Host "Unable to find Dotnet CLI version $dotnetCliVersion"
+    Write-Host -ForegroundColor Red "Unable to find Dotnet CLI version $dotnetCliVersion"
     exit
 }
 
@@ -551,4 +477,95 @@ function CertificateExists([string]$Thumbprint)
         return $true
     }
     return $false
+}
+
+function WriteReport()
+{
+        Write-Host $("-" * 70)
+    Write-Host "Build Report"
+    Write-Host $("-" * 70)
+
+    Write-Host `n
+    Write-Host "Library Builds"
+    Write-Host $("-" * 35)
+    $list = @()
+
+    foreach ($build in $libraryBuilds) {
+        $status = ""
+        switch ($build.LibSuccess)
+        {
+            $true { $status = "Success" }
+            $false { $status = "Failure" }
+            $null { $status = "Not Built" }
+        }
+
+        $list += new-object PSObject -property @{
+            Name = $build.Name;
+            Status = $status
+        }
+    }
+    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+    
+    Write-Host `n
+    Write-Host "CLI Builds"
+    Write-Host $("-" * 35)
+    $list = @()
+
+    foreach ($build in $libraryBuilds | Where { $_.CliFramework }) {
+        $status = ""
+        switch ($build.CliSuccess)
+        {
+            $true { $status = "Success" }
+            $false { $status = "Failure" }
+            $null { $status = "Not Built" }
+        }
+
+        $list += new-object PSObject -property @{
+            Name = $build.CliFramework;
+            Status = $status
+        }
+    }
+    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+
+    Write-Host `n
+    Write-Host "Other Builds"
+    Write-Host $("-" * 35)
+    $list = @()
+
+    foreach ($build in $otherBuilds.Values) {
+        $status = ""
+        switch ($build.Success)
+        {
+            $true { $status = "Success" }
+            $false { $status = "Failure" }
+            $null { $status = "Not Built" }
+        }
+
+        $list += new-object PSObject -property @{
+            Name = $build.Name;
+            Status = $status
+        }
+    }
+    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+
+    Write-Host `n
+    Write-Host "Tests"
+    Write-Host $("-" * 35)
+    $list = @()
+
+    foreach ($build in $libraryBuilds | Where { $_.TestFramework }) {
+        $status = ""
+        switch ($build.TestSuccess)
+        {
+            $true { $status = "Success" }
+            $false { $status = "Failure" }
+            $null { $status = "Not Tested" }
+        }
+
+        $list += new-object PSObject -property @{
+            Name = $build.CliFramework;
+            Status = $status
+        }
+    }
+    $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
 }
