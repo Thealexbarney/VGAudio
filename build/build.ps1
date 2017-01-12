@@ -19,7 +19,7 @@
 
     $dotnetToolsDir = Join-Path $toolsDir dotnet
     $dotnetSdkDir = Join-Path $dotnetToolsDir sdk
-    $dotnetCliVersion = "1.0.0-preview2-1-003177"
+    $dotnetCliVersion = "1.0.0-preview2-003156"
 
     $libraryBuilds = @(
         @{ Name = "netstandard1.1"; LibSuccess = $null; CliFramework = "netcoreapp1.0"; CliSuccess = $null; TestFramework = "netcoreapp1.0"; TestSuccess = $null },
@@ -34,7 +34,7 @@
         "Uwp" = @{ Name = "UWP App"; Success = $null }
     }
 
-    $signReleaseBuild = $true
+    $signReleaseBuild = $false
 }
 
 framework '4.6'
