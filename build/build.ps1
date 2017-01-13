@@ -124,7 +124,7 @@ function BuildUwp() {
         if ($thumbprint) {
             $thumbprint = "/p:PackageCertificateThumbprint=" + $thumbprint
         }
-
+        
         NetCliRestore -Path $libraryDir,$uwpDir
 
         $csproj = "$uwpDir\DspAdpcm.Uwp.csproj"
@@ -340,11 +340,25 @@ function SetupUwpSigningCertificate()
         return
     }
 
-    $cert = New-SelfSignedCertificate -Subject CN=$env:username -Type CodeSigningCert -TextExtension @("2.5.29.19={text}") -CertStoreLocation cert:\currentuser\my
-    Remove-Item $cert.PSPath
-    Export-PfxCertificate -Cert $cert -FilePath $keyFile -Password (New-Object System.Security.SecureString) | Out-Null
+    CreateSelfSignedCertificate -Path $keyFile
 
     Write-Host "Created self-signed test certificate at $keyFile"
+}
+
+function CreateSelfSignedCertificate([string]$Path)
+{
+    $subject = "CN=$env:username"
+    try {
+        $cert = New-SelfSignedCertificate -Subject $subject -Type CodeSigningCert -TextExtension @("2.5.29.19={text}") -CertStoreLocation cert:\currentuser\my
+    }
+    catch {
+        $date = Get-Date (Get-Date).AddYears(1) -format MM/dd/yyyy
+        exec { MakeCert /n $subject /r /pe /h 0 /eku 1.3.6.1.5.5.7.3.3,1.3.6.1.4.1.311.10.3.13 /e $date /ss My }
+        $cert = Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Subject -eq $subject }
+    }
+    
+    Remove-Item $cert.PSPath
+    Export-PfxCertificate -Cert $cert -FilePath $keyFile -Password (New-Object System.Security.SecureString) | Out-Null    
 }
 
 function ChangeAppxBundlePublisher([string]$Path, [string]$Publisher)
