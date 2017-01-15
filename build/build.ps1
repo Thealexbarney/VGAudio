@@ -39,7 +39,7 @@
 
 framework '4.6'
 
-task default -depends RebuildAllAndTest
+task default -depends RebuildAll
 
 task Clean -depends CleanBuild, CleanPublish
 
@@ -70,9 +70,11 @@ task PublishUwp -depends BuildUwp { PublishUwp }
 
 task TestLib -depends BuildLib { TestLib }
 
-task RebuildAll -depends Clean, BuildAll { WriteReport }
-task RebuildAllAndTest -depends Clean, BuildAll, TestLib { WriteReport }
-task BuildAll -depends CleanPublish, PublishLib, PublishCli, PublishUwp
+task RebuildAll -depends Clean, PublishLib, PublishCli, PublishUwp, TestLib { WriteReport }
+task RebuildNonUwp -depends Clean, PublishLib, PublishCli, TestLib { WriteReport }
+task BuildAll -depends CleanPublish, PublishLib, PublishCli, PublishUwp { WriteReport }
+
+task Appveyor -depends RebuildAll { VerifyBuildSuccess }
 
 function BuildLib() {
     SetupDotnetCli
@@ -124,7 +126,7 @@ function BuildUwp() {
         if ($thumbprint) {
             $thumbprint = "/p:PackageCertificateThumbprint=" + $thumbprint
         }
-        
+
         NetCliRestore -Path $libraryDir,$uwpDir
 
         $csproj = "$uwpDir\DspAdpcm.Uwp.csproj"
@@ -581,4 +583,35 @@ function WriteReport()
         }
     }
     $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+}
+
+function VerifyBuildSuccess()
+{
+    foreach ($build in $libraryBuilds) {
+        if ($build.LibSuccess -ne $true)
+        {
+            throw "Library build failed"
+        }
+    }
+
+    foreach ($build in $libraryBuilds | Where { $_.CliFramework }) {
+        if ($build.CliSuccess -ne $true)
+        {
+            throw "CLI build failed"
+        }
+    }
+
+    foreach ($build in $otherBuilds.Values) {
+        if ($build.Success -ne $true)
+        {
+            throw $build.Name + " build failed"
+        }
+    }
+
+    foreach ($build in $libraryBuilds | Where { $_.TestFramework }) {
+        if ($build.TestSuccess -ne $true)
+        {
+            throw "Tests failed"
+        }
+    }
 }
