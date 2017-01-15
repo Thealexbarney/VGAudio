@@ -5,6 +5,9 @@ using DspAdpcm.Compatibility;
 
 namespace DspAdpcm
 {
+    /// <summary>
+    /// Contains helper functions and objects
+    /// </summary>
     public static class Helpers
     {
         internal const int BytesPerFrame = 8;
@@ -103,9 +106,18 @@ namespace DspAdpcm
             return true;
         }
 
+        /// <summary>
+        /// Represents endianness
+        /// </summary>
         public enum Endianness
         {
+            /// <summary>
+            /// Big Endian
+            /// </summary>
             BigEndian,
+            /// <summary>
+            /// Little Endian
+            /// </summary>
             LittleEndian
         }
 

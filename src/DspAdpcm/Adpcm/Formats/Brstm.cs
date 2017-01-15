@@ -20,7 +20,7 @@ namespace DspAdpcm.Adpcm.Formats
     public class Brstm
     {
         /// <summary>
-        /// The underlying <see cref="AdpcmStream"/> or <see cref="LoopingPcmStream"/> used to build the BRSTM file.
+        /// The underlying <see cref="AdpcmStream"/> or <see cref="PcmStream"/> used to build the BRSTM file.
         /// </summary>
         public LoopingTrackStream AudioStream { get; set; }
 
