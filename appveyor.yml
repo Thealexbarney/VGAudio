@@ -1,0 +1,8 @@
+version: 1.1.1.{build}
+build_script:
+- ps: .\build\runbuild.ps1 RebuildAllAndTest
+artifacts:
+- path: publish\cli
+- path: publish\**\*.nupkg
+- path: publish\**\*.appxbundle
+test: off
