@@ -45,7 +45,7 @@ namespace DspAdpcm.Uwp.ViewModels
         public double SamplesPerMs => Samples / (Time * 1000);
 
         public DspConfiguration DspConfiguration { get; set; } = new DspConfiguration();
-        public BrstmConfiguration BrstmConfiguration { get; set; } = new BrstmConfiguration();
+        public BrstmConfiguration BrstmConfiguration { get; set; } = new AdpcmBrstmConfiguration();
         public BcstmConfiguration BcstmConfiguration { get; set; } = new BcstmConfiguration();
         public BfstmConfiguration BfstmConfiguration { get; set; } = new BfstmConfiguration();
         public IdspConfiguration IdspConfiguration { get; set; } = new IdspConfiguration();
@@ -85,7 +85,7 @@ namespace DspAdpcm.Uwp.ViewModels
                         var brstm = new Brstm(new FileStream(fileName, FileMode.Open));
                         await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                            CoreDispatcherPriority.Normal, () => { BrstmConfiguration = brstm.Configuration; });
-                        return brstm.AudioStream;
+                        return brstm.AudioStream as AdpcmStream;
                     },
                     adpcmStream => new Brstm(adpcmStream, BrstmConfiguration).GetFile()),
                 [AdpcmTypes.Bcstm] = new AudioFileType("BCSTM", ".bcstm", "BCSTM Audio File",

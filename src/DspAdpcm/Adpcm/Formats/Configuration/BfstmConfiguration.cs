@@ -14,7 +14,7 @@ namespace DspAdpcm.Adpcm.Formats.Configuration
         };
 
         /// <summary>
-        /// <inheritdoc cref="B_stmConfiguration.RecalculateSeekTable"/>
+        /// <inheritdoc cref="AdpcmB_stmConfiguration.RecalculateSeekTable"/>
         /// </summary>
         public bool RecalculateSeekTable
         {
@@ -23,7 +23,7 @@ namespace DspAdpcm.Adpcm.Formats.Configuration
         }
 
         /// <summary>
-        /// <inheritdoc cref="B_stmConfiguration.RecalculateLoopContext"/>
+        /// <inheritdoc cref="AdpcmB_stmConfiguration.RecalculateLoopContext"/>
         /// </summary>
         public bool RecalculateLoopContext
         {
@@ -32,7 +32,7 @@ namespace DspAdpcm.Adpcm.Formats.Configuration
         }
 
         /// <summary>
-        /// <inheritdoc cref="B_stmConfiguration.SamplesPerInterleave"/>
+        /// <inheritdoc cref="AdpcmB_stmConfiguration.SamplesPerInterleave"/>
         /// </summary>
         public int SamplesPerInterleave
         {
@@ -41,7 +41,7 @@ namespace DspAdpcm.Adpcm.Formats.Configuration
         }
 
         /// <summary>
-        /// <inheritdoc cref="B_stmConfiguration.SamplesPerSeekTableEntry"/>
+        /// <inheritdoc cref="AdpcmB_stmConfiguration.SamplesPerSeekTableEntry"/>
         /// </summary>
         public int SamplesPerSeekTableEntry
         {
@@ -50,7 +50,7 @@ namespace DspAdpcm.Adpcm.Formats.Configuration
         }
 
         /// <summary>
-        /// <inheritdoc cref="B_stmConfiguration.LoopPointAlignment"/>
+        /// <inheritdoc cref="AdpcmB_stmConfiguration.LoopPointAlignment"/>
         /// </summary>
         public int LoopPointAlignment
         {

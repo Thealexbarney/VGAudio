@@ -7,9 +7,32 @@ namespace DspAdpcm.Adpcm.Formats.Internal
     /// Contains the options used to build audio files.
     /// </summary>
     // ReSharper disable once InconsistentNaming
-    public abstract class B_stmConfiguration
+    public interface B_stmConfiguration
     {
-        internal B_stmConfiguration() { }
+        /// <summary>
+        /// The number of samples in each block when interleaving
+        /// the audio data in the audio file.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if value is negative 
+        /// or not appropriate for the chosen encoding.</exception>
+        int SamplesPerInterleave { get; set; }
+        
+        /// <summary>
+        /// When building the audio file, the loop points and audio will
+        /// be adjusted so that the start loop point is a multiple of
+        /// this number.
+        /// </summary>
+        int LoopPointAlignment { get; set; }
+    }
+
+    /// <summary>
+    /// Contains the options used to build audio files, including options
+    /// specific to ADPCM encoding.
+    /// </summary>
+    // ReSharper disable once InconsistentNaming
+    public abstract class AdpcmB_stmConfiguration : B_stmConfiguration
+    {
+        internal AdpcmB_stmConfiguration() { }
         private int _samplesPerInterleave = 0x3800;
         private int _samplesPerSeekTableEntry = 0x3800;
 
@@ -83,5 +106,43 @@ namespace DspAdpcm.Adpcm.Formats.Internal
         /// this number. Default is 14,336 (0x3800).
         /// </summary>
         public int LoopPointAlignment { get; set; } = 0x3800;
+    }
+    
+    /// <summary>
+    /// Contains the options used to build audio files, including options
+    /// specific to PCM encoding.
+    /// </summary>
+    // ReSharper disable once InconsistentNaming
+    public abstract class PcmB_stmConfiguration : B_stmConfiguration
+    {
+        internal PcmB_stmConfiguration() { }
+        private int _samplesPerInterleave = 0x1000;
+
+        /// <summary>
+        /// The number of samples in each block when interleaving
+        /// the audio data in the audio file.
+        /// Default is 4,096 (0x1000).
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if value is negative.</exception>
+        public int SamplesPerInterleave
+        {
+            get { return _samplesPerInterleave; }
+            set
+            {
+                if (value < 1)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value,
+                        "Number of samples per interleave must be positive");
+                }
+                _samplesPerInterleave = value;
+            }
+        }
+
+        /// <summary>
+        /// When building the audio file, the loop points and audio will
+        /// be adjusted so that the start loop point is a multiple of
+        /// this number. Default is 4,096 (0x1000).
+        /// </summary>
+        public int LoopPointAlignment { get; set; } = 0x1000;
     }
 }

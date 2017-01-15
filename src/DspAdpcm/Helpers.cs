@@ -5,13 +5,16 @@ using DspAdpcm.Compatibility;
 
 namespace DspAdpcm
 {
-    internal static class Helpers
+    /// <summary>
+    /// Contains helper functions and objects
+    /// </summary>
+    public static class Helpers
     {
-        public const int BytesPerFrame = 8;
-        public const int SamplesPerFrame = 14;
-        public const int NibblesPerFrame = 16;
+        internal const int BytesPerFrame = 8;
+        internal const int SamplesPerFrame = 14;
+        internal const int NibblesPerFrame = 16;
 
-        public static int GetNibbleFromSample(int samples)
+        internal static int GetNibbleFromSample(int samples)
         {
             int frames = samples / SamplesPerFrame;
             int extraSamples = samples % SamplesPerFrame;
@@ -20,7 +23,7 @@ namespace DspAdpcm
             return NibblesPerFrame * frames + extraNibbles;
         }
 
-        public static int GetSampleFromNibble(int nibble)
+        internal static int GetSampleFromNibble(int nibble)
         {
             int frames = nibble / NibblesPerFrame;
             int extraNibbles = nibble % NibblesPerFrame;
@@ -29,7 +32,7 @@ namespace DspAdpcm
             return samples + extraNibbles - (extraNibbles != 0 ? 2 : 0);
         }
 
-        public static int GetNibbleAddress(int sample)
+        internal static int GetNibbleAddress(int sample)
         {
             int frames = sample / SamplesPerFrame;
             int extraSamples = sample % SamplesPerFrame;
@@ -37,7 +40,7 @@ namespace DspAdpcm
             return NibblesPerFrame * frames + extraSamples + 2;
         }
 
-        public static int GetBytesForAdpcmSamples(int samples)
+        internal static int GetBytesForAdpcmSamples(int samples)
         {
             int extraBytes = 0;
             int frames = samples / SamplesPerFrame;
@@ -54,7 +57,7 @@ namespace DspAdpcm
 #if !(NET20 || NET35 || NET40)
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        public static short Clamp16(int value)
+        internal static short Clamp16(int value)
         {
             if (value > short.MaxValue)
                 return short.MaxValue;
@@ -63,7 +66,7 @@ namespace DspAdpcm
             return (short)value;
         }
 
-        public static int GetNextMultiple(int value, int multiple)
+        internal static int GetNextMultiple(int value, int multiple)
         {
             if (multiple <= 0)
                 return value;
@@ -74,7 +77,7 @@ namespace DspAdpcm
             return value + multiple - value % multiple;
         }
 
-        public static void CheckStream(Stream stream, int minLength)
+        internal static void CheckStream(Stream stream, int minLength)
         {
             if (!stream.CanSeek)
             {
@@ -87,7 +90,7 @@ namespace DspAdpcm
             }
         }
 
-        public static bool ArraysEqual<T>(T[] a1, T[] a2)
+        internal static bool ArraysEqual<T>(T[] a1, T[] a2)
         {
             if (a1 == null || a2 == null) return false;
             if (a1 == a2) return true;
@@ -103,18 +106,27 @@ namespace DspAdpcm
             return true;
         }
 
+        /// <summary>
+        /// Represents endianness
+        /// </summary>
         public enum Endianness
         {
+            /// <summary>
+            /// Big Endian
+            /// </summary>
             BigEndian,
+            /// <summary>
+            /// Little Endian
+            /// </summary>
             LittleEndian
         }
 
-        public static BinaryReader GetBinaryReader(Stream stream, Endianness endianness) =>
+        internal static BinaryReader GetBinaryReader(Stream stream, Endianness endianness) =>
             endianness == Endianness.LittleEndian
                 ? GetStream.GetBinaryReader(stream)
                 : GetStream.GetBinaryReaderBE(stream);
 
-        public static BinaryWriter GetBinaryWriter(Stream stream, Endianness endianness) =>
+        internal static BinaryWriter GetBinaryWriter(Stream stream, Endianness endianness) =>
             endianness == Endianness.LittleEndian
                 ? GetStream.GetBinaryWriter(stream)
                 : GetStream.GetBinaryWriterBE(stream);

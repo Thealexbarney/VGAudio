@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using static DspAdpcm.Helpers;
+using DspAdpcm.Adpcm;
 
 #if NET20
 using DspAdpcm.Compatibility.LinqBridge;
@@ -14,7 +15,7 @@ namespace DspAdpcm.Pcm
     /// A 16-bit PCM audio stream.
     /// The stream can contain any number of individual channels.
     /// </summary>
-    public class PcmStream
+    public class PcmStream : LoopingTrackStream
     {
         /// <summary>
         /// The number of samples in the <see cref="PcmStream"/>.
@@ -31,6 +32,31 @@ namespace DspAdpcm.Pcm
         /// The number of channels currently in the <see cref="PcmStream"/>.
         /// </summary>
         public int NumChannels => Channels.Count;
+
+        /// <summary>
+        /// The loop start point in samples.
+        /// </summary>
+        public int LoopStart { get; internal set; }
+        /// <summary>
+        /// The loop end point in samples.
+        /// </summary>
+        public int LoopEnd { get; internal set; }
+        /// <summary>
+        /// Indicates whether the <see cref="PcmStream"/>
+        /// loops or not.
+        /// </summary>
+        public bool Looping { get; private set; }
+
+        private List<AdpcmTrack> _tracks;
+
+        /// <summary>
+        /// A list of tracks in the stream (used for B_STM formats.) Each track is composed of one or two channels.
+        /// </summary>
+        public List<AdpcmTrack> Tracks
+        {
+            get { return _tracks == null || _tracks.Count == 0 ? GetDefaultTrackList().ToList() : _tracks; }
+            internal set { _tracks = value; }
+        }
 
         /// <summary>
         /// Creates an empty <see cref="PcmStream"/> and sets the
@@ -109,6 +135,73 @@ namespace DspAdpcm.Pcm
             }
 
             return copy;
+        }
+
+        /// <summary>
+        /// Sets the loop points for the <see cref="PcmStream"/>.
+        /// </summary>
+        /// <param name="loopStart">The start loop point in samples.</param>
+        /// <param name="loopEnd">The end loop point in samples.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the
+        /// specified <paramref name="loopStart"/> or <paramref name="loopEnd"/>
+        /// are invalid./></exception>
+        public void SetLoop(int loopStart, int loopEnd)
+        {
+            if (loopStart < 0 || loopStart > NumSamples)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopStart), loopStart, "Loop points must be less than the number of samples and non-negative.");
+            }
+
+            if (loopEnd < 0 || loopEnd > NumSamples)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopEnd), loopEnd, "Loop points must be less than the number of samples and non-negative.");
+            }
+
+            if (loopEnd < loopStart)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopEnd), loopEnd, "The loop end must be greater than the loop start");
+            }
+
+            Looping = true;
+            LoopStart = loopStart;
+            LoopEnd = loopEnd;
+        }
+
+        /// <summary>
+        /// Sets the loop points for the <see cref="PcmStream"/>.
+        /// </summary>
+        /// <param name="loop">If <c>false</c>, don't loop the <see cref="PcmStream"/>.
+        /// If <c>true</c>, loop the <see cref="PcmStream"/> from 0 to <see cref="PcmStream.NumSamples"/></param>
+        public void SetLoop(bool loop)
+        {
+            Looping = loop;
+            LoopStart = 0;
+            LoopEnd = loop ? NumSamples : 0;
+        }
+
+        private IEnumerable<AdpcmTrack> GetDefaultTrackList()
+        {
+            int numTracks = Channels.Count.DivideByRoundUp(2);
+            for (int i = 0; i < numTracks; i++)
+            {
+                int numChannels = Math.Min(Channels.Count - i * 2, 2);
+                yield return new AdpcmTrack
+                {
+                    NumChannels = numChannels,
+                    ChannelLeft = i * 2,
+                    ChannelRight = numChannels >= 2 ? i * 2 + 1 : 0
+                };
+            }
+        }
+
+        /// <summary>
+        /// Get an array of byte arrays containing the encoded audio data (one array per channel.)
+        /// </summary>
+        /// <param name="endianness">The endianness of the format (not used for ADPCM)</param>
+        /// <returns>An array that contains one byte array per channel</returns>
+        public byte[][] GetAudioData(Endianness endianness)
+        {
+            return Channels.Select(x => x.GetAudioData(endianness)).ToArray();
         }
 
         /// <summary>

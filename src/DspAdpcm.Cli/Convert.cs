@@ -58,7 +58,8 @@ namespace DspAdpcm.Cli
                         break;
                     case FileType.Brstm:
                         var brstm = new Brstm(stream);
-                        file.Adpcm = brstm.AudioStream;
+                        file.Adpcm = brstm.AudioStream as AdpcmStream;
+                        file.Pcm = brstm.AudioStream as PcmStream;
                         Configuration = brstm.Configuration;
                         break;
                     case FileType.Bcstm:
@@ -96,7 +97,8 @@ namespace DspAdpcm.Cli
                         new Idsp(Adpcm, Configuration as IdspConfiguration).WriteFile(stream);
                         break;
                     case FileType.Brstm:
-                        new Brstm(Adpcm, Configuration as BrstmConfiguration).WriteFile(stream);
+                        var preferredStream = (Adpcm as LoopingTrackStream) ?? (Pcm as LoopingTrackStream);
+                        new Brstm(preferredStream, Configuration as BrstmConfiguration).WriteFile(stream);
                         break;
                     case FileType.Bcstm:
                         new Bcstm(Adpcm, Configuration as BcstmConfiguration).WriteFile(stream);
@@ -130,14 +132,18 @@ namespace DspAdpcm.Cli
                 }
             }
 
-            if (options.NoLoop && outCodec == AudioCodec.Adpcm)
+            var outStream = (outCodec == AudioCodec.Adpcm)
+                ? Adpcm as LoopingTrackStream
+                : Pcm as LoopingTrackStream;
+
+            if (options.NoLoop)
             {
-                Adpcm.SetLoop(false);
+                outStream.SetLoop(false);
             }
 
-            if (options.Loop && outCodec == AudioCodec.Adpcm)
+            if (options.Loop)
             {
-                Adpcm.SetLoop(options.LoopStart, options.LoopEnd);
+                outStream.SetLoop(options.LoopStart, options.LoopEnd);
             }
         }
     }
