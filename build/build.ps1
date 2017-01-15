@@ -39,7 +39,7 @@
 
 framework '4.6'
 
-task default -depends RebuildAllAndTest
+task default -depends RebuildAll
 
 task Clean -depends CleanBuild, CleanPublish
 
@@ -70,9 +70,11 @@ task PublishUwp -depends BuildUwp { PublishUwp }
 
 task TestLib -depends BuildLib { TestLib }
 
-task RebuildAll -depends Clean, BuildAll { WriteReport }
-task RebuildAllAndTest -depends Clean, BuildAll, TestLib { WriteReport }
-task BuildAll -depends CleanPublish, PublishLib, PublishCli, PublishUwp
+task RebuildAll -depends Clean, PublishLib, PublishCli, PublishUwp, TestLib { WriteReport }
+task RebuildNonUwp -depends Clean, PublishLib, PublishCli, TestLib { WriteReport }
+task BuildAll -depends CleanPublish, PublishLib, PublishCli, PublishUwp { WriteReport }
+
+task Appveyor -depends RebuildAll { VerifyBuildSuccess }
 
 function BuildLib() {
     SetupDotnetCli
@@ -340,11 +342,25 @@ function SetupUwpSigningCertificate()
         return
     }
 
-    $cert = New-SelfSignedCertificate -Subject CN=$env:username -Type CodeSigningCert -TextExtension @("2.5.29.19={text}") -CertStoreLocation cert:\currentuser\my
-    Remove-Item $cert.PSPath
-    Export-PfxCertificate -Cert $cert -FilePath $keyFile -Password (New-Object System.Security.SecureString) | Out-Null
+    CreateSelfSignedCertificate -Path $keyFile
 
     Write-Host "Created self-signed test certificate at $keyFile"
+}
+
+function CreateSelfSignedCertificate([string]$Path)
+{
+    $subject = "CN=$env:username"
+    try {
+        $cert = New-SelfSignedCertificate -Subject $subject -Type CodeSigningCert -TextExtension @("2.5.29.19={text}") -CertStoreLocation cert:\currentuser\my
+    }
+    catch {
+        $date = Get-Date (Get-Date).AddYears(1) -format MM/dd/yyyy
+        exec { MakeCert /n $subject /r /pe /h 0 /eku 1.3.6.1.5.5.7.3.3,1.3.6.1.4.1.311.10.3.13 /e $date /ss My }
+        $cert = Get-ChildItem -Path cert: -Recurse -CodeSigningCert | Where { $_.Subject -eq $subject }
+    }
+    
+    Remove-Item $cert.PSPath
+    Export-PfxCertificate -Cert $cert -FilePath $keyFile -Password (New-Object System.Security.SecureString) | Out-Null    
 }
 
 function ChangeAppxBundlePublisher([string]$Path, [string]$Publisher)
@@ -567,4 +583,35 @@ function WriteReport()
         }
     }
     $list | format-table -autoSize -property Name,Status | out-string -stream | where-object { $_ }
+}
+
+function VerifyBuildSuccess()
+{
+    foreach ($build in $libraryBuilds) {
+        if ($build.LibSuccess -ne $true)
+        {
+            throw "Library build failed"
+        }
+    }
+
+    foreach ($build in $libraryBuilds | Where { $_.CliFramework }) {
+        if ($build.CliSuccess -ne $true)
+        {
+            throw "CLI build failed"
+        }
+    }
+
+    foreach ($build in $otherBuilds.Values) {
+        if ($build.Success -ne $true)
+        {
+            throw $build.Name + " build failed"
+        }
+    }
+
+    foreach ($build in $libraryBuilds | Where { $_.TestFramework }) {
+        if ($build.TestSuccess -ne $true)
+        {
+            throw "Tests failed"
+        }
+    }
 }
