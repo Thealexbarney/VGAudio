@@ -87,7 +87,8 @@ function BuildLib() {
         try {
             NetCliBuild $libraryDir $build.Name
         }
-        catch {
+        catch [Exception] {
+            PrintException -Ex $_.Exception
             $build.LibSuccess = $false
             continue
         }
@@ -105,7 +106,8 @@ function BuildCli() {
         try {
             NetCliBuild $cliDir $build.CliFramework
         }
-        catch {
+        catch [Exception] {
+            PrintException -Ex $_.Exception
             $build.CliSuccess = $false
             continue
         }
@@ -132,7 +134,8 @@ function BuildUwp() {
         $csproj = "$uwpDir\DspAdpcm.Uwp.csproj"
         exec { msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m $thumbprint }
     }
-    catch {
+    catch [Exception] {
+        PrintException -Ex $_.Exception
         $otherBuilds.Uwp.Success = $false
         return
     }
@@ -198,7 +201,8 @@ function TestLib() {
             $path = "$sourceDir\" + $build.TestDir
             exec { dotnet test $testsDir -c release -f $build.TestFramework }
         }
-        catch {
+        catch [Exception] {
+            PrintException -Ex $_.Exception
             $build.TestSuccess = $false
             continue
         }
@@ -492,6 +496,11 @@ function CertificateExists([string]$Thumbprint)
         return $true
     }
     return $false
+}
+
+function PrintException([Exception]$Ex)
+{
+    Write-Output "Exception thrown: " + $Ex.Message + "`n"
 }
 
 function WriteReport()
