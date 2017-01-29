@@ -7,7 +7,7 @@ using DspAdpcm.Compatibility.LinqBridge;
 using System.Linq;
 #endif
 
-namespace DspAdpcm
+namespace DspAdpcm.Utilities
 {
     internal static class InterleaveExtensions
     {

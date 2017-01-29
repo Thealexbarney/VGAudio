@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 using DspAdpcm.Containers.Structures;
-using static DspAdpcm.Helpers;
+using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers
 {

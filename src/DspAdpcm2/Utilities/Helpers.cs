@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using DspAdpcm.Compatibility;
 
-namespace DspAdpcm
+namespace DspAdpcm.Utilities
 {
     internal static class Helpers
     {

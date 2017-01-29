@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using static DspAdpcm.Helpers;
+using static DspAdpcm.Utilities.Helpers;
 
 #if NET20
 using DspAdpcm.Compatibility.LinqBridge;
@@ -10,7 +10,7 @@ using DspAdpcm.Compatibility.LinqBridge;
 using System.Linq;
 #endif
 
-namespace DspAdpcm
+namespace DspAdpcm.Utilities
 {
     internal static class Extensions
     {

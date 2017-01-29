@@ -1,4 +1,4 @@
-﻿using static DspAdpcm.Helpers;
+﻿using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Codecs
 {

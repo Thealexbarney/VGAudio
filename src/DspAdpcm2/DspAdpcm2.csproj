@@ -43,8 +43,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AudioStream.cs" />
-    <Compile Include="BinaryReaderBE.cs" />
-    <Compile Include="BinaryWriterBE.cs" />
+    <Compile Include="Utilities\BinaryReaderBE.cs" />
+    <Compile Include="Utilities\BinaryWriterBE.cs" />
     <Compile Include="Codecs\AdpcmAlignment.cs" />
     <Compile Include="Codecs\AdpcmChannel.cs" />
     <Compile Include="Codecs\AdpcmChannelInfo.cs" />
@@ -63,9 +63,9 @@
     <Compile Include="Containers\IWritableAudio.cs" />
     <Compile Include="Containers\Structures\WaveStructure.cs" />
     <Compile Include="Containers\Wave.cs" />
-    <Compile Include="Helpers.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="Interleave.cs" />
+    <Compile Include="Utilities\Helpers.cs" />
+    <Compile Include="Utilities\Extensions.cs" />
+    <Compile Include="Utilities\Interleave.cs" />
     <Compile Include="NamespaceDoc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

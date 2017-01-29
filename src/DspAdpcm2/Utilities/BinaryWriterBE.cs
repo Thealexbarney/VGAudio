@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace DspAdpcm
+namespace DspAdpcm.Utilities
 {
     internal class BinaryWriterBE : BinaryWriter
     {
