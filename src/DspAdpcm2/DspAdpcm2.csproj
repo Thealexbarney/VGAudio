@@ -25,7 +25,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\DspAdpcm.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -43,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AudioStream.cs" />
+    <Compile Include="Containers\WaveWriter.cs" />
     <Compile Include="Utilities\BinaryReaderBE.cs" />
     <Compile Include="Utilities\BinaryWriterBE.cs" />
     <Compile Include="Codecs\AdpcmAlignment.cs" />
@@ -51,7 +51,6 @@
     <Compile Include="Codecs\AdpcmLoopContext.cs" />
     <Compile Include="Codecs\AdpcmSeekTable.cs" />
     <Compile Include="Codecs\AdpcmStream.cs" />
-    <Compile Include="Codecs\Pcm16Channel.cs" />
     <Compile Include="Codecs\Pcm16Stream.cs" />
     <Compile Include="Compatibility\EnumFlag.cs" />
     <Compile Include="Compatibility\Extensions.cs" />
@@ -59,10 +58,10 @@
     <Compile Include="Compatibility\Parallel.cs" />
     <Compile Include="Compatibility\Stream.cs" />
     <Compile Include="Compatibility\Tuple.cs" />
-    <Compile Include="Containers\IReadableAudio.cs" />
-    <Compile Include="Containers\IWritableAudio.cs" />
+    <Compile Include="Containers\IAudioReader.cs" />
+    <Compile Include="Containers\IAudioWriter.cs" />
     <Compile Include="Containers\Structures\WaveStructure.cs" />
-    <Compile Include="Containers\Wave.cs" />
+    <Compile Include="Containers\WaveReader.cs" />
     <Compile Include="Utilities\Helpers.cs" />
     <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="Utilities\Interleave.cs" />

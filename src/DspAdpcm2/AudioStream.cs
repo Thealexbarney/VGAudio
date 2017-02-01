@@ -19,6 +19,8 @@ namespace DspAdpcm
         /// </summary>
         public int SampleRate { get; set; }
 
+        public int NumChannels { get; set; }
+
         /// <summary>
         /// The loop start point in samples.
         /// </summary>
@@ -51,6 +53,18 @@ namespace DspAdpcm
         {
             get { return _pcm16 ?? (_pcm16 = new Pcm16Stream(NumSamples)); }
             set { _pcm16 = value; }
+        }
+
+        public bool AddPcm16Channel(short[] audio)
+        {
+            if (audio.Length != NumSamples)
+            {
+                return false;
+            }
+            Pcm16.AddChannel(audio);
+
+            NumChannels = Pcm16.Channels.Count;
+            return true;
         }
     }
 }

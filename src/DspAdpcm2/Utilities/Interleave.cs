@@ -162,5 +162,45 @@ namespace DspAdpcm.Utilities
 
             return outputs;
         }
+
+        public static byte[] ShortToInterleavedByte( this short[][] input)
+        {
+            int numInputs = input.Length;
+            int length = input[0].Length;
+            byte[] output = new byte[numInputs * length * 2];
+
+            for (int i = 0; i < length; i++)
+            {
+                for (int j = 0; j < numInputs; j++)
+                {
+                    int offset = (i * numInputs + j) * 2;
+                    output[offset] = (byte)input[j][i];
+                    output[offset + 1] = (byte)(input[j][i] >> 8);
+                }
+            }
+
+            return output;
+        }
+
+        public static short[][] InterleavedByteToShort(this byte[] input, int numOutputs)
+        {
+            int numItems = input.Length / 2 / numOutputs;
+            short[][] output = new short[numOutputs][];
+            for (int i = 0; i < numOutputs; i++)
+            {
+                output[i] = new short[numItems];
+            }
+
+            for (int i = 0; i < numItems; i++)
+            {
+                for (int o = 0; o < numOutputs; o++)
+                {
+                    int offset = (i * numOutputs + o) * 2;
+                    output[o][i] = (short)(input[offset] | (input[offset + 1] << 8));
+                }
+            }
+
+            return output;
+        }
     }
 }

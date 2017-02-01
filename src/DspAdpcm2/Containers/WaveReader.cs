@@ -2,11 +2,12 @@
 using System.IO;
 using System.Text;
 using DspAdpcm.Containers.Structures;
+using DspAdpcm.Utilities;
 using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers
 {
-    public class Wave : IReadableAudio
+    public class WaveReader : IAudioReader
     {
         // ReSharper disable InconsistentNaming
         private static readonly Guid KSDATAFORMAT_SUBTYPE_PCM =
@@ -15,8 +16,8 @@ namespace DspAdpcm.Containers
         private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
         // ReSharper restore InconsistentNaming
 
-        AudioStream IReadableAudio.Read(Stream stream) => Read(stream);
-        AudioStream IReadableAudio.Read(byte[] file) => Read(file);
+        AudioStream IAudioReader.Read(Stream stream) => Read(stream);
+        AudioStream IAudioReader.Read(byte[] file) => Read(file);
 
         public static AudioStream Read(Stream stream)
         {
@@ -26,7 +27,7 @@ namespace DspAdpcm.Containers
             }
 
             WaveStructure wave = ReadWaveFile(stream);
-            return GetAudioStream(wave);
+            return ToAudioStream(wave);
         }
         public static AudioStream Read(byte[] file)
         {
@@ -75,13 +76,13 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private static AudioStream GetAudioStream(WaveStructure structure)
+        private static AudioStream ToAudioStream(WaveStructure structure)
         {
             var audioStream = new AudioStream(structure.NumSamples, structure.SampleRate);
 
             for (int i = 0; i < structure.NumChannels; i++)
             {
-                audioStream.Pcm16.AddChannel(structure.AudioData[i]);
+                audioStream.AddPcm16Channel(structure.AudioData[i]);
             }
 
             return audioStream;
@@ -169,47 +170,7 @@ namespace DspAdpcm.Containers
                 throw new InvalidDataException("Incomplete Wave file");
             }
 
-            structure.AudioData = InterleavedByteToShort(interleavedAudio, structure.NumChannels);
-        }
-
-        private static short[][] InterleavedByteToShort(byte[] input, int numOutputs)
-        {
-            int numItems = input.Length / 2 / numOutputs;
-            short[][] output = new short[numOutputs][];
-            for (int i = 0; i < numOutputs; i++)
-            {
-                output[i] = new short[numItems];
-            }
-
-            for (int i = 0; i < numItems; i++)
-            {
-                for (int o = 0; o < numOutputs; o++)
-                {
-                    int offset = (i * numOutputs + o) * 2;
-                    output[o][i] = (short)(input[offset] | (input[offset + 1] << 8));
-                }
-            }
-
-            return output;
-        }
-
-        private static byte[] ShortToInterleavedByte(short[][] input)
-        {
-            int numInputs = input.Length;
-            int length = input[0].Length;
-            byte[] output = new byte[numInputs * length * 2];
-
-            for (int i = 0; i < length; i++)
-            {
-                for (int j = 0; j < numInputs; j++)
-                {
-                    int offset = (i * numInputs + j) * 2;
-                    output[offset] = (byte)input[j][i];
-                    output[offset + 1] = (byte)(input[j][i] >> 8);
-                }
-            }
-
-            return output;
+            structure.AudioData = interleavedAudio.InterleavedByteToShort(structure.NumChannels);
         }
     }
 }

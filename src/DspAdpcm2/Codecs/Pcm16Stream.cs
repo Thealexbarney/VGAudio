@@ -13,22 +13,22 @@ namespace DspAdpcm.Codecs
         /// </summary>
         public int NumSamples { get; set; }
 
-        internal List<Pcm16Channel> Channels { get; set; } = new List<Pcm16Channel>();
+        internal List<short[]> Channels { get; set; } = new List<short[]>();
+
+        public short[][] GetAudio => Channels.ToArray();
 
         public Pcm16Stream(int numSamples)
         {
             NumSamples = numSamples;
         }
 
-        public bool AddChannel(short[] audio)
+        internal bool AddChannel(short[] audio)
         {
             if (audio.Length != NumSamples)
             {
                 return false;
             }
-
-            var channel = new Pcm16Channel(audio);
-            Channels.Add(channel);
+            Channels.Add(audio);
 
             return true;
         }

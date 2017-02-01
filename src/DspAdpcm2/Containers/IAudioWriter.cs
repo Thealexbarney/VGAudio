@@ -2,9 +2,9 @@
 
 namespace DspAdpcm.Containers
 {
-    public interface IWritableAudio
+    public interface IAudioWriter
     {
-        void WriteStream(AudioStream audio, Stream stream);
+        void WriteToStream(AudioStream audio, Stream stream);
         byte[] GetFile(AudioStream audio);
     }
 }
