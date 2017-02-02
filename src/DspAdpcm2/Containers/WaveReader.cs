@@ -7,7 +7,7 @@ using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers
 {
-    public class WaveReader : IAudioReader
+    public class WaveReader : AudioReader<WaveReader, WaveStructure>
     {
         // ReSharper disable InconsistentNaming
         private static readonly Guid KSDATAFORMAT_SUBTYPE_PCM =
@@ -16,28 +16,7 @@ namespace DspAdpcm.Containers
         private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
         // ReSharper restore InconsistentNaming
 
-        AudioStream IAudioReader.Read(Stream stream) => Read(stream);
-        AudioStream IAudioReader.Read(byte[] file) => Read(file);
-
-        public static AudioStream Read(Stream stream)
-        {
-            if (!stream.CanSeek)
-            {
-                throw new NotSupportedException("A seekable stream is required");
-            }
-
-            WaveStructure wave = ReadWaveFile(stream);
-            return ToAudioStream(wave);
-        }
-        public static AudioStream Read(byte[] file)
-        {
-            using (var stream = new MemoryStream(file))
-            {
-                return Read(stream);
-            }
-        }
-
-        private static WaveStructure ReadWaveFile(Stream stream, bool readAudioData = true)
+        protected override WaveStructure ReadFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
@@ -76,7 +55,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private static AudioStream ToAudioStream(WaveStructure structure)
+        protected override AudioStream ToAudioStream(WaveStructure structure)
         {
             var audioStream = new AudioStream(structure.NumSamples, structure.SampleRate);
 

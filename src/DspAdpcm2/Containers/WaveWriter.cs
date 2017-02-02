@@ -5,13 +5,12 @@ using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers
 {
-    public class WaveWriter : IAudioWriter
+    public class WaveWriter : AudioWriter<WaveWriter>
     {
-        private AudioStream AudioStream { get; set; }
         private int NumChannels => AudioStream.NumChannels;
         private int NumSamples => AudioStream.NumSamples;
         private int SampleRate => AudioStream.SampleRate;
-        private int FileSize => 8 + RiffChunkSize;
+        protected override int FileSize => 8 + RiffChunkSize;
         private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize;
         private int FmtChunkSize => NumChannels > 2 ? 40 : 16;
         private int DataChunkSize => NumChannels * NumSamples * sizeof(short);
@@ -28,46 +27,9 @@ namespace DspAdpcm.Containers
         private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
         // ReSharper restore InconsistentNaming
 
-        byte[] IAudioWriter.GetFile(AudioStream audio) => GetFile(audio);
-        void IAudioWriter.WriteToStream(AudioStream audio, Stream stream) => WriteToStream(audio, stream);
 
-        public static byte[] GetFile(AudioStream audio) => new WaveWriter(audio).GetFile();
-        public static void WriteToStream(AudioStream audio, Stream stream) => new WaveWriter(audio).WriteToStream(stream);
-
-        private WaveWriter(AudioStream audio)
+        protected override void WriteStream(Stream stream)
         {
-            AudioStream = audio;
-        }
-
-        private byte[] GetFile()
-        {
-            var file = new byte[FileSize];
-            var stream = new MemoryStream(file);
-            WriteToStream(AudioStream, stream);
-            return file;
-        }
-
-        /// <summary>
-        /// Writes the WAVE file to a <see cref="Stream"/>.
-        /// The file is written starting at the beginning
-        /// of the <see cref="Stream"/>.
-        /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> to write the
-        /// WAVE to.</param>
-        public void WriteToStream(Stream stream)
-        {
-            if (stream.Length != FileSize)
-            {
-                try
-                {
-                    stream.SetLength(FileSize);
-                }
-                catch (NotSupportedException ex)
-                {
-                    throw new ArgumentException("Stream is too small.", nameof(stream), ex);
-                }
-            }
-
             using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.LittleEndian))
             {
                 stream.Position = 0;
