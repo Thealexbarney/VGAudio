@@ -144,5 +144,6 @@ namespace DspAdpcm.Utilities
         }
 
         public static int DivideByRoundUp(this int value, int divisor) => (int)Math.Ceiling((double)value / divisor);
+        public static int DivideBy2RoundUp(this int value) => (value / 2) + (value & 1);
     }
 }
