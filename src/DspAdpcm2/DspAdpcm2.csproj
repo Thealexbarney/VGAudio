@@ -73,7 +73,6 @@
     <Compile Include="Utilities\Helpers.cs" />
     <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="Utilities\Interleave.cs" />
-    <Compile Include="NamespaceDoc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
