@@ -43,8 +43,12 @@
   <ItemGroup>
     <Compile Include="AudioStream.cs" />
     <Compile Include="Codecs\Adpcm.cs" />
+    <Compile Include="Codecs\AdpcmTrack.cs" />
     <Compile Include="Containers\AudioReader.cs" />
     <Compile Include="Containers\AudioWriter.cs" />
+    <Compile Include="Containers\Structures\Base\BstmChannelInfo.cs" />
+    <Compile Include="Containers\Structures\Base\BstmCodec.cs" />
+    <Compile Include="Containers\Structures\BrstmStructure.cs" />
     <Compile Include="Containers\WaveWriter.cs" />
     <Compile Include="Utilities\BinaryReaderBE.cs" />
     <Compile Include="Utilities\BinaryWriterBE.cs" />
