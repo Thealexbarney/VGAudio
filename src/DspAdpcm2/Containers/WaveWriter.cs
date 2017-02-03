@@ -7,18 +7,18 @@ namespace DspAdpcm.Containers
 {
     public class WaveWriter : AudioWriter<WaveWriter>
     {
-        private int NumChannels => AudioStream.NumChannels;
-        private int NumSamples => AudioStream.NumSamples;
+        private int ChannelCount => AudioStream.ChannelCount;
+        private int SampleCount => AudioStream.SampleCount;
         private int SampleRate => AudioStream.SampleRate;
         protected override int FileSize => 8 + RiffChunkSize;
         private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize;
-        private int FmtChunkSize => NumChannels > 2 ? 40 : 16;
-        private int DataChunkSize => NumChannels * NumSamples * sizeof(short);
+        private int FmtChunkSize => ChannelCount > 2 ? 40 : 16;
+        private int DataChunkSize => ChannelCount * SampleCount * sizeof(short);
 
         private int BitDepth => 16;
         private int BytesPerSample => BitDepth.DivideByRoundUp(8);
-        private int BytesPerSecond => SampleRate * BytesPerSample * NumChannels;
-        private int BlockAlign => BytesPerSample * NumChannels;
+        private int BytesPerSecond => SampleRate * BytesPerSample * ChannelCount;
+        private int BlockAlign => BytesPerSample * ChannelCount;
 
         // ReSharper disable InconsistentNaming
         private static readonly Guid KSDATAFORMAT_SUBTYPE_PCM =
@@ -50,18 +50,18 @@ namespace DspAdpcm.Containers
         {
             writer.WriteUTF8("fmt ");
             writer.Write(FmtChunkSize);
-            writer.Write((short)(NumChannels > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
-            writer.Write((short)NumChannels);
+            writer.Write((short)(ChannelCount > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
+            writer.Write((short)ChannelCount);
             writer.Write(SampleRate);
             writer.Write(BytesPerSecond);
             writer.Write((short)BlockAlign);
             writer.Write((short)BitDepth);
 
-            if (NumChannels > 2)
+            if (ChannelCount > 2)
             {
                 writer.Write((short)22);
                 writer.Write((short)BitDepth);
-                writer.Write(GetChannelMask(NumChannels));
+                writer.Write(GetChannelMask(ChannelCount));
                 writer.Write(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
             }
         }
@@ -76,11 +76,11 @@ namespace DspAdpcm.Containers
             writer.BaseStream.Write(audioData, 0, audioData.Length);
         }
 
-        private static int GetChannelMask(int numChannels)
+        private static int GetChannelMask(int ChannelCount)
         {
             //Nothing special about these masks. I just choose
             //whatever channel combinations seemed okay.
-            switch (numChannels)
+            switch (ChannelCount)
             {
                 case 4:
                     return 0x0033;
@@ -93,7 +93,7 @@ namespace DspAdpcm.Containers
                 case 8:
                     return 0x06f3;
                 default:
-                    return (1 << numChannels) - 1;
+                    return (1 << ChannelCount) - 1;
             }
         }
     }

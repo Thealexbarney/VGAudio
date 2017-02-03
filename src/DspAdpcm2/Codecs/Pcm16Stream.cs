@@ -11,20 +11,20 @@ namespace DspAdpcm.Codecs
         /// <summary>
         /// The number of samples in the <see cref="Pcm16Stream"/>.
         /// </summary>
-        public int NumSamples { get; set; }
+        public int SampleCount { get; }
 
-        internal List<short[]> Channels { get; set; } = new List<short[]>();
+        internal List<short[]> Channels { get; } = new List<short[]>();
 
         public short[][] GetAudio => Channels.ToArray();
 
-        public Pcm16Stream(int numSamples)
+        public Pcm16Stream(int sampleCount)
         {
-            NumSamples = numSamples;
+            SampleCount = sampleCount;
         }
 
         internal bool AddChannel(short[] audio)
         {
-            if (audio.Length != NumSamples)
+            if (audio.Length != SampleCount)
             {
                 return false;
             }

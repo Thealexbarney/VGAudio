@@ -36,7 +36,7 @@ namespace DspAdpcm.Containers
                     {
                         if (!readAudioData)
                         {
-                            structure.NumSamples = chunkSize / structure.BytesPerSample / structure.NumChannels;
+                            structure.SampleCount = chunkSize / structure.BytesPerSample / structure.ChannelCount;
                             return structure;
                         }
                         ParseDataChunk(reader, chunkSize, structure);
@@ -57,9 +57,9 @@ namespace DspAdpcm.Containers
 
         protected override AudioStream ToAudioStream(WaveStructure structure)
         {
-            var audioStream = new AudioStream(structure.NumSamples, structure.SampleRate);
+            var audioStream = new AudioStream(structure.SampleCount, structure.SampleRate);
 
-            for (int i = 0; i < structure.NumChannels; i++)
+            for (int i = 0; i < structure.ChannelCount; i++)
             {
                 audioStream.AddPcm16Channel(structure.AudioData[i]);
             }
@@ -87,7 +87,7 @@ namespace DspAdpcm.Containers
         private static void ParseFmtChunk(BinaryReader reader, WaveStructure structure)
         {
             structure.FormatTag = reader.ReadUInt16();
-            structure.NumChannels = reader.ReadInt16();
+            structure.ChannelCount = reader.ReadInt16();
             structure.SampleRate = reader.ReadInt32();
             structure.AvgBytesPerSec = reader.ReadInt32();
             structure.BlockAlign = reader.ReadInt16();
@@ -108,7 +108,7 @@ namespace DspAdpcm.Containers
                 throw new InvalidDataException($"Must have 16 bits per sample, not {structure.BitsPerSample} bits per sample");
             }
 
-            if (structure.BlockAlign != structure.BytesPerSample * structure.NumChannels)
+            if (structure.BlockAlign != structure.BytesPerSample * structure.ChannelCount)
             {
                 throw new InvalidDataException("File has invalid block alignment");
             }
@@ -135,9 +135,9 @@ namespace DspAdpcm.Containers
 
         private static void ParseDataChunk(BinaryReader reader, int chunkSize, WaveStructure structure)
         {
-            structure.NumSamples = chunkSize / structure.BytesPerSample / structure.NumChannels;
+            structure.SampleCount = chunkSize / structure.BytesPerSample / structure.ChannelCount;
 
-            int extraBytes = chunkSize % (structure.NumChannels * structure.BytesPerSample);
+            int extraBytes = chunkSize % (structure.ChannelCount * structure.BytesPerSample);
             if (extraBytes != 0)
             {
                 throw new InvalidDataException($"{extraBytes} extra bytes at end of audio data chunk");
@@ -149,7 +149,7 @@ namespace DspAdpcm.Containers
                 throw new InvalidDataException("Incomplete Wave file");
             }
 
-            structure.AudioData = interleavedAudio.InterleavedByteToShort(structure.NumChannels);
+            structure.AudioData = interleavedAudio.InterleavedByteToShort(structure.ChannelCount);
         }
     }
 }

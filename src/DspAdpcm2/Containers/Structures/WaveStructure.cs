@@ -21,7 +21,7 @@ namespace DspAdpcm.Containers.Structures
         /// <summary>
         /// The number of channels in the WAVE file.
         /// </summary>
-        public int NumChannels { get; set; }
+        public int ChannelCount { get; set; }
         /// <summary>
         /// The audio sample rate.
         /// </summary>
@@ -63,7 +63,7 @@ namespace DspAdpcm.Containers.Structures
         /// <summary>
         /// The number of samples in the audio file.
         /// </summary>
-        public int NumSamples { get; set; }
+        public int SampleCount { get; set; }
         internal short[][] AudioData { get; set; }
     }
 }
