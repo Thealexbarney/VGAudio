@@ -12,6 +12,8 @@ namespace DspAdpcm.Codecs
 
         internal List<AdpcmChannel> Channels { get; } = new List<AdpcmChannel>();
 
+        public List<AdpcmTrack> Tracks { get; set; }= new List<AdpcmTrack>();
+
         public AdpcmChannel[] GetAudio => Channels.ToArray();
 
         public AdpcmStream(int sampleCount)

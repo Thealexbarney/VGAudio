@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DspAdpcm.Codecs
 {
@@ -13,7 +14,11 @@ namespace DspAdpcm.Codecs
         public short Hist1 { get; set; }
         public short Hist2 { get; set; }
 
-        internal AdpcmSeekTable SeekTable { get; set; }
+        public short LoopPredScale => LoopContext?.PredScale ?? 0;
+        public short LoopHist1 => LoopContext?.Hist1 ?? 0;
+        public short LoopHist2 => LoopContext?.Hist2 ?? 0;
+
+        internal List<AdpcmSeekTable> SeekTable { get; set; } = new List<AdpcmSeekTable>();
         internal AdpcmLoopContext LoopContext { get; set; }
         internal AdpcmAlignment Alignment { get; set; }
 
@@ -32,6 +37,16 @@ namespace DspAdpcm.Codecs
 
             SampleCount = sampleCount;
             AudioData = audio;
+        }
+
+        internal void SetLoopContext(short predScale, short hist1, short hist2)
+        {
+            LoopContext = new AdpcmLoopContext()
+            {
+                PredScale = predScale,
+                Hist1 = hist1,
+                Hist2 = hist2
+            };
         }
     }
 }

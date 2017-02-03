@@ -1,4 +1,5 @@
-﻿using DspAdpcm.Codecs;
+﻿using System;
+using DspAdpcm.Codecs;
 
 namespace DspAdpcm
 {
@@ -84,6 +85,36 @@ namespace DspAdpcm
 
             ChannelCount = Adpcm.Channels.Count;
             return true;
+        }
+
+        /// <summary>
+        /// Sets the loop points for the <see cref="AudioStream"/>.
+        /// </summary>
+        /// <param name="loopStart">The start loop point in samples.</param>
+        /// <param name="loopEnd">The end loop point in samples.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the
+        /// specified <paramref name="loopStart"/> or <paramref name="loopEnd"/>
+        /// are invalid./></exception>
+        public void SetLoop(int loopStart, int loopEnd)
+        {
+            if (loopStart < 0 || loopStart > SampleCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopStart), loopStart, "Loop points must be less than the number of samples and non-negative.");
+            }
+
+            if (loopEnd < 0 || loopEnd > SampleCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopEnd), loopEnd, "Loop points must be less than the number of samples and non-negative.");
+            }
+
+            if (loopEnd < loopStart)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopEnd), loopEnd, "The loop end must be greater than the loop start");
+            }
+
+            Looping = true;
+            LoopStart = loopStart;
+            LoopEnd = loopEnd;
         }
     }
 }

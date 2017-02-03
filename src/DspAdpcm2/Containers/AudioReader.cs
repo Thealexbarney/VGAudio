@@ -32,8 +32,7 @@ namespace DspAdpcm.Containers
             return ReadFile(stream, readAudioData);
         }
 
-        protected abstract AudioStream ToAudioStream(TStructure structure);
-
         protected abstract TStructure ReadFile(Stream stream, bool readAudioData = true);
+        protected abstract AudioStream ToAudioStream(TStructure structure);
     }
 }

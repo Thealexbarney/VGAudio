@@ -76,11 +76,11 @@ namespace DspAdpcm.Containers
             writer.BaseStream.Write(audioData, 0, audioData.Length);
         }
 
-        private static int GetChannelMask(int ChannelCount)
+        private static int GetChannelMask(int channelCount)
         {
             //Nothing special about these masks. I just choose
             //whatever channel combinations seemed okay.
-            switch (ChannelCount)
+            switch (channelCount)
             {
                 case 4:
                     return 0x0033;
@@ -93,7 +93,7 @@ namespace DspAdpcm.Containers
                 case 8:
                     return 0x06f3;
                 default:
-                    return (1 << ChannelCount) - 1;
+                    return (1 << channelCount) - 1;
             }
         }
     }
