@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="AudioStream.cs" />
     <Compile Include="Codecs\Adpcm.cs" />
+    <Compile Include="Codecs\AdpcmDecode.cs" />
     <Compile Include="Codecs\AdpcmTrack.cs" />
     <Compile Include="Containers\AudioReader.cs" />
     <Compile Include="Containers\AudioWriter.cs" />
