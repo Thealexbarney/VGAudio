@@ -19,6 +19,9 @@ namespace DspAdpcm.Utilities
             return (short)value;
         }
 
+        public static byte GetHighNibble(byte value) => (byte)((value >> 4) & 0xF);
+        public static byte GetLowNibble(byte value) => (byte)(value & 0xF);
+
         public static int GetNextMultiple(int value, int multiple)
         {
             if (multiple <= 0)
