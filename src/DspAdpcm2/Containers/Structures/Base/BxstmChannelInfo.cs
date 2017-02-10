@@ -7,10 +7,9 @@ namespace DspAdpcm.Containers.Structures.Base
     /// ADPCM channel.
     /// Used in BRSTM, BCSTM, and BFSTM files.
     /// </summary>
-    // ReSharper disable once InconsistentNaming
-    public class BstmChannelInfo : AdpcmChannelInfo
+    public class BxstmChannelInfo : AdpcmChannelInfo
     {
-        internal BstmChannelInfo() { }
+        internal BxstmChannelInfo() { }
         /// <summary>
         /// The offset of the channel information. 
         /// Used in BRSTM, BCSTM, and BFSTM headers.

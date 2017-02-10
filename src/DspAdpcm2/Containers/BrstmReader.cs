@@ -130,8 +130,8 @@ namespace DspAdpcm.Containers
         private static void ParseHeadChunk1(BinaryReader reader, BrstmStructure structure)
         {
             reader.BaseStream.Position = structure.HeadChunkOffset + 8 + structure.HeadChunk1Offset;
-            structure.Codec = (BstmCodec)reader.ReadByte();
-            if (structure.Codec != BstmCodec.Adpcm)
+            structure.Codec = (BxstmCodec)reader.ReadByte();
+            if (structure.Codec != BxstmCodec.Adpcm)
             {
                 throw new NotSupportedException("File must contain 4-bit ADPCM encoded audio");
             }
@@ -204,13 +204,13 @@ namespace DspAdpcm.Containers
 
             for (int i = 0; i < structure.ChannelCount; i++)
             {
-                var channel = new BstmChannelInfo();
+                var channel = new BxstmChannelInfo();
                 reader.Expect(OffsetMarker);
                 channel.Offset = reader.ReadInt32();
                 structure.Channels.Add(channel);
             }
 
-            foreach (BstmChannelInfo channel in structure.Channels)
+            foreach (BxstmChannelInfo channel in structure.Channels)
             {
                 reader.BaseStream.Position = baseOffset + channel.Offset;
                 reader.Expect(OffsetMarker);

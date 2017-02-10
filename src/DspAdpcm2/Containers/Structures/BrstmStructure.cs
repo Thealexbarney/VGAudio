@@ -76,7 +76,7 @@ namespace DspAdpcm.Containers.Structures
         /// <summary>
         /// The ADPCM information for each channel.
         /// </summary>
-        public List<BstmChannelInfo> Channels { get; set; } = new List<BstmChannelInfo>();
+        public List<BxstmChannelInfo> Channels { get; set; } = new List<BxstmChannelInfo>();
         /// <summary>
         /// The size of the seek table in the file.
         /// </summary>
@@ -172,7 +172,7 @@ namespace DspAdpcm.Containers.Structures
         /// <summary>
         /// The audio codec.
         /// </summary>
-        public BstmCodec Codec { get; set; }
+        public BxstmCodec Codec { get; set; }
 
         /// <summary>
         /// The type of description used for the tracks

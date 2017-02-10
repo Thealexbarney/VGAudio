@@ -48,8 +48,8 @@
     <Compile Include="Containers\AudioReader.cs" />
     <Compile Include="Containers\AudioWriter.cs" />
     <Compile Include="Containers\BrstmReader.cs" />
-    <Compile Include="Containers\Structures\Base\BstmChannelInfo.cs" />
-    <Compile Include="Containers\Structures\Base\BstmCodec.cs" />
+    <Compile Include="Containers\Structures\Base\BxstmChannelInfo.cs" />
+    <Compile Include="Containers\Structures\BxstmCodec.cs" />
     <Compile Include="Containers\Structures\BrstmStructure.cs" />
     <Compile Include="Containers\WaveWriter.cs" />
     <Compile Include="Utilities\BinaryReaderBE.cs" />

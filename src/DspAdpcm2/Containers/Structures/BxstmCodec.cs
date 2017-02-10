@@ -1,9 +1,9 @@
-﻿namespace DspAdpcm.Containers.Structures.Base
+﻿namespace DspAdpcm.Containers.Structures
 {
     /// <summary>
     /// The different audio codecs used in BRSTM, BCSTM, and BFSTM files.
     /// </summary>
-    public enum BstmCodec
+    public enum BxstmCodec
     {
         /// <summary>
         /// Big-endian, 8-bit PCM.
