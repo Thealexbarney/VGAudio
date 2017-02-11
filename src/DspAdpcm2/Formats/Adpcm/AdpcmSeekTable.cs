@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Formats
+﻿namespace DspAdpcm.Formats.Adpcm
 {
     internal class AdpcmSeekTable
     {

@@ -41,9 +41,9 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Formats\AdpcmHelpers.cs" />
+    <Compile Include="Formats\Adpcm\AdpcmHelpers.cs" />
     <Compile Include="Codecs\AdpcmDecoder.cs" />
-    <Compile Include="Formats\AdpcmTrack.cs" />
+    <Compile Include="Formats\Adpcm\AdpcmTrack.cs" />
     <Compile Include="Containers\AudioReader.cs" />
     <Compile Include="Containers\AudioWriter.cs" />
     <Compile Include="Containers\BrstmReader.cs" />
@@ -56,11 +56,11 @@
     <Compile Include="Formats\IAudioFormat.cs" />
     <Compile Include="Utilities\BinaryReaderBE.cs" />
     <Compile Include="Utilities\BinaryWriterBE.cs" />
-    <Compile Include="Formats\AdpcmAlignment.cs" />
-    <Compile Include="Formats\AdpcmChannel.cs" />
-    <Compile Include="Formats\AdpcmChannelInfo.cs" />
-    <Compile Include="Formats\AdpcmLoopContext.cs" />
-    <Compile Include="Formats\AdpcmSeekTable.cs" />
+    <Compile Include="Formats\Adpcm\AdpcmAlignment.cs" />
+    <Compile Include="Formats\Adpcm\AdpcmChannel.cs" />
+    <Compile Include="Formats\Adpcm\AdpcmChannelInfo.cs" />
+    <Compile Include="Formats\Adpcm\AdpcmLoopContext.cs" />
+    <Compile Include="Formats\Adpcm\AdpcmSeekTable.cs" />
     <Compile Include="Formats\AdpcmFormat.cs" />
     <Compile Include="Formats\Pcm16Format.cs" />
     <Compile Include="Compatibility\EnumFlag.cs" />

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DspAdpcm.Formats
+namespace DspAdpcm.Formats.Adpcm
 {
     public class AdpcmChannel
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using DspAdpcm.Containers.Structures.Base;
-using DspAdpcm.Formats;
+using DspAdpcm.Formats.Adpcm;
 
 namespace DspAdpcm.Containers.Structures
 {

@@ -1,6 +1,6 @@
 ﻿using DspAdpcm.Utilities;
 
-namespace DspAdpcm.Formats
+namespace DspAdpcm.Formats.Adpcm
 {
     public static class AdpcmHelpers
     {

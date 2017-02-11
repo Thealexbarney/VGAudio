@@ -1,4 +1,4 @@
-﻿using DspAdpcm.Formats;
+﻿using DspAdpcm.Formats.Adpcm;
 
 namespace DspAdpcm.Containers.Structures.Base
 {

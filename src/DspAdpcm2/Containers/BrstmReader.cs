@@ -5,8 +5,9 @@ using System.Text;
 using DspAdpcm.Containers.Structures;
 using DspAdpcm.Containers.Structures.Base;
 using DspAdpcm.Formats;
+using DspAdpcm.Formats.Adpcm;
 using DspAdpcm.Utilities;
-using static DspAdpcm.Formats.AdpcmHelpers;
+using static DspAdpcm.Formats.Adpcm.AdpcmHelpers;
 using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers

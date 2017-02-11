@@ -1,5 +1,5 @@
 ﻿using System;
-using DspAdpcm.Formats;
+using DspAdpcm.Formats.Adpcm;
 using DspAdpcm.Utilities;
 
 namespace DspAdpcm.Codecs
