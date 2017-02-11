@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Codecs
+﻿namespace DspAdpcm.Formats
 {
     /// <summary>
     /// Defines the ADPCM information for a single

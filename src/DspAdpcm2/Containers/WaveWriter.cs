@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using DspAdpcm.Formats;
 using DspAdpcm.Utilities;
 using static DspAdpcm.Utilities.Helpers;
 
@@ -7,9 +8,10 @@ namespace DspAdpcm.Containers
 {
     public class WaveWriter : AudioWriter<WaveWriter>
     {
-        private int ChannelCount => AudioStream.ChannelCount;
-        private int SampleCount => AudioStream.SampleCount;
-        private int SampleRate => AudioStream.SampleRate;
+        private Pcm16Format Pcm16 { get; set; }
+        private int ChannelCount => Pcm16.ChannelCount;
+        private int SampleCount => Pcm16.SampleCount;
+        private int SampleRate => Pcm16.SampleRate;
         protected override int FileSize => 8 + RiffChunkSize;
         private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize;
         private int FmtChunkSize => ChannelCount > 2 ? 40 : 16;
@@ -27,6 +29,10 @@ namespace DspAdpcm.Containers
         private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
         // ReSharper restore InconsistentNaming
 
+        protected override void SetAudioFormat(AudioData audio)
+        {
+            Pcm16 = Pcm16 ?? audio.GetFormat<Pcm16Format>();
+        }
 
         protected override void WriteStream(Stream stream)
         {
@@ -70,7 +76,7 @@ namespace DspAdpcm.Containers
         {
             writer.WriteUTF8("data");
             writer.Write(DataChunkSize);
-            short[][] channels = AudioStream.Pcm16.GetAudio;
+            short[][] channels = Pcm16.Channels;
 
             var audioData = channels.ShortToInterleavedByte();
             writer.BaseStream.Write(audioData, 0, audioData.Length);

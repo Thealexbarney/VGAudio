@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using DspAdpcm.Codecs;
 using DspAdpcm.Containers.Structures;
 using DspAdpcm.Containers.Structures.Base;
+using DspAdpcm.Formats;
 using DspAdpcm.Utilities;
-using static DspAdpcm.Codecs.Adpcm;
+using static DspAdpcm.Formats.AdpcmHelpers;
 using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers
@@ -39,16 +39,11 @@ namespace DspAdpcm.Containers
             }
         }
 
-        protected override AudioStream ToAudioStream(BrstmStructure structure)
+        protected override IAudioFormat ToAudioStream(BrstmStructure structure)
         {
-            var audioStream = new AudioStream(structure.SampleCount, structure.SampleRate);
-            if (structure.Looping)
-            {
-                audioStream.SetLoop(structure.LoopStart, structure.SampleCount);
-            }
-            audioStream.Adpcm.Tracks = structure.Tracks;
+            var channels = new AdpcmChannel[structure.ChannelCount];
 
-            for (int c = 0; c < structure.ChannelCount; c++)
+            for (int c = 0; c < channels.Length; c++)
             {
                 var channel = new AdpcmChannel(structure.SampleCount, structure.AudioData[c])
                 {
@@ -72,10 +67,18 @@ namespace DspAdpcm.Containers
 
                 channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
                     structure.Channels[c].LoopHist2);
-                audioStream.AddAdpcmChannel(channel);
+
+                channels[c] = channel;
             }
 
-            return audioStream;
+            var adpcm = new AdpcmFormat(structure.SampleCount, structure.SampleRate, channels);
+            if (structure.Looping)
+            {
+                adpcm.SetLoop(structure.LoopStart, structure.SampleCount);
+            }
+            adpcm.Tracks = structure.Tracks;
+
+            return adpcm;
         }
 
         private static void ParseRstmHeader(BinaryReader reader, BrstmStructure structure)

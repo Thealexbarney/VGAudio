@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Codecs
+﻿namespace DspAdpcm.Formats
 {
     /// <summary>
     /// Defines an audio track in an ADPCM audio

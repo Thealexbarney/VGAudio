@@ -41,10 +41,9 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AudioStream.cs" />
-    <Compile Include="Codecs\Adpcm.cs" />
-    <Compile Include="Codecs\AdpcmDecode.cs" />
-    <Compile Include="Codecs\AdpcmTrack.cs" />
+    <Compile Include="Formats\AdpcmHelpers.cs" />
+    <Compile Include="Codecs\AdpcmDecoder.cs" />
+    <Compile Include="Formats\AdpcmTrack.cs" />
     <Compile Include="Containers\AudioReader.cs" />
     <Compile Include="Containers\AudioWriter.cs" />
     <Compile Include="Containers\BrstmReader.cs" />
@@ -52,15 +51,18 @@
     <Compile Include="Containers\Structures\BxstmCodec.cs" />
     <Compile Include="Containers\Structures\BrstmStructure.cs" />
     <Compile Include="Containers\WaveWriter.cs" />
+    <Compile Include="Formats\AudioData.cs" />
+    <Compile Include="Formats\AudioFormatBase.cs" />
+    <Compile Include="Formats\IAudioFormat.cs" />
     <Compile Include="Utilities\BinaryReaderBE.cs" />
     <Compile Include="Utilities\BinaryWriterBE.cs" />
-    <Compile Include="Codecs\AdpcmAlignment.cs" />
-    <Compile Include="Codecs\AdpcmChannel.cs" />
-    <Compile Include="Codecs\AdpcmChannelInfo.cs" />
-    <Compile Include="Codecs\AdpcmLoopContext.cs" />
-    <Compile Include="Codecs\AdpcmSeekTable.cs" />
-    <Compile Include="Codecs\AdpcmStream.cs" />
-    <Compile Include="Codecs\Pcm16Stream.cs" />
+    <Compile Include="Formats\AdpcmAlignment.cs" />
+    <Compile Include="Formats\AdpcmChannel.cs" />
+    <Compile Include="Formats\AdpcmChannelInfo.cs" />
+    <Compile Include="Formats\AdpcmLoopContext.cs" />
+    <Compile Include="Formats\AdpcmSeekTable.cs" />
+    <Compile Include="Formats\AdpcmFormat.cs" />
+    <Compile Include="Formats\Pcm16Format.cs" />
     <Compile Include="Compatibility\EnumFlag.cs" />
     <Compile Include="Compatibility\Extensions.cs" />
     <Compile Include="Compatibility\LinqBridge.cs" />
@@ -76,6 +78,7 @@
     <Compile Include="Utilities\Interleave.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

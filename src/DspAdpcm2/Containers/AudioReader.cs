@@ -1,18 +1,25 @@
 ﻿using System;
 using System.IO;
+using DspAdpcm.Formats;
 
 namespace DspAdpcm.Containers
 {
-    public abstract class AudioReader<TReader, TStructure> : IAudioReader where TReader : AudioReader<TReader, TStructure>, new()
+    public abstract class AudioReader<TReader, TStructure> : IAudioReader 
+        where TReader : AudioReader<TReader, TStructure>, new()
     {
-        AudioStream IAudioReader.Read(Stream stream) => ReadStream(stream);
-        AudioStream IAudioReader.Read(byte[] file) => ReadByteArray(file);
+        IAudioFormat IAudioReader.ReadFormat(Stream stream) => ReadStream(stream);
+        IAudioFormat IAudioReader.ReadFormat(byte[] file) => ReadByteArray(file);
+        AudioData IAudioReader.Read(Stream stream) => new AudioData(ReadStream(stream));
+        AudioData IAudioReader.Read(byte[] file) => new AudioData(ReadByteArray(file));
 
-        public static AudioStream Read(Stream stream) => new TReader().ReadStream(stream);
-        public static AudioStream Read(byte[] file) => new TReader().ReadByteArray(file);
+        public static IAudioFormat ReadFormat(Stream stream) => new TReader().ReadStream(stream);
+        public static IAudioFormat ReadFormat(byte[] file) => new TReader().ReadByteArray(file);
+        public static AudioData Read(Stream stream) => new AudioData(ReadFormat(stream));
+        public static AudioData Read(byte[] file) => new AudioData(ReadFormat(file));
+
         public static TStructure ReadMetadata(Stream stream) => new TReader().GetStructure(stream, false);
 
-        private AudioStream ReadByteArray(byte[] file)
+        private IAudioFormat ReadByteArray(byte[] file)
         {
             using (var stream = new MemoryStream(file))
             {
@@ -20,7 +27,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private AudioStream ReadStream(Stream stream) => ToAudioStream(GetStructure(stream));
+        private IAudioFormat ReadStream(Stream stream) => ToAudioStream(GetStructure(stream));
 
         private TStructure GetStructure(Stream stream, bool readAudioData = true)
         {
@@ -33,6 +40,6 @@ namespace DspAdpcm.Containers
         }
 
         protected abstract TStructure ReadFile(Stream stream, bool readAudioData = true);
-        protected abstract AudioStream ToAudioStream(TStructure structure);
+        protected abstract IAudioFormat ToAudioStream(TStructure structure);
     }
 }

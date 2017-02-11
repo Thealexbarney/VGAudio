@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using DspAdpcm.Containers.Structures;
+using DspAdpcm.Formats;
 using DspAdpcm.Utilities;
 using static DspAdpcm.Utilities.Helpers;
 
@@ -55,16 +56,18 @@ namespace DspAdpcm.Containers
             }
         }
 
-        protected override AudioStream ToAudioStream(WaveStructure structure)
+        protected override IAudioFormat ToAudioStream(WaveStructure structure)
         {
-            var audioStream = new AudioStream(structure.SampleCount, structure.SampleRate);
+            var channels = new short[structure.ChannelCount][];
 
             for (int i = 0; i < structure.ChannelCount; i++)
             {
-                audioStream.AddPcm16Channel(structure.AudioData[i]);
+                channels[i] = structure.AudioData[i];
             }
 
-            return audioStream;
+            var waveFormat = new Pcm16Format(structure.SampleCount, structure.SampleRate, channels);
+
+            return waveFormat;
         }
 
         private static void ParseRiffHeader(BinaryReader reader, WaveStructure structure)

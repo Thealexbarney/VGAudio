@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Codecs
+﻿namespace DspAdpcm.Formats
 {
     internal class AdpcmAlignment
     {

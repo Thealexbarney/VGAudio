@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DspAdpcm.Codecs
+namespace DspAdpcm.Formats
 {
     public class AdpcmChannel
     {
@@ -25,12 +25,12 @@ namespace DspAdpcm.Codecs
         public AdpcmChannel(int sampleCount)
         {
             SampleCount = sampleCount;
-            AudioData = new byte[Adpcm.SampleCountToByteCount(sampleCount)];
+            AudioData = new byte[AdpcmHelpers.SampleCountToByteCount(sampleCount)];
         }
 
         public AdpcmChannel(int sampleCount, byte[] audio)
         {
-            if (audio.Length < Adpcm.SampleCountToByteCount(sampleCount))
+            if (audio.Length < AdpcmHelpers.SampleCountToByteCount(sampleCount))
             {
                 throw new ArgumentException("Audio array length is too short for the specified number of samples.");
             }

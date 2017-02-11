@@ -1,10 +1,13 @@
 ﻿using System.IO;
+using DspAdpcm.Formats;
 
 namespace DspAdpcm.Containers
 {
     public interface IAudioReader
     {
-        AudioStream Read(Stream stream);
-        AudioStream Read(byte[] file);
+        IAudioFormat ReadFormat(Stream stream);
+        IAudioFormat ReadFormat(byte[] file);
+        AudioData Read(Stream stream);
+        AudioData Read(byte[] file);
     }
 }
