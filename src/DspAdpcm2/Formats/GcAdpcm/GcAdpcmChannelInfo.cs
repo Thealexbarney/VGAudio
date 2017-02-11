@@ -1,12 +1,12 @@
-﻿namespace DspAdpcm.Formats.Adpcm
+﻿namespace DspAdpcm.Formats.GcAdpcm
 {
     /// <summary>
     /// Defines the ADPCM information for a single
-    /// ADPCM channel.
+    /// GC ADPCM channel.
     /// </summary>
-    public class AdpcmChannelInfo
+    public class GcAdpcmChannelInfo
     {
-        internal AdpcmChannelInfo() { }
+        internal GcAdpcmChannelInfo() { }
 
         /// <summary>
         /// The ADPCM coefficients of the channel.

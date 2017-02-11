@@ -1,6 +1,6 @@
-﻿namespace DspAdpcm.Formats.Adpcm
+﻿namespace DspAdpcm.Formats.GcAdpcm
 {
-    internal class AdpcmLoopContext
+    internal class GcAdpcmLoopContext
     {
         public short PredScale { get; set; }
         public short Hist1 { get; set; }

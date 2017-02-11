@@ -5,9 +5,9 @@ using System.Text;
 using DspAdpcm.Containers.Structures;
 using DspAdpcm.Containers.Structures.Base;
 using DspAdpcm.Formats;
-using DspAdpcm.Formats.Adpcm;
+using DspAdpcm.Formats.GcAdpcm;
 using DspAdpcm.Utilities;
-using static DspAdpcm.Formats.Adpcm.AdpcmHelpers;
+using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
 using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers
@@ -42,11 +42,11 @@ namespace DspAdpcm.Containers
 
         protected override IAudioFormat ToAudioStream(BrstmStructure structure)
         {
-            var channels = new AdpcmChannel[structure.ChannelCount];
+            var channels = new GcAdpcmChannel[structure.ChannelCount];
 
             for (int c = 0; c < channels.Length; c++)
             {
-                var channel = new AdpcmChannel(structure.SampleCount, structure.AudioData[c])
+                var channel = new GcAdpcmChannel(structure.SampleCount, structure.AudioData[c])
                 {
                     Coefs = structure.Channels[c].Coefs,
                     Gain = structure.Channels[c].Gain,
@@ -56,7 +56,7 @@ namespace DspAdpcm.Containers
 
                 if (structure.SeekTable != null)
                 {
-                    var table = new AdpcmSeekTable()
+                    var table = new GcAdpcmSeekTable()
                     {
                         IsSelfCalculated = false,
                         SamplesPerEntry = structure.SamplesPerSeekTableEntry,
@@ -72,7 +72,7 @@ namespace DspAdpcm.Containers
                 channels[c] = channel;
             }
 
-            var adpcm = new AdpcmFormat(structure.SampleCount, structure.SampleRate, channels);
+            var adpcm = new GcAdpcmFormat(structure.SampleCount, structure.SampleRate, channels);
             if (structure.Looping)
             {
                 adpcm.SetLoop(structure.LoopStart, structure.SampleCount);
@@ -181,7 +181,7 @@ namespace DspAdpcm.Containers
             foreach (int offset in trackOffsets)
             {
                 reader.BaseStream.Position = baseOffset + offset;
-                var track = new AdpcmTrack();
+                var track = new GcAdpcmTrack();
 
                 if (structure.HeaderType == BrstmTrackType.Standard)
                 {

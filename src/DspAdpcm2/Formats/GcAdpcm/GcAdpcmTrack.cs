@@ -1,11 +1,11 @@
-﻿namespace DspAdpcm.Formats.Adpcm
+﻿namespace DspAdpcm.Formats.GcAdpcm
 {
     /// <summary>
     /// Defines an audio track in an ADPCM audio
     /// stream. Each track is composed of one
     /// or two channels.
     /// </summary>
-    public class AdpcmTrack
+    public class GcAdpcmTrack
     {
         /// <summary>
         /// The volume of the track. Ranges from
@@ -51,7 +51,7 @@
         /// </returns>
         public override bool Equals(object obj)
         {
-            var item = obj as AdpcmTrack;
+            var item = obj as GcAdpcmTrack;
 
             if (item == null)
             {
@@ -67,9 +67,9 @@
         }
 
         /// <summary>
-        /// Returns a hash code for the <see cref="AdpcmTrack"/> instance.
+        /// Returns a hash code for the <see cref="GcAdpcmTrack"/> instance.
         /// </summary>
-        /// <returns>A hash code for the <see cref="AdpcmTrack"/> instance.</returns>
+        /// <returns>A hash code for the <see cref="GcAdpcmTrack"/> instance.</returns>
         public override int GetHashCode()
         {
             unchecked
@@ -83,6 +83,6 @@
             }
         }
 
-        internal AdpcmTrack Clone() => (AdpcmTrack)MemberwiseClone();
+        internal GcAdpcmTrack Clone() => (GcAdpcmTrack)MemberwiseClone();
     }
 }

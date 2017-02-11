@@ -1,6 +1,6 @@
-﻿namespace DspAdpcm.Formats.Adpcm
+﻿namespace DspAdpcm.Formats.GcAdpcm
 {
-    internal class AdpcmSeekTable
+    internal class GcAdpcmSeekTable
     {
         public short[] Table { get; set; }
         public int SamplesPerEntry { get; set; }

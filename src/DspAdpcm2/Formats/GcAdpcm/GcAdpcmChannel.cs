@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DspAdpcm.Formats.Adpcm
+namespace DspAdpcm.Formats.GcAdpcm
 {
-    public class AdpcmChannel
+    public class GcAdpcmChannel
     {
         public byte[] AudioData { get; }
         public int SampleCount { get; }
@@ -18,19 +18,19 @@ namespace DspAdpcm.Formats.Adpcm
         public short LoopHist1 => LoopContext?.Hist1 ?? 0;
         public short LoopHist2 => LoopContext?.Hist2 ?? 0;
 
-        internal List<AdpcmSeekTable> SeekTable { get; set; } = new List<AdpcmSeekTable>();
-        internal AdpcmLoopContext LoopContext { get; set; }
-        internal AdpcmAlignment Alignment { get; set; }
+        internal List<GcAdpcmSeekTable> SeekTable { get; set; } = new List<GcAdpcmSeekTable>();
+        internal GcAdpcmLoopContext LoopContext { get; set; }
+        internal GcAdpcmAlignment Alignment { get; set; }
 
-        public AdpcmChannel(int sampleCount)
+        public GcAdpcmChannel(int sampleCount)
         {
             SampleCount = sampleCount;
-            AudioData = new byte[AdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            AudioData = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
         }
 
-        public AdpcmChannel(int sampleCount, byte[] audio)
+        public GcAdpcmChannel(int sampleCount, byte[] audio)
         {
-            if (audio.Length < AdpcmHelpers.SampleCountToByteCount(sampleCount))
+            if (audio.Length < GcAdpcmHelpers.SampleCountToByteCount(sampleCount))
             {
                 throw new ArgumentException("Audio array length is too short for the specified number of samples.");
             }
@@ -41,7 +41,7 @@ namespace DspAdpcm.Formats.Adpcm
 
         internal void SetLoopContext(short predScale, short hist1, short hist2)
         {
-            LoopContext = new AdpcmLoopContext()
+            LoopContext = new GcAdpcmLoopContext()
             {
                 PredScale = predScale,
                 Hist1 = hist1,

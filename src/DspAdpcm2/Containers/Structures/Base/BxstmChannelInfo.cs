@@ -1,4 +1,4 @@
-﻿using DspAdpcm.Formats.Adpcm;
+﻿using DspAdpcm.Formats.GcAdpcm;
 
 namespace DspAdpcm.Containers.Structures.Base
 {
@@ -7,7 +7,7 @@ namespace DspAdpcm.Containers.Structures.Base
     /// ADPCM channel.
     /// Used in BRSTM, BCSTM, and BFSTM files.
     /// </summary>
-    public class BxstmChannelInfo : AdpcmChannelInfo
+    public class BxstmChannelInfo : GcAdpcmChannelInfo
     {
         internal BxstmChannelInfo() { }
         /// <summary>

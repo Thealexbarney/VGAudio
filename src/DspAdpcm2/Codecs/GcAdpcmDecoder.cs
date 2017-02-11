@@ -1,17 +1,17 @@
 ﻿using System;
-using DspAdpcm.Formats.Adpcm;
+using DspAdpcm.Formats.GcAdpcm;
 using DspAdpcm.Utilities;
 
 namespace DspAdpcm.Codecs
 {
-    public static class AdpcmDecoder
+    public static class GcAdpcmDecoder
     {
         public static short[] Decode(byte[] adpcm, short[] coefficients, int length, short history1, short history2)
         {
             var pcm = new short[length];
             short hist1 = history1;
             short hist2 = history2;
-            int frameCount = length.DivideByRoundUp(AdpcmHelpers.SamplesPerFrame);
+            int frameCount = length.DivideByRoundUp(GcAdpcmHelpers.SamplesPerFrame);
 
             int inIndex = 0;
             int outIndex = 0;
@@ -24,7 +24,7 @@ namespace DspAdpcm.Codecs
                 short coef1 = coefficients[predictor * 2];
                 short coef2 = coefficients[predictor * 2 + 1];
 
-                int samplesToRead = Math.Min(AdpcmHelpers.SamplesPerFrame, length - outIndex);
+                int samplesToRead = Math.Min(GcAdpcmHelpers.SamplesPerFrame, length - outIndex);
 
                 for (int s = 0; s < samplesToRead; s++)
                 {

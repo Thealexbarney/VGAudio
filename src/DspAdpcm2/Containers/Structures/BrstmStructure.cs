@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using DspAdpcm.Containers.Structures.Base;
-using DspAdpcm.Formats.Adpcm;
+using DspAdpcm.Formats.GcAdpcm;
 
 namespace DspAdpcm.Containers.Structures
 {
@@ -72,7 +72,7 @@ namespace DspAdpcm.Containers.Structures
         /// <summary>
         /// A list of all tracks defined in the file.
         /// </summary>
-        public List<AdpcmTrack> Tracks { get; set; } = new List<AdpcmTrack>();
+        public List<GcAdpcmTrack> Tracks { get; set; } = new List<GcAdpcmTrack>();
         /// <summary>
         /// The ADPCM information for each channel.
         /// </summary>

@@ -1,8 +1,8 @@
 ﻿using DspAdpcm.Utilities;
 
-namespace DspAdpcm.Formats.Adpcm
+namespace DspAdpcm.Formats.GcAdpcm
 {
-    public static class AdpcmHelpers
+    public static class GcAdpcmHelpers
     {
         public static readonly int BytesPerFrame = 8;
         public static readonly int SamplesPerFrame = 14;
