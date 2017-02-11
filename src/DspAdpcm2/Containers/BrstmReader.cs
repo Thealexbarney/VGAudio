@@ -2,8 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using DspAdpcm.Containers.Structures;
-using DspAdpcm.Containers.Structures.Base;
+using DspAdpcm.Containers.Bxstm;
 using DspAdpcm.Formats;
 using DspAdpcm.Formats.GcAdpcm;
 using DspAdpcm.Utilities;

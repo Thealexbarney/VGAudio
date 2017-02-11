@@ -1,6 +1,6 @@
 ﻿using DspAdpcm.Formats.GcAdpcm;
 
-namespace DspAdpcm.Containers.Structures.Base
+namespace DspAdpcm.Containers.Bxstm
 {
     /// <summary>
     /// Defines the ADPCM information for a single

@@ -47,9 +47,9 @@
     <Compile Include="Containers\AudioReader.cs" />
     <Compile Include="Containers\AudioWriter.cs" />
     <Compile Include="Containers\BrstmReader.cs" />
-    <Compile Include="Containers\Structures\Base\BxstmChannelInfo.cs" />
-    <Compile Include="Containers\Structures\BxstmCodec.cs" />
-    <Compile Include="Containers\Structures\BrstmStructure.cs" />
+    <Compile Include="Containers\Bxstm\BxstmChannelInfo.cs" />
+    <Compile Include="Containers\Bxstm\BxstmCodec.cs" />
+    <Compile Include="Containers\Bxstm\BrstmStructure.cs" />
     <Compile Include="Containers\WaveWriter.cs" />
     <Compile Include="Formats\AudioData.cs" />
     <Compile Include="Formats\AudioFormatBase.cs" />
@@ -71,7 +71,7 @@
     <Compile Include="Compatibility\Tuple.cs" />
     <Compile Include="Containers\IAudioReader.cs" />
     <Compile Include="Containers\IAudioWriter.cs" />
-    <Compile Include="Containers\Structures\WaveStructure.cs" />
+    <Compile Include="Containers\Wave\WaveStructure.cs" />
     <Compile Include="Containers\WaveReader.cs" />
     <Compile Include="Utilities\Helpers.cs" />
     <Compile Include="Utilities\Extensions.cs" />

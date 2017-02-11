@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using DspAdpcm.Containers.Structures;
+using DspAdpcm.Containers.Wave;
 using DspAdpcm.Formats;
 using DspAdpcm.Utilities;
 using static DspAdpcm.Utilities.Helpers;

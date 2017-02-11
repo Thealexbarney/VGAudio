@@ -1,7 +1,7 @@
 ﻿using System;
 using DspAdpcm.Utilities;
 
-namespace DspAdpcm.Containers.Structures
+namespace DspAdpcm.Containers.Wave
 {
     /// <summary>
     /// Defines the structure and metadata

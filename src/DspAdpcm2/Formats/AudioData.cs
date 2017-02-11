@@ -35,15 +35,7 @@ namespace DspAdpcm.Formats
 
         private T GetAudioFormat<T>() where T : class, IAudioFormat
         {
-            foreach (var format in Formats)
-            {
-                if (format is T)
-                {
-                    return (T)format;
-                }
-            }
-
-            return null;
+            return Formats.OfType<T>().FirstOrDefault();
         }
 
         private void CreateFormat<T>()
@@ -60,8 +52,5 @@ namespace DspAdpcm.Formats
 
             Formats.Add(Formats.First().ToPcm16());
         }
-
-        private T GetAudioFormato<T>() where T : class, IAudioFormat
-            => Formats.Where(format => format.GetType() == typeof(T)).Cast<T>().FirstOrDefault();
     }
 }
