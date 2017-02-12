@@ -39,20 +39,20 @@ namespace DspAdpcm.Containers
             using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.LittleEndian))
             {
                 stream.Position = 0;
-                GetRiffHeader(writer);
-                GetFmtChunk(writer);
-                GetDataChunk(writer);
+                WriteRiffHeader(writer);
+                WriteFmtChunk(writer);
+                WriteDataChunk(writer);
             }
         }
 
-        private void GetRiffHeader(BinaryWriter writer)
+        private void WriteRiffHeader(BinaryWriter writer)
         {
             writer.WriteUTF8("RIFF");
             writer.Write(RiffChunkSize);
             writer.WriteUTF8("WAVE");
         }
 
-        private void GetFmtChunk(BinaryWriter writer)
+        private void WriteFmtChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("fmt ");
             writer.Write(FmtChunkSize);
@@ -72,7 +72,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private void GetDataChunk(BinaryWriter writer)
+        private void WriteDataChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("data");
             writer.Write(DataChunkSize);

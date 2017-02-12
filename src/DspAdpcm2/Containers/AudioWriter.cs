@@ -51,7 +51,7 @@ namespace DspAdpcm.Containers
             WriteStream(stream);
         }
 
-        protected abstract void WriteStream(Stream stream);
         protected abstract void SetAudioFormat(AudioData audio);
+        protected abstract void WriteStream(Stream stream);
     }
 }
