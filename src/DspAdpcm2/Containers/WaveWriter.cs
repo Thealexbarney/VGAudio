@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
+using DspAdpcm.Containers.Wave;
 using DspAdpcm.Formats;
 using DspAdpcm.Utilities;
 using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers
 {
-    public class WaveWriter : AudioWriter<WaveWriter>
+    public class WaveWriter : AudioWriter<WaveWriter, WaveConfiguration>
     {
         private Pcm16Format Pcm16 { get; set; }
         private int ChannelCount => Pcm16.ChannelCount;

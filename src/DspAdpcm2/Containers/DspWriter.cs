@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using DspAdpcm.Containers.Dsp;
 using DspAdpcm.Formats;
 using DspAdpcm.Utilities;
 using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
@@ -8,7 +9,7 @@ using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers
 {
-    public class DspWriter : AudioWriter<DspWriter>
+    public class DspWriter : AudioWriter<DspWriter, DspConfiguration>
     {
         private GcAdpcmFormat Adpcm { get; set; }
 
@@ -17,17 +18,14 @@ namespace DspAdpcm.Containers
         private static int HeaderSize => 0x60;
         private int ChannelCount => Adpcm.ChannelCount;
 
-       // private int SampleCount => (Configuration.TrimFile && Adpcm.Looping ? LoopEnd : Math.Max(Adpcm.SampleCount, LoopEnd));
-        private int SampleCount => (Adpcm.Looping ? LoopEnd : Math.Max(Adpcm.SampleCount, LoopEnd));
+        private int SampleCount => (Configuration.TrimFile && Adpcm.Looping ? LoopEnd : Math.Max(Adpcm.SampleCount, LoopEnd));
         private short Format { get; } = 0; /* 0 for ADPCM */
 
-        //private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
-        private int SamplesPerInterleave => 0x3800;
+        private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
         private int BytesPerInterleave => SampleCountToByteCount(SamplesPerInterleave);
         private int FramesPerInterleave => BytesPerInterleave / BytesPerFrame;
 
-       // private int AlignmentSamples => GetNextMultiple(Adpcm.LoopStart, Configuration.LoopPointAlignment) - Adpcm.LoopStart;
-        private int AlignmentSamples => 0;
+        private int AlignmentSamples => GetNextMultiple(Adpcm.LoopStart, Configuration.LoopPointAlignment) - Adpcm.LoopStart;
         private int LoopStart => Adpcm.LoopStart + AlignmentSamples;
         private int LoopEnd => Adpcm.LoopEnd + AlignmentSamples;
 
@@ -47,12 +45,12 @@ namespace DspAdpcm.Containers
             using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.BigEndian))
             {
                 stream.Position = 0;
-                GetHeader(writer);
-                GetData(writer);
+                WriteHeader(writer);
+                WriteData(writer);
             }
         }
 
-        private void GetHeader(BinaryWriter writer)
+        private void WriteHeader(BinaryWriter writer)
         {
             for (int i = 0; i < ChannelCount; i++)
             {
@@ -79,7 +77,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private void GetData(BinaryWriter writer)
+        private void WriteData(BinaryWriter writer)
         {
             writer.BaseStream.Position = HeaderSize * ChannelCount;
             if (ChannelCount == 1)

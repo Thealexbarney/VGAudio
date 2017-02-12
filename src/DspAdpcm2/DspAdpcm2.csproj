@@ -43,7 +43,9 @@
   <ItemGroup>
     <Compile Include="Containers\DspReader.cs" />
     <Compile Include="Containers\DspWriter.cs" />
+    <Compile Include="Containers\Dsp\DspConfiguration.cs" />
     <Compile Include="Containers\Dsp\DspStructure.cs" />
+    <Compile Include="Containers\Wave\WaveConfiguration.cs" />
     <Compile Include="Formats\GcAdpcm\GcAdpcmHelpers.cs" />
     <Compile Include="Codecs\GcAdpcmDecoder.cs" />
     <Compile Include="Formats\GcAdpcm\GcAdpcmTrack.cs" />

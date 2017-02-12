@@ -4,24 +4,18 @@ using DspAdpcm.Formats;
 
 namespace DspAdpcm.Containers
 {
-    public abstract class AudioWriter<TWriter> : IAudioWriter
-        where TWriter : AudioWriter<TWriter>, new()
+    public abstract class AudioWriter<TWriter, TConfig> : IAudioWriter
+        where TWriter : AudioWriter<TWriter, TConfig>, new()
+        where TConfig : new()
     {
-        byte[] IAudioWriter.GetFile(IAudioFormat audio) => GetByteArray(new AudioData(audio));
-        void IAudioWriter.WriteToStream(IAudioFormat audio, Stream stream) => WriteStream(new AudioData(audio), stream);
+        public byte[] GetFile(IAudioFormat audio) => GetByteArray(new AudioData(audio));
+        public void WriteToStream(IAudioFormat audio, Stream stream) => WriteStream(new AudioData(audio), stream);
 
-        byte[] IAudioWriter.GetFile(AudioData audio) => GetByteArray(audio);
-        void IAudioWriter.WriteToStream(AudioData audio, Stream stream) => WriteStream(audio, stream);
-
-        public static byte[] GetFile(IAudioFormat audio) => new TWriter().GetByteArray(new AudioData(audio));
-        public static void WriteToStream(IAudioFormat audio, Stream stream)
-            => new TWriter().WriteStream(new AudioData(audio), stream);
-
-        public static byte[] GetFile(AudioData audio) => new TWriter().GetByteArray(audio);
-        public static void WriteToStream(AudioData audio, Stream stream)
-            => new TWriter().WriteStream(audio, stream);
-
+        public byte[] GetFile(AudioData audio) => GetByteArray(audio);
+        public void WriteToStream(AudioData audio, Stream stream) => WriteStream(audio, stream);
+        
         protected AudioData AudioStream { get; set; }
+        public TConfig Configuration { get; set; } = new TConfig();
         protected abstract int FileSize { get; }
 
         protected byte[] GetByteArray(AudioData audio)
