@@ -69,9 +69,9 @@ namespace DspAdpcm.Containers
                 writer.Write(channel.PredScale);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
-                writer.Write(channel.LoopPredScale);
-                writer.Write(channel.LoopHist1);
-                writer.Write(channel.LoopHist2);
+                writer.Write(channel.LoopPredScale(LoopStart));
+                writer.Write(channel.LoopHist1(LoopStart));
+                writer.Write(channel.LoopHist2(LoopStart));
                 writer.Write((short)(ChannelCount == 1 ? 0 : ChannelCount));
                 writer.Write((short)(ChannelCount == 1 ? 0 : FramesPerInterleave));
             }

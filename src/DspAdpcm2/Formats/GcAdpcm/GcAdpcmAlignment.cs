@@ -1,6 +1,6 @@
 ﻿namespace DspAdpcm.Formats.GcAdpcm
 {
-    internal class GcAdpcmAlignment
+    public class GcAdpcmAlignment
     {
         public byte[] AudioData { get; set; }
 

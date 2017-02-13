@@ -14,18 +14,19 @@ namespace DspAdpcm.Formats.GcAdpcm
         public short Hist1 { get; set; }
         public short Hist2 { get; set; }
 
-        public short LoopPredScale => LoopContext?.PredScale ?? 0;
-        public short LoopHist1 => LoopContext?.Hist1 ?? 0;
-        public short LoopHist2 => LoopContext?.Hist2 ?? 0;
+        public short LoopPredScale(int loopStart, bool ensureSelfCalculated = false) => LoopContext.PredScale(loopStart, ensureSelfCalculated);
+        public short LoopHist1(int loopStart, bool ensureSelfCalculated = false) => LoopContext.Hist1(loopStart, ensureSelfCalculated);
+        public short LoopHist2(int loopStart, bool ensureSelfCalculated = false) => LoopContext.Hist2(loopStart, ensureSelfCalculated);
 
-        internal List<GcAdpcmSeekTable> SeekTable { get; set; } = new List<GcAdpcmSeekTable>();
-        internal GcAdpcmLoopContext LoopContext { get; set; }
-        internal GcAdpcmAlignment Alignment { get; set; }
+        public List<GcAdpcmSeekTable> SeekTable { get; } = new List<GcAdpcmSeekTable>();
+        private GcAdpcmLoopContext LoopContext { get; }
+        public GcAdpcmAlignment Alignment { get; set; }
 
         public GcAdpcmChannel(int sampleCount)
         {
             SampleCount = sampleCount;
             AudioData = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            LoopContext = new GcAdpcmLoopContext(this);
         }
 
         public GcAdpcmChannel(int sampleCount, byte[] audio)
@@ -37,16 +38,10 @@ namespace DspAdpcm.Formats.GcAdpcm
 
             SampleCount = sampleCount;
             AudioData = audio;
+            LoopContext = new GcAdpcmLoopContext(this);
         }
 
-        internal void SetLoopContext(short predScale, short hist1, short hist2)
-        {
-            LoopContext = new GcAdpcmLoopContext()
-            {
-                PredScale = predScale,
-                Hist1 = hist1,
-                Hist2 = hist2
-            };
-        }
+        public void SetLoopContext(int loopStart, short predScale, short hist1, short hist2)
+            => LoopContext.AddLoopContext(loopStart, predScale, hist1, hist2);
     }
 }

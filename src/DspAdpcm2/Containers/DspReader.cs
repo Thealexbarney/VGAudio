@@ -44,8 +44,8 @@ namespace DspAdpcm.Containers
                     Hist1 = structure.Channels[c].Hist1,
                     Hist2 = structure.Channels[c].Hist2,
                 };
-                channel.SetLoopContext(structure.Channels[c].LoopPredScale, structure.Channels[c].LoopHist1,
-                    structure.Channels[c].LoopHist2);
+                channel.SetLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
+                    structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
 
                 channels[c] = channel;
             }
