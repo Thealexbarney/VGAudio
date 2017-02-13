@@ -1,18 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DspAdpcm.Formats
 {
     public class AudioData
     {
-        public List<IAudioFormat> Formats { get; set; } = new List<IAudioFormat>();
+        private Dictionary<Type, IAudioFormat> Formats { get; } = new Dictionary<Type, IAudioFormat>();
+
+        private void AddFormat(IAudioFormat format) => Formats.Add(format.GetType(), format);
 
         public AudioData(IAudioFormat audioFormat)
         {
-            Formats.Add(audioFormat);
+            AddFormat(audioFormat);
         }
 
-        public T GetFormat<T>() where T : class, IAudioFormat
+        public T GetFormat<T>() where T : class, IAudioFormat, new()
         {
             T format = GetAudioFormat<T>();
 
@@ -22,35 +25,32 @@ namespace DspAdpcm.Formats
             }
 
             CreatePcm16();
+            CreateFormat<T>();
 
-            format = GetAudioFormat<T>();
-
-            if (format != null)
-            {
-                return format;
-            }
-
-            return null;
+            return GetAudioFormat<T>();
         }
 
         private T GetAudioFormat<T>() where T : class, IAudioFormat
         {
-            return Formats.OfType<T>().FirstOrDefault();
+            IAudioFormat format;
+
+            Formats.TryGetValue(typeof(T), out format);
+
+            return (T)format;
         }
 
-        private void CreateFormat<T>()
+        private void CreateFormat<T>() where T : class, IAudioFormat, new()
         {
-            
+            Pcm16Format pcm = GetAudioFormat<Pcm16Format>();
+            AddFormat(new T().EncodeFromPcm16(pcm));
         }
 
         private void CreatePcm16()
         {
-            if (GetAudioFormat<Pcm16Format>() != null)
+            if (GetAudioFormat<Pcm16Format>() == null)
             {
-                return;
+                AddFormat(Formats.First().Value.ToPcm16());
             }
-
-            Formats.Add(Formats.First().ToPcm16());
         }
     }
 }

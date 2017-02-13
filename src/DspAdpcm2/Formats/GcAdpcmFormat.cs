@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DspAdpcm.Codecs;
 using DspAdpcm.Formats.GcAdpcm;
 
@@ -8,7 +9,7 @@ namespace DspAdpcm.Formats
     /// A 4-bit Nintendo ADPCM audio stream.
     /// The stream can contain any number of individual channels.
     /// </summary>
-    public class GcAdpcmFormat : AudioFormatBase
+    public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat>
     {
         public GcAdpcmChannel[] Channels { get; }
 
@@ -20,6 +21,11 @@ namespace DspAdpcm.Formats
             Channels = channels;
         }
 
+        public GcAdpcmFormat() : base(0, 0, 0)
+        {
+            Channels = new GcAdpcmChannel[0];
+        }
+
         public override Pcm16Format ToPcm16()
         {
             var a = new List<short[]>();
@@ -29,6 +35,11 @@ namespace DspAdpcm.Formats
             }
 
             return new Pcm16Format(SampleCount, SampleRate, a.ToArray());
+        }
+
+        public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16)
+        {
+            throw new NotImplementedException();
         }
     }
 }

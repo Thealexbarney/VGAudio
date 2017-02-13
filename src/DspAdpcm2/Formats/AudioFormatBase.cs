@@ -2,7 +2,8 @@
 
 namespace DspAdpcm.Formats
 {
-    public abstract class AudioFormatBase : IAudioFormat
+    public abstract class AudioFormatBase<T> : IAudioFormat
+        where T : AudioFormatBase<T>
     {
         public int SampleCount { get; }
         public int SampleRate { get; }
@@ -10,6 +11,8 @@ namespace DspAdpcm.Formats
         public int LoopStart { get; protected set; }
         public int LoopEnd { get; protected set; }
         public bool Looping { get; protected set; }
+
+        IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16);
 
         protected AudioFormatBase(int sampleCount, int sampleRate, int channelCount)
         {
@@ -41,5 +44,6 @@ namespace DspAdpcm.Formats
         }
 
         public abstract Pcm16Format ToPcm16();
+        public abstract T EncodeFromPcm16(Pcm16Format pcm16);
     }
 }
