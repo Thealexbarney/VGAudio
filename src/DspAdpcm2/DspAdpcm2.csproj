@@ -41,6 +41,7 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Codecs\GcAdpcmEncoder.cs" />
     <Compile Include="Containers\DspReader.cs" />
     <Compile Include="Containers\DspWriter.cs" />
     <Compile Include="Containers\Dsp\DspConfiguration.cs" />

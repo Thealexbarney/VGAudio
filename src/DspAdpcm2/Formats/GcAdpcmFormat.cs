@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DspAdpcm.Codecs;
 using DspAdpcm.Formats.GcAdpcm;
 
@@ -13,7 +12,7 @@ namespace DspAdpcm.Formats
     {
         public GcAdpcmChannel[] Channels { get; }
 
-        public List<GcAdpcmTrack> Tracks { get; set; }= new List<GcAdpcmTrack>();
+        public List<GcAdpcmTrack> Tracks { get; set; } = new List<GcAdpcmTrack>();
 
         public GcAdpcmFormat(int sampleCount, int sampleRate, GcAdpcmChannel[] channels)
             : base(sampleCount, sampleRate, channels.Length)
@@ -39,7 +38,22 @@ namespace DspAdpcm.Formats
 
         public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16)
         {
-            throw new NotImplementedException();
+            var channels = new GcAdpcmChannel[pcm16.ChannelCount];
+
+            for (int i = 0; i < pcm16.ChannelCount; i++)
+            {
+                channels[i] = EncodeChannel(pcm16.SampleCount, pcm16.Channels[i]);
+            }
+
+            return new GcAdpcmFormat(pcm16.SampleCount, pcm16.SampleRate, channels);
+        }
+
+        private GcAdpcmChannel EncodeChannel(int sampleCount, short[] pcm)
+        {
+            short[] coefs = GcAdpcmEncoder.DspCorrelateCoefs(pcm);
+            byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
+
+            return new GcAdpcmChannel(sampleCount, adpcm) { Coefs = coefs };
         }
     }
 }
