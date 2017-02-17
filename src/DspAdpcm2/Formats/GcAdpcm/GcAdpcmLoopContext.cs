@@ -21,13 +21,13 @@ namespace DspAdpcm.Formats.GcAdpcm
              => AddLoopContext(loopStart, predScale, hist1, hist2, false);
 
         private void AddLoopContext(int loopStart, short predScale, short hist1, short hist2, bool selfCalculated)
-             => Contexts.Add(loopStart, new LoopContext
+             => Contexts[loopStart] = new LoopContext
              {
                  PredScale = predScale,
                  Hist1 = hist1,
                  Hist2 = hist2,
                  IsSelfCalculated = selfCalculated
-             });
+             };
 
         private LoopContext GetLoopContext(int loopStart, bool ensureSelfCalculated)
         {
@@ -45,7 +45,8 @@ namespace DspAdpcm.Formats.GcAdpcm
         private void CalculateLoopContext(int loopStart)
         {
             byte ps = GcAdpcmDecoder.GetPredictorScale(Adpcm.GetAudioData(), loopStart);
-            AddLoopContext(loopStart, ps, 0, 0, true);
+            short[] hist = GcAdpcmDecoder.Decode(Adpcm, loopStart, 0, true);
+            AddLoopContext(loopStart, ps, hist[1], hist[0], true);
         }
 
         private struct LoopContext
