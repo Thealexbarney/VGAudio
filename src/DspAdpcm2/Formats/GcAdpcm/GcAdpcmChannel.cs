@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DspAdpcm.Codecs;
 
 namespace DspAdpcm.Formats.GcAdpcm
 {
@@ -39,6 +40,46 @@ namespace DspAdpcm.Formats.GcAdpcm
             SampleCount = sampleCount;
             AudioData = audio;
             LoopContext = new GcAdpcmLoopContext(this);
+        }
+
+        public short[] GetPcmAudioLooped(int startSample, int length, int loopStart, int loopEnd,
+            bool includeHistorySamples = false)
+        {
+            if (startSample + length <= loopEnd)
+            {
+                return GcAdpcmDecoder.Decode(this, startSample, length, includeHistorySamples);
+            }
+
+            short[] pcm = GcAdpcmDecoder.Decode(this, 0, loopEnd, includeHistorySamples);
+
+            if (includeHistorySamples)
+            {
+                length += 2;
+                loopStart += 2;
+                loopEnd += 2;
+            }
+
+            short[] output = new short[length];
+
+            int outIndex = 0;
+            int samplesRemaining = length;
+            int currentSample = GetLoopedSample(startSample, loopStart, loopEnd);
+            
+            while (samplesRemaining > 0)
+            {
+                int samplesToGet = Math.Min(loopEnd - currentSample, samplesRemaining);
+                Array.Copy(pcm, currentSample, output, outIndex, samplesToGet);
+                samplesRemaining -= samplesToGet;
+                outIndex += samplesToGet;
+                currentSample = loopStart;
+            }
+
+            return output;
+        }
+
+        private static int GetLoopedSample(int sample, int loopStart, int loopEnd)
+        {
+            return sample < loopStart ? sample : (sample - loopStart) % (loopEnd - loopStart + 1) + loopStart;
         }
 
         public byte[] GetAudioData()
