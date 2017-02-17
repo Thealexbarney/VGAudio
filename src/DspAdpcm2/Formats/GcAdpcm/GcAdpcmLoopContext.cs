@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DspAdpcm.Codecs;
 
 namespace DspAdpcm.Formats.GcAdpcm
 {
@@ -43,8 +44,8 @@ namespace DspAdpcm.Formats.GcAdpcm
 
         private void CalculateLoopContext(int loopStart)
         {
-            
-            AddLoopContext(loopStart, 0, 0, 0, true);
+            byte ps = GcAdpcmDecoder.GetPredictorScale(Adpcm.GetAudioData(), loopStart);
+            AddLoopContext(loopStart, ps, 0, 0, true);
         }
 
         private struct LoopContext

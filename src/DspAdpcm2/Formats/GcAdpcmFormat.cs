@@ -14,6 +14,9 @@ namespace DspAdpcm.Formats
 
         public List<GcAdpcmTrack> Tracks { get; set; } = new List<GcAdpcmTrack>();
 
+        public bool AlignmentNeeded { get; private set; }
+        public int AlignmentMultiple { get; private set; }
+
         public GcAdpcmFormat(int sampleCount, int sampleRate, GcAdpcmChannel[] channels)
             : base(sampleCount, sampleRate, channels.Length)
         {
@@ -25,15 +28,20 @@ namespace DspAdpcm.Formats
             Channels = new GcAdpcmChannel[0];
         }
 
+        public void SetAlignment(int multiple)
+        {
+
+        }
+
         public override Pcm16Format ToPcm16()
         {
-            var a = new List<short[]>();
+            var pcmChannels = new List<short[]>();
             foreach (GcAdpcmChannel channel in Channels)
             {
-                a.Add(GcAdpcmDecoder.Decode(channel.AudioData, channel.Coefs, SampleCount, channel.Hist1, channel.Hist2));
+                pcmChannels.Add(GcAdpcmDecoder.Decode(channel, SampleCount));
             }
 
-            return new Pcm16Format(SampleCount, SampleRate, a.ToArray());
+            return new Pcm16Format(SampleCount, SampleRate, pcmChannels.ToArray());
         }
 
         public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16)

@@ -30,6 +30,14 @@ namespace DspAdpcm.Formats
             return GetAudioFormat<T>();
         }
 
+        public void SetLoop(int loopStart, int loopEnd)
+        {
+            foreach (IAudioFormat format in Formats.Values)
+            {
+                format.SetLoop(loopStart, loopEnd);
+            }
+        }
+
         private T GetAudioFormat<T>() where T : class, IAudioFormat
         {
             IAudioFormat format;

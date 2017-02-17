@@ -8,6 +8,15 @@ namespace DspAdpcm.Formats.GcAdpcm
         public static readonly int SamplesPerFrame = 14;
         public static readonly int NibblesPerFrame = 16;
 
+        public static int NibbleCountToSampleCount(int nibbleCount)
+        {
+            int frames = nibbleCount / NibblesPerFrame;
+            int extraNibbles = nibbleCount % NibblesPerFrame;
+            int extraSamples = extraNibbles < 2 ? 0 : extraNibbles - 2;
+
+            return SamplesPerFrame * frames + extraSamples;
+        }
+
         public static int SampleCountToNibbleCount(int sampleCount)
         {
             int frames = sampleCount / SamplesPerFrame;

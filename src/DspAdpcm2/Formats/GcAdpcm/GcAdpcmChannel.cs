@@ -41,6 +41,11 @@ namespace DspAdpcm.Formats.GcAdpcm
             LoopContext = new GcAdpcmLoopContext(this);
         }
 
+        public byte[] GetAudioData()
+        {
+            return AudioData;
+        }
+
         public void SetLoopContext(int loopStart, short predScale, short hist1, short hist2)
             => LoopContext.AddLoopContext(loopStart, predScale, hist1, hist2);
     }
