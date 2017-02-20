@@ -55,14 +55,7 @@ namespace DspAdpcm.Containers
 
                 if (structure.SeekTable != null)
                 {
-                    var table = new GcAdpcmSeekTable()
-                    {
-                        IsSelfCalculated = false,
-                        SamplesPerEntry = structure.SamplesPerSeekTableEntry,
-                        Table = structure.SeekTable[c]
-                    };
-
-                    channel.SeekTable.Add(table);
+                    channel.AddSeekTable(structure.SeekTable[c], structure.SamplesPerSeekTableEntry);
                 }
 
                 channel.SetLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,

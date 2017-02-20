@@ -18,16 +18,7 @@ namespace DspAdpcm.Formats.GcAdpcm
         }
 
         public void AddLoopContext(int loopStart, short predScale, short hist1, short hist2)
-             => AddLoopContext(loopStart, predScale, hist1, hist2, false);
-
-        private void AddLoopContext(int loopStart, short predScale, short hist1, short hist2, bool selfCalculated)
-             => Contexts[loopStart] = new LoopContext
-             {
-                 PredScale = predScale,
-                 Hist1 = hist1,
-                 Hist2 = hist2,
-                 IsSelfCalculated = selfCalculated
-             };
+             => Contexts[loopStart] = new LoopContext(predScale, hist1, hist2, false);
 
         private LoopContext GetLoopContext(int loopStart, bool ensureSelfCalculated)
         {
@@ -46,15 +37,23 @@ namespace DspAdpcm.Formats.GcAdpcm
         {
             byte ps = GcAdpcmDecoder.GetPredictorScale(Adpcm.GetAudioData(), loopStart);
             short[] hist = GcAdpcmDecoder.Decode(Adpcm, loopStart, 0, true);
-            AddLoopContext(loopStart, ps, hist[1], hist[0], true);
+            Contexts[loopStart] = new LoopContext(ps, hist[1], hist[0], true);
         }
 
-        private struct LoopContext
+        private class LoopContext
         {
-            public short PredScale;
-            public short Hist1;
-            public short Hist2;
-            public bool IsSelfCalculated;
+            public LoopContext(short predScale, short hist1, short hist2, bool isSelfCalculated)
+            {
+                PredScale = predScale;
+                Hist1 = hist1;
+                Hist2 = hist2;
+                IsSelfCalculated = isSelfCalculated;
+            }
+
+            public readonly short PredScale;
+            public readonly short Hist1;
+            public readonly short Hist2;
+            public readonly bool IsSelfCalculated;
         }
     }
 }

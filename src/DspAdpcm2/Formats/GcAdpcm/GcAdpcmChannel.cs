@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using DspAdpcm.Codecs;
 
 namespace DspAdpcm.Formats.GcAdpcm
@@ -20,8 +19,8 @@ namespace DspAdpcm.Formats.GcAdpcm
         public short LoopPredScale(int loopStart, bool ensureSelfCalculated = false) => LoopContext.PredScale(loopStart, ensureSelfCalculated);
         public short LoopHist1(int loopStart, bool ensureSelfCalculated = false) => LoopContext.Hist1(loopStart, ensureSelfCalculated);
         public short LoopHist2(int loopStart, bool ensureSelfCalculated = false) => LoopContext.Hist2(loopStart, ensureSelfCalculated);
-
-        public List<GcAdpcmSeekTable> SeekTable { get; } = new List<GcAdpcmSeekTable>();
+        
+        private GcAdpcmSeekTable SeekTable { get; }
         private GcAdpcmLoopContext LoopContext { get; }
         private GcAdpcmAlignment Alignment { get; } = new GcAdpcmAlignment();
         private bool AlignmentNeeded { get; set; }
@@ -31,6 +30,7 @@ namespace DspAdpcm.Formats.GcAdpcm
             _sampleCount = sampleCount;
             AudioData = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
             LoopContext = new GcAdpcmLoopContext(this);
+            SeekTable = new GcAdpcmSeekTable(this);
         }
 
         public GcAdpcmChannel(int sampleCount, byte[] audio)
@@ -43,7 +43,11 @@ namespace DspAdpcm.Formats.GcAdpcm
             _sampleCount = sampleCount;
             AudioData = audio;
             LoopContext = new GcAdpcmLoopContext(this);
+            SeekTable = new GcAdpcmSeekTable(this);
         }
+
+        public short[] GetPcmAudio(bool includeHistorySamples = false) =>
+            GcAdpcmDecoder.Decode(this, 0, SampleCount, includeHistorySamples);
 
         public short[] GetPcmAudioLooped(int startSample, int length, int loopStart, int loopEnd,
             bool includeHistorySamples = false)
@@ -79,6 +83,11 @@ namespace DspAdpcm.Formats.GcAdpcm
 
             return output;
         }
+
+        public short[] GetSeekTable(int samplesPerEntry, bool ensureSelfCalculated = false)
+            => SeekTable.GetSeekTable(samplesPerEntry, ensureSelfCalculated);
+
+        public void AddSeekTable(short[] table, int samplesPerEntry) => SeekTable.AddSeekTable(table, samplesPerEntry);
 
         internal void SetAlignment(int multiple, int loopStart, int loopEnd)
         {
