@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using DspAdpcm.Codecs;
 using DspAdpcm.Formats.GcAdpcm;
 using DspAdpcm.Utilities;
@@ -13,7 +15,12 @@ namespace DspAdpcm.Formats
     {
         public GcAdpcmChannel[] Channels { get; }
 
-        public List<GcAdpcmTrack> Tracks { get; set; } = new List<GcAdpcmTrack>();
+        private List<GcAdpcmTrack> _tracks;
+        public List<GcAdpcmTrack> Tracks
+        {
+            get { return _tracks == null || _tracks.Count == 0 ? GetDefaultTrackList().ToList() : _tracks; }
+            set { _tracks = value; }
+        }
 
         public int AlignmentMultiple { get; private set; }
         private int AlignmentSamples => Helpers.GetNextMultiple(base.LoopStart, AlignmentMultiple) - base.LoopStart;
@@ -76,6 +83,21 @@ namespace DspAdpcm.Formats
             byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
 
             return new GcAdpcmChannel(sampleCount, adpcm) { Coefs = coefs };
+        }
+
+        private IEnumerable<GcAdpcmTrack> GetDefaultTrackList()
+        {
+            int trackCount = Channels.Length.DivideByRoundUp(2);
+            for (int i = 0; i < trackCount; i++)
+            {
+                int channelCount = Math.Min(Channels.Length - i * 2, 2);
+                yield return new GcAdpcmTrack
+                {
+                    ChannelCount = channelCount,
+                    ChannelLeft = i * 2,
+                    ChannelRight = channelCount >= 2 ? i * 2 + 1 : 0
+                };
+            }
         }
     }
 }

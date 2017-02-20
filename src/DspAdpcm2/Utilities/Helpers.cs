@@ -5,7 +5,7 @@ using DspAdpcm.Compatibility;
 
 namespace DspAdpcm.Utilities
 {
-    internal static class Helpers
+    public static class Helpers
     {
 #if !(NET20 || NET35 || NET40)
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -33,7 +33,7 @@ namespace DspAdpcm.Utilities
             return value + multiple - value % multiple;
         }
 
-        public static void CheckStream(Stream stream, int minLength)
+        internal static void CheckStream(Stream stream, int minLength)
         {
             if (!stream.CanSeek)
             {
@@ -46,7 +46,7 @@ namespace DspAdpcm.Utilities
             }
         }
 
-        public static bool ArraysEqual<T>(T[] a1, T[] a2)
+        internal static bool ArraysEqual<T>(T[] a1, T[] a2)
         {
             if (a1 == null || a2 == null) return false;
             if (a1 == a2) return true;

@@ -1,4 +1,7 @@
-﻿using DspAdpcm.Utilities;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using DspAdpcm.Utilities;
 
 namespace DspAdpcm.Formats.GcAdpcm
 {
@@ -44,5 +47,16 @@ namespace DspAdpcm.Formats.GcAdpcm
         }
 
         public static int SampleCountToByteCount(int sampleCount) => SampleCountToNibbleCount(sampleCount).DivideBy2RoundUp();
+
+        public static byte[] BuildSeekTable(IList<GcAdpcmChannel> channels, int samplesPerEntry, int entryCount, Helpers.Endianness endianness, bool ensureSelfCalculated = false)
+        {
+            short[] table = channels
+                .Select(x => x.GetSeekTable(samplesPerEntry, ensureSelfCalculated))
+                .ToArray()
+                .Interleave(2);
+
+            Array.Resize(ref table, entryCount * 2 * channels.Count);
+            return table.ToByteArray(endianness);
+        }
     }
 }
