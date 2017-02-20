@@ -21,7 +21,7 @@ namespace DspAdpcm.Formats
             ChannelCount = channelCount;
         }
 
-        public void SetLoop(int loopStart, int loopEnd)
+        public virtual void SetLoop(int loopStart, int loopEnd)
         {
             if (loopStart < 0 || loopStart > SampleCount)
             {

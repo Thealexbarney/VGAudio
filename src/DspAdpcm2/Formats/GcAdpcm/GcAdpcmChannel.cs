@@ -6,8 +6,10 @@ namespace DspAdpcm.Formats.GcAdpcm
 {
     public class GcAdpcmChannel
     {
+        private readonly int _sampleCount;
+
         public byte[] AudioData { get; }
-        public int SampleCount { get; }
+        public int SampleCount => AlignmentNeeded ? Alignment.SampleCountAligned : _sampleCount;
 
         public short Gain { get; set; }
         public short[] Coefs { get; set; }
@@ -21,11 +23,12 @@ namespace DspAdpcm.Formats.GcAdpcm
 
         public List<GcAdpcmSeekTable> SeekTable { get; } = new List<GcAdpcmSeekTable>();
         private GcAdpcmLoopContext LoopContext { get; }
-        public GcAdpcmAlignment Alignment { get; set; }
+        private GcAdpcmAlignment Alignment { get; } = new GcAdpcmAlignment();
+        private bool AlignmentNeeded { get; set; }
 
         public GcAdpcmChannel(int sampleCount)
         {
-            SampleCount = sampleCount;
+            _sampleCount = sampleCount;
             AudioData = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
             LoopContext = new GcAdpcmLoopContext(this);
         }
@@ -37,7 +40,7 @@ namespace DspAdpcm.Formats.GcAdpcm
                 throw new ArgumentException("Audio array length is too short for the specified number of samples.");
             }
 
-            SampleCount = sampleCount;
+            _sampleCount = sampleCount;
             AudioData = audio;
             LoopContext = new GcAdpcmLoopContext(this);
         }
@@ -64,7 +67,7 @@ namespace DspAdpcm.Formats.GcAdpcm
             int outIndex = 0;
             int samplesRemaining = length;
             int currentSample = GetLoopedSample(startSample, loopStart, loopEnd);
-            
+
             while (samplesRemaining > 0)
             {
                 int samplesToGet = Math.Min(loopEnd - currentSample, samplesRemaining);
@@ -77,6 +80,11 @@ namespace DspAdpcm.Formats.GcAdpcm
             return output;
         }
 
+        internal void SetAlignment(int multiple, int loopStart, int loopEnd)
+        {
+            AlignmentNeeded = Alignment.SetAlignment(multiple, loopStart, loopEnd, this);
+        }
+
         private static int GetLoopedSample(int sample, int loopStart, int loopEnd)
         {
             return sample < loopStart ? sample : (sample - loopStart) % (loopEnd - loopStart + 1) + loopStart;
@@ -84,7 +92,7 @@ namespace DspAdpcm.Formats.GcAdpcm
 
         public byte[] GetAudioData()
         {
-            return AudioData;
+            return AlignmentNeeded ? Alignment.AudioDataAligned : AudioData;
         }
 
         public void SetLoopContext(int loopStart, short predScale, short hist1, short hist2)

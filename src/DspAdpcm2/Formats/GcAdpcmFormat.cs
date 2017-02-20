@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using DspAdpcm.Codecs;
 using DspAdpcm.Formats.GcAdpcm;
+using DspAdpcm.Utilities;
 
 namespace DspAdpcm.Formats
 {
@@ -14,8 +15,11 @@ namespace DspAdpcm.Formats
 
         public List<GcAdpcmTrack> Tracks { get; set; } = new List<GcAdpcmTrack>();
 
-        public bool AlignmentNeeded { get; private set; }
         public int AlignmentMultiple { get; private set; }
+        private int AlignmentSamples => Helpers.GetNextMultiple(base.LoopStart, AlignmentMultiple) - base.LoopStart;
+        public new int LoopStart => base.LoopStart + AlignmentSamples;
+        public new int LoopEnd => base.LoopEnd + AlignmentSamples;
+        public new int SampleCount => AlignmentSamples == 0 ? base.SampleCount : LoopEnd;
 
         public GcAdpcmFormat(int sampleCount, int sampleRate, GcAdpcmChannel[] channels)
             : base(sampleCount, sampleRate, channels.Length)
@@ -30,7 +34,17 @@ namespace DspAdpcm.Formats
 
         public void SetAlignment(int multiple)
         {
+            AlignmentMultiple = multiple;
+            foreach (GcAdpcmChannel channel in Channels)
+            {
+                channel.SetAlignment(multiple, base.LoopStart, base.LoopEnd);
+            }
+        }
 
+        public override void SetLoop(int loopStart, int loopEnd)
+        {
+            base.SetLoop(loopStart, loopEnd);
+            SetAlignment(AlignmentMultiple);
         }
 
         public override Pcm16Format ToPcm16()

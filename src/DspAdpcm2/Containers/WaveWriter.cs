@@ -30,7 +30,7 @@ namespace DspAdpcm.Containers
         private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
         // ReSharper restore InconsistentNaming
 
-        protected override void SetAudioFormat(AudioData audio)
+        protected override void SetupWriter(AudioData audio)
         {
             Pcm16 = Pcm16 ?? audio.GetFormat<Pcm16Format>();
         }

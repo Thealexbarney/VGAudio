@@ -33,7 +33,7 @@ namespace DspAdpcm.Containers
         private int EndAddr => SampleToNibble(Adpcm.Looping ? LoopEnd : SampleCount - 1);
         private static int CurAddr => SampleToNibble(0);
 
-        protected override void SetAudioFormat(AudioData audio)
+        protected override void SetupWriter(AudioData audio)
         {
             Adpcm = Adpcm ?? audio.GetFormat<GcAdpcmFormat>();
         }
@@ -82,11 +82,11 @@ namespace DspAdpcm.Containers
             writer.BaseStream.Position = HeaderSize * ChannelCount;
             if (ChannelCount == 1)
             {
-                writer.Write(Adpcm.Channels[0].AudioData, 0, SampleCountToByteCount(SampleCount));
+                writer.Write(Adpcm.Channels[0].GetAudioData(), 0, SampleCountToByteCount(SampleCount));
             }
             else
             {
-                byte[][] channels = Adpcm.Channels.Select(x => x.AudioData).ToArray();
+                byte[][] channels = Adpcm.Channels.Select(x => x.GetAudioData()).ToArray();
                 channels.Interleave(writer.BaseStream, BytesPerInterleave, AudioDataSize);
             }
         }

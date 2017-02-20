@@ -20,7 +20,7 @@ namespace DspAdpcm.Containers
 
         protected byte[] GetByteArray(AudioData audio)
         {
-            SetAudioFormat(audio);
+            SetupWriter(audio);
             var file = new byte[FileSize];
             var stream = new MemoryStream(file);
             WriteStream(audio, stream);
@@ -29,7 +29,7 @@ namespace DspAdpcm.Containers
 
         protected void WriteStream(AudioData audio, Stream stream)
         {
-            SetAudioFormat(audio);
+            SetupWriter(audio);
             if (stream.Length != FileSize)
             {
                 try
@@ -45,7 +45,7 @@ namespace DspAdpcm.Containers
             WriteStream(stream);
         }
 
-        protected abstract void SetAudioFormat(AudioData audio);
+        protected abstract void SetupWriter(AudioData audio);
         protected abstract void WriteStream(Stream stream);
     }
 }
