@@ -45,6 +45,13 @@ namespace DspAdpcm.Formats
             LoopEnd = loopEnd;
         }
 
+        public virtual void SetLoop(bool loop)
+        {
+            Looping = loop;
+            LoopStart = 0;
+            LoopEnd = loop ? SampleCount : 0;
+        }
+
         public bool TryAdd(IAudioFormat format)
         {
             T castFormat = format as T;

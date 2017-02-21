@@ -41,6 +41,13 @@ namespace DspAdpcm.Formats
                 format.SetLoop(loopStart, loopEnd);
             }
         }
+        public void SetLoop(bool loop)
+        {
+            foreach (IAudioFormat format in Formats.Values)
+            {
+                format.SetLoop(loop);
+            }
+        }
 
         public void Add(IList<AudioData> audio)
         {
