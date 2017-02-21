@@ -15,6 +15,7 @@ namespace DspAdpcm.Cli
             {
                 Stopwatch watch = Stopwatch.StartNew();
                 bool success = Convert.ConvertFile(options);
+                watch.Stop();
 
                 if (success)
                 {
