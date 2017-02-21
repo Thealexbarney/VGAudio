@@ -8,7 +8,7 @@ namespace DspAdpcm.Formats
     {
         private Dictionary<Type, IAudioFormat> Formats { get; } = new Dictionary<Type, IAudioFormat>();
 
-        private void AddFormat(IAudioFormat format) => Formats.Add(format.GetType(), format);
+        private void AddFormat(IAudioFormat format) => Formats[format.GetType()] = format;
 
         public AudioData(IAudioFormat audioFormat)
         {
@@ -30,12 +30,50 @@ namespace DspAdpcm.Formats
             return GetAudioFormat<T>();
         }
 
+        public IEnumerable<IAudioFormat> GetAllFormats() => Formats.Values.AsEnumerable();
+
+        public IEnumerable<Type> ListAvailableFormats() => Formats.Keys.AsEnumerable();
+
         public void SetLoop(int loopStart, int loopEnd)
         {
             foreach (IAudioFormat format in Formats.Values)
             {
                 format.SetLoop(loopStart, loopEnd);
             }
+        }
+
+        public void Add(IList<AudioData> audio)
+        {
+            if (audio == null || audio.Count <= 0) return;
+
+            List<Type> commonTypes = audio
+                .Select(x => x.ListAvailableFormats())
+                .Aggregate((x, y) => x.Intersect(y))
+                .ToList();
+
+            Type formatToUse;
+
+            if (commonTypes.Count == 0 || commonTypes.Count == 1 && commonTypes.Contains(typeof(Pcm16Format)))
+            {
+                formatToUse = typeof(Pcm16Format);
+            }
+            else
+            {
+                formatToUse = commonTypes.First(x => x != typeof(Pcm16Format));
+            }
+
+            IAudioFormat baseFormat = Formats[formatToUse];
+
+            foreach (IAudioFormat format in audio.Select(x => x.Formats[formatToUse]))
+            {
+                if (baseFormat.TryAdd(format) == false)
+                {
+                    throw new ArgumentException("Audio streams cannot be added together");
+                }
+            }
+
+            Formats.Clear();
+            Formats[baseFormat.GetType()] = baseFormat;
         }
 
         private T GetAudioFormat<T>() where T : class, IAudioFormat

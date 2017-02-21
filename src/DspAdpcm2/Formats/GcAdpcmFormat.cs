@@ -13,7 +13,7 @@ namespace DspAdpcm.Formats
     /// </summary>
     public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat>
     {
-        public GcAdpcmChannel[] Channels { get; }
+        public GcAdpcmChannel[] Channels { get; private set; }
 
         private List<GcAdpcmTrack> _tracks;
         public List<GcAdpcmTrack> Tracks
@@ -77,6 +77,38 @@ namespace DspAdpcm.Formats
             return new GcAdpcmFormat(pcm16.SampleCount, pcm16.SampleRate, channels);
         }
 
+        public override void Add(GcAdpcmFormat adpcm)
+        {
+            if (adpcm.SampleCount != SampleCount)
+            {
+                throw new ArgumentException("Only audio streams of the same length can be added to each other.");
+            }
+
+            Channels = Channels.Concat(adpcm.Channels).ToArray();
+            ChannelCount = Channels.Length;
+            SetAlignment(AlignmentMultiple);
+        }
+
+        public override GcAdpcmFormat GetChannels(IEnumerable<int> channelRange)
+        {
+            if (channelRange == null)
+                throw new ArgumentNullException(nameof(channelRange));
+
+            GcAdpcmFormat copy = ShallowClone();
+            var channels = new List<GcAdpcmChannel>();
+            copy._tracks = null;
+
+            foreach (int i in channelRange)
+            {
+                if (i < 0 || i >= Channels.Length)
+                    throw new ArgumentException($"Channel {i} does not exist.", nameof(channelRange));
+                channels.Add(Channels[i]);
+            }
+            copy.Channels = channels.ToArray();
+            copy.ChannelCount = channels.Count;
+            return copy;
+        }
+
         private GcAdpcmChannel EncodeChannel(int sampleCount, short[] pcm)
         {
             short[] coefs = GcAdpcmEncoder.DspCorrelateCoefs(pcm);
@@ -99,5 +131,7 @@ namespace DspAdpcm.Formats
                 };
             }
         }
+
+        private GcAdpcmFormat ShallowClone() => (GcAdpcmFormat)MemberwiseClone();
     }
 }

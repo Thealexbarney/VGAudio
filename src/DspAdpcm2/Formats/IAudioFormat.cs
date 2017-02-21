@@ -1,4 +1,6 @@
-﻿namespace DspAdpcm.Formats
+﻿using System.Collections.Generic;
+
+namespace DspAdpcm.Formats
 {
     public interface IAudioFormat
     {
@@ -12,5 +14,7 @@
         void SetLoop(int loopStart, int loopEnd);
         Pcm16Format ToPcm16();
         IAudioFormat EncodeFromPcm16(Pcm16Format pcm16);
+        IAudioFormat GetChannels(IEnumerable<int> channelRange);
+        bool TryAdd(IAudioFormat format);
     }
 }
