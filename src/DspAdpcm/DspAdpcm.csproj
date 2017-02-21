@@ -25,7 +25,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\DspAdpcm.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,7 +33,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\DspAdpcm.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include="DspAdpcm.project.json" />
@@ -42,49 +40,51 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Adpcm\AdpcmChannel.cs" />
-    <Compile Include="Adpcm\AdpcmStream.cs" />
-    <Compile Include="Adpcm\Decode.cs" />
-    <Compile Include="Adpcm\Encode.cs" />
-    <Compile Include="Adpcm\Formats\Configuration\BcstmConfiguration.cs" />
-    <Compile Include="Adpcm\Formats\Configuration\BfstmConfiguration.cs" />
-    <Compile Include="Adpcm\Formats\Configuration\BrstmConfiguration.cs" />
-    <Compile Include="Adpcm\Formats\Configuration\DspConfiguration.cs" />
-    <Compile Include="Adpcm\Formats\Configuration\IdspConfiguration.cs" />
-    <Compile Include="Adpcm\Formats\Genh.cs" />
-    <Compile Include="Adpcm\Formats\Internal\BCFstm.cs" />
-    <Compile Include="Adpcm\Formats\Bfstm.cs" />
-    <Compile Include="Adpcm\Formats\Bcstm.cs" />
-    <Compile Include="Adpcm\Formats\Internal\BCFstmStructure.cs" />
-    <Compile Include="Adpcm\Formats\Structures\B_stm.cs" />
-    <Compile Include="Adpcm\Formats\Structures\BfstmStructure.cs" />
-    <Compile Include="Adpcm\Formats\Structures\BcstmStructure.cs" />
-    <Compile Include="Adpcm\Formats\Brstm.cs" />
-    <Compile Include="Adpcm\Formats\Structures\BrstmStructure.cs" />
-    <Compile Include="Adpcm\Formats\Internal\B_stm.cs" />
-    <Compile Include="Adpcm\Formats\Internal\B_stmStructure.cs" />
-    <Compile Include="Adpcm\Formats\Structures\DspStructure.cs" />
-    <Compile Include="Adpcm\Formats\Idsp.cs" />
-    <Compile Include="Adpcm\Formats\Structures\GenhStructure.cs" />
-    <Compile Include="Adpcm\Formats\Structures\IdspStructure.cs" />
-    <Compile Include="BinaryReaderBE.cs" />
-    <Compile Include="BinaryWriterBE.cs" />
+    <Compile Include="Codecs\GcAdpcmEncoder.cs" />
+    <Compile Include="Containers\BrstmWriter.cs" />
+    <Compile Include="Containers\Bxstm\BrstmConfiguration.cs" />
+    <Compile Include="Containers\Bxstm\BxstmConfiguration.cs" />
+    <Compile Include="Containers\DspReader.cs" />
+    <Compile Include="Containers\DspWriter.cs" />
+    <Compile Include="Containers\Dsp\DspConfiguration.cs" />
+    <Compile Include="Containers\Dsp\DspStructure.cs" />
+    <Compile Include="Containers\Wave\WaveConfiguration.cs" />
+    <Compile Include="Formats\GcAdpcm\GcAdpcmHelpers.cs" />
+    <Compile Include="Codecs\GcAdpcmDecoder.cs" />
+    <Compile Include="Formats\GcAdpcm\GcAdpcmTrack.cs" />
+    <Compile Include="Containers\AudioReader.cs" />
+    <Compile Include="Containers\AudioWriter.cs" />
+    <Compile Include="Containers\BrstmReader.cs" />
+    <Compile Include="Containers\Bxstm\BxstmChannelInfo.cs" />
+    <Compile Include="Containers\Bxstm\BxstmCodec.cs" />
+    <Compile Include="Containers\Bxstm\BrstmStructure.cs" />
+    <Compile Include="Containers\WaveWriter.cs" />
+    <Compile Include="Formats\AudioData.cs" />
+    <Compile Include="Formats\AudioFormatBase.cs" />
+    <Compile Include="Formats\IAudioFormat.cs" />
+    <Compile Include="Utilities\BinaryReaderBE.cs" />
+    <Compile Include="Utilities\BinaryWriterBE.cs" />
+    <Compile Include="Formats\GcAdpcm\GcAdpcmAlignment.cs" />
+    <Compile Include="Formats\GcAdpcm\GcAdpcmChannel.cs" />
+    <Compile Include="Formats\GcAdpcm\GcAdpcmChannelInfo.cs" />
+    <Compile Include="Formats\GcAdpcm\GcAdpcmLoopContext.cs" />
+    <Compile Include="Formats\GcAdpcm\GcAdpcmSeekTable.cs" />
+    <Compile Include="Formats\GcAdpcmFormat.cs" />
+    <Compile Include="Formats\Pcm16Format.cs" />
     <Compile Include="Compatibility\EnumFlag.cs" />
     <Compile Include="Compatibility\Extensions.cs" />
     <Compile Include="Compatibility\LinqBridge.cs" />
     <Compile Include="Compatibility\Parallel.cs" />
     <Compile Include="Compatibility\Stream.cs" />
     <Compile Include="Compatibility\Tuple.cs" />
-    <Compile Include="Helpers.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="Adpcm\Formats\Dsp.cs" />
-    <Compile Include="Interleave.cs" />
-    <Compile Include="NamespaceDoc.cs" />
-    <Compile Include="Pcm\Formats\Wave.cs" />
-    <Compile Include="Pcm\Formats\WaveStructure.cs" />
+    <Compile Include="Containers\IAudioReader.cs" />
+    <Compile Include="Containers\IAudioWriter.cs" />
+    <Compile Include="Containers\Wave\WaveStructure.cs" />
+    <Compile Include="Containers\WaveReader.cs" />
+    <Compile Include="Utilities\Helpers.cs" />
+    <Compile Include="Utilities\Extensions.cs" />
+    <Compile Include="Utilities\Interleave.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Pcm\PcmChannel.cs" />
-    <Compile Include="Pcm\PcmStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

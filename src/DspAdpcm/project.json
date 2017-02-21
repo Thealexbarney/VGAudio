@@ -1,7 +1,7 @@
 ﻿{
     "title": "DspAdpcm",
     "description": "A library for encoding, decoding, and manipulating audio files using Nintendo's DSP-ADPCM format.",
-    "version": "1.1.1-*",
+    "version": "2.0.0-*",
     "authors": [ "Alex Barney" ],
     "copyright": "Copyright © 2016 Alex Barney",
     "packOptions": {
@@ -15,10 +15,6 @@
             "type": "git",
             "url": "https://github.com/Thealexbarney/LibDspAdpcm"
         }
-    },
-
-    "buildOptions": {
-        "xmlDoc": true
     },
 
     "frameworks": {
