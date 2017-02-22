@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using DspAdpcm.Utilities;
+
+#if NET20
+using DspAdpcm.Compatibility.LinqBridge;
+#else
+using System.Linq;
+#endif
 
 namespace DspAdpcm.Formats.GcAdpcm
 {

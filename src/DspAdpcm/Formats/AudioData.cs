@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+
+#if NET20
+using DspAdpcm.Compatibility.LinqBridge;
+#else
 using System.Linq;
+#endif
 
 namespace DspAdpcm.Formats
 {
@@ -30,9 +35,9 @@ namespace DspAdpcm.Formats
             return GetAudioFormat<T>();
         }
 
-        public IEnumerable<IAudioFormat> GetAllFormats() => Formats.Values.AsEnumerable();
+        public IEnumerable<IAudioFormat> GetAllFormats() => Formats.Values;
 
-        public IEnumerable<Type> ListAvailableFormats() => Formats.Keys.AsEnumerable();
+        public IEnumerable<Type> ListAvailableFormats() => Formats.Keys;
 
         public void SetLoop(int loopStart, int loopEnd)
         {
