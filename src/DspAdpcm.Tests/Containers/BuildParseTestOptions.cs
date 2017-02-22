@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Tests.Formats
+﻿namespace DspAdpcm.Tests.Containers
 {
     internal static class BuildParseTestOptions
     {
