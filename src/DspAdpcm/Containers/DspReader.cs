@@ -104,7 +104,7 @@ namespace DspAdpcm.Containers
                 throw new InvalidDataException($"File doesn't contain enough data for {structure.SampleCount} samples");
             }
 
-            if (SampleToNibble(structure.SampleCount) != structure.NibbleCount)
+            if (SampleCountToNibbleCount(structure.SampleCount) != structure.NibbleCount)
             {
                 throw new InvalidDataException("Sample count and nibble count do not match");
             }

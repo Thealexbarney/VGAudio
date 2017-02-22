@@ -40,7 +40,7 @@ namespace DspAdpcm.Containers
 
         protected override void SetupWriter(AudioData audio)
         {
-            Adpcm = Adpcm ?? audio.GetFormat<GcAdpcmFormat>();
+            Adpcm = audio.GetFormat<GcAdpcmFormat>();
         }
 
         protected override void WriteStream(Stream stream)

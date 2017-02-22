@@ -77,7 +77,7 @@ namespace DspAdpcm.Containers
 
         protected override void SetupWriter(AudioData audio)
         {
-            Adpcm = Adpcm ?? audio.GetFormat<GcAdpcmFormat>();
+            Adpcm = audio.GetFormat<GcAdpcmFormat>();
             Adpcm.SetAlignment(Configuration.LoopPointAlignment);
         }
 

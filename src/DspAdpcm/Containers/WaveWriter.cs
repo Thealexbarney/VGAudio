@@ -32,7 +32,7 @@ namespace DspAdpcm.Containers
 
         protected override void SetupWriter(AudioData audio)
         {
-            Pcm16 = Pcm16 ?? audio.GetFormat<Pcm16Format>();
+            Pcm16 = audio.GetFormat<Pcm16Format>();
         }
 
         protected override void WriteStream(Stream stream)
