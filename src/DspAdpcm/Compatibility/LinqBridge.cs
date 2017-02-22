@@ -36,7 +36,7 @@ using DspAdpcm.Compatibility.Serialization;
 
 namespace DspAdpcm.Compatibility.LinqBridge
 {
-  internal static partial class Enumerable
+  public static partial class Enumerable
   {
 
     public static IEnumerable<TSource> AsEnumerable<TSource>(IEnumerable<TSource> source)
@@ -1352,7 +1352,7 @@ namespace DspAdpcm.Compatibility.LinqBridge
     }
   }
 
-  internal partial class Enumerable
+  public partial class Enumerable
   {
 
     public static int Sum(
@@ -2045,41 +2045,41 @@ namespace DspAdpcm.Compatibility.LinqBridge
     }
   }
 
-  internal partial interface IGrouping<TKey, TElement> : IEnumerable<TElement>
+  public partial interface IGrouping<TKey, TElement> : IEnumerable<TElement>
   {
 
     TKey Key { get; }
   }
 
-  internal partial interface ILookup<TKey, TElement> : IEnumerable<IGrouping<TKey, TElement>>
+  public partial interface ILookup<TKey, TElement> : IEnumerable<IGrouping<TKey, TElement>>
   {
     bool Contains(TKey key);
     int Count { get; }
     IEnumerable<TElement> this[TKey key] { get; }
   }
 
-  internal partial interface IOrderedEnumerable<TElement> : IEnumerable<TElement>
+  public partial interface IOrderedEnumerable<TElement> : IEnumerable<TElement>
   {
 
     IOrderedEnumerable<TElement> CreateOrderedEnumerable<TKey>(
       Func<TElement, TKey> keySelector, IComparer<TKey> comparer, bool descending);
   }
 
-  internal sealed class Lookup<TKey, TElement> : ILookup<TKey, TElement>
+  public sealed class Lookup<TKey, TElement> : ILookup<TKey, TElement>
   {
     private readonly Dictionary<TKey, IGrouping<TKey, TElement>> _map;
 
-    internal Lookup(IEqualityComparer<TKey> comparer)
+    public Lookup(IEqualityComparer<TKey> comparer)
     {
       _map = new Dictionary<TKey, IGrouping<TKey, TElement>>(comparer);
     }
 
-    internal void Add(IGrouping<TKey, TElement> item)
+    public void Add(IGrouping<TKey, TElement> item)
     {
       _map.Add(item.Key, item);
     }
 
-    internal IEnumerable<TElement> Find(TKey key)
+    public IEnumerable<TElement> Find(TKey key)
     {
       IGrouping<TKey, TElement> grouping;
       return _map.TryGetValue(key, out grouping) ? grouping : null;
@@ -2130,7 +2130,7 @@ namespace DspAdpcm.Compatibility.LinqBridge
     }
   }
 
-  internal sealed class OrderedEnumerable<T, K> : IOrderedEnumerable<T>
+  public sealed class OrderedEnumerable<T, K> : IOrderedEnumerable<T>
   {
     private readonly IEnumerable<T> _source;
     private readonly List<Comparison<T>> _comparisons;

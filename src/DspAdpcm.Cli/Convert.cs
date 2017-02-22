@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using DspAdpcm.Formats;
+
+#if NET20
+using DspAdpcm.Compatibility.LinqBridge;
+#else
+using System.Linq;
+#endif
 
 namespace DspAdpcm.Cli
 {

@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using DspAdpcm.Containers;
 using DspAdpcm.Formats;
+
+#if NET20
+using DspAdpcm.Compatibility.LinqBridge;
+using DspAdpcm.Compatibility.Serialization;
+#else
+using System.Linq;
+#endif
 
 namespace DspAdpcm.Cli
 {
