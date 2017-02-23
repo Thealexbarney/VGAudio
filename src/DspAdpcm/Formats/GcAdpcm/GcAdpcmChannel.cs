@@ -1,5 +1,6 @@
 ﻿using System;
 using DspAdpcm.Codecs;
+using DspAdpcm.Utilities;
 
 namespace DspAdpcm.Formats.GcAdpcm
 {
@@ -106,5 +107,35 @@ namespace DspAdpcm.Formats.GcAdpcm
 
         public void SetLoopContext(int loopStart, short predScale, short hist1, short hist2)
             => LoopContext.AddLoopContext(loopStart, predScale, hist1, hist2);
+
+        public override bool Equals(object obj)
+        {
+            var item = obj as GcAdpcmChannel;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return
+                item.SampleCount == SampleCount &&
+                item.Gain == Gain &&
+                item.Hist1 == Hist1 &&
+                item.Hist2 == Hist2 &&
+                Helpers.ArraysEqual(item.Coefs, Coefs) &&
+                Helpers.ArraysEqual(item.AudioData, AudioData);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = SampleCount.GetHashCode();
+                hashCode = (hashCode * 397) ^ Gain.GetHashCode();
+                hashCode = (hashCode * 397) ^ Hist1.GetHashCode();
+                hashCode = (hashCode * 397) ^ Hist2.GetHashCode();
+                return hashCode;
+            }
+        }
     }
 }

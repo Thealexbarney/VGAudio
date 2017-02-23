@@ -138,5 +138,37 @@ namespace DspAdpcm.Formats
         }
 
         private GcAdpcmFormat ShallowClone() => (GcAdpcmFormat)MemberwiseClone();
+
+        public override bool Equals(object obj)
+        {
+            var item = obj as GcAdpcmFormat;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return
+                item.SampleCount == SampleCount &&
+                item.SampleRate == SampleRate &&
+                item.LoopStart == LoopStart &&
+                item.LoopEnd == LoopEnd &&
+                item.Looping == Looping &&
+                Helpers.ArraysEqual(item.Tracks.ToArray(), Tracks.ToArray()) &&
+                Helpers.ArraysEqual(item.Channels.ToArray(), Channels.ToArray());
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = SampleCount.GetHashCode();
+                hashCode = (hashCode * 397) ^ SampleRate.GetHashCode();
+                hashCode = (hashCode * 397) ^ LoopStart.GetHashCode();
+                hashCode = (hashCode * 397) ^ LoopEnd.GetHashCode();
+                hashCode = (hashCode * 397) ^ Looping.GetHashCode();
+                return hashCode;
+            }
+        }
     }
 }
