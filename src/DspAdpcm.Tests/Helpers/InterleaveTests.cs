@@ -14,8 +14,6 @@ namespace DspAdpcm.Tests.Helpers
         private static byte[][] Deinterleaved(params int[] lengths) =>
             lengths.Select(Interleaved).ToArray();
 
-        private static T[] Flatten<T>(this T[][] array) => array.SelectMany(x => x).ToArray();
-
         //Standard test
         private static byte[][] Deinterleaved16Size8Count2 { get; } = {
             new byte[] { 00, 01, 02, 03, 04, 05, 06, 07 },

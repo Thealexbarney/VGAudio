@@ -143,7 +143,7 @@ namespace DspAdpcm.Cli
 
             if (options.OutFiles.Count == 0)
             {
-                var a = new AudioFile { Path = Path.GetFileNameWithoutExtension(options.InFiles[0].Path) + ".dsp" };
+                options.OutFiles.Add(new AudioFile { Path = Path.GetFileNameWithoutExtension(options.InFiles[0].Path) + ".dsp" });
             }
 
             foreach (AudioFile file in options.OutFiles)

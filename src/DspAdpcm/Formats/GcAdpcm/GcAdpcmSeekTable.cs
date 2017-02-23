@@ -32,10 +32,10 @@ namespace DspAdpcm.Formats.GcAdpcm
         private void CalculateSeekTable(int samplesPerEntry)
         {
             var audio = Adpcm.GetPcmAudio(true);
-            int EntryCount = Adpcm.SampleCount.DivideByRoundUp(samplesPerEntry);
-            short[] table = new short[EntryCount * 2];
+            int entryCount = Adpcm.SampleCount.DivideByRoundUp(samplesPerEntry);
+            short[] table = new short[entryCount * 2];
 
-            for (int i = 0; i < EntryCount; i++)
+            for (int i = 0; i < entryCount; i++)
             {
                 table[i * 2] = audio[i * samplesPerEntry + 1];
                 table[i * 2 + 1] = audio[i * samplesPerEntry];
