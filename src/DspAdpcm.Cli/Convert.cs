@@ -51,7 +51,7 @@ namespace DspAdpcm.Cli
                     throw new ArgumentOutOfRangeException(nameof(file.Type), file.Type, null);
                 }
 
-                file.Audio = type.Read(stream);
+                file.Audio = type.GetReader().Read(stream);
             }
         }
 
@@ -67,7 +67,7 @@ namespace DspAdpcm.Cli
                     throw new ArgumentOutOfRangeException(nameof(fileType), fileType, null);
                 }
 
-                type.Write(Audio, stream);
+                type.GetWriter().WriteToStream(Audio, stream);
             }
         }
 
