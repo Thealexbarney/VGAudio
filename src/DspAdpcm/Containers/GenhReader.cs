@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Linq;
 using System.Text;
 using DspAdpcm.Containers.Genh;
 using DspAdpcm.Formats;
@@ -7,6 +6,12 @@ using DspAdpcm.Formats.GcAdpcm;
 using DspAdpcm.Utilities;
 using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
 using static DspAdpcm.Utilities.Helpers;
+
+#if NET20
+using DspAdpcm.Compatibility.LinqBridge;
+#else
+using System.Linq;
+#endif
 
 namespace DspAdpcm.Containers
 {

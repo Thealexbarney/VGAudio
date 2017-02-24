@@ -126,7 +126,7 @@ namespace DspAdpcm.Uwp.ViewModels
 
                 if (Looping)
                 {
-                    AudioData.SetLoop(LoopStart, LoopEnd);
+                    AudioData.SetLoop(Looping, LoopStart, LoopEnd);
                 }
 
                 var watch = new Stopwatch();
