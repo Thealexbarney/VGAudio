@@ -53,9 +53,9 @@ namespace DspAdpcm.Formats
             }
         }
 
-        public override void SetLoop(int loopStart, int loopEnd)
+        public override void SetLoop(bool loop, int loopStart, int loopEnd)
         {
-            base.SetLoop(loopStart, loopEnd);
+            base.SetLoop(loop, loopStart, loopEnd);
             SetAlignment(AlignmentMultiple);
         }
 

@@ -23,8 +23,14 @@ namespace DspAdpcm.Formats
             ChannelCount = channelCount;
         }
 
-        public virtual void SetLoop(int loopStart, int loopEnd)
+        public virtual void SetLoop(bool loop, int loopStart, int loopEnd)
         {
+            if (!loop)
+            {
+                SetLoop(false);
+                return;
+            }
+
             if (loopStart < 0 || loopStart > SampleCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(loopStart), loopStart, "Loop points must be less than the number of samples and non-negative.");

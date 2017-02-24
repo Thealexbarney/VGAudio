@@ -92,7 +92,7 @@ namespace DspAdpcm.Cli
 
             if (options.Loop)
             {
-                Audio.SetLoop(options.LoopStart, options.LoopEnd);
+                Audio.SetLoop(options.Loop, options.LoopStart, options.LoopEnd);
             }
         }
     }

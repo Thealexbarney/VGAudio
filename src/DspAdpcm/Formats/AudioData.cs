@@ -39,11 +39,11 @@ namespace DspAdpcm.Formats
 
         public IEnumerable<Type> ListAvailableFormats() => Formats.Keys;
 
-        public void SetLoop(int loopStart, int loopEnd)
+        public void SetLoop(bool loop, int loopStart, int loopEnd)
         {
             foreach (IAudioFormat format in Formats.Values)
             {
-                format.SetLoop(loopStart, loopEnd);
+                format.SetLoop(loop, loopStart, loopEnd);
             }
         }
         public void SetLoop(bool loop)

@@ -56,11 +56,7 @@ namespace DspAdpcm.Containers
             }
 
             var adpcm = new GcAdpcmFormat(structure.SampleCount, structure.SampleRate, channels);
-
-            if (structure.Looping)
-            {
-                adpcm.SetLoop(structure.LoopStart, structure.LoopEnd);
-            }
+            adpcm.SetLoop(structure.Looping, structure.LoopStart, structure.LoopEnd);
 
             return adpcm;
         }

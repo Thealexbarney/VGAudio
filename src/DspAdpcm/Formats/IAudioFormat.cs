@@ -11,7 +11,7 @@ namespace DspAdpcm.Formats
         int LoopEnd { get; }
         bool Looping { get; }
 
-        void SetLoop(int loopStart, int loopEnd);
+        void SetLoop(bool loop, int loopStart, int loopEnd);
         void SetLoop(bool loop);
         Pcm16Format ToPcm16();
         IAudioFormat EncodeFromPcm16(Pcm16Format pcm16);
