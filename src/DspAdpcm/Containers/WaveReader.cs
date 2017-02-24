@@ -23,7 +23,7 @@ namespace DspAdpcm.Containers
             {
                 var structure = new WaveStructure();
 
-                ParseRiffHeader(reader, structure);
+                ReadRiffHeader(reader, structure);
 
                 byte[] chunkId = new byte[4];
                 while (reader.Read(chunkId, 0, 4) == 4)
@@ -31,7 +31,7 @@ namespace DspAdpcm.Containers
                     int chunkSize = reader.ReadInt32();
                     if (Encoding.UTF8.GetString(chunkId, 0, 4) == "fmt ")
                     {
-                        ParseFmtChunk(reader, structure);
+                        ReadFmtChunk(reader, structure);
                     }
                     else if (Encoding.UTF8.GetString(chunkId, 0, 4) == "data")
                     {
@@ -40,7 +40,7 @@ namespace DspAdpcm.Containers
                             structure.SampleCount = chunkSize / structure.BytesPerSample / structure.ChannelCount;
                             return structure;
                         }
-                        ParseDataChunk(reader, chunkSize, structure);
+                        ReadDataChunk(reader, chunkSize, structure);
                         break;
                     }
                     else
@@ -70,7 +70,7 @@ namespace DspAdpcm.Containers
             return waveFormat;
         }
 
-        private static void ParseRiffHeader(BinaryReader reader, WaveStructure structure)
+        private static void ReadRiffHeader(BinaryReader reader, WaveStructure structure)
         {
             byte[] riffChunkId = reader.ReadBytes(4);
             structure.RiffSize = reader.ReadInt32();
@@ -87,7 +87,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private static void ParseFmtChunk(BinaryReader reader, WaveStructure structure)
+        private static void ReadFmtChunk(BinaryReader reader, WaveStructure structure)
         {
             structure.FormatTag = reader.ReadUInt16();
             structure.ChannelCount = reader.ReadInt16();
@@ -98,7 +98,7 @@ namespace DspAdpcm.Containers
 
             if (structure.FormatTag == WAVE_FORMAT_EXTENSIBLE)
             {
-                ParseWaveFormatExtensible(reader, structure);
+                ReadWaveFormatExtensible(reader, structure);
             }
 
             if (structure.FormatTag != WAVE_FORMAT_PCM && structure.FormatTag != WAVE_FORMAT_EXTENSIBLE)
@@ -117,7 +117,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private static void ParseWaveFormatExtensible(BinaryReader reader, WaveStructure structure)
+        private static void ReadWaveFormatExtensible(BinaryReader reader, WaveStructure structure)
         {
             structure.CbSize = reader.ReadInt16();
             if (structure.CbSize != 22) return;
@@ -136,7 +136,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private static void ParseDataChunk(BinaryReader reader, int chunkSize, WaveStructure structure)
+        private static void ReadDataChunk(BinaryReader reader, int chunkSize, WaveStructure structure)
         {
             structure.SampleCount = chunkSize / structure.BytesPerSample / structure.ChannelCount;
 

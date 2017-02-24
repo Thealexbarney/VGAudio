@@ -35,10 +35,10 @@ namespace DspAdpcm.Containers
 
                 var structure = new BrstmStructure();
 
-                ParseRstmHeader(reader, structure);
-                ParseHeadChunk(reader, structure);
-                ParseAdpcChunk(reader, structure);
-                ParseDataChunk(reader, structure, readAudioData);
+                ReadRstmHeader(reader, structure);
+                ReadHeadChunk(reader, structure);
+                ReadAdpcChunk(reader, structure);
+                ReadDataChunk(reader, structure, readAudioData);
 
                 return structure;
             }
@@ -76,7 +76,7 @@ namespace DspAdpcm.Containers
             return adpcm;
         }
 
-        private static void ParseRstmHeader(BinaryReader reader, BrstmStructure structure)
+        private static void ReadRstmHeader(BinaryReader reader, BrstmStructure structure)
         {
             reader.Expect((ushort)0xfeff);
             structure.Version = reader.ReadInt16();
@@ -98,7 +98,7 @@ namespace DspAdpcm.Containers
             structure.DataChunkSizeRstm = reader.ReadInt32();
         }
 
-        private static void ParseHeadChunk(BinaryReader reader, BrstmStructure structure)
+        private static void ReadHeadChunk(BinaryReader reader, BrstmStructure structure)
         {
             reader.BaseStream.Position = structure.HeadChunkOffset;
 
@@ -120,12 +120,12 @@ namespace DspAdpcm.Containers
             reader.Expect(OffsetMarker);
             structure.HeadChunk3Offset = reader.ReadInt32();
 
-            ParseHeadChunk1(reader, structure);
-            ParseHeadChunk2(reader, structure);
-            ParseHeadChunk3(reader, structure);
+            ReadHeadChunk1(reader, structure);
+            ReadHeadChunk2(reader, structure);
+            ReadHeadChunk3(reader, structure);
         }
 
-        private static void ParseHeadChunk1(BinaryReader reader, BrstmStructure structure)
+        private static void ReadHeadChunk1(BinaryReader reader, BrstmStructure structure)
         {
             reader.BaseStream.Position = structure.HeadChunkOffset + 8 + structure.HeadChunk1Offset;
             structure.Codec = (BxstmCodec)reader.ReadByte();
@@ -154,7 +154,7 @@ namespace DspAdpcm.Containers
             structure.SamplesPerSeekTableEntry = reader.ReadInt32();
         }
 
-        private static void ParseHeadChunk2(BinaryReader reader, BrstmStructure structure)
+        private static void ReadHeadChunk2(BinaryReader reader, BrstmStructure structure)
         {
             int baseOffset = structure.HeadChunkOffset + 8;
             reader.BaseStream.Position = baseOffset + structure.HeadChunk2Offset;
@@ -192,7 +192,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private static void ParseHeadChunk3(BinaryReader reader, BrstmStructure structure)
+        private static void ReadHeadChunk3(BinaryReader reader, BrstmStructure structure)
         {
             int baseOffset = structure.HeadChunkOffset + 8;
             reader.BaseStream.Position = baseOffset + structure.HeadChunk3Offset;
@@ -226,7 +226,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private static void ParseAdpcChunk(BinaryReader reader, BrstmStructure structure)
+        private static void ReadAdpcChunk(BinaryReader reader, BrstmStructure structure)
         {
             reader.BaseStream.Position = structure.AdpcChunkOffset;
 
@@ -269,7 +269,7 @@ namespace DspAdpcm.Containers
                 .DeInterleave(2, structure.ChannelCount);
         }
 
-        private static void ParseDataChunk(BinaryReader reader, BrstmStructure structure, bool readAudioData)
+        private static void ReadDataChunk(BinaryReader reader, BrstmStructure structure, bool readAudioData)
         {
             reader.BaseStream.Position = structure.DataChunkOffset;
 

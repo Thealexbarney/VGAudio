@@ -24,12 +24,12 @@ namespace DspAdpcm.Containers
             {
                 var structure = new DspStructure();
 
-                ParseHeader(reader, structure);
+                ReadHeader(reader, structure);
 
                 if (readAudioData)
                 {
                     reader.BaseStream.Position = HeaderSize * structure.ChannelCount;
-                    ParseData(reader, structure);
+                    ReadData(reader, structure);
                 }
 
                 return structure;
@@ -61,7 +61,7 @@ namespace DspAdpcm.Containers
             return adpcm;
         }
 
-        private static void ParseHeader(BinaryReader reader, DspStructure structure)
+        private static void ReadHeader(BinaryReader reader, DspStructure structure)
         {
             structure.SampleCount = reader.ReadInt32();
             structure.NibbleCount = reader.ReadInt32();
@@ -111,7 +111,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private static void ParseData(BinaryReader reader, DspStructure structure)
+        private static void ReadData(BinaryReader reader, DspStructure structure)
         {
             if (structure.ChannelCount == 1)
             {

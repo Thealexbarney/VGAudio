@@ -55,12 +55,12 @@ namespace DspAdpcm.Containers
             using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.BigEndian))
             {
                 stream.Position = 0;
-                GetHeader(writer);
-                GetData(writer);
+                WriteHeader(writer);
+                WriteData(writer);
             }
         }
 
-        private void GetHeader(BinaryWriter writer)
+        private void WriteHeader(BinaryWriter writer)
         {
             writer.WriteUTF8("IDSP");
             writer.Write(0);
@@ -99,7 +99,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private void GetData(BinaryWriter writer)
+        private void WriteData(BinaryWriter writer)
         {
             writer.BaseStream.Position = HeaderSize;
 

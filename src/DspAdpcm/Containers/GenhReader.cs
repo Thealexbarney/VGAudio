@@ -25,12 +25,12 @@ namespace DspAdpcm.Containers
             {
                 var structure = new GenhStructure();
 
-                ParseHeader(reader, structure);
+                ReadHeader(reader, structure);
 
                 if (readAudioData)
                 {
                     reader.BaseStream.Position = structure.AudioDataOffset;
-                    ParseData(reader, structure);
+                    ReadData(reader, structure);
                 }
 
                 return structure;
@@ -57,7 +57,7 @@ namespace DspAdpcm.Containers
             return adpcm;
         }
 
-        private static void ParseHeader(BinaryReader reader, GenhStructure structure)
+        private static void ReadHeader(BinaryReader reader, GenhStructure structure)
         {
             if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "GENH")
             {
@@ -130,7 +130,7 @@ namespace DspAdpcm.Containers
             }
         }
 
-        private static void ParseData(BinaryReader reader, GenhStructure structure)
+        private static void ReadData(BinaryReader reader, GenhStructure structure)
         {
             int dataLength = SampleCountToByteCount(structure.SampleCount) * structure.ChannelCount;
             structure.AudioData = reader.BaseStream.DeInterleave(dataLength, structure.Interleave, structure.ChannelCount);

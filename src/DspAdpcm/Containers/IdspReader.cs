@@ -29,10 +29,10 @@ namespace DspAdpcm.Containers
 
                 var structure = new IdspStructure();
 
-                ParseIdspHeader(reader, structure);
+                ReadIdspHeader(reader, structure);
                 if (readAudioData)
                 {
-                    ParseIdspData(reader, structure);
+                    ReadIdspData(reader, structure);
                 }
 
                 return structure;
@@ -64,7 +64,7 @@ namespace DspAdpcm.Containers
             return adpcm;
         }
 
-        private static void ParseIdspHeader(BinaryReader reader, IdspStructure structure)
+        private static void ReadIdspHeader(BinaryReader reader, IdspStructure structure)
         {
             reader.BaseStream.Position += 4;
             structure.ChannelCount = reader.ReadInt32();
@@ -107,7 +107,7 @@ namespace DspAdpcm.Containers
             structure.Looping = structure.Channels.Any(x => x.Looping);
         }
 
-        private static void ParseIdspData(BinaryReader reader, IdspStructure structure)
+        private static void ReadIdspData(BinaryReader reader, IdspStructure structure)
         {
             reader.BaseStream.Position = structure.AudioDataOffset;
             int interleave = structure.InterleaveSize == 0 ? structure.AudioDataLength : structure.InterleaveSize;
