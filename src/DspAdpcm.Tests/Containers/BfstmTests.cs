@@ -1,5 +1,4 @@
-﻿/*
-using DspAdpcm.Containers;
+﻿using DspAdpcm.Containers;
 using DspAdpcm.Formats;
 using Xunit;
 
@@ -19,4 +18,3 @@ namespace DspAdpcm.Tests.Containers
         }
     }
 }
-*/

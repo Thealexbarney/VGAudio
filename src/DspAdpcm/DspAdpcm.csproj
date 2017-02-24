@@ -41,9 +41,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Codecs\GcAdpcmEncoder.cs" />
+    <Compile Include="Containers\BcstmReader.cs" />
+    <Compile Include="Containers\BcstmWriter.cs" />
+    <Compile Include="Containers\BfstmReader.cs" />
+    <Compile Include="Containers\BfstmWriter.cs" />
     <Compile Include="Containers\BrstmWriter.cs" />
+    <Compile Include="Containers\Bxstm\BCFstmReader.cs" />
+    <Compile Include="Containers\Bxstm\BCFstmStructure.cs" />
+    <Compile Include="Containers\Bxstm\BCFstmWriter.cs" />
+    <Compile Include="Containers\Bxstm\BcstmConfiguration.cs" />
+    <Compile Include="Containers\Bxstm\BcstmStructure.cs" />
+    <Compile Include="Containers\Bxstm\BfstmConfiguration.cs" />
+    <Compile Include="Containers\Bxstm\BfstmStructure.cs" />
     <Compile Include="Containers\Bxstm\BrstmConfiguration.cs" />
     <Compile Include="Containers\Bxstm\BxstmConfiguration.cs" />
+    <Compile Include="Containers\Bxstm\BxstmStructure.cs" />
     <Compile Include="Containers\DspReader.cs" />
     <Compile Include="Containers\DspWriter.cs" />
     <Compile Include="Containers\Dsp\DspConfiguration.cs" />

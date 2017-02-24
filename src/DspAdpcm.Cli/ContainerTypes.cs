@@ -21,6 +21,8 @@ namespace DspAdpcm.Cli
             [FileType.Dsp] = new ContainerType(new[] { "dsp" }, DspReader.Read, (a, s) => new DspWriter().WriteToStream(a, s)),
             [FileType.Idsp] = new ContainerType(new[] { "idsp" }, IdspReader.Read, (a, s) => new IdspWriter().WriteToStream(a, s)),
             [FileType.Brstm] = new ContainerType(new[] { "brstm" }, BrstmReader.Read, (a, s) => new BrstmWriter().WriteToStream(a, s)),
+            [FileType.Bcstm] = new ContainerType(new[] { "bcstm" }, BcstmReader.Read, (a, s) => new BcstmWriter().WriteToStream(a, s)),
+            [FileType.Bfstm] = new ContainerType(new[] { "bfstm" }, BfstmReader.Read, (a, s) => new BfstmWriter().WriteToStream(a, s)),
             [FileType.Genh] = new ContainerType(new[] { "genh" }, GenhReader.Read, null)
         };
 
