@@ -9,5 +9,7 @@ namespace DspAdpcm.Containers
         IAudioFormat ReadFormat(byte[] file);
         AudioData Read(Stream stream);
         AudioData Read(byte[] file);
+        AudioWithConfig ReadWithConfig(Stream stream);
+        AudioWithConfig ReadWithConfig(byte[] file);
     }
 }

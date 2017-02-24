@@ -16,7 +16,7 @@ using System.Linq;
 
 namespace DspAdpcm.Containers
 {
-    public class BrstmReader : AudioReader<BrstmReader, BrstmStructure>
+    public class BrstmReader : AudioReader<BrstmReader, BrstmStructure, BrstmConfiguration>
     {
         //Used to mark data offsets in the file
         private const int OffsetMarker = 0x01000000;
@@ -74,6 +74,17 @@ namespace DspAdpcm.Containers
             adpcm.Tracks = structure.Tracks;
 
             return adpcm;
+        }
+
+        protected override BrstmConfiguration GetConfiguration(BrstmStructure structure)
+        {
+            return new BrstmConfiguration
+            {
+                SamplesPerInterleave = structure.SamplesPerInterleave,
+                SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry,
+                TrackType = structure.HeaderType,
+                SeekTableType = structure.SeekTableType
+            };
         }
 
         private static void ReadRstmHeader(BinaryReader reader, BrstmStructure structure)

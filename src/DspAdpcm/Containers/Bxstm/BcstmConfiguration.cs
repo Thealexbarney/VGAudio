@@ -1,6 +1,6 @@
 ﻿namespace DspAdpcm.Containers.Bxstm
 {
-    public class BcstmConfiguration : BxstmConfiguration
+    public class BcstmConfiguration : BxstmConfiguration, IConfiguration
     {
         /// <summary>
         /// If <c>true</c>, include track information in the BCSTM

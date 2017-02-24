@@ -6,7 +6,7 @@ namespace DspAdpcm.Containers.Idsp
     /// <summary>
     /// Contains the options used to build the IDSP file.
     /// </summary>
-    public class IdspConfiguration
+    public class IdspConfiguration : IConfiguration
     {
         private int _bytesPerInterleave = BytesPerFrame * 2;
 

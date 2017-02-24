@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Codecs\GcAdpcmEncoder.cs" />
+    <Compile Include="Containers\AudioWithConfig.cs" />
     <Compile Include="Containers\BcstmReader.cs" />
     <Compile Include="Containers\BcstmWriter.cs" />
     <Compile Include="Containers\BfstmReader.cs" />
@@ -61,7 +62,9 @@
     <Compile Include="Containers\Dsp\DspConfiguration.cs" />
     <Compile Include="Containers\Dsp\DspStructure.cs" />
     <Compile Include="Containers\GenhReader.cs" />
+    <Compile Include="Containers\Genh\GenhConfiguration.cs" />
     <Compile Include="Containers\Genh\GenhStructure.cs" />
+    <Compile Include="Containers\IConfiguration.cs" />
     <Compile Include="Containers\IdspReader.cs" />
     <Compile Include="Containers\IdspWriter.cs" />
     <Compile Include="Containers\Idsp\IdspChannelInfo.cs" />

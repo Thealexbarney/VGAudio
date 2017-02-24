@@ -16,7 +16,7 @@ using System.Linq;
 
 namespace DspAdpcm.Containers
 {
-    public class IdspReader : AudioReader<IdspReader, IdspStructure>
+    public class IdspReader : AudioReader<IdspReader, IdspStructure, IdspConfiguration>
     {
         protected override IdspStructure ReadFile(Stream stream, bool readAudioData = true)
         {
@@ -62,6 +62,14 @@ namespace DspAdpcm.Containers
             adpcm.SetLoop(structure.Looping, structure.LoopStart, structure.LoopEnd);
 
             return adpcm;
+        }
+
+        protected override IdspConfiguration GetConfiguration(IdspStructure structure)
+        {
+            return new IdspConfiguration
+            {
+                BytesPerInterleave = structure.InterleaveSize
+            };
         }
 
         private static void ReadIdspHeader(BinaryReader reader, IdspStructure structure)

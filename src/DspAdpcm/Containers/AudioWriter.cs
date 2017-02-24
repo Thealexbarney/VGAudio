@@ -6,20 +6,21 @@ namespace DspAdpcm.Containers
 {
     public abstract class AudioWriter<TWriter, TConfig> : IAudioWriter
         where TWriter : AudioWriter<TWriter, TConfig>, new()
-        where TConfig : new()
+        where TConfig : class, IConfiguration, new()
     {
-        public byte[] GetFile(IAudioFormat audio) => GetByteArray(new AudioData(audio));
-        public void WriteToStream(IAudioFormat audio, Stream stream) => WriteStream(new AudioData(audio), stream);
+        public byte[] GetFile(IAudioFormat audio, IConfiguration configuration = null) => GetByteArray(new AudioData(audio), configuration as TConfig);
+        public void WriteToStream(IAudioFormat audio, Stream stream, IConfiguration configuration = null) => WriteStream(new AudioData(audio), stream, configuration as TConfig);
 
-        public byte[] GetFile(AudioData audio) => GetByteArray(audio);
-        public void WriteToStream(AudioData audio, Stream stream) => WriteStream(audio, stream);
+        public byte[] GetFile(AudioData audio, IConfiguration configuration = null) => GetByteArray(audio, configuration as TConfig);
+        public void WriteToStream(AudioData audio, Stream stream, IConfiguration configuration = null) => WriteStream(audio, stream, configuration as TConfig);
         
         protected AudioData AudioStream { get; set; }
         public TConfig Configuration { get; set; } = new TConfig();
         protected abstract int FileSize { get; }
 
-        protected byte[] GetByteArray(AudioData audio)
+        protected byte[] GetByteArray(AudioData audio, TConfig configuration = null)
         {
+            Configuration = configuration ?? Configuration;
             SetupWriter(audio);
             var file = new byte[FileSize];
             var stream = new MemoryStream(file);
@@ -27,8 +28,9 @@ namespace DspAdpcm.Containers
             return file;
         }
 
-        protected void WriteStream(AudioData audio, Stream stream)
+        protected void WriteStream(AudioData audio, Stream stream, TConfig configuration = null)
         {
+            Configuration = configuration ?? Configuration;
             SetupWriter(audio);
             if (stream.Length != FileSize)
             {

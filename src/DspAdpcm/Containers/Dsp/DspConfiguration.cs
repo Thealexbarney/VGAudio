@@ -6,7 +6,7 @@ namespace DspAdpcm.Containers.Dsp
     /// <summary>
     /// Contains the options used to build the DSP file.
     /// </summary>
-    public class DspConfiguration
+    public class DspConfiguration : IConfiguration
     {
         private int _samplesPerInterleave = 0x3800;
         /// <summary>

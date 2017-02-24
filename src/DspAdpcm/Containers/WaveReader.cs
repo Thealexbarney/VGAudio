@@ -8,7 +8,7 @@ using static DspAdpcm.Utilities.Helpers;
 
 namespace DspAdpcm.Containers
 {
-    public class WaveReader : AudioReader<WaveReader, WaveStructure>
+    public class WaveReader : AudioReader<WaveReader, WaveStructure, WaveConfiguration>
     {
         // ReSharper disable InconsistentNaming
         private static readonly Guid KSDATAFORMAT_SUBTYPE_PCM =

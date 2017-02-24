@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using DspAdpcm.Containers.Genh;
+using DspAdpcm.Containers.Wave;
 using DspAdpcm.Formats;
 using DspAdpcm.Formats.GcAdpcm;
 using DspAdpcm.Utilities;
@@ -15,7 +16,7 @@ using System.Linq;
 
 namespace DspAdpcm.Containers
 {
-    public class GenhReader : AudioReader<GenhReader, GenhStructure>
+    public class GenhReader : AudioReader<GenhReader, GenhStructure, GenhConfiguration>
     {
         private static int HeaderSize => 0x60;
 

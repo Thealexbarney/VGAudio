@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using DspAdpcm.Containers;
 using DspAdpcm.Formats;
 
 #if NET20
@@ -15,7 +16,7 @@ namespace DspAdpcm.Cli
     {
         private Convert() { }
         private AudioData Audio { get; set; }
-        private object Configuration { get; set; }
+        private IConfiguration Configuration { get; set; }
 
         public static bool ConvertFile(Options options)
         {
@@ -51,7 +52,9 @@ namespace DspAdpcm.Cli
                     throw new ArgumentOutOfRangeException(nameof(file.Type), file.Type, null);
                 }
 
-                file.Audio = type.GetReader().Read(stream);
+                AudioWithConfig audio = type.GetReader().ReadWithConfig(stream);
+                file.Audio = audio.Audio;
+                Configuration = audio.Configuration;
             }
         }
 
@@ -67,7 +70,7 @@ namespace DspAdpcm.Cli
                     throw new ArgumentOutOfRangeException(nameof(fileType), fileType, null);
                 }
 
-                type.GetWriter().WriteToStream(Audio, stream);
+                type.GetWriter().WriteToStream(Audio, stream, Configuration);
             }
         }
 

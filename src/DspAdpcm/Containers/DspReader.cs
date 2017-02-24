@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace DspAdpcm.Containers
 {
-    public class DspReader : AudioReader<DspReader, DspStructure>
+    public class DspReader : AudioReader<DspReader, DspStructure, DspConfiguration>
     {
         private static int HeaderSize => 0x60;
 
