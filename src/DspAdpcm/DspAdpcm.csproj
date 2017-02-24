@@ -50,6 +50,11 @@
     <Compile Include="Containers\Dsp\DspStructure.cs" />
     <Compile Include="Containers\GenhReader.cs" />
     <Compile Include="Containers\Genh\GenhStructure.cs" />
+    <Compile Include="Containers\IdspReader.cs" />
+    <Compile Include="Containers\IdspWriter.cs" />
+    <Compile Include="Containers\Idsp\IdspChannelInfo.cs" />
+    <Compile Include="Containers\Idsp\IdspConfiguration.cs" />
+    <Compile Include="Containers\Idsp\IdspStructure.cs" />
     <Compile Include="Containers\Wave\WaveConfiguration.cs" />
     <Compile Include="Formats\GcAdpcm\GcAdpcmHelpers.cs" />
     <Compile Include="Codecs\GcAdpcmDecoder.cs" />
@@ -88,7 +93,6 @@
     <Compile Include="Utilities\Interleave.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
