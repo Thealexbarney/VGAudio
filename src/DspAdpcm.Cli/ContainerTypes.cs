@@ -19,7 +19,8 @@ namespace DspAdpcm.Cli
         {
             [FileType.Wave] = new ContainerType(new[] { "wav", "wave" }, WaveReader.Read, (a, s) => new WaveWriter().WriteToStream(a, s)),
             [FileType.Dsp] = new ContainerType(new[] { "dsp" }, DspReader.Read, (a, s) => new DspWriter().WriteToStream(a, s)),
-            [FileType.Brstm] = new ContainerType(new[] { "brstm" }, BrstmReader.Read, (a, s) => new BrstmWriter().WriteToStream(a, s))
+            [FileType.Brstm] = new ContainerType(new[] { "brstm" }, BrstmReader.Read, (a, s) => new BrstmWriter().WriteToStream(a, s)),
+            [FileType.Genh] = new ContainerType(new[] { "genh" }, GenhReader.Read, null)
         };
 
         public static readonly Dictionary<string, FileType> Extensions =
