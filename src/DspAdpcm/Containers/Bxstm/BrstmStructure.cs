@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using DspAdpcm.Formats.GcAdpcm;
-
-namespace DspAdpcm.Containers.Bxstm
+﻿namespace DspAdpcm.Containers.Bxstm
 {
     public class BrstmStructure : BxstmStructure
     {

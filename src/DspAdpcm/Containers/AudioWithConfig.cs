@@ -1,5 +1,4 @@
-﻿using System;
-using DspAdpcm.Formats;
+﻿using DspAdpcm.Formats;
 
 namespace DspAdpcm.Containers
 {

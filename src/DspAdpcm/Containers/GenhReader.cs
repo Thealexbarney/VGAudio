@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Text;
 using DspAdpcm.Containers.Genh;
-using DspAdpcm.Containers.Wave;
 using DspAdpcm.Formats;
 using DspAdpcm.Formats.GcAdpcm;
 using DspAdpcm.Utilities;
@@ -22,7 +21,7 @@ namespace DspAdpcm.Containers
 
         protected override GenhStructure ReadFile(Stream stream, bool readAudioData = true)
         {
-            using (BinaryReader reader = GetBinaryReader(stream, Helpers.Endianness.LittleEndian))
+            using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 var structure = new GenhStructure();
 
@@ -46,7 +45,7 @@ namespace DspAdpcm.Containers
             {
                 var channel = new GcAdpcmChannel(structure.SampleCount, structure.AudioData[c])
                 {
-                    Coefs = structure.Channels[c].Coefs,
+                    Coefs = structure.Channels[c].Coefs
                 };
 
                 channels[c] = channel;

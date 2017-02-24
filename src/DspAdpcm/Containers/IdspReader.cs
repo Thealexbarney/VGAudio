@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using DspAdpcm.Containers.Idsp;
 using DspAdpcm.Formats;
@@ -50,7 +49,7 @@ namespace DspAdpcm.Containers
                     Coefs = structure.Channels[c].Coefs,
                     Gain = structure.Channels[c].Gain,
                     Hist1 = structure.Channels[c].Hist1,
-                    Hist2 = structure.Channels[c].Hist2,
+                    Hist2 = structure.Channels[c].Hist2
                 };
                 channel.SetLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
                     structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);

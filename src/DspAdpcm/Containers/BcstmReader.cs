@@ -23,7 +23,7 @@ namespace DspAdpcm.Containers
                 SamplesPerInterleave = structure.SamplesPerInterleave,
                 SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry,
                 IncludeTrackInformation = structure.IncludeTracks,
-                InfoPart1Extra = structure.InfoPart1Extra,
+                InfoPart1Extra = structure.InfoPart1Extra
             };
         }
     }
