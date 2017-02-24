@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DspAdpcm.Utilities;
 
 #if NET20
@@ -55,10 +56,14 @@ namespace DspAdpcm.Formats.GcAdpcm
 
         public static byte[] BuildSeekTable(IList<GcAdpcmChannel> channels, int samplesPerEntry, int entryCount, Helpers.Endianness endianness, bool ensureSelfCalculated = false)
         {
-            short[] table = channels
-                .Select(x => x.GetSeekTable(samplesPerEntry, ensureSelfCalculated))
-                .ToArray()
-                .Interleave(2);
+            var tables = new short[channels.Count][];
+
+            Parallel.For(0, tables.Length, i =>
+            {
+                tables[i] = channels[i].GetSeekTable(samplesPerEntry, ensureSelfCalculated);
+            });
+
+            short[] table = tables.Interleave(2);
 
             Array.Resize(ref table, entryCount * 2 * channels.Count);
             return table.ToByteArray(endianness);

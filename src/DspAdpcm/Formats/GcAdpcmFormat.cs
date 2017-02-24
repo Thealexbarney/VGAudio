@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using DspAdpcm.Codecs;
 using DspAdpcm.Formats.GcAdpcm;
 using DspAdpcm.Utilities;
@@ -47,10 +48,10 @@ namespace DspAdpcm.Formats
         public void SetAlignment(int multiple)
         {
             AlignmentMultiple = multiple;
-            foreach (GcAdpcmChannel channel in Channels)
+            Parallel.For(0, Channels.Length, i =>
             {
-                channel.SetAlignment(multiple, base.LoopStart, base.LoopEnd);
-            }
+                Channels[i].SetAlignment(multiple, base.LoopStart, base.LoopEnd);
+            });
         }
 
         public override void SetLoop(bool loop, int loopStart, int loopEnd)
@@ -61,23 +62,24 @@ namespace DspAdpcm.Formats
 
         public override Pcm16Format ToPcm16()
         {
-            var pcmChannels = new List<short[]>();
-            foreach (GcAdpcmChannel channel in Channels)
+            var pcmChannels = new short[Channels.Length][];
+            Parallel.For(0, Channels.Length, i =>
             {
-                pcmChannels.Add(GcAdpcmDecoder.Decode(channel, SampleCount));
-            }
+                GcAdpcmChannel channel = Channels[i];
+                pcmChannels[i] = GcAdpcmDecoder.Decode(channel, SampleCount);
+            });
 
-            return new Pcm16Format(SampleCount, SampleRate, pcmChannels.ToArray());
+            return new Pcm16Format(SampleCount, SampleRate, pcmChannels);
         }
 
         public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16)
         {
             var channels = new GcAdpcmChannel[pcm16.ChannelCount];
 
-            for (int i = 0; i < pcm16.ChannelCount; i++)
+            Parallel.For(0, pcm16.ChannelCount, i =>
             {
                 channels[i] = EncodeChannel(pcm16.SampleCount, pcm16.Channels[i]);
-            }
+            });
 
             return new GcAdpcmFormat(pcm16.SampleCount, pcm16.SampleRate, channels);
         }
