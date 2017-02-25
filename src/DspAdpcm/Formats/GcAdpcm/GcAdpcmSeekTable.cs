@@ -38,10 +38,10 @@ namespace DspAdpcm.Formats.GcAdpcm
             return SeekTables[samplesPerEntry].Table;
         }
 
-        public System.Tuple<int, short[]> GetTableForSeeking()
+        public Tuple<int, short[]> GetTableForSeeking()
         {
             KeyValuePair<int, SeekTable> seekTable = SeekTables.OrderBy(x => x.Key).FirstOrDefault(x => x.Value.IsSelfCalculated);
-            return seekTable.Value == null ? null : new System.Tuple<int, short[]>(seekTable.Key, seekTable.Value.Table);
+            return seekTable.Value == null ? null : new Tuple<int, short[]>(seekTable.Key, seekTable.Value.Table);
         }
 
         private void CalculateSeekTable(int samplesPerEntry)
