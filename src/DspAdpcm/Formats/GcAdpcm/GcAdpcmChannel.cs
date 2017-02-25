@@ -53,33 +53,20 @@ namespace DspAdpcm.Formats.GcAdpcm
         public short[] GetPcmAudioLooped(int startSample, int length, int loopStart, int loopEnd,
             bool includeHistorySamples = false)
         {
-            if (startSample + length <= loopEnd)
-            {
-                return GcAdpcmDecoder.Decode(this, startSample, length, includeHistorySamples);
-            }
-
-            short[] pcm = GcAdpcmDecoder.Decode(this, 0, loopEnd, includeHistorySamples);
-
-            if (includeHistorySamples)
-            {
-                length += 2;
-                loopStart += 2;
-                loopEnd += 2;
-            }
-
-            short[] output = new short[length];
-
-            int outIndex = 0;
+            short[] output = new short[length + (includeHistorySamples ? 2 : 0)];
+            int outputIndex = 0;
             int samplesRemaining = length;
-            int currentSample = GetLoopedSample(startSample, loopStart, loopEnd);
+            bool firstTime = true;
 
-            while (samplesRemaining > 0)
+            while (samplesRemaining > 0 || firstTime && includeHistorySamples)
             {
-                int samplesToGet = Math.Min(loopEnd - currentSample, samplesRemaining);
-                Array.Copy(pcm, currentSample, output, outIndex, samplesToGet);
+                int samplesToGet = Math.Min(loopEnd - startSample, samplesRemaining);
+                short[] samples = GcAdpcmDecoder.Decode(this, startSample, samplesToGet, firstTime && includeHistorySamples);
+                Array.Copy(samples, 0, output, outputIndex, samples.Length);
                 samplesRemaining -= samplesToGet;
-                outIndex += samplesToGet;
-                currentSample = loopStart;
+                outputIndex += samples.Length;
+                startSample = loopStart;
+                firstTime = false;
             }
 
             return output;
@@ -89,6 +76,8 @@ namespace DspAdpcm.Formats.GcAdpcm
             => SeekTable.GetSeekTable(samplesPerEntry, ensureSelfCalculated);
 
         public void AddSeekTable(short[] table, int samplesPerEntry) => SeekTable.AddSeekTable(table, samplesPerEntry);
+
+        internal void ClearSeekTables() => SeekTable.ClearSeekTables();
 
         internal void SetAlignment(int multiple, int loopStart, int loopEnd)
         {
@@ -103,6 +92,28 @@ namespace DspAdpcm.Formats.GcAdpcm
         public byte[] GetAudioData()
         {
             return AlignmentNeeded ? Alignment.AudioDataAligned : AudioData;
+        }
+
+        internal Tuple<int, short, short> GetStartingHistory(int firstSample)
+        {
+            Tuple<int, short[]> seekInfo = SeekTable.GetTableForSeeking();
+            if (seekInfo == null)
+            {
+                return new Tuple<int, short, short>(0, Hist1, Hist2);
+            }
+
+            short[] seekTable = seekInfo.Item2;
+            int samplesPerEntry = seekInfo.Item1;
+
+            int entry = firstSample / samplesPerEntry;
+            while (entry * 2 + 1 > seekTable.Length)
+                entry--;
+
+            int sample = entry * samplesPerEntry;
+            short hist1 = seekTable[entry * 2];
+            short hist2 = seekTable[entry * 2 + 1];
+
+            return new Tuple<int, short, short>(sample, hist1, hist2);
         }
 
         public void SetLoopContext(int loopStart, short predScale, short hist1, short hist2)

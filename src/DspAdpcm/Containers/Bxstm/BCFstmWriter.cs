@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using DspAdpcm.Formats;
 using DspAdpcm.Utilities;
 using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
@@ -92,6 +93,12 @@ namespace DspAdpcm.Containers.Bxstm
         {
             Adpcm = audio.GetFormat<GcAdpcmFormat>();
             Adpcm.SetAlignment(Configuration.LoopPointAlignment);
+
+            Parallel.For(0, ChannelCount, i =>
+            {
+                Adpcm.Channels[i].GetSeekTable(SamplesPerSeekTableEntry, Configuration.RecalculateSeekTable);
+                Adpcm.Channels[i].LoopHist1(LoopStart, Configuration.RecalculateLoopContext);
+            });
         }
 
         public void WriteStream(Stream stream)

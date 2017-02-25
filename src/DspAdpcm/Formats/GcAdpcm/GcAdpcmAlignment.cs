@@ -14,7 +14,7 @@ namespace DspAdpcm.Formats.GcAdpcm
         private int LoopEnd { get; set; }
         public int SampleCountAligned { get; private set; }
 
-        public bool SetAlignment(int multiple, int loopStart, int loopEnd, GcAdpcmChannel audio)
+        public bool SetAlignment(int multiple, int loopStart, int loopEnd, GcAdpcmChannel audio, int samplesPerSeekTableEntry = 0x3800)
         {
             if (multiple == 0 || loopStart % multiple == 0)
             {
@@ -40,9 +40,12 @@ namespace DspAdpcm.Formats.GcAdpcm
             AudioDataAligned = new byte[newAudioDataLength];
 
             int framesToCopy = loopEnd / SamplesPerFrame;
-            int bytesToCopy = framesToCopy * BytesPerFrame;
+            int bytesToCopy = framesToCopy * BytesPerFrame; 
             int samplesToCopy = framesToCopy * SamplesPerFrame;
             Array.Copy(audio.AudioData, 0, AudioDataAligned, 0, bytesToCopy);
+
+            //We're gonna be doing some seeking, so make sure the seek table is built
+            audio.GetSeekTable(samplesPerSeekTableEntry, true);
 
             int samplesToEncode = SampleCountAligned - samplesToCopy;
 
@@ -55,6 +58,8 @@ namespace DspAdpcm.Formats.GcAdpcm
             AlignmentMultiple = multiple;
             LoopStart = loopStart;
             LoopEnd = loopEnd;
+
+            audio.ClearSeekTables();
 
             return true;
         }

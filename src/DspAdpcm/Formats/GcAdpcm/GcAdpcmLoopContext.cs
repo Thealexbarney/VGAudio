@@ -29,11 +29,11 @@ namespace DspAdpcm.Formats.GcAdpcm
                 return context;
             }
 
-            CalculateLoopContext(loopStart);
+            CreateLoopContext(loopStart);
             return Contexts[loopStart];
         }
 
-        private void CalculateLoopContext(int loopStart)
+        public void CreateLoopContext(int loopStart)
         {
             byte ps = GcAdpcmDecoder.GetPredictorScale(Adpcm.GetAudioData(), loopStart);
             short[] hist = GcAdpcmDecoder.Decode(Adpcm, loopStart, 0, true);

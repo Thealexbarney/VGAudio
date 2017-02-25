@@ -56,11 +56,11 @@ namespace DspAdpcm.Codecs
 
             byte[] adpcm = audio.GetAudioData();
 
-            //var history = audio.GetStartingHistory(startSample);
+            var history = audio.GetStartingHistory(startSample);
 
-            short hist1 = 0;//history.Item2;
-            short hist2 = 0;//;
-            int currentSample = 0;//history.Item1;
+            short hist1 = history.Item2;
+            short hist2 = history.Item3;
+            int currentSample = history.Item1;
 
             int outIndex = 0;
             int inIndex = currentSample / SamplesPerFrame * BytesPerFrame;
