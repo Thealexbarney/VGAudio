@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Threading.Tasks;
 using DspAdpcm.Containers.Bxstm;
 using DspAdpcm.Formats;
 using DspAdpcm.Formats.GcAdpcm;

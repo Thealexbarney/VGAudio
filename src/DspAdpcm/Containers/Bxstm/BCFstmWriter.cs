@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Threading.Tasks;
 using DspAdpcm.Formats;
 using DspAdpcm.Utilities;
 using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;

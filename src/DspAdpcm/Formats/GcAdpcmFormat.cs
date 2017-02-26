@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using DspAdpcm.Codecs;
 using DspAdpcm.Formats.GcAdpcm;
 using DspAdpcm.Utilities;
