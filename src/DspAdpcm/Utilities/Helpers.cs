@@ -62,6 +62,9 @@ namespace DspAdpcm.Utilities
             return true;
         }
 
+        public static bool LoopPointsAreAligned(int loopStart, int alignmentMultiple)
+            => !(alignmentMultiple != 0 && loopStart % alignmentMultiple != 0);
+
         public enum Endianness
         {
             BigEndian,

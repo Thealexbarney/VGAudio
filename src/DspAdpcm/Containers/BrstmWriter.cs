@@ -79,7 +79,11 @@ namespace DspAdpcm.Containers
         protected override void SetupWriter(AudioData audio)
         {
             Adpcm = audio.GetFormat<GcAdpcmFormat>();
-            Adpcm.SetAlignment(Configuration.LoopPointAlignment);
+
+            if (!LoopPointsAreAligned(LoopStart, Configuration.LoopPointAlignment))
+            {
+                Adpcm.SetAlignment(Configuration.LoopPointAlignment);
+            }
 
             Parallel.For(0, ChannelCount, i =>
             {

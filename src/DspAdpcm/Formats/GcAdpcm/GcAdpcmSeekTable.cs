@@ -23,7 +23,7 @@ namespace DspAdpcm.Formats.GcAdpcm
         public void AddSeekTable(short[] table, int samplesPerEntry)
             => SeekTables[samplesPerEntry] = new SeekTable(table, false);
 
-        public void ClearSeekTables() => SeekTables.Clear();
+        public void ClearSeekTableCache() => SeekTables.Clear();
 
         public short[] GetSeekTable(int samplesPerEntry, bool ensureSelfCalculated)
         {
@@ -34,7 +34,7 @@ namespace DspAdpcm.Formats.GcAdpcm
                 return table.Table;
             }
 
-            CalculateSeekTable(samplesPerEntry);
+            CreateSeekTable(samplesPerEntry);
             return SeekTables[samplesPerEntry].Table;
         }
 
@@ -44,11 +44,11 @@ namespace DspAdpcm.Formats.GcAdpcm
             return seekTable.Value == null ? null : new Tuple<int, short[]>(seekTable.Key, seekTable.Value.Table);
         }
 
-        private void CalculateSeekTable(int samplesPerEntry)
+        private void CreateSeekTable(int samplesPerEntry)
         {
-            var audio = Adpcm.GetPcmAudio(true);
+            short[] audio = Adpcm.GetPcmAudio(true);
             int entryCount = Adpcm.SampleCount.DivideByRoundUp(samplesPerEntry);
-            short[] table = new short[entryCount * 2];
+            var table = new short[entryCount * 2];
 
             for (int i = 0; i < entryCount; i++)
             {

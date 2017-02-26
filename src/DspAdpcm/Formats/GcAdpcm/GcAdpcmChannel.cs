@@ -54,18 +54,19 @@ namespace DspAdpcm.Formats.GcAdpcm
             bool includeHistorySamples = false)
         {
             short[] output = new short[length + (includeHistorySamples ? 2 : 0)];
-            int outputIndex = 0;
+            int outIndex = 0;
             int samplesRemaining = length;
+            int currentSample = GetLoopedSample(startSample, loopStart, loopEnd);
             bool firstTime = true;
 
             while (samplesRemaining > 0 || firstTime && includeHistorySamples)
             {
-                int samplesToGet = Math.Min(loopEnd - startSample, samplesRemaining);
-                short[] samples = GcAdpcmDecoder.Decode(this, startSample, samplesToGet, firstTime && includeHistorySamples);
-                Array.Copy(samples, 0, output, outputIndex, samples.Length);
+                int samplesToGet = Math.Min(loopEnd - currentSample, samplesRemaining);
+                short[] samples = GcAdpcmDecoder.Decode(this, currentSample, samplesToGet, firstTime && includeHistorySamples);
+                Array.Copy(samples, 0, output, outIndex, samples.Length);
                 samplesRemaining -= samplesToGet;
-                outputIndex += samples.Length;
-                startSample = loopStart;
+                outIndex += samples.Length;
+                currentSample = loopStart;
                 firstTime = false;
             }
 
@@ -77,7 +78,7 @@ namespace DspAdpcm.Formats.GcAdpcm
 
         public void AddSeekTable(short[] table, int samplesPerEntry) => SeekTable.AddSeekTable(table, samplesPerEntry);
 
-        internal void ClearSeekTables() => SeekTable.ClearSeekTables();
+        internal void ClearSeekTableCache() => SeekTable.ClearSeekTableCache();
 
         internal void SetAlignment(int multiple, int loopStart, int loopEnd)
         {

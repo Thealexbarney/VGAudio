@@ -16,8 +16,13 @@ namespace DspAdpcm.Formats.GcAdpcm
 
         public bool SetAlignment(int multiple, int loopStart, int loopEnd, GcAdpcmChannel audio, int samplesPerSeekTableEntry = 0x3800)
         {
-            if (multiple == 0 || loopStart % multiple == 0)
+            if (Helpers.LoopPointsAreAligned(loopStart, multiple))
             {
+                if (AudioDataAligned != null)
+                {
+                    audio.ClearSeekTableCache();
+                }
+
                 AudioDataAligned = null;
                 AlignmentMultiple = multiple;
                 LoopStart = loopStart;
@@ -59,7 +64,7 @@ namespace DspAdpcm.Formats.GcAdpcm
             LoopStart = loopStart;
             LoopEnd = loopEnd;
 
-            audio.ClearSeekTables();
+            audio.ClearSeekTableCache();
 
             return true;
         }
