@@ -1,7 +1,8 @@
 ﻿using System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
-using DspAdpcm.Adpcm.Formats.Structures;
+using DspAdpcm.Containers.Bxstm;
+using DspAdpcm.Uwp.Audio;
 using DspAdpcm.Uwp.ViewModels;
 
 namespace DspAdpcm.Uwp.Views
@@ -111,7 +112,7 @@ namespace DspAdpcm.Uwp.Views
                 return Visibility.Collapsed;
             }
 
-            return (MainViewModel.AdpcmTypes)value == MainViewModel.AdpcmTypes.Brstm ? Visibility.Visible : Visibility.Collapsed;
+            return (FileType)value == FileType.Brstm ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -129,7 +130,7 @@ namespace DspAdpcm.Uwp.Views
                 return Visibility.Collapsed;
             }
 
-            return (MainViewModel.AdpcmTypes)value == MainViewModel.AdpcmTypes.Bcstm ? Visibility.Visible : Visibility.Collapsed;
+            return (FileType)value == FileType.Bcstm ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

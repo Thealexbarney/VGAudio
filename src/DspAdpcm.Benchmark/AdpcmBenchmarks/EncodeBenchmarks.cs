@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using DspAdpcm.Adpcm;
+using DspAdpcm.Codecs;
 
 namespace DspAdpcm.Benchmark.AdpcmBenchmarks
 {
@@ -15,11 +15,11 @@ namespace DspAdpcm.Benchmark.AdpcmBenchmarks
         public void Setup()
         {
             pcm = GenerateAudio.GenerateSineWave((int)(sampleRate * lengthSeconds), 440, sampleRate);
-            coefs = Encode.DspCorrelateCoefs(pcm);
+            coefs = GcAdpcmEncoder.DspCorrelateCoefs(pcm);
         }
 
-        [Benchmark] public short[] GenerateCoefs() => Encode.DspCorrelateCoefs(pcm);
-        [Benchmark] public byte[] EncodeAdpcm() => Encode.EncodeAdpcm(pcm, coefs);
-        [Benchmark] public byte[] GenerateCoefsAndEncodeAdpcm() => Encode.EncodeAdpcm(pcm, Encode.DspCorrelateCoefs(pcm));
+        [Benchmark] public short[] GenerateCoefs() => GcAdpcmEncoder.DspCorrelateCoefs(pcm);
+        [Benchmark] public byte[] EncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
+        [Benchmark] public byte[] GenerateCoefsAndEncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(pcm, GcAdpcmEncoder.DspCorrelateCoefs(pcm));
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
+using DspAdpcm.Utilities;
 
 namespace DspAdpcm.Tests.Helpers
 {
@@ -12,8 +13,6 @@ namespace DspAdpcm.Tests.Helpers
 
         private static byte[][] Deinterleaved(params int[] lengths) =>
             lengths.Select(Interleaved).ToArray();
-
-        private static T[] Flatten<T>(this T[][] array) => array.SelectMany(x => x).ToArray();
 
         //Standard test
         private static byte[][] Deinterleaved16Size8Count2 { get; } = {

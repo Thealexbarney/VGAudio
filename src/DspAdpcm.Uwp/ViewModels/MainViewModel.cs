@@ -8,13 +8,11 @@ using System.Windows.Input;
 using Windows.Storage;
 using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
-using Windows.UI.Core;
 using Windows.UI.Popups;
-using DspAdpcm.Adpcm;
-using DspAdpcm.Adpcm.Formats;
-using DspAdpcm.Adpcm.Formats.Configuration;
-using DspAdpcm.Pcm;
-using DspAdpcm.Pcm.Formats;
+using DspAdpcm.Containers.Bxstm;
+using DspAdpcm.Containers.Dsp;
+using DspAdpcm.Formats;
+using DspAdpcm.Uwp.Audio;
 using GalaSoft.MvvmLight.Command;
 using PropertyChanged;
 
@@ -23,22 +21,22 @@ namespace DspAdpcm.Uwp.ViewModels
     [ImplementPropertyChanged]
     public class MainViewModel
     {
-        public MainState State { get; set; } = MainState.Opening;
+        public MainState State { get; set; } = MainState.NotOpened;
 
         //Hacky solution due to weird issues in UWP
         //Binding problems with Dictionary<enum, object> but not Dictionary<int, object>
-        public Dictionary<int, AudioFileType> FileTypesBinding { get; }
+        public Dictionary<int, FileTypeInfo> FileTypesBinding { get; }
         public int SelectedFileTypeBinding
         {
             get { return (int)SelectedFileType; }
-            set { SelectedFileType = (AdpcmTypes)value; }
+            set { SelectedFileType = (FileType)value; }
         }
 
-        public AdpcmTypes SelectedFileType { get; set; } = AdpcmTypes.Dsp;
+        public FileType SelectedFileType { get; set; } = FileType.Dsp;
 
-        public bool StateOpening => State == MainState.Opening;
-        public bool StateOpenedPcm => State == MainState.OpenedPcm;
-        public bool StateEncoded => State == MainState.Encoded;
+        public bool StateNotOpened => State == MainState.NotOpened;
+        public bool StateOpened => State == MainState.Opened;
+        public bool StateSaved => State == MainState.Saved;
 
         public double Time { get; set; }
         public double Samples { get; set; }
@@ -46,92 +44,28 @@ namespace DspAdpcm.Uwp.ViewModels
 
         public DspConfiguration DspConfiguration { get; set; } = new DspConfiguration();
         public BrstmConfiguration BrstmConfiguration { get; set; } = new BrstmConfiguration();
-        public BcstmConfiguration BcstmConfiguration { get; set; } = new BcstmConfiguration();
-        public BfstmConfiguration BfstmConfiguration { get; set; } = new BfstmConfiguration();
-        public IdspConfiguration IdspConfiguration { get; set; } = new IdspConfiguration();
-
-        public Dictionary<AdpcmTypes, AudioFileType> FileTypes { get; }
 
         public string InPath { get; set; }
+        private List<IAudioFormat> InFormats { get; set; }
 
-        public PcmStream PcmStream { get; set; }
-        public AdpcmStream AdpcmStream { get; set; }
-        public string InputFileType { get; set; }
+        public AudioData AudioData { get; set; }
         public bool Looping { get; set; }
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
 
-        public RelayCommand EncodeCommand { get; set; }
-        public ICommand SaveFileCommand { get; set; }
-        public ICommand OpenFileCommand { get; set; }
-        private bool Encoding { get; set; }
+        public RelayCommand SaveFileCommand { get; }
+        public ICommand OpenFileCommand { get; }
+        private bool Saving { get; set; }
 
         public MainViewModel()
         {
-            FileTypes = new Dictionary<AdpcmTypes, AudioFileType>()
-            {
-                [AdpcmTypes.Dsp] = new AudioFileType("DSP", ".dsp", "Nintendo DSP ACPCM Audio File",
-                    async fileName =>
-                    {
-                        var dsp = new Dsp(new FileStream(fileName, FileMode.Open));
-                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-                            CoreDispatcherPriority.Normal, () => { DspConfiguration = dsp.Configuration; });
-                        return dsp.AudioStream;
-                    },
-                    adpcmStream => new Dsp(adpcmStream).GetFile()),
-                [AdpcmTypes.Brstm] = new AudioFileType("BRSTM", ".brstm", "BRSTM Audio File",
-                    async fileName =>
-                    {
-                        var brstm = new Brstm(new FileStream(fileName, FileMode.Open));
-                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-                           CoreDispatcherPriority.Normal, () => { BrstmConfiguration = brstm.Configuration; });
-                        return brstm.AudioStream;
-                    },
-                    adpcmStream => new Brstm(adpcmStream, BrstmConfiguration).GetFile()),
-                [AdpcmTypes.Bcstm] = new AudioFileType("BCSTM", ".bcstm", "BCSTM Audio File",
-                    async fileName =>
-                    {
-                        var bcstm = new Bcstm(new FileStream(fileName, FileMode.Open));
-                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-                           CoreDispatcherPriority.Normal, () => { BcstmConfiguration = bcstm.Configuration; });
-                        return bcstm.AudioStream;
-                    },
-                    adpcmStream => new Bcstm(adpcmStream, BcstmConfiguration).GetFile()),
-                [AdpcmTypes.Bfstm] = new AudioFileType("BFSTM", ".bfstm", "BFSTM Audio File",
-                    async fileName =>
-                    {
-                        var bfstm = new Bfstm(new FileStream(fileName, FileMode.Open));
-                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-                           CoreDispatcherPriority.Normal, () => { BfstmConfiguration = bfstm.Configuration; });
-                        return bfstm.AudioStream;
-                    },
-                    adpcmStream => new Bfstm(adpcmStream, BfstmConfiguration).GetFile()),
-                [AdpcmTypes.Idsp] = new AudioFileType("IDSP", ".idsp", "IDSP Audio File",
-                    async fileName =>
-                    {
-                        var idsp = new Idsp(new FileStream(fileName, FileMode.Open));
-                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-                           CoreDispatcherPriority.Normal, () => { IdspConfiguration = idsp.Configuration; });
-                        return idsp.AudioStream;
-                    },
-                    adpcmStream => new Idsp(adpcmStream, IdspConfiguration).GetFile()),
-                [AdpcmTypes.Genh] = new AudioFileType("GENH", ".genh", "GENH Audio File",
-                    async fileName =>
-                    {
-                        var bfstm = new Genh(new FileStream(fileName, FileMode.Open));
-                        return await Task.FromResult(bfstm.AudioStream);
-                    },
-                    null)
-            };
+            FileTypesBinding = AudioInfo.FileTypes.Where(x => x.Value.GetWriter != null).ToDictionary(x => (int)x.Key, x => x.Value);
 
-            FileTypesBinding = FileTypes.Where(x => x.Value.GetFileFunc != null).ToDictionary(x => (int)x.Key, x => x.Value);
-
-            EncodeCommand = new RelayCommand(Encode, CanEncode);
-            SaveFileCommand = new RelayCommand(SaveFile);
+            SaveFileCommand = new RelayCommand(SaveFile, CanSave);
             OpenFileCommand = new RelayCommand(OpenFile);
         }
 
-        private bool CanEncode() => PcmStream != null && !Encoding;
+        private bool CanSave() => AudioData != null && !Saving;
 
         private async void OpenFile()
         {
@@ -141,13 +75,10 @@ namespace DspAdpcm.Uwp.ViewModels
                 SuggestedStartLocation = PickerLocationId.ComputerFolder
             };
 
-            picker.FileTypeFilter.Add(".wav");
-            picker.FileTypeFilter.Add(".dsp");
-            picker.FileTypeFilter.Add(".brstm");
-            picker.FileTypeFilter.Add(".bcstm");
-            picker.FileTypeFilter.Add(".bfstm");
-            picker.FileTypeFilter.Add(".idsp");
-            picker.FileTypeFilter.Add(".genh");
+            foreach (string extension in AudioInfo.Extensions.Keys)
+            {
+                picker.FileTypeFilter.Add("." + extension);
+            }
 
             StorageFile file = await picker.PickSingleFileAsync();
 
@@ -159,28 +90,16 @@ namespace DspAdpcm.Uwp.ViewModels
                     FutureAccessList.AddOrReplace("Input File", file);
                 InPath = file.Path;
 
-                switch (file.FileType)
-                {
-                    case ".wav":
-                        PcmStream = await Task.Run(() => new Wave(new FileStream(file.Path, FileMode.Open)).AudioStream);
-                        AdpcmStream = null;
-                        State = MainState.OpenedPcm;
-                        InputFileType = ".wav";
-                        EncodeCommand.RaiseCanExecuteChanged();
-                        break;
-                    default:
-                        AdpcmTypes fileType = FileTypes.First(x => x.Value.Extension == file.FileType).Key;
-                        AdpcmStream = await Task.Run(() => FileTypes[fileType].OpenFunc(file.Path));
-                        PcmStream = null;
-                        State = MainState.Encoded;
-                        if (AdpcmStream.Looping)
-                        {
-                            Looping = true;
-                            LoopStart = AdpcmStream.LoopStart;
-                            LoopEnd = AdpcmStream.LoopEnd;
-                        }
-                        break;
-                }
+                InFormats = await Task.Run(() => IO.OpenFiles(file.Path));
+                IAudioFormat format = InFormats.First();
+
+                LoopStart = format.LoopStart;
+                LoopEnd = format.LoopEnd;
+                Looping = format.Looping;
+
+                AudioData = new AudioData(format);
+                SaveFileCommand.RaiseCanExecuteChanged();
+                State = MainState.Opened;
             }
             catch (Exception ex)
             {
@@ -189,47 +108,16 @@ namespace DspAdpcm.Uwp.ViewModels
             }
         }
 
-        public async void Encode()
-        {
-            var watch = new Stopwatch();
-            AdpcmStream adpcm = null;
-            Encoding = true;
-            EncodeCommand.RaiseCanExecuteChanged();
-            try
-            {
-                await Task.Run(() =>
-                {
-                    watch.Start();
-                    adpcm = DspAdpcm.Adpcm.Encode.PcmToAdpcmParallel(PcmStream);
-                    watch.Stop();
-                });
-
-                Time = watch.Elapsed.TotalSeconds;
-                Samples = adpcm.NumSamples;
-            }
-            catch (Exception ex)
-            {
-                var messageDialog = new MessageDialog(ex.Message, "Error");
-                await messageDialog.ShowAsync();
-            }
-            finally
-            {
-                Encoding = false;
-                EncodeCommand.RaiseCanExecuteChanged();
-            }
-            AdpcmStream = adpcm;
-            State = MainState.Encoded;
-            PcmStream = null;
-        }
-
         private async void SaveFile()
         {
             var savePicker = new FileSavePicker
             {
-                SuggestedFileName = Path.ChangeExtension(Path.GetFileName(InPath), FileTypes[SelectedFileType].Extension),
+                SuggestedFileName = Path.ChangeExtension(Path.GetFileName(InPath), "." + AudioInfo.FileTypes[SelectedFileType].Extensions.First())
             };
-            savePicker.FileTypeChoices.Add(FileTypes[SelectedFileType].Description, new List<string> { FileTypes[SelectedFileType].Extension });
+            savePicker.FileTypeChoices.Add(AudioInfo.FileTypes[SelectedFileType].Description, new List<string> { "." + AudioInfo.FileTypes[SelectedFileType].Extensions.First() });
 
+            Saving = true;
+            SaveFileCommand.RaiseCanExecuteChanged();
             try
             {
                 StorageFile saveFile = await savePicker.PickSaveFileAsync();
@@ -238,53 +126,41 @@ namespace DspAdpcm.Uwp.ViewModels
 
                 if (Looping)
                 {
-                    AdpcmStream.SetLoop(LoopStart, LoopEnd);
+                    AudioData.SetLoop(Looping, LoopStart, LoopEnd);
                 }
 
-                IEnumerable<byte> file = FileTypes[SelectedFileType].GetFileFunc(AdpcmStream);
+                var watch = new Stopwatch();
 
-                await FileIO.WriteBytesAsync(saveFile, file.ToArray());
+                byte[] file = null;
+                await Task.Run(() =>
+                {
+                    watch.Start();
+                    file = AudioInfo.FileTypes[SelectedFileType].GetWriter().GetFile(AudioData);
+                    watch.Stop();
+                });
+
+                Time = watch.Elapsed.TotalSeconds;
+                Samples = AudioData.GetAllFormats().First().SampleCount;
+
+                await FileIO.WriteBytesAsync(saveFile, file);
             }
             catch (Exception ex)
             {
                 var messageDialog = new MessageDialog(ex.Message, "Error writing file");
                 await messageDialog.ShowAsync();
             }
+            finally
+            {
+                Saving = false;
+                SaveFileCommand.RaiseCanExecuteChanged();
+            }
         }
 
         public enum MainState
         {
-            Opening,
-            OpenedPcm,
-            Encoded
-        }
-
-        public enum AdpcmTypes
-        {
-            Dsp,
-            Brstm,
-            Bcstm,
-            Bfstm,
-            Idsp,
-            Genh
-        }
-    }
-
-    public class AudioFileType
-    {
-        public string DisplayName { get; }
-        public string Extension { get; }
-        public string Description { get; }
-        public Func<string, Task<AdpcmStream>> OpenFunc { get; }
-        public Func<AdpcmStream, IEnumerable<byte>> GetFileFunc { get; }
-
-        public AudioFileType(string displayName, string extension, string description, Func<string, Task<AdpcmStream>> openFunc, Func<AdpcmStream, IEnumerable<byte>> getFileFunc)
-        {
-            DisplayName = displayName;
-            Extension = extension;
-            Description = description;
-            OpenFunc = openFunc;
-            GetFileFunc = getFileFunc;
+            NotOpened,
+            Opened,
+            Saved
         }
     }
 }

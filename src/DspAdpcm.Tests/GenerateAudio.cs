@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using DspAdpcm.Adpcm;
-using DspAdpcm.Pcm;
+using DspAdpcm.Formats;
+using DspAdpcm.Formats.GcAdpcm;
+using DspAdpcm.Utilities;
 
 namespace DspAdpcm.Tests
 {
@@ -13,15 +13,15 @@ namespace DspAdpcm.Tests
         /// <summary>
         /// Generates a sine wave.
         /// </summary>
-        /// <param name="samples">The number of samples to generate.</param>
+        /// <param name="sampleCount">The number of samples to generate.</param>
         /// <param name="frequency">The frequency, in Hz, of the wave.</param>
         /// <param name="sampleRate">The sample rate of the sine wave.</param>
         /// <returns>The generated sine wave.</returns>
-        public static short[] GenerateSineWave(int samples, double frequency, int sampleRate)
+        public static short[] GenerateSineWave(int sampleCount, double frequency, int sampleRate)
         {
-            var wave = new short[samples];
+            var wave = new short[sampleCount];
             var c = 2 * Math.PI * frequency / sampleRate;
-            for (int i = 0; i < samples; i++)
+            for (int i = 0; i < sampleCount; i++)
             {
                 wave[i] = (short)(short.MaxValue * Math.Sin(c * i));
             }
@@ -29,39 +29,40 @@ namespace DspAdpcm.Tests
             return wave;
         }
 
-        public static PcmStream GeneratePcmSineWave(int samples, int channels, int sampleRate)
+        public static Pcm16Format GeneratePcmSineWave(int sampleCount, int channelCount, int sampleRate)
         {
-            IEnumerable<double> frequencies = Frequencies.Take(channels);
+            double[] frequencies = Frequencies.Take(channelCount).ToArray();
+            var channels = new short[channelCount][];
 
-            var pcm = new PcmStream(samples, sampleRate);
-            foreach (double frequency in frequencies)
+            for (int i = 0; i < channelCount; i++)
             {
-                pcm.Channels.Add(new PcmChannel(samples, GenerateSineWave(samples, frequency, sampleRate)));
+                channels[i] = GenerateSineWave(sampleCount, frequencies[i], sampleRate);
             }
 
-            return pcm;
+            return new Pcm16Format(sampleCount, sampleRate, channels);
         }
 
-        public static AdpcmStream GenerateAdpcmSineWave(int samples, int channels, int sampleRate)
+        public static GcAdpcmFormat GenerateAdpcmSineWave(int sampleCount, int channelCount, int sampleRate)
         {
-            PcmStream pcm = GeneratePcmSineWave(samples, channels, sampleRate);
-            return Encode.PcmToAdpcm(pcm);
+            Pcm16Format pcm = GeneratePcmSineWave(sampleCount, channelCount, sampleRate);
+            return new GcAdpcmFormat().EncodeFromPcm16(pcm);
         }
 
-        public static AdpcmStream GenerateAdpcmEmpty(int samples, int channels, int sampleRate, int samplesPerSeekTableEntry = 0x3800)
+        public static GcAdpcmFormat GenerateAdpcmEmpty(int sampleCount, int channelCount, int sampleRate, int samplesPerSeekTableEntry = 0x3800)
         {
-            var adpcm = new AdpcmStream(samples, sampleRate);
+            var channels = new GcAdpcmChannel[channelCount];
 
-            for (int i = 0; i < channels; i++)
+            for (int i = 0; i < channelCount; i++)
             {
-                adpcm.Channels.Add(new AdpcmChannel(samples)
+                channels[i] = new GcAdpcmChannel(sampleCount,
+                    new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)])
                 {
-                    Coefs = new short[16],
-                    SeekTable = new short[samples.DivideByRoundUp(samplesPerSeekTableEntry) * 2],
-                    SelfCalculatedSeekTable = true,
-                    SamplesPerSeekTableEntry = samplesPerSeekTableEntry
-                });
+                    Coefs = new short[16]
+                };
+                channels[i].AddSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry);
             }
+
+            var adpcm = new GcAdpcmFormat(sampleCount, sampleRate, channels);
 
             return adpcm;
         }

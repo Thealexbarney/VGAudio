@@ -1,24 +1,16 @@
-﻿using System;
-using DspAdpcm.Adpcm;
-using DspAdpcm.Pcm;
+﻿using DspAdpcm.Containers;
+using DspAdpcm.Formats;
 using Xunit;
 
 namespace DspAdpcm.Tests
 {
     public static class BuildParseTests
     {
-        public static void BuildParseCompareAdpcm(Func<AdpcmStream, byte[]> buildFunc, Func<byte[], AdpcmStream> parseFunc, AdpcmStream adpcm)
+        public static void BuildParseCompareAudio(IAudioFormat audio, IAudioWriter writer, IAudioReader reader)
         {
-            var builtFile = buildFunc(adpcm);
-            var parsedAdpcm = parseFunc(builtFile);
-            Assert.Equal(adpcm, parsedAdpcm);
-        }
-
-        public static void BuildParseComparePcm(Func<PcmStream, byte[]> buildFunc, Func<byte[], PcmStream> parseFunc, PcmStream pcm)
-        {
-            var builtFile = buildFunc(pcm);
-            var parsedPcm = parseFunc(builtFile);
-            Assert.Equal(pcm, parsedPcm);
+            byte[] builtFile = writer.GetFile(audio);
+            IAudioFormat parsedAudio = reader.ReadFormat(builtFile);
+            Assert.Equal(audio, parsedAudio);
         }
     }
 }

@@ -143,7 +143,7 @@ namespace DspAdpcm.Cli
 
             if (options.OutFiles.Count == 0)
             {
-                var a = new AudioFile { Path = Path.GetFileNameWithoutExtension(options.InFiles[0].Path) + ".dsp" };
+                options.OutFiles.Add(new AudioFile { Path = Path.GetFileNameWithoutExtension(options.InFiles[0].Path) + ".dsp" });
             }
 
             foreach (AudioFile file in options.OutFiles)
@@ -166,26 +166,10 @@ namespace DspAdpcm.Cli
 
         private static FileType GetFileTypeFromName(string fileName)
         {
-            switch (Path.GetExtension(fileName)?.ToLower())
-            {
-                case ".wav":
-                case ".wave":
-                    return FileType.Wave;
-                case ".dsp":
-                    return FileType.Dsp;
-                case ".idsp":
-                    return FileType.Idsp;
-                case ".brstm":
-                    return FileType.Brstm;
-                case ".bcstm":
-                    return FileType.Bcstm;
-                case ".bfstm":
-                    return FileType.Bfstm;
-                case ".genh":
-                    return FileType.Genh;
-                default:
-                    return FileType.NotSet;
-            }
+            FileType fileType;
+            string extension = Path.GetExtension(fileName)?.TrimStart('.').ToLower() ?? "";
+            ContainerTypes.Extensions.TryGetValue(extension, out fileType);
+            return fileType;
         }
 
         private static List<int> ParseIntRange(string input)

@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using DspAdpcm.Adpcm;
-using DspAdpcm.Pcm;
+using DspAdpcm.Formats;
 
 namespace DspAdpcm.Benchmark.AdpcmBenchmarks
 {
@@ -9,7 +8,7 @@ namespace DspAdpcm.Benchmark.AdpcmBenchmarks
         [Params(1)]
         public double lengthSeconds;
         private int sampleRate = 48000;
-        private AdpcmStream adpcmStream;
+        private GcAdpcmFormat adpcmStream;
 
         [Setup]
         public void Setup()
@@ -18,6 +17,6 @@ namespace DspAdpcm.Benchmark.AdpcmBenchmarks
         }
 
         [Benchmark]
-        public PcmStream DecodeAdpcm() => Decode.AdpcmtoPcm(adpcmStream);
+        public Pcm16Format DecodeAdpcm() => adpcmStream.ToPcm16();
     }
 }

@@ -1,5 +1,5 @@
-﻿using Xunit;
-using static DspAdpcm.Helpers;
+﻿using DspAdpcm.Formats.GcAdpcm;
+using Xunit;
 
 namespace DspAdpcm.Tests.Helpers
 {
@@ -10,9 +10,20 @@ namespace DspAdpcm.Tests.Helpers
         {
             for (int i = 1; i < 10000; i++)
             {
-                int nibble = GetNibbleFromSample(i);
-                int sample = GetSampleFromNibble(nibble);
+                int nibble = GcAdpcmHelpers.SampleToNibble(i);
+                int sample = GcAdpcmHelpers.NibbleToSample(nibble);
                 Assert.Equal(i, sample);
+            }
+        }
+
+        [Fact]
+        public void SampleCountToNibbleCountConversionIsReversable()
+        {
+            for (int i = 1; i < 10000; i++)
+            {
+                int nibbleCount = GcAdpcmHelpers.SampleCountToNibbleCount(i);
+                int sampleCount = GcAdpcmHelpers.NibbleCountToSampleCount(nibbleCount);
+                Assert.Equal(i, sampleCount);
             }
         }
     }

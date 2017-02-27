@@ -45,7 +45,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ContainerTypes.cs" />
     <Compile Include="Convert.cs" />
+    <Compile Include="Converter.cs" />
     <Compile Include="DspAdpcmCli.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="CliArguments.cs" />
