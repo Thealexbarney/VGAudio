@@ -289,7 +289,7 @@ function SetupDotnetCli()
     }
 
     Write-Host -ForegroundColor Red "Unable to find Dotnet CLI version $dotnetCliVersion"
-    exit
+    exit 1
 }
 
 function CreateBuildGlobalJson([string] $Path, [string]$Version)
