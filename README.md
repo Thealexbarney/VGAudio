@@ -1,7 +1,8 @@
-# LibDspAdpcm
-A library for encoding, decoding, and manipulating audio files in Nintendo's DSP-ADPCM format.
+# VGAudio
+A library for encoding, decoding, and manipulating audio files from video games.
+Currently only files in Nintendo's DSP-ADPCM format are supported.
 
-Currently supports reading and writing:
+Supports reading and writing:
 * DSP
 * BRSTM
 * BCSTM
