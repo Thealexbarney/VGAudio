@@ -54,13 +54,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DspAdpcm\DspAdpcm.csproj">
+    <ProjectReference Include="..\VGAudio\VGAudio.csproj">
       <Project>{2414daa9-779c-4e7e-a97f-4de09b22b88f}</Project>
-      <Name>DspAdpcm</Name>
+      <Name>VGAudio</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="DspAdpcm.Cli.project.json" />
+    <None Include="VGAudio.Cli.project.json" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

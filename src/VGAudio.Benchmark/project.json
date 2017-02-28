@@ -5,7 +5,7 @@
     },
 
     "dependencies": {
-        "DspAdpcm": {
+        "VGAudio": {
             "target": "project"
         },
         "BenchmarkDotNet": "0.9.9"

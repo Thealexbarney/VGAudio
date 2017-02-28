@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspAdpcm", "DspAdpcm\DspAdpcm.csproj", "{2414DAA9-779C-4E7E-A97F-4DE09B22B88F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio", "VGAudio\VGAudio.csproj", "{2414DAA9-779C-4E7E-A97F-4DE09B22B88F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspAdpcm.Cli", "DspAdpcm.Cli\DspAdpcm.Cli.csproj", "{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.Cli", "VGAudio.Cli\VGAudio.Cli.csproj", "{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspAdpcm.Uwp", "DspAdpcm.Uwp\DspAdpcm.Uwp.csproj", "{3A48060B-0339-434E-A35D-D6680E23C3AF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.Uwp", "VGAudio.Uwp\VGAudio.Uwp.csproj", "{3A48060B-0339-434E-A35D-D6680E23C3AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspAdpcm.Tests", "DspAdpcm.Tests\DspAdpcm.Tests.csproj", "{FE3C83A1-1BEA-4CB3-BD50-D6EE9BCFA27C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.Tests", "VGAudio.Tests\VGAudio.Tests.csproj", "{FE3C83A1-1BEA-4CB3-BD50-D6EE9BCFA27C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspAdpcm.Benchmark", "DspAdpcm.Benchmark\DspAdpcm.Benchmark.csproj", "{DFCAF2E7-1B33-4164-A4E1-3C095AB44E69}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.Benchmark", "VGAudio.Benchmark\VGAudio.Benchmark.csproj", "{DFCAF2E7-1B33-4164-A4E1-3C095AB44E69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

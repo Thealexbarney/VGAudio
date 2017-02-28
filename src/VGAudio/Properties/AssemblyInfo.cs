@@ -9,5 +9,5 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyFileVersion("2.0.0.0")]
 [assembly: AssemblyProduct("DspAdpcm")]
 [assembly: NeutralResourcesLanguage("en-US")]
-[assembly: InternalsVisibleTo("DspAdpcm.Tests")]
-[assembly: InternalsVisibleTo("DspAdpcm.Benchmark")]
+[assembly: InternalsVisibleTo("VGAudio.Tests")]
+[assembly: InternalsVisibleTo("VGAudio.Benchmark")]

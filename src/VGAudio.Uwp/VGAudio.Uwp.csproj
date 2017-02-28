@@ -16,7 +16,7 @@
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <PackageCertificateKeyFile>DspAdpcm.Uwp_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>VGAudio.Uwp_TemporaryKey.pfx</PackageCertificateKeyFile>
     <PackageCertificateThumbprint>EB553661E803DE06AA93B72183F93CA767804F1E</PackageCertificateThumbprint>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
@@ -188,9 +188,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\DspAdpcm\DspAdpcm.csproj">
+    <ProjectReference Include="..\VGAudio\VGAudio.csproj">
       <Project>{2414daa9-779c-4e7e-a97f-4de09b22b88f}</Project>
-      <Name>DspAdpcm</Name>
+      <Name>VGAudio</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

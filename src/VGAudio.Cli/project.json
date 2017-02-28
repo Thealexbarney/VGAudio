@@ -6,7 +6,7 @@
     },
 
     "dependencies": {
-        "DspAdpcm": {
+        "VGAudio": {
             "target": "project"
         }
     },
