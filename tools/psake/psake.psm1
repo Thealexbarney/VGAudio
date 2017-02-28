@@ -622,15 +622,6 @@ function ConfigureBuildEnvironment {
     $editions = "Enterprise", "Professional", "Community"
     $path2017 = Join-Path "${env:ProgramFiles(x86)}" "Microsoft Visual Studio/2017/"
 
-    $frameworkDirs = @()
-    if ($buildToolsVersions -ne $null) {
-        foreach($ver in $buildToolsVersions) {
-            if (Test-Path "HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\$ver") {
-                $frameworkDirs += (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\$ver" -Name $buildToolsKey).$buildToolsKey
-            }
-        }
-    }
-
     foreach($edition in $editions) {
         $editionPath = Join-Path (Join-Path $path2017 $edition) "MSBuild/15.0/Bin/amd64"
         if (Test-Path $editionPath) {
