@@ -19,7 +19,7 @@
 
     $dotnetToolsDir = Join-Path $toolsDir dotnet
     $dotnetSdkDir = Join-Path $dotnetToolsDir sdk
-    $dotnetCliVersion = "1.0.0-preview2-003156"
+    $dotnetCliVersion = "1.0.0-rc4-004913"
 
     $libraryBuilds = @(
         @{ Name = "netstandard1.1"; LibSuccess = $null; CliFramework = "netcoreapp1.0"; CliSuccess = $null; TestFramework = "netcoreapp1.0"; TestSuccess = $null },
@@ -129,7 +129,8 @@ function BuildUwp() {
             $thumbprint = "/p:PackageCertificateThumbprint=" + $thumbprint
         }
 
-        NetCliRestore -Path $libraryDir,$uwpDir
+        NetCliRestore -Path $libraryDir
+        MsbuildRestore -Path $uwpDir
 
         $csproj = "$uwpDir\VGAudio.Uwp.csproj"
         exec { msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m $thumbprint }
@@ -144,7 +145,8 @@ function BuildUwp() {
 
 function PublishLib() {
     SignLib
-    dotnet pack --no-build $libraryDir -c release -o "$publishDir\NuGet"
+    $frameworks = ($libraryBuilds | Where { $_.LibSuccess -ne $false } | ForEach-Object { $_.Name }) -join ';'
+    dotnet pack --no-build $libraryDir -c release -o "$publishDir\NuGet" /p:TargetFrameworks=`\`"$frameworks`\`"
 }
 
 function PublishCli() {
@@ -303,7 +305,7 @@ function NetCliBuild([string]$path, [string]$framework)
 
 function NetCliPublish([string]$srcPath, [string]$outPath, [string]$framework)
 {
-    exec { dotnet publish --no-build $srcPath -f $framework -c Release -o $outPath }
+    exec { dotnet publish $srcPath -f $framework -c Release -o $outPath }
 }
 
 function NetCliRestore([string[]]$Path)
@@ -312,6 +314,15 @@ function NetCliRestore([string[]]$Path)
     {
         Write-Host -ForegroundColor Green "Restoring $singlePath"
         exec { dotnet restore $singlePath | Out-Default }
+    }
+}
+
+function MsbuildRestore([string[]]$Path)
+{
+    foreach ($singlePath in $Path)
+    {
+        Write-Host -ForegroundColor Green "Restoring $singlePath"
+        exec { msbuild /t:restore $singlePath | Out-Default }
     }
 }
 
