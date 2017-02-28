@@ -200,8 +200,8 @@ function TestLib() {
     foreach ($build in $libraryBuilds | Where { $_.LibSuccess -ne $false -and $_.TestFramework })
     {
         try {
-            $path = "$sourceDir\" + $build.TestDir
-            exec { dotnet test $testsDir -c release -f $build.TestFramework }
+            $csproj = Join-Path $testsDir "VGAudio.Tests.csproj"
+            exec { dotnet test $csproj -c release -f $build.TestFramework }
         }
         catch [Exception] {
             PrintException -Ex $_.Exception
