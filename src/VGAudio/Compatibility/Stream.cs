@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using System.Text;
-using DspAdpcm.Utilities;
+using VGAudio.Utilities;
 
-namespace DspAdpcm.Compatibility
+namespace VGAudio.Compatibility
 {
     internal static class GetStream
     {

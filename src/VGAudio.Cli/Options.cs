@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using DspAdpcm.Formats;
+using VGAudio.Formats;
 
-namespace DspAdpcm.Cli
+namespace VGAudio.Cli
 {
     internal class Options
     {

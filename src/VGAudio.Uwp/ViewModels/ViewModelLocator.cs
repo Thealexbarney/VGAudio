@@ -1,7 +1,7 @@
 ﻿/*
   In App.xaml:
   <Application.Resources>
-      <vm:ViewModelLocator xmlns:vm="clr-namespace:DspAdpcm.Uwp"
+      <vm:ViewModelLocator xmlns:vm="clr-namespace:VGAudio.Uwp"
                            x:Key="Locator" />
   </Application.Resources>
 
@@ -15,7 +15,7 @@
 using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Practices.ServiceLocation;
 
-namespace DspAdpcm.Uwp.ViewModels
+namespace VGAudio.Uwp.ViewModels
 {
     /// <summary>
     /// This class contains static references to all the view models in the

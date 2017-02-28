@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using DspAdpcm.Containers;
+using VGAudio.Containers;
 
-namespace DspAdpcm.Uwp.Audio
+namespace VGAudio.Uwp.Audio
 {
     internal static class AudioInfo
     {

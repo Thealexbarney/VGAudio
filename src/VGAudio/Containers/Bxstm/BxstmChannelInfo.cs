@@ -1,6 +1,6 @@
-﻿using DspAdpcm.Formats.GcAdpcm;
+﻿using VGAudio.Formats.GcAdpcm;
 
-namespace DspAdpcm.Containers.Bxstm
+namespace VGAudio.Containers.Bxstm
 {
     /// <summary>
     /// Defines the ADPCM information for a single

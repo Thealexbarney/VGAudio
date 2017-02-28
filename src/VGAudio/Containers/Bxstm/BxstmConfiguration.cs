@@ -1,7 +1,7 @@
 ﻿using System;
-using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
-namespace DspAdpcm.Containers.Bxstm
+namespace VGAudio.Containers.Bxstm
 {
     /// <summary>
     /// Contains the options used to build BRSTM, BCSTM and BFSTM files.

@@ -1,11 +1,11 @@
 ﻿using System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
-using DspAdpcm.Containers.Bxstm;
-using DspAdpcm.Uwp.Audio;
-using DspAdpcm.Uwp.ViewModels;
+using VGAudio.Containers.Bxstm;
+using VGAudio.Uwp.Audio;
+using VGAudio.Uwp.ViewModels;
 
-namespace DspAdpcm.Uwp.Views
+namespace VGAudio.Uwp.Views
 {
     public class BoolToVisibilityConverter : IValueConverter
     {

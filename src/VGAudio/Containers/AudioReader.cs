@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using DspAdpcm.Formats;
+using VGAudio.Formats;
 
-namespace DspAdpcm.Containers
+namespace VGAudio.Containers
 {
     public abstract class AudioReader<TReader, TStructure, TConfig> : IAudioReader 
         where TReader : AudioReader<TReader, TStructure, TConfig>, new()

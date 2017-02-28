@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Formats.GcAdpcm
+﻿namespace VGAudio.Formats.GcAdpcm
 {
     /// <summary>
     /// Defines an audio track in an ADPCM audio

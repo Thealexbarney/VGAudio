@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using DspAdpcm.Containers;
+using VGAudio.Containers;
 
 #if NET20
-using DspAdpcm.Compatibility.LinqBridge;
-using DspAdpcm.Compatibility.Serialization;
+using VGAudio.Compatibility.LinqBridge;
+using VGAudio.Compatibility.Serialization;
 #else
 using System.Linq;
 #endif
 
-namespace DspAdpcm.Cli
+namespace VGAudio.Cli
 {
     internal static class ContainerTypes
     {

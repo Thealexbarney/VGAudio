@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Containers.Bxstm
+﻿namespace VGAudio.Containers.Bxstm
 {
     /// <summary>
     /// Contains the options used to build BRSTM files.

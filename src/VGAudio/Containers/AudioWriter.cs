@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using DspAdpcm.Formats;
+using VGAudio.Formats;
 
-namespace DspAdpcm.Containers
+namespace VGAudio.Containers
 {
     public abstract class AudioWriter<TWriter, TConfig> : IAudioWriter
         where TWriter : AudioWriter<TWriter, TConfig>, new()

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using DspAdpcm.Containers;
-using DspAdpcm.Formats;
+using VGAudio.Containers;
+using VGAudio.Formats;
 
-namespace DspAdpcm.Uwp.Audio
+namespace VGAudio.Uwp.Audio
 {
     public static class IO
     {

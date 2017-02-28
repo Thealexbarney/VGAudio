@@ -2,12 +2,12 @@
 using System.IO;
 
 #if NET20
-using DspAdpcm.Compatibility.LinqBridge;
+using VGAudio.Compatibility.LinqBridge;
 #else
 using System.Linq;
 #endif
 
-namespace DspAdpcm.Utilities
+namespace VGAudio.Utilities
 {
     internal static class InterleaveExtensions
     {

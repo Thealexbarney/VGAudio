@@ -1,8 +1,8 @@
 ﻿using System.IO;
-using DspAdpcm.Containers.Bxstm;
-using DspAdpcm.Formats;
+using VGAudio.Containers.Bxstm;
+using VGAudio.Formats;
 
-namespace DspAdpcm.Containers
+namespace VGAudio.Containers
 {
     public class BfstmReader : AudioReader<BfstmReader, BfstmStructure, BfstmConfiguration>
     {

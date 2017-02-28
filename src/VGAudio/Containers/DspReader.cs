@@ -1,18 +1,18 @@
 ﻿using System.IO;
-using DspAdpcm.Containers.Dsp;
-using DspAdpcm.Formats;
-using DspAdpcm.Formats.GcAdpcm;
-using DspAdpcm.Utilities;
-using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
-using static DspAdpcm.Utilities.Helpers;
+using VGAudio.Containers.Dsp;
+using VGAudio.Formats;
+using VGAudio.Formats.GcAdpcm;
+using VGAudio.Utilities;
+using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Utilities.Helpers;
 
 #if NET20
-using DspAdpcm.Compatibility.LinqBridge;
+using VGAudio.Compatibility.LinqBridge;
 #else
 using System.Linq;
 #endif
 
-namespace DspAdpcm.Containers
+namespace VGAudio.Containers
 {
     public class DspReader : AudioReader<DspReader, DspStructure, DspConfiguration>
     {

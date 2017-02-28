@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
-using DspAdpcm.Utilities;
+using VGAudio.Utilities;
 
-namespace DspAdpcm.Tests.Helpers
+namespace VGAudio.Tests.Helpers
 {
     public static class InterleaveTests
     {

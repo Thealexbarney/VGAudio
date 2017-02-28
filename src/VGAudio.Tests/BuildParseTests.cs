@@ -1,8 +1,8 @@
-﻿using DspAdpcm.Containers;
-using DspAdpcm.Formats;
+﻿using VGAudio.Containers;
+using VGAudio.Formats;
 using Xunit;
 
-namespace DspAdpcm.Tests
+namespace VGAudio.Tests
 {
     public static class BuildParseTests
     {

@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 
 #if NET20
-using DspAdpcm.Compatibility.LinqBridge;
+using VGAudio.Compatibility.LinqBridge;
 #else
 using System.Linq;
 #endif
 
-namespace DspAdpcm.Formats
+namespace VGAudio.Formats
 {
     public class AudioData
     {

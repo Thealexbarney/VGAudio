@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using DspAdpcm.Formats.GcAdpcm;
-using DspAdpcm.Utilities;
+using VGAudio.Formats.GcAdpcm;
+using VGAudio.Utilities;
 
-namespace DspAdpcm.Containers.Genh
+namespace VGAudio.Containers.Genh
 {
     public class GenhStructure
     {

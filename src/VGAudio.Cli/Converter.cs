@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace DspAdpcm.Cli
+namespace VGAudio.Cli
 {
     public static class Converter
     {

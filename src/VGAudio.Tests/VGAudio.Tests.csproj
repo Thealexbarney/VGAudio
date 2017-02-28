@@ -8,8 +8,8 @@
     <ProjectGuid>{FE3C83A1-1BEA-4CB3-BD50-D6EE9BCFA27C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DspAdpcm.Tests</RootNamespace>
-    <AssemblyName>DspAdpcm.Tests</AssemblyName>
+    <RootNamespace>VGAudio.Tests</RootNamespace>
+    <AssemblyName>VGAudio.Tests</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -37,7 +37,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <None Include="DspAdpcm.Tests.project.json" />
+    <None Include="VGAudio.Tests.project.json" />
     <None Include="project.json" />
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>

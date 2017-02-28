@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using DspAdpcm.Compatibility;
+using VGAudio.Compatibility;
 
-namespace DspAdpcm.Utilities
+namespace VGAudio.Utilities
 {
     public static class Helpers
     {

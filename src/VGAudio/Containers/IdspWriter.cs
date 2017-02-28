@@ -1,18 +1,18 @@
 ﻿using System;
 using System.IO;
-using DspAdpcm.Containers.Idsp;
-using DspAdpcm.Formats;
-using DspAdpcm.Utilities;
-using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
-using static DspAdpcm.Utilities.Helpers;
+using VGAudio.Containers.Idsp;
+using VGAudio.Formats;
+using VGAudio.Utilities;
+using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Utilities.Helpers;
 
 #if NET20
-using DspAdpcm.Compatibility.LinqBridge;
+using VGAudio.Compatibility.LinqBridge;
 #else
 using System.Linq;
 #endif
 
-namespace DspAdpcm.Containers
+namespace VGAudio.Containers
 {
     public class IdspWriter : AudioWriter<IdspWriter, IdspConfiguration>
     {

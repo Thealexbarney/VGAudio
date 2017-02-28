@@ -7,8 +7,8 @@
     <ProjectGuid>{DFCAF2E7-1B33-4164-A4E1-3C095AB44E69}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DspAdpcm.Benchmark</RootNamespace>
-    <AssemblyName>DspAdpcm.Benchmark</AssemblyName>
+    <RootNamespace>VGAudio.Benchmark</RootNamespace>
+    <AssemblyName>VGAudio.Benchmark</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

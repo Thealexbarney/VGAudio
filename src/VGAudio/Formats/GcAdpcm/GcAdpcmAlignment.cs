@@ -1,9 +1,9 @@
 ﻿using System;
-using DspAdpcm.Codecs;
-using DspAdpcm.Utilities;
-using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
+using VGAudio.Codecs;
+using VGAudio.Utilities;
+using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
-namespace DspAdpcm.Formats.GcAdpcm
+namespace VGAudio.Formats.GcAdpcm
 {
     internal class GcAdpcmAlignment
     {

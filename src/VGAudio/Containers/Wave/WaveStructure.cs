@@ -1,7 +1,7 @@
 ﻿using System;
-using DspAdpcm.Utilities;
+using VGAudio.Utilities;
 
-namespace DspAdpcm.Containers.Wave
+namespace VGAudio.Containers.Wave
 {
     /// <summary>
     /// Defines the structure and metadata

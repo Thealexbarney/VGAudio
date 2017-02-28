@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Containers
+﻿namespace VGAudio.Containers
 {
     public interface IConfiguration { }
 }

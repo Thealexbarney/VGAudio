@@ -1,7 +1,7 @@
 ﻿using System;
-using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
-namespace DspAdpcm.Containers.Dsp
+namespace VGAudio.Containers.Dsp
 {
     /// <summary>
     /// Contains the options used to build the DSP file.

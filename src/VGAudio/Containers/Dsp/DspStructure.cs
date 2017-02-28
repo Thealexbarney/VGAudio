@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using DspAdpcm.Formats.GcAdpcm;
+using VGAudio.Formats.GcAdpcm;
 
-namespace DspAdpcm.Containers.Dsp
+namespace VGAudio.Containers.Dsp
 {
     /// <summary>
     /// Defines the structure of a DSP file.

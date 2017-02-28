@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using static DspAdpcm.Utilities.Helpers;
+using static VGAudio.Utilities.Helpers;
 
 #if NET20
-using DspAdpcm.Compatibility.LinqBridge;
+using VGAudio.Compatibility.LinqBridge;
 #else
 using System.Linq;
 #endif
 
-namespace DspAdpcm.Utilities
+namespace VGAudio.Utilities
 {
     internal static class Extensions
     {

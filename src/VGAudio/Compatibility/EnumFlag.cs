@@ -2,7 +2,7 @@
 using System;
 
 // ReSharper disable once CheckNamespace
-namespace DspAdpcm
+namespace VGAudio
 {
     internal static class EnumFlag
     {

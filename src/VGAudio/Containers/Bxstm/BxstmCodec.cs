@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Containers.Bxstm
+﻿namespace VGAudio.Containers.Bxstm
 {
     /// <summary>
     /// The different audio codecs used in BRSTM, BCSTM, and BFSTM files.

@@ -1,6 +1,6 @@
-﻿using DspAdpcm.Formats.GcAdpcm;
+﻿using VGAudio.Formats.GcAdpcm;
 
-namespace DspAdpcm.Containers.Idsp
+namespace VGAudio.Containers.Idsp
 {
     public class IdspChannelInfo : GcAdpcmChannelInfo
     {

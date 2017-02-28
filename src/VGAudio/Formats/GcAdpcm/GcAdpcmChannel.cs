@@ -1,8 +1,8 @@
 ﻿using System;
-using DspAdpcm.Codecs;
-using DspAdpcm.Utilities;
+using VGAudio.Codecs;
+using VGAudio.Utilities;
 
-namespace DspAdpcm.Formats.GcAdpcm
+namespace VGAudio.Formats.GcAdpcm
 {
     public class GcAdpcmChannel
     {

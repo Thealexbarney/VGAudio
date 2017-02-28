@@ -1,8 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
-using DspAdpcm.Containers;
-using DspAdpcm.Formats;
+using VGAudio.Containers;
+using VGAudio.Formats;
 
-namespace DspAdpcm.Benchmark.AdpcmBenchmarks
+namespace VGAudio.Benchmark.AdpcmBenchmarks
 {
     public class BuildParseBenchmarks
     {

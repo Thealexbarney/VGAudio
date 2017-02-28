@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
-using DspAdpcm.Formats;
-using DspAdpcm.Formats.GcAdpcm;
-using DspAdpcm.Utilities;
+using VGAudio.Formats;
+using VGAudio.Formats.GcAdpcm;
+using VGAudio.Utilities;
 
-namespace DspAdpcm.Tests
+namespace VGAudio.Tests
 {
     public static class GenerateAudio
     {

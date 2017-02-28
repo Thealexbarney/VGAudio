@@ -1,6 +1,6 @@
-﻿namespace DspAdpcm.Cli
+﻿namespace VGAudio.Cli
 {
-    public static class DspAdpcmCli
+    public static class VGAudioCli
     {
         public static int Main(string[] args)
         {

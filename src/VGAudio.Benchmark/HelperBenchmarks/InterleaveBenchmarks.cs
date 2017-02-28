@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using BenchmarkDotNet.Attributes;
-using DspAdpcm.Utilities;
+using VGAudio.Utilities;
 
-namespace DspAdpcm.Benchmark.HelperBenchmarks
+namespace VGAudio.Benchmark.HelperBenchmarks
 {
     public class InterleaveBenchmarks
     {

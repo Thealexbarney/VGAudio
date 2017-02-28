@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Formats.GcAdpcm
+﻿namespace VGAudio.Formats.GcAdpcm
 {
     /// <summary>
     /// Defines the ADPCM information for a single

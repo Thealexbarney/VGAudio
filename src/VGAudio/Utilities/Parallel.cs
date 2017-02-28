@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DspAdpcm.Utilities
+namespace VGAudio.Utilities
 {
     public static class Parallel
     {

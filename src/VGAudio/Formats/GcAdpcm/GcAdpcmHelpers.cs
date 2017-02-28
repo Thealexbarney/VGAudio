@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using DspAdpcm.Utilities;
+using VGAudio.Utilities;
 
 #if NET20
-using DspAdpcm.Compatibility.LinqBridge;
+using VGAudio.Compatibility.LinqBridge;
 #else
 using System.Linq;
 #endif
 
-namespace DspAdpcm.Formats.GcAdpcm
+namespace VGAudio.Formats.GcAdpcm
 {
     public static class GcAdpcmHelpers
     {

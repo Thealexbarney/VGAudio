@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using DspAdpcm.Utilities;
+using VGAudio.Utilities;
 #if NET20
-using DspAdpcm.Compatibility.LinqBridge;
+using VGAudio.Compatibility.LinqBridge;
 #else
 using System.Linq;
 #endif
 
-namespace DspAdpcm.Formats
+namespace VGAudio.Formats
 {
     /// <summary>
     /// A 16-bit PCM audio stream.

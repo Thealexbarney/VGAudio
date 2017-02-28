@@ -9,14 +9,14 @@ using Windows.Storage;
 using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 using Windows.UI.Popups;
-using DspAdpcm.Containers.Bxstm;
-using DspAdpcm.Containers.Dsp;
-using DspAdpcm.Formats;
-using DspAdpcm.Uwp.Audio;
+using VGAudio.Containers.Bxstm;
+using VGAudio.Containers.Dsp;
+using VGAudio.Formats;
+using VGAudio.Uwp.Audio;
 using GalaSoft.MvvmLight.Command;
 using PropertyChanged;
 
-namespace DspAdpcm.Uwp.ViewModels
+namespace VGAudio.Uwp.ViewModels
 {
     [ImplementPropertyChanged]
     public class MainViewModel

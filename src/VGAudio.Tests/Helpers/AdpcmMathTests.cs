@@ -1,7 +1,7 @@
-﻿using DspAdpcm.Formats.GcAdpcm;
+﻿using VGAudio.Formats.GcAdpcm;
 using Xunit;
 
-namespace DspAdpcm.Tests.Helpers
+namespace VGAudio.Tests.Helpers
 {
     public class AdpcmMathTests
     {

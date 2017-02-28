@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Tests.Containers
+﻿namespace VGAudio.Tests.Containers
 {
     internal static class BuildParseTestOptions
     {

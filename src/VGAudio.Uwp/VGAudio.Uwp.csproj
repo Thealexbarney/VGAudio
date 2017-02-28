@@ -7,8 +7,8 @@
     <ProjectGuid>{3A48060B-0339-434E-A35D-D6680E23C3AF}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DspAdpcm.Uwp</RootNamespace>
-    <AssemblyName>DspAdpcm.Uwp</AssemblyName>
+    <RootNamespace>VGAudio.Uwp</RootNamespace>
+    <AssemblyName>VGAudio.Uwp</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>

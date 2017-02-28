@@ -1,5 +1,5 @@
 ﻿{
-    "title": "DspAdpcm",
+    "title": "VGAudio",
     "description": "A library for encoding, decoding, and manipulating audio files using Nintendo's DSP-ADPCM format.",
     "version": "2.0.0-*",
     "authors": [ "Alex Barney" ],

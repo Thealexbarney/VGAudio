@@ -1,9 +1,9 @@
 ﻿using System;
-using DspAdpcm.Utilities;
-using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
-using static DspAdpcm.Utilities.Helpers;
+using VGAudio.Utilities;
+using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Utilities.Helpers;
 
-namespace DspAdpcm.Codecs
+namespace VGAudio.Codecs
 {
     /// <summary>
     /// This class contains functions used for encoding

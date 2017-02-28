@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using DspAdpcm.Codecs;
+using VGAudio.Codecs;
 
-namespace DspAdpcm.Formats.GcAdpcm
+namespace VGAudio.Formats.GcAdpcm
 {
     internal class GcAdpcmLoopContext
     {

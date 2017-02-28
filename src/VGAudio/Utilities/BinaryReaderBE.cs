@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace DspAdpcm.Utilities
+namespace VGAudio.Utilities
 {
     internal class BinaryReaderBE : BinaryReader
     {

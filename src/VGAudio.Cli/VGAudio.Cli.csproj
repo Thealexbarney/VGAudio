@@ -7,8 +7,8 @@
     <ProjectGuid>{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DspAdpcm.Cli</RootNamespace>
-    <AssemblyName>DspAdpcm.Cli</AssemblyName>
+    <RootNamespace>VGAudio.Cli</RootNamespace>
+    <AssemblyName>VGAudio.Cli</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -48,7 +48,7 @@
     <Compile Include="ContainerTypes.cs" />
     <Compile Include="Convert.cs" />
     <Compile Include="Converter.cs" />
-    <Compile Include="DspAdpcmCli.cs" />
+    <Compile Include="VGAudioCli.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="CliArguments.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

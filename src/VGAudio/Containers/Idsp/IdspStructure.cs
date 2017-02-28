@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DspAdpcm.Containers.Idsp
+namespace VGAudio.Containers.Idsp
 {
     public class IdspStructure
     {

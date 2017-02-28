@@ -1,7 +1,7 @@
 ﻿using System.IO;
-using DspAdpcm.Formats;
+using VGAudio.Formats;
 
-namespace DspAdpcm.Containers
+namespace VGAudio.Containers
 {
     public interface IAudioWriter
     {

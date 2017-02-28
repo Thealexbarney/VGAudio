@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using DspAdpcm.Containers;
-using DspAdpcm.Formats;
+using VGAudio.Containers;
+using VGAudio.Formats;
 
 #if NET20
-using DspAdpcm.Compatibility.LinqBridge;
+using VGAudio.Compatibility.LinqBridge;
 #else
 using System.Linq;
 #endif
 
-namespace DspAdpcm.Cli
+namespace VGAudio.Cli
 {
     internal class Convert
     {

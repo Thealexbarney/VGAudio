@@ -1,10 +1,10 @@
 ﻿using System;
-using DspAdpcm.Formats.GcAdpcm;
-using DspAdpcm.Utilities;
-using static DspAdpcm.Formats.GcAdpcm.GcAdpcmHelpers;
-using static DspAdpcm.Utilities.Helpers;
+using VGAudio.Formats.GcAdpcm;
+using VGAudio.Utilities;
+using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Utilities.Helpers;
 
-namespace DspAdpcm.Codecs
+namespace VGAudio.Codecs
 {
     public static class GcAdpcmDecoder
     {

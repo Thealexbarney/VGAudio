@@ -32,10 +32,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using DspAdpcm.Compatibility.LinqBridge.Tuples;
-using DspAdpcm.Compatibility.Serialization;
+using VGAudio.Compatibility.LinqBridge.Tuples;
+using VGAudio.Compatibility.Serialization;
 
-namespace DspAdpcm.Compatibility.LinqBridge
+namespace VGAudio.Compatibility.LinqBridge
 {
     public static partial class Enumerable
     {
@@ -2226,7 +2226,7 @@ namespace DspAdpcm.Compatibility.LinqBridge
     }
 }
 
-namespace DspAdpcm.Compatibility.LinqBridge.Tuples
+namespace VGAudio.Compatibility.LinqBridge.Tuples
 {
   [Serializable]
   internal struct Tuple<TFirst, TSecond> : IEquatable<Tuple<TFirst, TSecond>>
@@ -2268,7 +2268,7 @@ namespace DspAdpcm.Compatibility.LinqBridge.Tuples
   }
 }
 
-namespace DspAdpcm.Compatibility.Serialization
+namespace VGAudio.Compatibility.Serialization
 {
 #pragma warning disable 1591
   public delegate TResult Func<TResult>();

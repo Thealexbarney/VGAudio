@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DspAdpcm.Formats
+namespace VGAudio.Formats
 {
     public abstract class AudioFormatBase<T> : IAudioFormat
         where T : AudioFormatBase<T>

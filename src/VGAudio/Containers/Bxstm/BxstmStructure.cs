@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using DspAdpcm.Formats.GcAdpcm;
+using VGAudio.Formats.GcAdpcm;
 
-namespace DspAdpcm.Containers.Bxstm
+namespace VGAudio.Containers.Bxstm
 {
     public abstract class BxstmStructure
     {

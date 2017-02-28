@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-namespace DspAdpcm.Cli
+namespace VGAudio.Cli
 {
     internal class CliArguments
     {
@@ -93,7 +93,7 @@ namespace DspAdpcm.Cli
                             PrintUsage();
                             return null;
                         case "-VERSION":
-                            Console.WriteLine($"DspAdpcm v{GetProgramVersion()}");
+                            Console.WriteLine($"VGAudio v{GetProgramVersion()}");
                             return null;
                     }
                 }

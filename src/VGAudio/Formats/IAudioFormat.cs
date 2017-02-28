@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DspAdpcm.Formats
+namespace VGAudio.Formats
 {
     public interface IAudioFormat
     {

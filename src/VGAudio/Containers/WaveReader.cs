@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using DspAdpcm.Containers.Wave;
-using DspAdpcm.Formats;
-using DspAdpcm.Utilities;
-using static DspAdpcm.Utilities.Helpers;
+using VGAudio.Containers.Wave;
+using VGAudio.Formats;
+using VGAudio.Utilities;
+using static VGAudio.Utilities.Helpers;
 
-namespace DspAdpcm.Containers
+namespace VGAudio.Containers
 {
     public class WaveReader : AudioReader<WaveReader, WaveStructure, WaveConfiguration>
     {

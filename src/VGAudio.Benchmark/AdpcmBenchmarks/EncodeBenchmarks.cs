@@ -1,7 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
-using DspAdpcm.Codecs;
+using VGAudio.Codecs;
 
-namespace DspAdpcm.Benchmark.AdpcmBenchmarks
+namespace VGAudio.Benchmark.AdpcmBenchmarks
 {
     public class EncodeBenchmarks
     {

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
-using DspAdpcm.Benchmark.AdpcmBenchmarks;
-using DspAdpcm.Benchmark.HelperBenchmarks;
+using VGAudio.Benchmark.AdpcmBenchmarks;
+using VGAudio.Benchmark.HelperBenchmarks;
 
-namespace DspAdpcm.Benchmark
+namespace VGAudio.Benchmark
 {
     public static class Runner
     {

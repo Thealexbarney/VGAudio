@@ -1,4 +1,4 @@
-﻿namespace DspAdpcm.Containers.Bxstm
+﻿namespace VGAudio.Containers.Bxstm
 {
     /// <summary>
     /// Defines the structure and metadata
