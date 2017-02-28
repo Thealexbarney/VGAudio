@@ -5,10 +5,10 @@
     $toolsDir = "$baseDir\tools"
     $publishDir = "$baseDir\publish"
 
-    $libraryDir = "$sourceDir\DspAdpcm"
-    $cliDir = "$sourceDir\DspAdpcm.Cli"
-    $uwpDir = "$sourceDir\DspAdpcm.Uwp"
-    $testsDir = "$sourceDir\DspAdpcm.Tests"
+    $libraryDir = "$sourceDir\VGAudio"
+    $cliDir = "$sourceDir\VGAudio.Cli"
+    $uwpDir = "$sourceDir\VGAudio.Uwp"
+    $testsDir = "$sourceDir\VGAudio.Tests"
 
     $libraryPublishDir = "$publishDir\NuGet"
     $cliPublishDir = "$publishDir\cli"
@@ -131,7 +131,7 @@ function BuildUwp() {
 
         NetCliRestore -Path $libraryDir,$uwpDir
 
-        $csproj = "$uwpDir\DspAdpcm.Uwp.csproj"
+        $csproj = "$uwpDir\VGAudio.Uwp.csproj"
         exec { msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m $thumbprint }
     }
     catch [Exception] {
@@ -171,8 +171,8 @@ function PublishUwp() {
 
     $version = GetVersionFromAppxManifest $uwpDir\Package.appxmanifest
     $buildDir = Join-Path $uwpDir AppPackages
-    $appxName = "DspAdpcm.Uwp_$version`_x86_x64_ARM"
-    $bundleDir = Join-Path $buildDir "DspAdpcm.Uwp_$version`_Test"
+    $appxName = "VGAudio.Uwp_$version`_x86_x64_ARM"
+    $bundleDir = Join-Path $buildDir "VGAudio.Uwp_$version`_Test"
 
     $appxUpload = Join-Path $buildDir "$appxName`_bundle.appxupload"
     $appxBundle = Join-Path $bundleDir "$appxName`.appxbundle"
@@ -323,7 +323,7 @@ function GetVersionFromAppxManifest([string]$manifestPath)
 
 function SetupUwpSigningCertificate()
 {
-    $csprojPath = "$uwpDir\DspAdpcm.Uwp.csproj"
+    $csprojPath = "$uwpDir\VGAudio.Uwp.csproj"
     [xml]$csprojXml = Get-Content -Path $csprojPath
     $thumbprint = $csprojXml.Project.PropertyGroup[0].PackageCertificateThumbprint
     $keyFile = "$uwpDir\" + $csprojXml.Project.PropertyGroup[0].PackageCertificateKeyFile

@@ -1,0 +1,36 @@
+{
+    "version": "1.1.1-*",
+    "buildOptions": {
+        "emitEntryPoint": true,
+        "platform": "anycpu"
+    },
+
+    "dependencies": {
+        "VGAudio": {
+            "target": "project"
+        }
+    },
+
+    "frameworks": {
+        "netcoreapp1.0": {
+            "dependencies": {
+                "Microsoft.NETCore.App": {
+                    "type": "platform",
+                    "version": "1.0.0"
+                }
+            }
+        },
+        "net45": {},
+        "net40": {},
+        "net35": {
+            "buildOptions": {
+                "define": [ "NOPARALLEL" ]
+            }
+        },
+        "net20": {
+            "buildOptions": {
+                "define": [ "NOPARALLEL" ]
+            }
+        }
+    }
+}
