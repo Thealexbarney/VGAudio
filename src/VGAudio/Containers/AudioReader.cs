@@ -5,24 +5,21 @@ using VGAudio.Formats;
 namespace VGAudio.Containers
 {
     public abstract class AudioReader<TReader, TStructure, TConfig> : IAudioReader 
-        where TReader : AudioReader<TReader, TStructure, TConfig>, new()
+        where TReader : AudioReader<TReader, TStructure, TConfig>
         where TConfig : IConfiguration, new()
     {
-        IAudioFormat IAudioReader.ReadFormat(Stream stream) => ReadStream(stream);
-        IAudioFormat IAudioReader.ReadFormat(byte[] file) => ReadByteArray(file);
-        AudioData IAudioReader.Read(Stream stream) => new AudioData(ReadStream(stream));
-        AudioData IAudioReader.Read(byte[] file) => new AudioData(ReadByteArray(file));
-        AudioWithConfig IAudioReader.ReadWithConfig(Stream stream) => ReadWithConfig(stream);
-        AudioWithConfig IAudioReader.ReadWithConfig(byte[] file) => ReadWithConfig(file);
+        public IAudioFormat ReadFormat(Stream stream) => ReadStream(stream).AudioFormat;
+        public IAudioFormat ReadFormat(byte[] file) => ReadByteArray(file).AudioFormat;
 
-        public static IAudioFormat ReadFormat(Stream stream) => new TReader().ReadStream(stream);
-        public static IAudioFormat ReadFormat(byte[] file) => new TReader().ReadByteArray(file);
-        public static AudioData Read(Stream stream) => new AudioData(ReadFormat(stream));
-        public static AudioData Read(byte[] file) => new AudioData(ReadFormat(file));
+        public AudioData Read(Stream stream) => ReadStream(stream).Audio;
+        public AudioData Read(byte[] file) => ReadByteArray(file).Audio;
 
-        public static TStructure ReadMetadata(Stream stream) => new TReader().GetStructure(stream, false);
+        public AudioWithConfig ReadWithConfig(Stream stream) => ReadStream(stream);
+        public AudioWithConfig ReadWithConfig(byte[] file) => ReadByteArray(file);
 
-        private IAudioFormat ReadByteArray(byte[] file)
+        public TStructure ReadMetadata(Stream stream) => ReadStructure(stream, false);
+
+        private AudioWithConfig ReadByteArray(byte[] file)
         {
             using (var stream = new MemoryStream(file))
             {
@@ -30,23 +27,13 @@ namespace VGAudio.Containers
             }
         }
 
-        private IAudioFormat ReadStream(Stream stream) => ToAudioStream(GetStructure(stream));
-
-        private AudioWithConfig ReadWithConfig(byte[] file)
+        private AudioWithConfig ReadStream(Stream stream)
         {
-            using (var stream = new MemoryStream(file))
-            {
-                return ReadWithConfig(stream);
-            }
+            TStructure structure = ReadStructure(stream);
+            return new AudioWithConfig(ToAudioStream(structure), GetConfiguration(structure));
         }
 
-        private AudioWithConfig ReadWithConfig(Stream stream)
-        {
-            var structure = GetStructure(stream);
-            return new AudioWithConfig(new AudioData(ToAudioStream(structure)), GetConfiguration(structure));
-        }
-
-        private TStructure GetStructure(Stream stream, bool readAudioData = true)
+        private TStructure ReadStructure(Stream stream, bool readAudioData = true)
         {
             if (!stream.CanSeek)
             {

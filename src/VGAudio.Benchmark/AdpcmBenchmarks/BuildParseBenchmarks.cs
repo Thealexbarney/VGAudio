@@ -30,12 +30,12 @@ namespace VGAudio.Benchmark.AdpcmBenchmarks
         [Benchmark] public byte[] BuildBxstm() => new BrstmWriter().GetFile(adpcm);
         [Benchmark] public byte[] BuildIdsp() => new IdspWriter().GetFile(adpcm);
 
-        [Benchmark] public IAudioFormat ParseDsp() => DspReader.ReadFormat(dsp);
-        [Benchmark] public IAudioFormat ParseBxstm() => BrstmReader.ReadFormat(brstm);
-        [Benchmark] public IAudioFormat ParseIdsp() => IdspReader.ReadFormat(idsp);
+        [Benchmark] public IAudioFormat ParseDsp() => new DspReader().ReadFormat(dsp);
+        [Benchmark] public IAudioFormat ParseBxstm() => new BrstmReader().ReadFormat(brstm);
+        [Benchmark] public IAudioFormat ParseIdsp() => new IdspReader().ReadFormat(idsp);
 
-        [Benchmark] public byte[] RebuildDsp() => new DspWriter().GetFile(DspReader.Read(dsp));
-        [Benchmark] public byte[] RebuildBxstm() => new BrstmWriter().GetFile(BrstmReader.Read(brstm));
-        [Benchmark] public byte[] RebuildIdsp() => new IdspWriter().GetFile(IdspReader.Read(idsp));
+        [Benchmark] public byte[] RebuildDsp() => new DspWriter().GetFile(new DspReader().Read(dsp));
+        [Benchmark] public byte[] RebuildBxstm() => new BrstmWriter().GetFile(new BrstmReader().Read(brstm));
+        [Benchmark] public byte[] RebuildIdsp() => new IdspWriter().GetFile(new IdspReader().Read(idsp));
     }
 }

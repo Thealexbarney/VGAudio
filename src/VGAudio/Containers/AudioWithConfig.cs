@@ -4,13 +4,14 @@ namespace VGAudio.Containers
 {
     public class AudioWithConfig
     {
-        public AudioWithConfig(AudioData audio, IConfiguration configuration)
+        public AudioWithConfig(IAudioFormat audioFormat, IConfiguration configuration)
         {
-            Audio = audio;
+            AudioFormat = audioFormat;
             Configuration = configuration;
         }
 
-        public AudioData Audio { get; set; }
-        public IConfiguration Configuration { get; set; }
+        public IAudioFormat AudioFormat { get; }
+        public AudioData Audio => new AudioData(AudioFormat);
+        public IConfiguration Configuration { get; }
     }
 }
