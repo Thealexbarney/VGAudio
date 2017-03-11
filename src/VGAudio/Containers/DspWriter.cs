@@ -74,9 +74,16 @@ namespace VGAudio.Containers
                 writer.Write(channel.PredScale);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
-                writer.Write(channel.LoopPredScale(LoopStart));
-                writer.Write(channel.LoopHist1(LoopStart));
-                writer.Write(channel.LoopHist2(LoopStart));
+                if (Adpcm.Looping)
+                {
+                    writer.Write(channel.LoopPredScale(LoopStart));
+                    writer.Write(channel.LoopHist1(LoopStart));
+                    writer.Write(channel.LoopHist2(LoopStart));
+                }
+                else
+                {
+                    writer.Write(new byte[3 * sizeof(short)]);
+                }
                 writer.Write((short)(ChannelCount == 1 ? 0 : ChannelCount));
                 writer.Write((short)(ChannelCount == 1 ? 0 : FramesPerInterleave));
             }
