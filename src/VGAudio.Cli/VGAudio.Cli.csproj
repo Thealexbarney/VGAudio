@@ -48,6 +48,11 @@
     <Compile Include="ContainerTypes.cs" />
     <Compile Include="Convert.cs" />
     <Compile Include="Converter.cs" />
+    <Compile Include="Metadata\Brstm.cs" />
+    <Compile Include="Metadata\Common.cs" />
+    <Compile Include="Metadata\Dsp.cs" />
+    <Compile Include="Metadata\Formats.cs" />
+    <Compile Include="Metadata\Print.cs" />
     <Compile Include="VGAudioCli.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="CliArguments.cs" />

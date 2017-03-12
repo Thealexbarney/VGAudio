@@ -28,6 +28,13 @@ namespace VGAudio.Cli
                 }
             }
 
+            if (options.Job == JobType.Metadata)
+            {
+                var printer = new Metadata.Print();
+                printer.GetMetadata(options);
+                printer.PrintCommonMetadata();
+            }
+
             return true;
         }
     }
