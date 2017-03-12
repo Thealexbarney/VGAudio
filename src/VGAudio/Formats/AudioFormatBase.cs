@@ -16,6 +16,19 @@ namespace VGAudio.Formats
         IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16);
         IAudioFormat IAudioFormat.GetChannels(IEnumerable<int> channelRange) => GetChannels(channelRange);
 
+        public abstract Pcm16Format ToPcm16();
+        public abstract T EncodeFromPcm16(Pcm16Format pcm16);
+
+        public T GetChannels(IEnumerable<int> channelRange)
+        {
+            if (channelRange == null)
+                throw new ArgumentNullException(nameof(channelRange));
+
+            return GetChannelsInternal(channelRange);
+        }
+
+        protected abstract T GetChannelsInternal(IEnumerable<int> channelRange);
+
         protected AudioFormatBase(int sampleCount, int sampleRate, int channelCount)
         {
             SampleCount = sampleCount;
@@ -66,9 +79,16 @@ namespace VGAudio.Formats
             return true;
         }
 
-        public abstract Pcm16Format ToPcm16();
-        public abstract T EncodeFromPcm16(Pcm16Format pcm16);
-        public abstract T GetChannels(IEnumerable<int> channelRange);
-        public abstract void Add(T format);
+        public virtual void Add(T format)
+        {
+            if (format.SampleCount != SampleCount)
+            {
+                throw new ArgumentException("Only audio streams of the same length can be added to each other.");
+            }
+
+            AddInternal(format);
+        }
+
+        protected abstract void AddInternal(T format);
     }
 }

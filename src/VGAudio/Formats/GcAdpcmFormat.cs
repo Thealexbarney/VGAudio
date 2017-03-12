@@ -83,23 +83,15 @@ namespace VGAudio.Formats
             return new GcAdpcmFormat(pcm16.SampleCount, pcm16.SampleRate, channels);
         }
 
-        public override void Add(GcAdpcmFormat adpcm)
+        protected override void AddInternal(GcAdpcmFormat adpcm)
         {
-            if (adpcm.SampleCount != SampleCount)
-            {
-                throw new ArgumentException("Only audio streams of the same length can be added to each other.");
-            }
-
             Channels = Channels.Concat(adpcm.Channels).ToArray();
             ChannelCount = Channels.Length;
             SetAlignment(AlignmentMultiple);
         }
 
-        public override GcAdpcmFormat GetChannels(IEnumerable<int> channelRange)
+        protected override GcAdpcmFormat GetChannelsInternal(IEnumerable<int> channelRange)
         {
-            if (channelRange == null)
-                throw new ArgumentNullException(nameof(channelRange));
-
             GcAdpcmFormat copy = ShallowClone();
             var channels = new List<GcAdpcmChannel>();
             copy._tracks = null;

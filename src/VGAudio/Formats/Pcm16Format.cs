@@ -38,22 +38,14 @@ namespace VGAudio.Formats
             return new Pcm16Format(pcm16.SampleCount, pcm16.SampleRate, pcm16.Channels);
         }
 
-        public override void Add(Pcm16Format pcm16)
+        protected override void AddInternal(Pcm16Format pcm16)
         {
-            if (pcm16.SampleCount != SampleCount)
-            {
-                throw new ArgumentException("Only audio streams of the same length can be added to each other.");
-            }
-
             Channels = Channels.Concat(pcm16.Channels).ToArray();
             ChannelCount = Channels.Length;
         }
 
-        public override Pcm16Format GetChannels(IEnumerable<int> channelRange)
+        protected override Pcm16Format GetChannelsInternal(IEnumerable<int> channelRange)
         {
-            if (channelRange == null)
-                throw new ArgumentNullException(nameof(channelRange));
-
             var channels = new List<short[]>();
 
             foreach (int i in channelRange)
