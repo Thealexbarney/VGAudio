@@ -4,9 +4,9 @@ using VGAudio.Containers.Wave;
 
 namespace VGAudio.Cli.Metadata.Containers
 {
-    internal class Wave : IMetadataReader
+    internal class Wave : MetadataReader
     {
-        public Common ToCommon(object structure)
+        public override Common ToCommon(object structure)
         {
             var wave = structure as WaveStructure;
             if (wave == null) throw new InvalidDataException("Could not parse file metadata.");
@@ -21,6 +21,6 @@ namespace VGAudio.Cli.Metadata.Containers
             };
         }
 
-        public object ReadMetadata(Stream stream) => new WaveReader().ReadMetadata(stream);
+        public override object ReadMetadata(Stream stream) => new WaveReader().ReadMetadata(stream);
     }
 }

@@ -3,9 +3,9 @@ using VGAudio.Containers;
 
 namespace VGAudio.Cli.Metadata.Containers
 {
-    internal class Brstm : IMetadataReader
+    internal class Brstm : MetadataReader
     {
-        public Common ToCommon(object structure) => Bxstm.ToCommon(structure);
-        public object ReadMetadata(Stream stream) => new BrstmReader().ReadMetadata(stream);
+        public override Common ToCommon(object structure) => Bxstm.ToCommon(structure);
+        public override object ReadMetadata(Stream stream) => new BrstmReader().ReadMetadata(stream);
     }
 }

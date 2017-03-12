@@ -58,7 +58,7 @@
     <Compile Include="Metadata\Containers\Genh.cs" />
     <Compile Include="Metadata\Containers\Idsp.cs" />
     <Compile Include="Metadata\Containers\Wave.cs" />
-    <Compile Include="Metadata\IMetadataReader.cs" />
+    <Compile Include="Metadata\MetadataReader.cs" />
     <Compile Include="Metadata\Print.cs" />
     <Compile Include="VGAudioCli.cs" />
     <Compile Include="Options.cs" />

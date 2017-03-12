@@ -4,9 +4,9 @@ using VGAudio.Containers.Genh;
 
 namespace VGAudio.Cli.Metadata.Containers
 {
-    internal class Genh : IMetadataReader
+    internal class Genh : MetadataReader
     {
-        public Common ToCommon(object structure)
+        public override Common ToCommon(object structure)
         {
             var genh = structure as GenhStructure;
             if (genh == null) throw new InvalidDataException("Could not parse file metadata.");
@@ -23,6 +23,6 @@ namespace VGAudio.Cli.Metadata.Containers
             };
         }
 
-        public object ReadMetadata(Stream stream) => new GenhReader().ReadMetadata(stream);
+        public override object ReadMetadata(Stream stream) => new GenhReader().ReadMetadata(stream);
     }
 }

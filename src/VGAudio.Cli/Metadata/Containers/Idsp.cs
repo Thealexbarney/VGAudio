@@ -4,9 +4,9 @@ using VGAudio.Containers.Idsp;
 
 namespace VGAudio.Cli.Metadata.Containers
 {
-    internal class Idsp : IMetadataReader
+    internal class Idsp : MetadataReader
     {
-        public Common ToCommon(object structure)
+        public override Common ToCommon(object structure)
         {
             var idsp = structure as IdspStructure;
             if (idsp == null) throw new InvalidDataException("Could not parse file metadata.");
@@ -23,6 +23,6 @@ namespace VGAudio.Cli.Metadata.Containers
             };
         }
 
-        public object ReadMetadata(Stream stream) => new IdspReader().ReadMetadata(stream);
+        public override object ReadMetadata(Stream stream) => new IdspReader().ReadMetadata(stream);
     }
 }

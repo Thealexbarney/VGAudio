@@ -4,9 +4,9 @@ using VGAudio.Containers.Dsp;
 
 namespace VGAudio.Cli.Metadata.Containers
 {
-    internal class Dsp : IMetadataReader
+    internal class Dsp : MetadataReader
     {
-        public Common ToCommon(object structure)
+        public override Common ToCommon(object structure)
         {
             var dsp = structure as DspStructure;
             if (dsp == null) throw new InvalidDataException("Could not parse file metadata.");
@@ -23,6 +23,6 @@ namespace VGAudio.Cli.Metadata.Containers
             };
         }
 
-        public object ReadMetadata(Stream stream) => new DspReader().ReadMetadata(stream);
+        public override object ReadMetadata(Stream stream) => new DspReader().ReadMetadata(stream);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using VGAudio.Cli.Metadata;
 
 namespace VGAudio.Cli
 {
@@ -30,9 +31,7 @@ namespace VGAudio.Cli
 
             if (options.Job == JobType.Metadata)
             {
-                var printer = new Metadata.Print();
-                printer.GetMetadata(options);
-                printer.PrintCommonMetadata();
+                Print.PrintMetadata(options);
             }
 
             return true;
