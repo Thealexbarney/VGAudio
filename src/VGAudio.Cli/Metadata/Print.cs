@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VGAudio.Containers;
-using VGAudio.Containers.Bxstm;
-using VGAudio.Containers.Dsp;
+using VGAudio.Cli.Metadata.Containers;
 
 namespace VGAudio.Cli.Metadata
 {
@@ -18,22 +17,12 @@ namespace VGAudio.Cli.Metadata
 
             string filename = input.Path;
             FileType type = input.Type;
+            IMetadataReader reader = MetadataReaders[type];
 
             using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
-                switch (type)
-                {
-                    case FileType.Dsp:
-                        Metadata = new DspReader().ReadMetadata(stream);
-                        Common = Dsp.ToCommon((DspStructure) Metadata);
-                        break;
-                    case FileType.Brstm:
-                        Metadata = new BrstmReader().ReadMetadata(stream);
-                        Common = Brstm.ToCommon((BrstmStructure) Metadata);
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
+                Metadata = reader.ReadMetadata(stream);
+                Common = reader.ToCommon(Metadata);
             }
         }
 
@@ -42,7 +31,7 @@ namespace VGAudio.Cli.Metadata
             Console.WriteLine($"Sample count: {Common.SampleCount} {GetSecondsString(Common.SampleCount, Common.SampleRate)}");
             Console.WriteLine($"Sample rate: {Common.SampleRate} Hz");
             Console.WriteLine($"Channel count: {Common.ChannelCount}");
-            Console.WriteLine($"Encoding format: {FormatsDictionary.Display[Common.Format]}");
+            Console.WriteLine($"Encoding format: {FormatDisplayNames[Common.Format]}");
 
             if (Common.Looping)
             {
@@ -51,9 +40,22 @@ namespace VGAudio.Cli.Metadata
             }
         }
 
+        public static readonly Dictionary<AudioFormat, string> FormatDisplayNames = new Dictionary<AudioFormat, string>
+        {
+            [AudioFormat.Pcm16] = "16-bit PCM",
+            [AudioFormat.Pcm8] = "8-bit PCM",
+            [AudioFormat.GcAdpcm] = "GameCube \"DSP\" 4-bit ADPCM"
+        };
+
+        public static readonly Dictionary<FileType, IMetadataReader> MetadataReaders = new Dictionary<FileType, IMetadataReader>
+        {
+            [FileType.Dsp] = new Dsp(),
+            [FileType.Brstm] = new Brstm()
+        };
+
         private static string GetSecondsString(int sampleCount, int sampleRate)
         {
-            return $"({sampleCount / (double)sampleRate:#.0000} seconds)";
+            return $"({sampleCount / (double)sampleRate:0.0000} seconds)";
         }
     }
 }

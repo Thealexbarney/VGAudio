@@ -8,6 +8,6 @@
         public bool Looping { get; set; }
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
-        public Formats Format { get; set; }
+        public AudioFormat Format { get; set; }
     }
 }
