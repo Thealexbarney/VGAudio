@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using VGAudio.Cli.Metadata.Containers;
+#if NET20
+using VGAudio.Compatibility.LinqBridge;
+#else
+using System.Linq;
+#endif
 
 namespace VGAudio.Cli.Metadata
 {
@@ -49,8 +53,13 @@ namespace VGAudio.Cli.Metadata
 
         public static readonly Dictionary<FileType, IMetadataReader> MetadataReaders = new Dictionary<FileType, IMetadataReader>
         {
+            [FileType.Wave] = new Wave(),
             [FileType.Dsp] = new Dsp(),
-            [FileType.Brstm] = new Brstm()
+            [FileType.Idsp] = new Idsp(),
+            [FileType.Brstm] = new Brstm(),
+            [FileType.Bcstm] = new Bcstm(),
+            [FileType.Bfstm] = new Bfstm(),
+            [FileType.Genh] = new Genh()
         };
 
         private static string GetSecondsString(int sampleCount, int sampleRate)

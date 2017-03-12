@@ -48,10 +48,16 @@
     <Compile Include="ContainerTypes.cs" />
     <Compile Include="Convert.cs" />
     <Compile Include="Converter.cs" />
+    <Compile Include="Metadata\Containers\Bcstm.cs" />
+    <Compile Include="Metadata\Containers\Bfstm.cs" />
     <Compile Include="Metadata\Containers\Brstm.cs" />
     <Compile Include="Metadata\Common.cs" />
+    <Compile Include="Metadata\Containers\Bxstm.cs" />
     <Compile Include="Metadata\Containers\Dsp.cs" />
     <Compile Include="AudioFormat.cs" />
+    <Compile Include="Metadata\Containers\Genh.cs" />
+    <Compile Include="Metadata\Containers\Idsp.cs" />
+    <Compile Include="Metadata\Containers\Wave.cs" />
     <Compile Include="Metadata\IMetadataReader.cs" />
     <Compile Include="Metadata\Print.cs" />
     <Compile Include="VGAudioCli.cs" />
