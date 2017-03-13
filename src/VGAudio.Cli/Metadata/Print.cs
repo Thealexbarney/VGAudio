@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using VGAudio.Cli.Metadata.Containers;
 
 #if NET20
@@ -13,11 +13,13 @@ namespace VGAudio.Cli.Metadata
 {
     internal static class Print
     {
-        public static void PrintMetadata(Options options)
+        public static string PrintMetadata(Options options)
         {
             AudioFile input = options.InFiles.First();
             string filename = input.Path;
             FileType type = input.Type;
+
+            var metadataDisplay = new StringBuilder();
 
             MetadataReader reader = MetadataReaders[type];
             object metadata;
@@ -28,21 +30,23 @@ namespace VGAudio.Cli.Metadata
             }
 
             Common common = reader.ToCommon(metadata);
-            PrintCommonMetadata(common);
-            reader.PrintSpecificMetadata(metadata);
+            PrintCommonMetadata(common, metadataDisplay);
+            reader.PrintSpecificMetadata(metadata, metadataDisplay);
+
+            return metadataDisplay.ToString();
         }
 
-        public static void PrintCommonMetadata(Common common)
+        public static void PrintCommonMetadata(Common common, StringBuilder builder)
         {
-            Console.WriteLine($"Sample count: {common.SampleCount} {GetSecondsString(common.SampleCount, common.SampleRate)}");
-            Console.WriteLine($"Sample rate: {common.SampleRate} Hz");
-            Console.WriteLine($"Channel count: {common.ChannelCount}");
-            Console.WriteLine($"Encoding format: {FormatDisplayNames[common.Format]}");
+            builder.AppendLine($"Sample count: {common.SampleCount} {GetSecondsString(common.SampleCount, common.SampleRate)}");
+            builder.AppendLine($"Sample rate: {common.SampleRate} Hz");
+            builder.AppendLine($"Channel count: {common.ChannelCount}");
+            builder.AppendLine($"Encoding format: {FormatDisplayNames[common.Format]}");
 
             if (common.Looping)
             {
-                Console.WriteLine($"Loop start: {common.LoopStart} samples {GetSecondsString(common.LoopStart, common.SampleRate)}");
-                Console.WriteLine($"Loop end: {common.LoopEnd} samples {GetSecondsString(common.LoopEnd, common.SampleRate)}");
+                builder.AppendLine($"Loop start: {common.LoopStart} samples {GetSecondsString(common.LoopStart, common.SampleRate)}");
+                builder.AppendLine($"Loop end: {common.LoopEnd} samples {GetSecondsString(common.LoopEnd, common.SampleRate)}");
             }
         }
 

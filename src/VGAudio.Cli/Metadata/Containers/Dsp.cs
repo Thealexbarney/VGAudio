@@ -1,6 +1,8 @@
 ﻿using System.IO;
+using System.Text;
 using VGAudio.Containers;
 using VGAudio.Containers.Dsp;
+using VGAudio.Formats.GcAdpcm;
 
 namespace VGAudio.Cli.Metadata.Containers
 {
@@ -24,5 +26,16 @@ namespace VGAudio.Cli.Metadata.Containers
         }
 
         public override object ReadMetadata(Stream stream) => new DspReader().ReadMetadata(stream);
+
+        public override void PrintSpecificMetadata(object structure, StringBuilder builder)
+        {
+            var dsp = structure as DspStructure;
+            if (dsp == null) throw new InvalidDataException("Could not parse file metadata.");
+
+            foreach (GcAdpcmChannelInfo channel in dsp.Channels)
+            {
+                GcAdpcm.PrintAdpcmMetadata(channel, builder);
+            }
+        }
     }
 }

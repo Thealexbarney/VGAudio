@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 
 namespace VGAudio.Cli.Metadata
 {
@@ -6,6 +7,6 @@ namespace VGAudio.Cli.Metadata
     {
         public abstract object ReadMetadata(Stream stream);
         public abstract Common ToCommon(object metadata);
-        public virtual void PrintSpecificMetadata(object metadata) { }
+        public virtual void PrintSpecificMetadata(object metadata, StringBuilder builder) { }
     }
 }

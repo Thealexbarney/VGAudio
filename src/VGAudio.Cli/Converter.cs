@@ -31,7 +31,7 @@ namespace VGAudio.Cli
 
             if (options.Job == JobType.Metadata)
             {
-                Print.PrintMetadata(options);
+                Console.Write(Print.PrintMetadata(options));
             }
 
             return true;

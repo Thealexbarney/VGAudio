@@ -55,6 +55,7 @@
     <Compile Include="Metadata\Containers\Bxstm.cs" />
     <Compile Include="Metadata\Containers\Dsp.cs" />
     <Compile Include="AudioFormat.cs" />
+    <Compile Include="Metadata\Containers\GcAdpcm.cs" />
     <Compile Include="Metadata\Containers\Genh.cs" />
     <Compile Include="Metadata\Containers\Idsp.cs" />
     <Compile Include="Metadata\Containers\Wave.cs" />
