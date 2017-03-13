@@ -1,6 +1,13 @@
 ﻿using System.IO;
 using System.Text;
 using VGAudio.Containers.Bxstm;
+using VGAudio.Formats.GcAdpcm;
+
+#if NET20
+using VGAudio.Compatibility.LinqBridge;
+#else
+using System.Linq;
+#endif
 
 namespace VGAudio.Cli.Metadata.Containers
 {
@@ -28,10 +35,7 @@ namespace VGAudio.Cli.Metadata.Containers
             var bxstm = structure as BxstmStructure;
             if (bxstm == null) throw new InvalidDataException("Could not parse file metadata.");
 
-            foreach (BxstmChannelInfo channel in bxstm.Channels)
-            {
-                GcAdpcm.PrintAdpcmMetadata(channel, builder);
-            }
+            GcAdpcm.PrintAdpcmMetadata(bxstm.Channels.Cast<GcAdpcmChannelInfo>().ToList(), builder);
         }
     }
 }

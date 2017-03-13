@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using VGAudio.Containers;
 using VGAudio.Containers.Genh;
 
@@ -24,5 +25,13 @@ namespace VGAudio.Cli.Metadata.Containers
         }
 
         public override object ReadMetadata(Stream stream) => new GenhReader().ReadMetadata(stream);
+
+        public override void PrintSpecificMetadata(object structure, StringBuilder builder)
+        {
+            var genhStructure = structure as GenhStructure;
+            if (genhStructure == null) throw new InvalidDataException("Could not parse file metadata.");
+
+            GcAdpcm.PrintAdpcmMetadata(genhStructure.Channels, builder);
+        }
     }
 }
