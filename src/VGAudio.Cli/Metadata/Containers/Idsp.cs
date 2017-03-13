@@ -38,6 +38,11 @@ namespace VGAudio.Cli.Metadata.Containers
             var idsp = structure as IdspStructure;
             if (idsp == null) throw new InvalidDataException("Could not parse file metadata.");
 
+            builder.AppendLine();
+
+            builder.AppendLine($"Interleave size: 0x{idsp.InterleaveSize:X}");
+            builder.AppendLine($"Audio data size: 0x{idsp.AudioDataLength:X}");
+
             GcAdpcm.PrintAdpcmMetadata(idsp.Channels.Cast<GcAdpcmChannelInfo>().ToList(), builder);
         }
     }

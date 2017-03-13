@@ -31,6 +31,13 @@ namespace VGAudio.Cli.Metadata.Containers
             var dsp = structure as DspStructure;
             if (dsp == null) throw new InvalidDataException("Could not parse file metadata.");
 
+            builder.AppendLine();
+
+            builder.AppendLine($"Nibble Count: {dsp.NibbleCount}");
+            builder.AppendLine($"Start Address: 0x{dsp.StartAddress:X8}");
+            builder.AppendLine($"End Address: 0x{dsp.EndAddress:X8}");
+            builder.AppendLine($"Current Address: 0x{dsp.CurrentAddress:X8}");
+
             GcAdpcm.PrintAdpcmMetadata(dsp.Channels, builder);
         }
     }
