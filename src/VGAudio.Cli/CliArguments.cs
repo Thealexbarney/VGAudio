@@ -19,6 +19,9 @@ namespace VGAudio.Cli
                 {
                     switch (args[i].Split(':')[0].Substring(1).ToUpper())
                     {
+                        case "M":
+                            options.Job = JobType.Metadata;
+                            continue;
                         case "I":
                             List<int> range = null;
                             if (i + 1 >= args.Length)
