@@ -1,10 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp1.0;net45;net40</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+
+    <AssemblyName>VGAudioCli</AssemblyName>
+    <AssemblyTitle>VGAudio.Cli</AssemblyTitle>
+    <VersionPrefix>2.0.0-beta1</VersionPrefix>
+    <Copyright>Copyright © 2016 Alex Barney</Copyright>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\VGAudio\VGAudio.csproj" />
   </ItemGroup>
