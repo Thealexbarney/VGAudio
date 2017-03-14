@@ -1,5 +1,5 @@
 version: 1.1.1.{build}
-image: Visual Studio 2017 RC
+image: Visual Studio 2017
 build_script:
 - ps: .\build\runbuild.ps1 Appveyor
 artifacts:
