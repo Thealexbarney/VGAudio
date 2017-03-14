@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using VGAudio.Benchmark.AdpcmBenchmarks;
@@ -23,7 +24,7 @@ namespace VGAudio.Benchmark
             .Create(DefaultConfig.Instance)
             .With(Job.RyuJitX64
                 .WithLaunchCount(1)
-                .WithIterationTime(100)
+                .WithIterationTime(TimeInterval.Millisecond * 100)
                 .WithWarmupCount(3)
                 .WithTargetCount(3)
             );
