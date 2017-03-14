@@ -148,15 +148,14 @@ function PublishLib() {
 }
 
 function PublishCli() {
-    SignLib
-    SignCli
-
     foreach ($build in $libraryBuilds | Where { $_.CliSuccess -ne $false -and $_.LibSuccess -ne $false -and $_.CliFramework })
     {
         $framework = $build.CliFramework
         Write-Host -ForegroundColor Green "Publishing CLI project $framework"
         NetCliPublish $cliDir "$publishDir\cli\$framework" $framework
     }
+	
+	SignCli
 }
 
 function PublishUwp() {
@@ -228,16 +227,16 @@ function SignCli()
 {
      if (($signReleaseBuild -eq $true) -and (CertificateExists -Thumbprint $releaseCertThumbprint))
     {
-        $rid = "win7-x64"
         $projectName = [System.IO.Path]::GetFileName($cliDir)
+		$libraryName = [System.IO.Path]::GetFileName($libraryDir)
 
         foreach ($build in $libraryBuilds | Where { $_.CliSuccess -ne $false -and $_.CliFramework })
         {
             $framework = $build.CliFramework
             $paths =
-            (Join-Path $cliDir "bin\Release\$framework\$projectName.dll"),
-            (Join-Path $cliDir "bin\Release\$framework\$rid\$projectName.dll"),
-            (Join-Path $cliDir "bin\Release\$framework\$rid\$projectName.exe")
+            (Join-Path $cliPublishDir "$framework\$projectName.dll"),
+            (Join-Path $cliPublishDir "$framework\$projectName.exe"),
+			(Join-Path $cliPublishDir "$framework\$libraryName.dll")
 
             foreach ($path in $paths | Where { Test-Path $_ })
             {
@@ -466,7 +465,7 @@ function SignExecutablePS([string]$Path, [string]$Thumbprint)
         for($i = 1; $i -le 4; $i++)
         {
             Write-Host "Signing $Path"
-
+			
             $result = Set-AuthenticodeSignature -Certificate $cert -TimestampServer $server -HashAlgorithm SHA256 -FilePath $Path
             if ($result.Status -eq "Valid")
             {
