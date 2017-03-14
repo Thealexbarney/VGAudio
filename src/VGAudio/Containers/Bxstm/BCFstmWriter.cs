@@ -1,14 +1,9 @@
 ﻿using System.IO;
+using System.Linq;
 using VGAudio.Formats;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
-
-#if NET20
-using VGAudio.Compatibility.LinqBridge;
-#else
-using System.Linq;
-#endif
 
 namespace VGAudio.Containers.Bxstm
 {

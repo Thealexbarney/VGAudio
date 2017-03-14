@@ -1,13 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using VGAudio.Compatibility;
 
 namespace VGAudio.Utilities
 {
     public static class Helpers
     {
-#if !(NET20 || NET35 || NET40)
+#if !NET40
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
         public static short Clamp16(int value)
