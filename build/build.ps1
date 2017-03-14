@@ -19,15 +19,13 @@
 
     $dotnetToolsDir = Join-Path $toolsDir dotnet
     $dotnetSdkDir = Join-Path $dotnetToolsDir sdk
-    $dotnetCliVersion = "1.0.0-rc4-004913"
+    $dotnetCliVersion = "1.0.0"
 
     $libraryBuilds = @(
         @{ Name = "netstandard1.1"; LibSuccess = $null; CliFramework = "netcoreapp1.0"; CliSuccess = $null; TestFramework = "netcoreapp1.0"; TestSuccess = $null },
         @{ Name = "netstandard1.0"; LibSuccess = $null },
         @{ Name = "net45"; LibSuccess = $null; CliFramework = "net45"; CliSuccess = $null; TestFramework = "net46"; TestSuccess = $null },
-        @{ Name = "net40"; LibSuccess = $null; CliFramework = "net40"; CliSuccess = $null },
-        @{ Name = "net35"; LibSuccess = $null; CliFramework = "net35"; CliSuccess = $null },
-        @{ Name = "net20"; LibSuccess = $null; CliFramework = "net20"; CliSuccess = $null }
+        @{ Name = "net40"; LibSuccess = $null; CliFramework = "net40"; CliSuccess = $null }
     )
 
     $otherBuilds = @{

@@ -12,5 +12,7 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.0' Or '$(TargetFramework)' == 'net35' Or '$(TargetFramework)' == 'net20' ">
     <DefineConstants>$(DefineConstants);NOPARALLEL</DefineConstants>
   </PropertyGroup>
+  
+  <Target Name="GetPackagingOutputs" />
 
 </Project>
