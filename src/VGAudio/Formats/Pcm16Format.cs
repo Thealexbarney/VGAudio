@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using VGAudio.Utilities;
-#if NET20
-using VGAudio.Compatibility.LinqBridge;
-#else
 using System.Linq;
-#endif
+using VGAudio.Utilities;
 
 namespace VGAudio.Formats
 {

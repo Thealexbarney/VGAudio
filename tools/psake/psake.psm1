@@ -618,15 +618,16 @@ function ConfigureBuildEnvironment {
             }
         }
     }
-    $frameworkDirs = @()
-    if ($buildToolsVersions -ne $null) {
-        foreach($ver in $buildToolsVersions) {
-            if (Test-Path "HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\$ver") {
-                $frameworkDirs += (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\$ver" -Name $buildToolsKey).$buildToolsKey
-            }
+
+    $editions = "Enterprise", "Professional", "Community"
+    $path2017 = Join-Path "${env:ProgramFiles(x86)}" "Microsoft Visual Studio/2017/"
+
+    foreach($edition in $editions) {
+        $editionPath = Join-Path (Join-Path $path2017 $edition) "MSBuild/15.0/Bin"
+        if (Test-Path $editionPath) {
+            $frameworkDirs += $editionPath
         }
     }
-    $frameworkDirs = $frameworkDirs + @($versions | foreach { "$env:windir\Microsoft.NET\$bitness\$_\" })
 
     for ($i = 0; $i -lt $frameworkDirs.Count; $i++) {
         $dir = $frameworkDirs[$i]

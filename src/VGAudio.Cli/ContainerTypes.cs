@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using VGAudio.Containers;
-
-#if NET20
-using VGAudio.Compatibility.LinqBridge;
-using VGAudio.Compatibility.Serialization;
-#else
 using System.Linq;
-#endif
+using VGAudio.Containers;
 
 namespace VGAudio.Cli
 {

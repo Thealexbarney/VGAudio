@@ -1,17 +1,16 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio", "VGAudio\VGAudio.csproj", "{2414DAA9-779C-4E7E-A97F-4DE09B22B88F}"
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.4
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VGAudio", "VGAudio\VGAudio.csproj", "{2414DAA9-779C-4E7E-A97F-4DE09B22B88F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.Cli", "VGAudio.Cli\VGAudio.Cli.csproj", "{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VGAudio.Cli", "VGAudio.Cli\VGAudio.Cli.csproj", "{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.Uwp", "VGAudio.Uwp\VGAudio.Uwp.csproj", "{3A48060B-0339-434E-A35D-D6680E23C3AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.Tests", "VGAudio.Tests\VGAudio.Tests.csproj", "{FE3C83A1-1BEA-4CB3-BD50-D6EE9BCFA27C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VGAudio.Tests", "VGAudio.Tests\VGAudio.Tests.csproj", "{FE3C83A1-1BEA-4CB3-BD50-D6EE9BCFA27C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.Benchmark", "VGAudio.Benchmark\VGAudio.Benchmark.csproj", "{DFCAF2E7-1B33-4164-A4E1-3C095AB44E69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VGAudio.Benchmark", "VGAudio.Benchmark\VGAudio.Benchmark.csproj", "{DFCAF2E7-1B33-4164-A4E1-3C095AB44E69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,9 +56,7 @@ Global
 		{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}.Release|x64.Build.0 = Release|Any CPU
 		{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}.Release|x86.ActiveCfg = Release|Any CPU
 		{7D5ED2F2-2521-431C-B7DA-AF47265E3F06}.Release|x86.Build.0 = Release|Any CPU
-		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|Any CPU.Build.0 = Debug|x64
-		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|Any CPU.Deploy.0 = Debug|x64
+		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|ARM.ActiveCfg = Debug|ARM
 		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|ARM.Build.0 = Debug|ARM
 		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|ARM.Deploy.0 = Debug|ARM
@@ -69,9 +66,7 @@ Global
 		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|x86.ActiveCfg = Debug|x86
 		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|x86.Build.0 = Debug|x86
 		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Debug|x86.Deploy.0 = Debug|x86
-		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Release|Any CPU.ActiveCfg = Release|x64
-		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Release|Any CPU.Build.0 = Release|x64
-		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Release|Any CPU.Deploy.0 = Release|x64
+		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Release|Any CPU.ActiveCfg = Release|x86
 		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Release|ARM.ActiveCfg = Release|ARM
 		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Release|ARM.Build.0 = Release|ARM
 		{3A48060B-0339-434E-A35D-D6680E23C3AF}.Release|ARM.Deploy.0 = Release|ARM

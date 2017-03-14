@@ -19,15 +19,13 @@
 
     $dotnetToolsDir = Join-Path $toolsDir dotnet
     $dotnetSdkDir = Join-Path $dotnetToolsDir sdk
-    $dotnetCliVersion = "1.0.0-preview2-003156"
+    $dotnetCliVersion = "1.0.0"
 
     $libraryBuilds = @(
         @{ Name = "netstandard1.1"; LibSuccess = $null; CliFramework = "netcoreapp1.0"; CliSuccess = $null; TestFramework = "netcoreapp1.0"; TestSuccess = $null },
         @{ Name = "netstandard1.0"; LibSuccess = $null },
         @{ Name = "net45"; LibSuccess = $null; CliFramework = "net45"; CliSuccess = $null; TestFramework = "net46"; TestSuccess = $null },
-        @{ Name = "net40"; LibSuccess = $null; CliFramework = "net40"; CliSuccess = $null },
-        @{ Name = "net35"; LibSuccess = $null; CliFramework = "net35"; CliSuccess = $null },
-        @{ Name = "net20"; LibSuccess = $null; CliFramework = "net20"; CliSuccess = $null }
+        @{ Name = "net40"; LibSuccess = $null; CliFramework = "net40"; CliSuccess = $null }
     )
 
     $otherBuilds = @{
@@ -129,7 +127,8 @@ function BuildUwp() {
             $thumbprint = "/p:PackageCertificateThumbprint=" + $thumbprint
         }
 
-        NetCliRestore -Path $libraryDir,$uwpDir
+        NetCliRestore -Path $libraryDir
+        MsbuildRestore -Path $uwpDir
 
         $csproj = "$uwpDir\VGAudio.Uwp.csproj"
         exec { msbuild $csproj /p:AppxBundle=Always`;AppxBundlePlatforms=x86`|x64`|ARM`;UapAppxPackageBuildMode=StoreUpload`;Configuration=Release /v:m $thumbprint }
@@ -144,19 +143,19 @@ function BuildUwp() {
 
 function PublishLib() {
     SignLib
-    dotnet pack --no-build $libraryDir -c release -o "$publishDir\NuGet"
+    $frameworks = ($libraryBuilds | Where { $_.LibSuccess -ne $false } | ForEach-Object { $_.Name }) -join ';'
+    dotnet pack --no-build $libraryDir -c release -o "$publishDir\NuGet" /p:TargetFrameworks=`\`"$frameworks`\`"
 }
 
 function PublishCli() {
-    SignLib
-    SignCli
-
     foreach ($build in $libraryBuilds | Where { $_.CliSuccess -ne $false -and $_.LibSuccess -ne $false -and $_.CliFramework })
     {
         $framework = $build.CliFramework
         Write-Host -ForegroundColor Green "Publishing CLI project $framework"
         NetCliPublish $cliDir "$publishDir\cli\$framework" $framework
     }
+	
+	SignCli
 }
 
 function PublishUwp() {
@@ -198,8 +197,8 @@ function TestLib() {
     foreach ($build in $libraryBuilds | Where { $_.LibSuccess -ne $false -and $_.TestFramework })
     {
         try {
-            $path = "$sourceDir\" + $build.TestDir
-            exec { dotnet test $testsDir -c release -f $build.TestFramework }
+            $csproj = Join-Path $testsDir "VGAudio.Tests.csproj"
+            exec { dotnet test $csproj -c release -f $build.TestFramework }
         }
         catch [Exception] {
             PrintException -Ex $_.Exception
@@ -228,16 +227,16 @@ function SignCli()
 {
      if (($signReleaseBuild -eq $true) -and (CertificateExists -Thumbprint $releaseCertThumbprint))
     {
-        $rid = "win7-x64"
         $projectName = [System.IO.Path]::GetFileName($cliDir)
+		$libraryName = [System.IO.Path]::GetFileName($libraryDir)
 
         foreach ($build in $libraryBuilds | Where { $_.CliSuccess -ne $false -and $_.CliFramework })
         {
             $framework = $build.CliFramework
             $paths =
-            (Join-Path $cliDir "bin\Release\$framework\$projectName.dll"),
-            (Join-Path $cliDir "bin\Release\$framework\$rid\$projectName.dll"),
-            (Join-Path $cliDir "bin\Release\$framework\$rid\$projectName.exe")
+            (Join-Path $cliPublishDir "$framework\$projectName.dll"),
+            (Join-Path $cliPublishDir "$framework\$projectName.exe"),
+			(Join-Path $cliPublishDir "$framework\$libraryName.dll")
 
             foreach ($path in $paths | Where { Test-Path $_ })
             {
@@ -287,7 +286,7 @@ function SetupDotnetCli()
     }
 
     Write-Host -ForegroundColor Red "Unable to find Dotnet CLI version $dotnetCliVersion"
-    exit
+    exit 1
 }
 
 function CreateBuildGlobalJson([string] $Path, [string]$Version)
@@ -303,7 +302,7 @@ function NetCliBuild([string]$path, [string]$framework)
 
 function NetCliPublish([string]$srcPath, [string]$outPath, [string]$framework)
 {
-    exec { dotnet publish --no-build $srcPath -f $framework -c Release -o $outPath }
+    exec { dotnet publish $srcPath -f $framework -c Release -o $outPath }
 }
 
 function NetCliRestore([string[]]$Path)
@@ -312,6 +311,15 @@ function NetCliRestore([string[]]$Path)
     {
         Write-Host -ForegroundColor Green "Restoring $singlePath"
         exec { dotnet restore $singlePath | Out-Default }
+    }
+}
+
+function MsbuildRestore([string[]]$Path)
+{
+    foreach ($singlePath in $Path)
+    {
+        Write-Host -ForegroundColor Green "Restoring $singlePath"
+        exec { msbuild /t:restore $singlePath | Out-Default }
     }
 }
 
@@ -457,7 +465,7 @@ function SignExecutablePS([string]$Path, [string]$Thumbprint)
         for($i = 1; $i -le 4; $i++)
         {
             Write-Host "Signing $Path"
-
+			
             $result = Set-AuthenticodeSignature -Certificate $cert -TimestampServer $server -HashAlgorithm SHA256 -FilePath $Path
             if ($result.Status -eq "Valid")
             {
