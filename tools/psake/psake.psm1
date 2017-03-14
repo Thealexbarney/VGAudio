@@ -623,7 +623,7 @@ function ConfigureBuildEnvironment {
     $path2017 = Join-Path "${env:ProgramFiles(x86)}" "Microsoft Visual Studio/2017/"
 
     foreach($edition in $editions) {
-        $editionPath = Join-Path (Join-Path $path2017 $edition) "MSBuild/15.0/Bin/amd64"
+        $editionPath = Join-Path (Join-Path $path2017 $edition) "MSBuild/15.0/Bin"
         if (Test-Path $editionPath) {
             $frameworkDirs += $editionPath
         }
