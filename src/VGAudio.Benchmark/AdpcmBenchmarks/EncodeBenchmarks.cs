@@ -6,20 +6,20 @@ namespace VGAudio.Benchmark.AdpcmBenchmarks
     public class EncodeBenchmarks
     {
         [Params(1)]
-        public double lengthSeconds;
-        private int sampleRate = 48000;
-        private short[] pcm;
-        private short[] coefs;
+        public double LengthSeconds;
+        private int _sampleRate = 48000;
+        private short[] _pcm;
+        private short[] _coefs;
 
         [Setup]
         public void Setup()
         {
-            pcm = GenerateAudio.GenerateSineWave((int)(sampleRate * lengthSeconds), 440, sampleRate);
-            coefs = GcAdpcmEncoder.DspCorrelateCoefs(pcm);
+            _pcm = GenerateAudio.GenerateSineWave((int)(_sampleRate * LengthSeconds), 440, _sampleRate);
+            _coefs = GcAdpcmEncoder.DspCorrelateCoefs(_pcm);
         }
 
-        [Benchmark] public short[] GenerateCoefs() => GcAdpcmEncoder.DspCorrelateCoefs(pcm);
-        [Benchmark] public byte[] EncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
-        [Benchmark] public byte[] GenerateCoefsAndEncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(pcm, GcAdpcmEncoder.DspCorrelateCoefs(pcm));
+        [Benchmark] public short[] GenerateCoefs() => GcAdpcmEncoder.DspCorrelateCoefs(_pcm);
+        [Benchmark] public byte[] EncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(_pcm, _coefs);
+        [Benchmark] public byte[] GenerateCoefsAndEncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(_pcm, GcAdpcmEncoder.DspCorrelateCoefs(_pcm));
     }
 }

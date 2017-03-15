@@ -7,49 +7,49 @@ namespace VGAudio.Benchmark.HelperBenchmarks
     public class InterleaveBenchmarks
     {
         [Params(4)]
-        public int NumStreams;
+        public int StreamCount;
         [Params(0x10000)]
         public int TotalStreamLength;
-        private int SingleStreamLength;
+        private int _singleStreamLength;
         [Params(4, 0x2000)]
         public int InterleaveSize;
 
-        private byte[][] deinterleaved;
-        private short[][] deinterleavedShort;
+        private byte[][] _deinterleaved;
+        private short[][] _deinterleavedShort;
 
         [Setup]
         public void Setup()
         {
-            SingleStreamLength = TotalStreamLength / NumStreams;
-            TotalStreamLength = SingleStreamLength * NumStreams;
+            _singleStreamLength = TotalStreamLength / StreamCount;
+            TotalStreamLength = _singleStreamLength * StreamCount;
 
-            deinterleaved = new byte[NumStreams][];
-            for (int i = 0; i < NumStreams; i++)
+            _deinterleaved = new byte[StreamCount][];
+            for (int i = 0; i < StreamCount; i++)
             {
-                deinterleaved[i] = new byte[SingleStreamLength];
+                _deinterleaved[i] = new byte[_singleStreamLength];
             }
 
-            deinterleavedShort = new short[NumStreams][];
-            for (int i = 0; i < NumStreams; i++)
+            _deinterleavedShort = new short[StreamCount][];
+            for (int i = 0; i < StreamCount; i++)
             {
-                deinterleavedShort[i] = new short[SingleStreamLength / 2];
+                _deinterleavedShort[i] = new short[_singleStreamLength / 2];
             }
         }
 
         [Benchmark]
         public byte[] InterleaveArray()
         {
-            return deinterleaved.Interleave(InterleaveSize);
+            return _deinterleaved.Interleave(InterleaveSize);
         }
 
        [Benchmark]
         public byte[] InterleaveStream()
         {
-            var output = new byte[NumStreams * SingleStreamLength];
+            var output = new byte[StreamCount * _singleStreamLength];
 
             using (var stream = new MemoryStream(output))
             {
-                deinterleaved.Interleave(stream, InterleaveSize);
+                _deinterleaved.Interleave(stream, InterleaveSize);
             }
 
             return output;

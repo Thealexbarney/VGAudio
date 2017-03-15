@@ -3,7 +3,6 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
 using VGAudio.Containers.Bxstm;
 using VGAudio.Uwp.Audio;
-using VGAudio.Uwp.ViewModels;
 
 namespace VGAudio.Uwp.Views
 {
