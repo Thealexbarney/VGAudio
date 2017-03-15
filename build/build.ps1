@@ -23,9 +23,7 @@
 
     $libraryBuilds = @(
         @{ Name = "netstandard1.1"; LibSuccess = $null; CliFramework = "netcoreapp1.0"; CliSuccess = $null; TestFramework = "netcoreapp1.0"; TestSuccess = $null },
-        @{ Name = "netstandard1.0"; LibSuccess = $null },
-        @{ Name = "net45"; LibSuccess = $null; CliFramework = "net45"; CliSuccess = $null; TestFramework = "net46"; TestSuccess = $null },
-        @{ Name = "net40"; LibSuccess = $null; CliFramework = "net40"; CliSuccess = $null }
+        @{ Name = "net45"; LibSuccess = $null; CliFramework = "net45"; CliSuccess = $null; TestFramework = "net46"; TestSuccess = $null }
     )
 
     $otherBuilds = @{

@@ -6,9 +6,7 @@ namespace VGAudio.Utilities
 {
     public static class Helpers
     {
-#if !NET40
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         public static short Clamp16(int value)
         {
             if (value > short.MaxValue)

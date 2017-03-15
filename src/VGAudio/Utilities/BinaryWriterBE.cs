@@ -7,9 +7,7 @@ namespace VGAudio.Utilities
     {
         public BinaryWriterBE(Stream input) : base(input) { }
 
-#if !NET40
         public BinaryWriterBE(Stream output, Encoding encoding, bool leaveOpen) : base(output, encoding, leaveOpen) { }
-#endif
 
         private readonly byte[] _buffer = new byte[16];
 

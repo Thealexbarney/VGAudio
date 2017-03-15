@@ -8,9 +8,7 @@ namespace VGAudio.Utilities
     {
         public BinaryReaderBE(Stream input) : base(input) { }
 
-#if !NET40
         public BinaryReaderBE(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen) { }
-#endif
 
         public override short ReadInt16()
         {
