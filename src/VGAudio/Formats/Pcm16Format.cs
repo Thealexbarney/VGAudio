@@ -26,12 +26,14 @@ namespace VGAudio.Formats
 
         public override Pcm16Format ToPcm16()
         {
-            return new Pcm16Format(SampleCount, SampleRate, Channels);
+            return new Pcm16Format(SampleCount, SampleRate, Channels)
+                .SetLoop(Looping, LoopStart, LoopEnd);
         }
 
         public override Pcm16Format EncodeFromPcm16(Pcm16Format pcm16)
         {
-            return new Pcm16Format(pcm16.SampleCount, pcm16.SampleRate, pcm16.Channels);
+            return new Pcm16Format(pcm16.SampleCount, pcm16.SampleRate, pcm16.Channels)
+                .SetLoop(Looping, LoopStart, LoopEnd);
         }
 
         protected override void AddInternal(Pcm16Format pcm16)

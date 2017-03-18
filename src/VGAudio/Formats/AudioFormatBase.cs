@@ -15,6 +15,8 @@ namespace VGAudio.Formats
 
         IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16);
         IAudioFormat IAudioFormat.GetChannels(IEnumerable<int> channelRange) => GetChannels(channelRange);
+        IAudioFormat IAudioFormat.SetLoop(bool loop, int loopStart, int loopEnd) => SetLoop(loop, loopStart, loopEnd);
+        IAudioFormat IAudioFormat.SetLoop(bool loop) => SetLoop(loop);
 
         public abstract Pcm16Format ToPcm16();
         public abstract T EncodeFromPcm16(Pcm16Format pcm16);
@@ -36,12 +38,11 @@ namespace VGAudio.Formats
             ChannelCount = channelCount;
         }
 
-        public virtual void SetLoop(bool loop, int loopStart, int loopEnd)
+        public virtual T SetLoop(bool loop, int loopStart, int loopEnd)
         {
             if (!loop)
             {
-                SetLoop(false);
-                return;
+                return SetLoop(false);
             }
 
             if (loopStart < 0 || loopStart > SampleCount)
@@ -62,13 +63,16 @@ namespace VGAudio.Formats
             Looping = true;
             LoopStart = loopStart;
             LoopEnd = loopEnd;
+
+            return this as T;
         }
 
-        public virtual void SetLoop(bool loop)
+        public virtual T SetLoop(bool loop)
         {
             Looping = loop;
             LoopStart = 0;
             LoopEnd = loop ? SampleCount : 0;
+            return this as T;
         }
 
         public bool TryAdd(IAudioFormat format)

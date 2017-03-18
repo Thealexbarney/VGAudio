@@ -39,20 +39,21 @@ namespace VGAudio.Formats
             Channels = new GcAdpcmChannel[0];
         }
 
-        public void SetAlignment(int multiple)
+        public GcAdpcmFormat SetAlignment(int multiple)
         {
             AlignmentMultiple = multiple;
             Parallel.For(0, Channels.Length, i =>
             {
                 Channels[i].SetAlignment(multiple, base.LoopStart, base.LoopEnd);
             });
+
+            return this;
         }
 
-        public override void SetLoop(bool loop, int loopStart, int loopEnd)
-        {
-            base.SetLoop(loop, loopStart, loopEnd);
-            SetAlignment(AlignmentMultiple);
-        }
+        public override GcAdpcmFormat SetLoop(bool loop, int loopStart, int loopEnd)
+            => base.SetLoop(loop, loopStart, loopEnd).SetAlignment(AlignmentMultiple);
+
+        public override GcAdpcmFormat SetLoop(bool loop) => base.SetLoop(loop).SetAlignment(AlignmentMultiple);
 
         public override Pcm16Format ToPcm16()
         {
@@ -63,7 +64,8 @@ namespace VGAudio.Formats
                 pcmChannels[i] = GcAdpcmDecoder.Decode(channel, SampleCount);
             });
 
-            return new Pcm16Format(SampleCount, SampleRate, pcmChannels);
+            return new Pcm16Format(SampleCount, SampleRate, pcmChannels)
+                .SetLoop(Looping, LoopStart, LoopEnd);
         }
 
         public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16)
@@ -75,7 +77,8 @@ namespace VGAudio.Formats
                 channels[i] = EncodeChannel(pcm16.SampleCount, pcm16.Channels[i]);
             });
 
-            return new GcAdpcmFormat(pcm16.SampleCount, pcm16.SampleRate, channels);
+            return new GcAdpcmFormat(pcm16.SampleCount, pcm16.SampleRate, channels)
+                .SetLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd);
         }
 
         protected override void AddInternal(GcAdpcmFormat adpcm)
