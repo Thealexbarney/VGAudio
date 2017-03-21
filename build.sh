@@ -26,22 +26,16 @@ while (($#)); do
     shift
 done
 
-cakeVersion="0.18.0"
 dotnetCliVersion="1.0.1"
-nugetUrl="https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 
 # Define directories.
-basePath=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+basePath=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 buildPath=$basePath/build
-cakePath=$basePath/tools/cake
 dotnetPath=$basePath/tools/dotnet
 dotnetCliPath=$dotnetPath/cli
-script=$buildPath/build.cake
+globalJsonFile=$buildPath/global.json
 
-# Make sure cake folder exists
-if [ ! -d "$cakePath" ]; then
-    mkdir "$cakePath"
-fi
+trap "rm -f $globalJsonFile" INT TERM EXIT
 
 ###########################################################################
 # INSTALL .NET CORE CLI
@@ -49,7 +43,7 @@ fi
 
 function SetupDotnetCli {
     json="{\"projects\":[],\"sdk\":{\"version\":\"$dotnetCliVersion\"}}"
-    echo "$json" > "$buildPath/global.json"
+    echo "$json" > $globalJsonFile
 
     if command -v dotnet >/dev/null && [ "$(dotnet --version)" = $dotnetCliVersion ]; then
         return
@@ -76,54 +70,23 @@ function SetupDotnetCli {
     fi
 
     echo "Unable to locate or download .NET Core CLI version $dotnetCliVersion"
-    popd > /dev/null
     exit 1
 }
 
 # Make sure .NET Core CLI exists.
-pushd "$buildPath" > /dev/null
+cd "$buildPath"
 SetupDotnetCli
-popd > /dev/null
-
-###########################################################################
-# INSTALL NUGET
-###########################################################################
-
-# Download NuGet if it does not exist.
-nugetPath=$cakePath/nuget.exe
-if [ ! -f "$nugetPath" ]; then
-    echo "Downloading nuget.exe..."
-    if ! curl -Lsfo "$nugetPath" $nugetUrl
-    then
-        echo "An error occured while downloading nuget.exe."
-        exit 1
-    fi
-fi
-
-###########################################################################
-# INSTALL CAKE
-###########################################################################
-
-cakeExePath=$cakePath/Cake.$cakeVersion/Cake.exe
-if [ ! -f "$cakeExePath" ]; then
-    echo "Installing Cake..."
-    if ! mono "$nugetPath" install Cake -Version $cakeVersion -OutputDirectory "$cakePath"
-    then
-        echo "An error occured while restoring Cake from NuGet."
-        exit 1
-    fi
-fi
-
-# Make sure Cake has been installed.
-if [ ! -f "$cakeExePath" ]; then
-    echo "Could not find Cake.exe at '$cakeExePath'."
-    exit 1
-fi
 
 ###########################################################################
 # RUN BUILD SCRIPT
 ###########################################################################
 
 # Start Cake
-echo "Running build script..."
-exec mono "$cakeExePath" "$script" --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
+echo "Restoring build packages..."
+if ! dotnet msbuild /t:restore /v:q /nologo; then
+    echo "Restore for build project failed"
+    exit 1
+fi
+
+echo "Running build..."
+dotnet run -- --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
