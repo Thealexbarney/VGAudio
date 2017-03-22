@@ -10,6 +10,7 @@ namespace Build
         public override void Setup(Context context)
         {
             context.Configuration = context.Argument("configuration", "Release");
+
             context.BaseDir = context.Environment.WorkingDirectory;
             context.SourceDir = context.BaseDir.Combine("src");
             context.LibraryDir = context.SourceDir.Combine("VGAudio");

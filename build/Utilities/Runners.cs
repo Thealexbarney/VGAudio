@@ -1,5 +1,4 @@
-﻿using Cake.Common.Diagnostics;
-using Cake.Common.Tools.DotNetCore;
+﻿using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Build;
 using Cake.Common.Tools.DotNetCore.Test;
 
