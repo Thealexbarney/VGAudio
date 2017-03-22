@@ -9,7 +9,7 @@
 # Define default arguments.
 TARGET="Default"
 CONFIGURATION="Release"
-VERBOSITY="verbose"
+VERBOSITY="normal"
 DRYRUN=
 SCRIPT_ARGUMENTS=()
 

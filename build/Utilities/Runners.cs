@@ -1,6 +1,8 @@
-﻿using Cake.Common.Tools.DotNetCore;
+﻿using Cake.Common.IO;
+using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Build;
 using Cake.Common.Tools.DotNetCore.Test;
+using Cake.Core.IO;
 
 namespace Build.Utilities
 {
@@ -22,6 +24,14 @@ namespace Build.Utilities
                 Framework = framework,
                 Configuration = context.Configuration
             });
+        }
+
+        public static void DeleteDirectory(Context context, DirectoryPath path)
+        {
+            if (context.DirectoryExists(path))
+            {
+                context.DeleteDirectory(path, true);
+            }
         }
     }
 }

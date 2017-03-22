@@ -2,6 +2,10 @@
 
 namespace Build.Tasks
 {
+    [Dependency(typeof(CleanBuild))]
+    [Dependency(typeof(CleanPublish))]
+    public sealed class Clean : FrostingTask<Context> { }
+
     [Dependency(typeof(BuildLibrary))]
     [Dependency(typeof(BuildCli))]
     public sealed class Build : FrostingTask<Context> { }
