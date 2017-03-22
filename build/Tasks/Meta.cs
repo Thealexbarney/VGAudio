@@ -7,8 +7,11 @@ namespace Build.Tasks
     [Dependency(typeof(Publish))]
     [Dependency(typeof(TestLibrary))]
     [Dependency(typeof(BuildReport))]
-    [Dependency(typeof(VerifyBuildSuccess))]
     public sealed class Default : FrostingTask<Context> { }
+
+    [Dependency(typeof(Default))]
+    [Dependency(typeof(VerifyBuildSuccess))]
+    public sealed class AppVeyor : FrostingTask<Context> { }
 
     [Dependency(typeof(CleanBuild))]
     [Dependency(typeof(CleanPublish))]
