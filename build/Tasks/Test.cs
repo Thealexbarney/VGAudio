@@ -5,6 +5,7 @@ using static Build.Utilities.Runners;
 namespace Build.Tasks
 {
     [Dependency(typeof(Restore))]
+    [Dependency(typeof(BuildLibraryNetStandard))]
     public sealed class TestLibraryNetStandard : FrostingTask<Context>
     {
         public override void Run(Context context)
@@ -22,6 +23,7 @@ namespace Build.Tasks
     }
 
     [Dependency(typeof(Restore))]
+    [Dependency(typeof(BuildLibraryNet45))]
     public sealed class TestLibraryNet45 : FrostingTask<Context>
     {
         public override void Run(Context context)

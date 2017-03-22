@@ -2,16 +2,18 @@
 {
     public class LibraryBuildStatus
     {
-        public LibraryBuildStatus(string libFramework, string cliFramework)
+        public LibraryBuildStatus(string libFramework, string cliFramework, string testFramework)
         {
             LibFramework = libFramework;
             CliFramework = cliFramework;
+            TestFramework = testFramework;
         }
 
         public string LibFramework { get; }
         public string CliFramework { get; }
-        public bool? LibSuccess { get; set; } = null;
-        public bool? CliSuccess { get; set; } = null;
-        public bool? TestSuccess { get; set; } = null;
+        public string TestFramework { get; }
+        public bool? LibSuccess { get; set; }
+        public bool? CliSuccess { get; set; }
+        public bool? TestSuccess { get; set; }
     }
 }

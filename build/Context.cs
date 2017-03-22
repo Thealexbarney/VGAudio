@@ -28,10 +28,8 @@ namespace Build
 
         public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>()
         {
-            ["netstandard"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.0"),
-            ["net45"] = new LibraryBuildStatus("net45", "net45")
+            ["netstandard"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.0", "netcoreapp1.0"),
+            ["net45"] = new LibraryBuildStatus("net45", "net45", "net46")
         };
-        
-        public bool RestoredCore { get; set; }
     }
 }
