@@ -11,6 +11,8 @@ namespace Build
 
             context.BaseDir = context.Environment.WorkingDirectory;
             context.SourceDir = context.BaseDir.Combine("src");
+            context.BuildDir = context.BaseDir.Combine("build");
+            context.CakeToolsDir = context.BaseDir.Combine("tools/cake");
 
             context.LibraryDir = context.SourceDir.Combine("VGAudio");
             context.CliDir = context.SourceDir.Combine("VGAudio.Cli");

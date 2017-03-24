@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Cake.Common.Diagnostics;
 using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Pack;
 using Cake.Common.Tools.DotNetCore.Publish;
+using Cake.Common.Tools.ILRepack;
 using Cake.Core;
 using Cake.Frosting;
 
@@ -57,5 +60,21 @@ namespace Build.Tasks
 
         public override bool ShouldRun(Context context) =>
             context.LibBuilds.Values.Any(x => x.CliSuccess == true);
+    }
+
+    [Dependency(typeof(PublishCli))]
+    [Dependency(typeof(RestoreTools))]
+    public sealed class IlRepackCli : FrostingTask<Context>
+    {
+        public override void Run(Context context) => context.ILRepack(
+            context.CliPublishDir.CombineWithFilePath("VGAudioCli.exe"),
+            context.CliPublishDir.CombineWithFilePath("net45/VGAudioCli.exe"),
+            new[] { context.CliPublishDir.CombineWithFilePath("net45/VGAudio.dll") });
+
+        public override bool ShouldRun(Context context) =>
+            context.LibBuilds["net45"].CliSuccess == true;
+
+        public override void OnError(Exception exception, Context context) =>
+            context.Information("Error creating merged assembly.");
     }
 }

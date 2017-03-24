@@ -12,6 +12,9 @@ namespace Build
         public string Configuration { get; set; }
 
         public DirectoryPath BaseDir { get; set; }
+        public DirectoryPath BuildDir { get; set; }
+        public DirectoryPath CakeToolsDir { get; set; }
+
         public DirectoryPath SourceDir { get; set; }
         public DirectoryPath LibraryDir { get; set; }
         public DirectoryPath CliDir { get; set; }

@@ -276,4 +276,4 @@ BenchmarkDotNet.Artifacts/
 #Build script tools
 /build/runbuild.txt
 /build/global.json
-/tools/dotnet/cli
+/build/tools/cake
