@@ -26,6 +26,8 @@ namespace Build
         public DirectoryPath LibraryPublishDir { get; set; }
         public DirectoryPath CliPublishDir { get; set; }
 
+        public string ReleaseCertThumbprint { get; set; }
+
         public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>()
         {
             ["netstandard"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.0", "netcoreapp1.0"),

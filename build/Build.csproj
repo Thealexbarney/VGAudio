@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Cake.Frosting" Version="0.1.0-alpha0058" />
+    <PackageReference Include="Cake.Common" Version="0.19.1" />
     <PackageReference Include="ConsoleTables" Version="2.1.0" />
   </ItemGroup>
 
