@@ -1,8 +1,11 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System;
+using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Build;
 using Cake.Common.Tools.DotNetCore.Test;
+using Cake.Common.Tools.SignTool;
 using Cake.Core.IO;
 
 namespace Build.Utilities
@@ -41,6 +44,22 @@ namespace Build.Utilities
             {
                 store.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
                 return store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, true).Count > 0;
+            }
+        }
+
+        public static void SignFiles(Context context, IEnumerable<FilePath> files, string thumbprint)
+        {
+            if (CertificateExists(context, thumbprint))
+            {
+                context.Sign(files, new SignToolSignSettings
+                {
+                    DigestAlgorithm = SignToolDigestAlgorithm.Sha256,
+                    CertThumbprint = thumbprint,
+                    TimeStampDigestAlgorithm = SignToolDigestAlgorithm.Sha256,
+                    TimeStampUri = new Uri("http://timestamp.digicert.com"),
+                    //TODO: remove hard coded path once CAKE resolution is fixed
+                    ToolPath = context.Environment.GetSpecialPath(SpecialPath.ProgramFilesX86).Combine(@"Windows Kits\10\bin\x64").CombineWithFilePath("signtool.exe")
+                });
             }
         }
     }

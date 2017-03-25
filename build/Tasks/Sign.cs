@@ -1,33 +1,72 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Build.Utilities;
 using Cake.Common.Diagnostics;
-using Cake.Common.Tools.SignTool;
+using Cake.Common.IO;
+using Cake.Core.IO;
 using Cake.Frosting;
 
 namespace Build.Tasks
 {
-    [Dependency(typeof(BuildCli))]
+    [Dependency(typeof(PublishCli))]
+    [Dependency(typeof(TestLibrary))]
     public sealed class SignCli : FrostingTask<Context>
     {
         public override void Run(Context context)
         {
-            if (Runners.CertificateExists(context, context.ReleaseCertThumbprint))
+            var possibleNames = new[] { "VGAudio.dll", "VGAudioCli.exe", "VGAudioCli.dll" };
+
+            List<FilePath> toSign = context.LibBuilds.Values
+                .SelectMany(build => possibleNames
+                    .Select(file => context.CliPublishDir
+                        .Combine(build.CliFramework)
+                        .CombineWithFilePath(file)))
+                .ToList();
+
+            //Add merged assembly
+            toSign.Add(context.CliPublishDir.CombineWithFilePath("VGAudioCli.exe"));
+
+            Runners.SignFiles(context, toSign.Where(context.FileExists), context.ReleaseCertThumbprint);
+        }
+
+        public override bool ShouldRun(Context context) =>
+            context.SignBuild &&
+            context.LibBuilds.Values.All(x => x.CliSuccess == true) &&
+            context.LibBuilds.Values.All(x => x.TestSuccess == true) &&
+            Runners.CertificateExists(context, context.ReleaseCertThumbprint);
+
+        public override void OnError(Exception exception, Context context) =>
+           context.Information("Couldn't sign CLI assemblies");
+    }
+
+    [Dependency(typeof(PublishLibrary))]
+    [Dependency(typeof(TestLibrary))]
+    public sealed class SignLibrary : FrostingTask<Context>
+    {
+        public override void Run(Context context)
+        {
+            FilePathCollection packages = context.GetFiles($"{context.LibraryPublishDir}/*.nupkg");
+
+            foreach (FilePath file in packages)
             {
-                context.Sign(context.CliPublishDir.CombineWithFilePath("net45/VGAudioCli.exe"), new SignToolSignSettings
-                {
-                    DigestAlgorithm = SignToolDigestAlgorithm.Sha256,
-                    CertThumbprint = context.ReleaseCertThumbprint,
-                    TimeStampDigestAlgorithm = SignToolDigestAlgorithm.Sha256,
-                    TimeStampUri = new Uri("http://sha256timestamp.ws.symantec.com/sha256/timestamp")
-                });
+                DirectoryPath extracted = context.LibraryPublishDir.Combine(file.GetFilenameWithoutExtension().ToString());
+                context.Unzip(file, extracted);
+
+                FilePathCollection toSign = context.GetFiles($"{extracted}/lib/**/VGAudio.dll");
+                Runners.SignFiles(context, toSign, context.ReleaseCertThumbprint);
+                context.Zip(extracted, context.LibraryPublishDir.CombineWithFilePath(file.GetFilename()));
+                context.DeleteDirectory(extracted, true);
             }
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds.Values.Any(x => x.CliSuccess == true);
+            context.SignBuild &&
+            context.LibBuilds.Values.All(x => x.LibSuccess == true) &&
+            context.LibBuilds.Values.All(x => x.TestSuccess == true) &&
+            Runners.CertificateExists(context, context.ReleaseCertThumbprint);
 
         public override void OnError(Exception exception, Context context) =>
-           context.Information("Couldn't sign CLI assemblies");
+            context.Information("Couldn't sign nupkg");
     }
 }
