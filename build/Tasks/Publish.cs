@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using Cake.Common.Diagnostics;
+using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Pack;
 using Cake.Common.Tools.DotNetCore.Publish;
 using Cake.Common.Tools.ILRepack;
 using Cake.Core;
+using Cake.Core.IO;
 using Cake.Frosting;
 
 namespace Build.Tasks
@@ -76,5 +79,38 @@ namespace Build.Tasks
 
         public override void OnError(Exception exception, Context context) =>
             context.Information("Error creating merged assembly.");
+    }
+
+    [Dependency(typeof(BuildUwp))]
+    public sealed class PublishUwp : FrostingTask<Context>
+    {
+        public override void Run(Context context)
+        {
+            XDocument manifest = XDocument.Load(context.UwpDir.CombineWithFilePath("Package.appxmanifest").FullPath);
+            XNamespace ns = manifest.Root?.GetDefaultNamespace();
+            string packageVersion = manifest.Root?.Element(ns + "Identity")?.Attribute("Version").Value;
+
+            string debugSuffix = context.IsReleaseBuild ? "" : "_Debug";
+            string packageName = $"VGAudio.Uwp_{packageVersion}_x86_x64_arm{debugSuffix}";
+            DirectoryPath packageDir = context.UwpDir.Combine($"AppPackages/VGAudio.Uwp_{packageVersion}{debugSuffix}_Test");
+
+            FilePath appxbundle = packageDir.CombineWithFilePath($"{packageName}.appxbundle");
+            var toCopy = new FilePathCollection(new[] { appxbundle }, PathComparer.Default);
+            toCopy += packageDir.CombineWithFilePath($"{packageName}.cer");
+
+            if (context.IsReleaseBuild)
+            {
+                toCopy += packageDir.CombineWithFilePath($"../{packageName}_bundle.appxupload");
+            }
+
+            context.EnsureDirectoryExists(context.UwpPublishDir);
+            context.CopyFiles(toCopy, context.UwpPublishDir);
+        }
+
+        public override bool ShouldRun(Context context) =>
+            context.OtherBuilds["uwp"] == true;
+
+        public override void OnError(Exception exception, Context context) =>
+            context.Information("Error publishing UWP app.");
     }
 }

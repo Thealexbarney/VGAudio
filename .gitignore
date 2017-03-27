@@ -272,6 +272,7 @@ BDN.Auto/
 BenchmarkDotNet.Artifacts/
 
 /src/VGAudio.Cli/Properties/launchSettings.json
+/build/Properties/launchSettings.json
 
 #Build script tools
 /build/runbuild.txt

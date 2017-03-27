@@ -2,14 +2,13 @@
 
 namespace Build.Tasks
 {
-    //[Dependency(typeof(CleanBuild))]
-    [Dependency(typeof(Clean))]
-    //[Dependency(typeof(Build))]
-    //[Dependency(typeof(Publish))]
-    //[Dependency(typeof(IlRepackCli))]
-    //[Dependency(typeof(TestLibrary))]
-    //[Dependency(typeof(Sign))]
-    //[Dependency(typeof(BuildReport))]
+    [Dependency(typeof(CleanBuild))]
+    [Dependency(typeof(Build))]
+    [Dependency(typeof(Publish))]
+    [Dependency(typeof(IlRepackCli))]
+    [Dependency(typeof(TestLibrary))]
+    [Dependency(typeof(Sign))]
+    [Dependency(typeof(BuildReport))]
     public sealed class Default : FrostingTask<Context> { }
 
     [Dependency(typeof(Default))]
@@ -22,6 +21,7 @@ namespace Build.Tasks
 
     [Dependency(typeof(BuildLibrary))]
     [Dependency(typeof(BuildCli))]
+    [Dependency(typeof(BuildUwp))]
     public sealed class Build : FrostingTask<Context> { }
 
     [Dependency(typeof(BuildLibraryNetStandard))]
@@ -34,6 +34,7 @@ namespace Build.Tasks
 
     [Dependency(typeof(PublishLibrary))]
     [Dependency(typeof(PublishCli))]
+    [Dependency(typeof(PublishUwp))]
     public sealed class Publish : FrostingTask<Context> { }
 
     [Dependency(typeof(TestLibraryNetStandard))]

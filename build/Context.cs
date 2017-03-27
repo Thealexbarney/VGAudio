@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cake.Core;
 using Cake.Core.IO;
@@ -10,6 +11,7 @@ namespace Build
         public Context(ICakeContext context) : base(context) { }
 
         public string Configuration { get; set; }
+        public bool IsReleaseBuild => Configuration.Equals("release", StringComparison.CurrentCultureIgnoreCase);
 
         public DirectoryPath BaseDir { get; set; }
         public DirectoryPath BuildDir { get; set; }
@@ -28,6 +30,7 @@ namespace Build
         public DirectoryPath PublishDir { get; set; }
         public DirectoryPath LibraryPublishDir { get; set; }
         public DirectoryPath CliPublishDir { get; set; }
+        public DirectoryPath UwpPublishDir { get; set; }
 
         public bool SignBuild { get; set; }
         public string ReleaseCertThumbprint { get; set; }

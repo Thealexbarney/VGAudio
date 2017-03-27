@@ -26,6 +26,7 @@ namespace Build
             context.PublishDir = context.BaseDir.Combine("Publish");
             context.LibraryPublishDir = context.PublishDir.Combine("NuGet");
             context.CliPublishDir = context.PublishDir.Combine("cli");
+            context.UwpPublishDir = context.PublishDir.Combine("uwp");
 
             context.ReleaseCertThumbprint = "2043012AE523F7FA0F77A537387633BEB7A9F4DD";
         }
