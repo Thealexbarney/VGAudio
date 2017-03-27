@@ -27,7 +27,7 @@ namespace Build.Tasks
             context.DotNetCorePack(context.LibraryDir.FullPath, new DotNetCorePackSettings
             {
                 Configuration = context.Configuration,
-                OutputDirectory = context.LibraryPublishDir,
+                OutputDirectory = context.LibraryBinDir,
                 NoBuild = true,
                 ArgumentCustomization = args =>
                 {
@@ -56,7 +56,7 @@ namespace Build.Tasks
                 {
                     Framework = build.CliFramework,
                     Configuration = context.Configuration,
-                    OutputDirectory = context.CliPublishDir.Combine(build.CliFramework)
+                    OutputDirectory = context.CliBinDir.Combine(build.CliFramework)
                 });
             }
         }
@@ -70,9 +70,9 @@ namespace Build.Tasks
     public sealed class IlRepackCli : FrostingTask<Context>
     {
         public override void Run(Context context) => context.ILRepack(
-            context.CliPublishDir.CombineWithFilePath("VGAudioCli.exe"),
-            context.CliPublishDir.CombineWithFilePath("net45/VGAudioCli.exe"),
-            new[] { context.CliPublishDir.CombineWithFilePath("net45/VGAudio.dll") });
+            context.CliBinDir.CombineWithFilePath("VGAudioCli.exe"),
+            context.CliBinDir.CombineWithFilePath("net45/VGAudioCli.exe"),
+            new[] { context.CliBinDir.CombineWithFilePath("net45/VGAudio.dll") });
 
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["net45"].CliSuccess == true;
@@ -103,8 +103,8 @@ namespace Build.Tasks
                 toCopy += packageDir.CombineWithFilePath($"../{packageName}_bundle.appxupload");
             }
 
-            context.EnsureDirectoryExists(context.UwpPublishDir);
-            context.CopyFiles(toCopy, context.UwpPublishDir);
+            context.EnsureDirectoryExists(context.UwpBinDir);
+            context.CopyFiles(toCopy, context.UwpBinDir);
         }
 
         public override bool ShouldRun(Context context) =>

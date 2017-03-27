@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using Cake.Common.Diagnostics;
-using Cake.Common.IO;
+﻿using Cake.Common.IO;
 using Cake.Core.IO;
 using Cake.Frosting;
 using static Build.Utilities.Runners;
@@ -16,10 +14,9 @@ namespace Build.Tasks
             directories += context.UwpDir.Combine("AppPackages");
             directories += context.UwpDir.Combine("BundleArtifacts");
 
-            foreach (DirectoryPath path in directories.Where(context.DirectoryExists))
+            foreach (DirectoryPath path in directories)
             {
-                context.Information($"Deleting {path}");
-                context.DeleteDirectory(path, true);
+                DeleteDirectory(context, path, true);
             }
 
             FilePathCollection files = context.GetFiles($"{context.UwpDir}/_scale-*.appx");
@@ -29,19 +26,20 @@ namespace Build.Tasks
             files += context.UwpDir.CombineWithFilePath("_pkginfo.txt");
             files += context.UwpDir.CombineWithFilePath("project.lock.json");
 
-            foreach (FilePath file in files.Where(context.FileExists))
+            foreach (FilePath file in files)
             {
-                context.Information($"Deleting {file}");
-                context.DeleteFile(file);
+                DeleteFile(context, file, true);
             }
         }
     }
 
-    public sealed class CleanPublish : FrostingTask<Context>
+    public sealed class CleanBin : FrostingTask<Context>
     {
-        public override void Run(Context context)
-        {
-            DeleteDirectory(context, context.PublishDir);
-        }
+        public override void Run(Context context) => DeleteDirectory(context, context.BinDir, true);
+    }
+
+    public sealed class CleanTopBin : FrostingTask<Context>
+    {
+        public override void Run(Context context) => DeleteDirectory(context, context.TopBinDir, true);
     }
 }

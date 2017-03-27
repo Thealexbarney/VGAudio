@@ -3,6 +3,7 @@
 namespace Build.Tasks
 {
     [Dependency(typeof(CleanBuild))]
+    [Dependency(typeof(CleanBin))]
     [Dependency(typeof(Build))]
     [Dependency(typeof(Publish))]
     [Dependency(typeof(IlRepackCli))]
@@ -16,7 +17,7 @@ namespace Build.Tasks
     public sealed class AppVeyor : FrostingTask<Context> { }
 
     [Dependency(typeof(CleanBuild))]
-    [Dependency(typeof(CleanPublish))]
+    [Dependency(typeof(CleanTopBin))]
     public sealed class Clean : FrostingTask<Context> { }
 
     [Dependency(typeof(BuildLibrary))]
@@ -31,7 +32,7 @@ namespace Build.Tasks
     [Dependency(typeof(BuildCliNetCore))]
     [Dependency(typeof(BuildCliNet45))]
     public sealed class BuildCli : FrostingTask<Context> { }
-
+    
     [Dependency(typeof(PublishLibrary))]
     [Dependency(typeof(PublishCli))]
     [Dependency(typeof(PublishUwp))]

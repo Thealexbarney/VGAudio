@@ -23,10 +23,11 @@ namespace Build
             context.SlnFile = context.SourceDir.CombineWithFilePath("VGAudio.sln");
             context.TestsCsproj = context.TestsDir.CombineWithFilePath("VGAudio.Tests.csproj");
 
-            context.PublishDir = context.BaseDir.Combine($"bin/{(context.IsReleaseBuild ? "release" : "debug")}");
-            context.LibraryPublishDir = context.PublishDir.Combine("NuGet");
-            context.CliPublishDir = context.PublishDir.Combine("cli");
-            context.UwpPublishDir = context.PublishDir.Combine("uwp");
+            context.TopBinDir = context.BaseDir.Combine("bin");
+            context.BinDir = context.TopBinDir.Combine(context.IsReleaseBuild ? "release" : "debug");
+            context.LibraryBinDir = context.BinDir.Combine("NuGet");
+            context.CliBinDir = context.BinDir.Combine("cli");
+            context.UwpBinDir = context.BinDir.Combine("uwp");
 
             context.ReleaseCertThumbprint = "2043012AE523F7FA0F77A537387633BEB7A9F4DD";
         }

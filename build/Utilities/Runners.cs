@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Build;
@@ -30,12 +31,26 @@ namespace Build.Utilities
             });
         }
 
-        public static void DeleteDirectory(Context context, DirectoryPath path)
+        public static void DeleteDirectory(Context context, DirectoryPath path, bool verbose)
         {
-            if (context.DirectoryExists(path))
+            if (!context.DirectoryExists(path)) return;
+
+            if (verbose)
             {
-                context.DeleteDirectory(path, true);
+                context.Information($"Deleting {path}");
             }
+            context.DeleteDirectory(path, true);
+        }
+
+        public static void DeleteFile(Context context, FilePath path, bool verbose)
+        {
+            if (!context.FileExists(path)) return;
+
+            if (verbose)
+            {
+                context.Information($"Deleting {path}");
+            }
+            context.DeleteFile(path);
         }
 
         public static bool CertificateExists(Context context, string thumbprint)

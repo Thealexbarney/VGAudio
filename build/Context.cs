@@ -27,10 +27,11 @@ namespace Build
         public FilePath SlnFile { get; set; }
         public FilePath TestsCsproj { get; set; }
 
-        public DirectoryPath PublishDir { get; set; }
-        public DirectoryPath LibraryPublishDir { get; set; }
-        public DirectoryPath CliPublishDir { get; set; }
-        public DirectoryPath UwpPublishDir { get; set; }
+        public DirectoryPath TopBinDir { get; set; }
+        public DirectoryPath BinDir { get; set; }
+        public DirectoryPath LibraryBinDir { get; set; }
+        public DirectoryPath CliBinDir { get; set; }
+        public DirectoryPath UwpBinDir { get; set; }
 
         public bool SignBuild { get; set; }
         public string ReleaseCertThumbprint { get; set; }
