@@ -23,7 +23,7 @@ namespace Build
             context.SlnFile = context.SourceDir.CombineWithFilePath("VGAudio.sln");
             context.TestsCsproj = context.TestsDir.CombineWithFilePath("VGAudio.Tests.csproj");
 
-            context.PublishDir = context.BaseDir.Combine("Publish");
+            context.PublishDir = context.BaseDir.Combine($"bin/{(context.IsReleaseBuild ? "release" : "debug")}");
             context.LibraryPublishDir = context.PublishDir.Combine("NuGet");
             context.CliPublishDir = context.PublishDir.Combine("cli");
             context.UwpPublishDir = context.PublishDir.Combine("uwp");
