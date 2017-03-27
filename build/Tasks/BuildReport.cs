@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Cake.Common.Diagnostics;
@@ -21,7 +22,7 @@ namespace Build.Tasks
             builder.AppendLine();
             builder.AppendLine("Library Builds");
             builder.Append('-', 35).AppendLine();
-            var libraryTable =  new ConsoleTable("Name", "Status");
+            var libraryTable = new ConsoleTable("Name", "Status");
             foreach (LibraryBuildStatus build in context.LibBuilds.Values)
             {
                 libraryTable.AddRow(build.LibFramework, GetStatusString(build.LibSuccess));
@@ -30,7 +31,7 @@ namespace Build.Tasks
 
             builder.AppendLine("CLI Builds");
             builder.Append('-', 35).AppendLine();
-            var cliTable =  new ConsoleTable("Name", "Status");
+            var cliTable = new ConsoleTable("Name", "Status");
             foreach (LibraryBuildStatus build in context.LibBuilds.Values)
             {
                 cliTable.AddRow(build.CliFramework, GetStatusString(build.CliSuccess));
@@ -39,12 +40,21 @@ namespace Build.Tasks
 
             builder.AppendLine("Tests");
             builder.Append('-', 35).AppendLine();
-            var testsTable =  new ConsoleTable("Name", "Status");
+            var testsTable = new ConsoleTable("Name", "Status");
             foreach (LibraryBuildStatus build in context.LibBuilds.Values)
             {
                 testsTable.AddRow(build.TestFramework, GetStatusString(build.TestSuccess));
             }
-            builder.Append(testsTable.ToMarkDownString());
+            builder.AppendLine(testsTable.ToMarkDownString());
+
+            builder.AppendLine("Other Builds");
+            builder.Append('-', 35).AppendLine();
+            var otherTable = new ConsoleTable("Name", "Status");
+            foreach (KeyValuePair<string, bool?> build in context.OtherBuilds)
+            {
+                otherTable.AddRow(build.Key, GetStatusString(build.Value));
+            }
+            builder.Append(otherTable.ToMarkDownString());
 
             return builder.ToString();
         }
@@ -69,19 +79,23 @@ namespace Build.Tasks
         {
             if (context.LibBuilds.Values.Any(x => x.LibSuccess != true))
             {
-                throw
-                    new Exception("Library build failed");
+                throw new Exception("Library build failed");
             }
 
             if (context.LibBuilds.Values.Any(x => x.CliSuccess != true))
             {
-                throw new Exception("Library build failed");
+                throw new Exception("CLI build failed");
             }
-        
 
             if (context.LibBuilds.Values.Any(x => x.TestSuccess != true))
             {
-                throw new Exception("Library build failed");
+                throw new Exception("Library tests failed");
+            }
+
+            if (context.OtherBuilds.Any(x => x.Value != true))
+            {
+                string name = context.OtherBuilds.First(x => x.Value != true).Key;
+                throw new Exception($"{name} build failed");
             }
         }
     }

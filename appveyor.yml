@@ -1,7 +1,7 @@
 version: 2.0.0-beta1-{build}
 image: Visual Studio 2017
 build_script:
-- ps: .\build.ps1 Appveyor
+- ps: .\build.ps1 -Target Appveyor
 artifacts:
 - path: publish\cli
 - path: publish\**\*.nupkg
