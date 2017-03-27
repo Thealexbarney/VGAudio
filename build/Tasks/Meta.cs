@@ -2,13 +2,14 @@
 
 namespace Build.Tasks
 {
+    //[Dependency(typeof(CleanBuild))]
     [Dependency(typeof(Clean))]
-    [Dependency(typeof(Build))]
-    [Dependency(typeof(Publish))]
-    [Dependency(typeof(IlRepackCli))]
-    [Dependency(typeof(TestLibrary))]
-    [Dependency(typeof(Sign))]
-    [Dependency(typeof(BuildReport))]
+    //[Dependency(typeof(Build))]
+    //[Dependency(typeof(Publish))]
+    //[Dependency(typeof(IlRepackCli))]
+    //[Dependency(typeof(TestLibrary))]
+    //[Dependency(typeof(Sign))]
+    //[Dependency(typeof(BuildReport))]
     public sealed class Default : FrostingTask<Context> { }
 
     [Dependency(typeof(Default))]

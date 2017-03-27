@@ -32,10 +32,15 @@ namespace Build
         public bool SignBuild { get; set; }
         public string ReleaseCertThumbprint { get; set; }
 
-        public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>()
+        public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>
         {
             ["netstandard"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.0", "netcoreapp1.0"),
             ["net45"] = new LibraryBuildStatus("net45", "net45", "net46")
+        };
+
+        public Dictionary<string, bool?> OtherBuilds { get; } = new Dictionary<string, bool?>
+        {
+            ["uwp"] = null
         };
     }
 }

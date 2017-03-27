@@ -107,7 +107,8 @@ try {
     }
 
     Write-Output "Running build..."
-    & dotnet run -- $Arguments
+	& dotnet publish /v:q /nologo
+    & dotnet bin/Debug/netcoreapp1.0/publish/Build.dll $Arguments
 
 } finally {
     Pop-Location;

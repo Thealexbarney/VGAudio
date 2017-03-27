@@ -1,4 +1,6 @@
 ﻿using System;
+using Cake.Common.Tools.MSBuild;
+using Cake.Core.Diagnostics;
 using Cake.Frosting;
 using static Build.Utilities.Runners;
 
@@ -60,5 +62,23 @@ namespace Build.Tasks
 
         public override void OnError(Exception exception, Context context) =>
             context.LibBuilds["net45"].CliSuccess = false;
+    }
+
+    [Dependency(typeof(RestoreUwp))]
+    public sealed class BuildUwp : FrostingTask<Context>
+    {
+        public override void Run(Context context)
+        {
+            context.MSBuild(context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj"), new MSBuildSettings
+            {
+                Verbosity = Verbosity.Minimal,
+                MSBuildPlatform = MSBuildPlatform.x86,
+                Configuration = context.Configuration
+            });
+            context.OtherBuilds["uwp"] = true;
+        }
+
+        public override void OnError(Exception exception, Context context) =>
+            context.OtherBuilds["uwp"] = false;
     }
 }

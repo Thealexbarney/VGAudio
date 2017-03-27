@@ -89,4 +89,5 @@ if ! dotnet msbuild /t:restore /v:q /nologo; then
 fi
 
 echo "Running build..."
-dotnet run -- --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
+dotnet publish /v:q /nologo
+dotnet bin/Debug/netcoreapp1.0/publish/Build.dll --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
