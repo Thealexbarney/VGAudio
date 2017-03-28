@@ -15,8 +15,7 @@ namespace Build.Tasks
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["netstandard"].TestSuccess == null &&
-            context.LibBuilds["netstandard"].LibSuccess != false;
+            context.LibBuilds["netstandard"].LibSuccess == true;
 
         public override void OnError(Exception exception, Context context) =>
             context.LibBuilds["netstandard"].TestSuccess = false;
@@ -33,8 +32,7 @@ namespace Build.Tasks
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["net45"].TestSuccess == null &&
-            context.LibBuilds["net45"].LibSuccess != false;
+            context.LibBuilds["net45"].LibSuccess == true;
 
         public override void OnError(Exception exception, Context context) =>
             context.LibBuilds["net45"].TestSuccess = false;

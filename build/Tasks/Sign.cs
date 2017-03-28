@@ -62,7 +62,6 @@ namespace Build.Tasks
 
         public override bool ShouldRun(Context context) =>
             context.SignBuild &&
-            context.LibBuilds.Values.All(x => x.LibSuccess == true) &&
             context.LibBuilds.Values.All(x => x.TestSuccess == true) &&
             Runners.CertificateExists(context, context.ReleaseCertThumbprint);
 
