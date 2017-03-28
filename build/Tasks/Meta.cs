@@ -10,6 +10,7 @@ namespace Build.Tasks
     public sealed class Default : FrostingTask<Context> { }
 
     [Dependency(typeof(Default))]
+    [Dependency(typeof(UploadAppVeyorArtifacts))]
     [Dependency(typeof(VerifyBuildSuccess))]
     public sealed class AppVeyor : FrostingTask<Context> { }
 
@@ -35,7 +36,7 @@ namespace Build.Tasks
     [Dependency(typeof(BuildCliNetCore))]
     [Dependency(typeof(BuildCliNet45))]
     public sealed class BuildCli : FrostingTask<Context> { }
-    
+
     [Dependency(typeof(PublishLibrary))]
     [Dependency(typeof(PublishCli))]
     [Dependency(typeof(IlRepackCli))]
