@@ -278,3 +278,6 @@ BenchmarkDotNet.Artifacts/
 /build/runbuild.txt
 /build/global.json
 /build/tools/cake
+
+#Build output
+[Pp]ackage/

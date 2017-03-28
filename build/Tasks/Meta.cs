@@ -5,6 +5,7 @@ namespace Build.Tasks
     [Dependency(typeof(Rebuild))]
     [Dependency(typeof(TestLibrary))]
     [Dependency(typeof(Sign))]
+    [Dependency(typeof(Package))]
     [Dependency(typeof(BuildReport))]
     public sealed class Default : FrostingTask<Context> { }
 
@@ -48,4 +49,9 @@ namespace Build.Tasks
     [Dependency(typeof(SignLibrary))]
     [Dependency(typeof(SignCli))]
     public sealed class Sign : FrostingTask<Context> { }
+
+    [Dependency(typeof(PackageLibrary))]
+    [Dependency(typeof(PackageCli))]
+    [Dependency(typeof(PackageUwp))]
+    public sealed class Package : FrostingTask<Context> { }
 }

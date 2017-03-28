@@ -42,4 +42,8 @@ namespace Build.Tasks
     {
         public override void Run(Context context) => DeleteDirectory(context, context.TopBinDir, true);
     }
+    public sealed class CleanPackage : FrostingTask<Context>
+    {
+        public override void Run(Context context) => DeleteDirectory(context, context.PackageDir, true);
+    }
 }

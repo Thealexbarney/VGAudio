@@ -16,6 +16,7 @@ namespace Build
         public DirectoryPath BaseDir { get; set; }
         public DirectoryPath BuildDir { get; set; }
         public DirectoryPath CakeToolsDir { get; set; }
+        public DirectoryPath PackageDir { get; set; }
 
         public DirectoryPath SourceDir { get; set; }
         public DirectoryPath LibraryDir { get; set; }
