@@ -27,6 +27,7 @@ namespace Build
 
         public FilePath SlnFile { get; set; }
         public FilePath TestsCsproj { get; set; }
+        public FilePath UwpCsproj { get; set; }
 
         public DirectoryPath TopBinDir { get; set; }
         public DirectoryPath BinDir { get; set; }

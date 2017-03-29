@@ -34,7 +34,7 @@ namespace Build.Tasks
             context.SignBuild &&
             context.LibBuilds.Values.All(x => x.CliSuccess == true) &&
             context.LibBuilds.Values.All(x => x.TestSuccess == true) &&
-            Runners.CertificateExists(context, context.ReleaseCertThumbprint);
+            Runners.CertificateExists(context.ReleaseCertThumbprint, true);
 
         public override void OnError(Exception exception, Context context) =>
            context.Information("Couldn't sign CLI assemblies");
@@ -63,7 +63,7 @@ namespace Build.Tasks
         public override bool ShouldRun(Context context) =>
             context.SignBuild &&
             context.LibBuilds.Values.All(x => x.TestSuccess == true) &&
-            Runners.CertificateExists(context, context.ReleaseCertThumbprint);
+            Runners.CertificateExists(context.ReleaseCertThumbprint, true);
 
         public override void OnError(Exception exception, Context context) =>
             context.Information("Couldn't sign nupkg");

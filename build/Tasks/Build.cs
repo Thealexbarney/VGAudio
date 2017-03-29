@@ -69,12 +69,20 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            context.MSBuild(context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj"), new MSBuildSettings
+            string thumbprint = SetupUwpSigningCertificate(context);
+            var settings = new MSBuildSettings
             {
                 Verbosity = Verbosity.Minimal,
                 MSBuildPlatform = MSBuildPlatform.x86,
                 Configuration = context.Configuration
-            });
+            };
+
+            if (thumbprint != null)
+            {
+                settings.WithProperty("PackageCertificateThumbprint", thumbprint);
+            }
+
+            context.MSBuild(context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj"), settings);
             context.OtherBuilds["uwp"] = true;
         }
 
