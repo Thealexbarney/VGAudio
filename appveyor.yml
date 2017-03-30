@@ -1,9 +1,5 @@
-version: 1.1.1.{build}
+version: 2.0.0-beta1-{build}
 image: Visual Studio 2017
 build_script:
-- ps: .\build\runbuild.ps1 Appveyor
-artifacts:
-- path: publish\cli
-- path: publish\**\*.nupkg
-- path: publish\**\*.appxbundle
+- ps: .\build.ps1 -Target Appveyor
 test: off

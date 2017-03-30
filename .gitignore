@@ -248,6 +248,9 @@ paket-files/
 # FAKE - F# Make
 .fake/
 
+# CAKE - C# Make
+tools/cake
+
 # JetBrains Rider
 .idea/
 *.sln.iml
@@ -269,8 +272,13 @@ BDN.Auto/
 BenchmarkDotNet.Artifacts/
 
 /src/VGAudio.Cli/Properties/launchSettings.json
+/build/Properties/launchSettings.json
 
 #Build script tools
 /build/runbuild.txt
 /build/global.json
-/tools/dotnet/sdk
+/build/tools/cake
+Sideload.appxmanifest
+
+#Build output
+[Pp]ackage/
