@@ -57,6 +57,8 @@ namespace Build.Utilities
             context.DeleteFile(path);
         }
 
+        public static void DisplayError(Context context, string message) => context.Error(message);
+
         public static bool CertificateExists(string thumbprint, bool validOnly)
         {
             using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))

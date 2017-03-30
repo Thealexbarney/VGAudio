@@ -1,5 +1,4 @@
 ﻿using System;
-using Cake.Common.IO;
 using Cake.Common.Tools.MSBuild;
 using Cake.Core.Diagnostics;
 using Cake.Frosting;
@@ -16,8 +15,11 @@ namespace Build.Tasks
             context.LibBuilds["netstandard"].LibSuccess = true;
         }
 
-        public override void OnError(Exception exception, Context context) =>
+        public override void OnError(Exception exception, Context context)
+        {
+            DisplayError(context, exception.Message);
             context.LibBuilds["netstandard"].LibSuccess = false;
+        }
     }
 
     [Dependency(typeof(Restore))]
@@ -29,8 +31,11 @@ namespace Build.Tasks
             context.LibBuilds["net45"].LibSuccess = true;
         }
 
-        public override void OnError(Exception exception, Context context) =>
+        public override void OnError(Exception exception, Context context)
+        {
+            DisplayError(context, exception.Message);
             context.LibBuilds["net45"].LibSuccess = false;
+        }
     }
 
     [Dependency(typeof(BuildLibraryNetStandard))]
@@ -45,8 +50,11 @@ namespace Build.Tasks
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["netstandard"].LibSuccess == true;
 
-        public override void OnError(Exception exception, Context context) =>
+        public override void OnError(Exception exception, Context context)
+        {
+            DisplayError(context, exception.Message);
             context.LibBuilds["netstandard"].CliSuccess = false;
+        }
     }
 
     [Dependency(typeof(BuildLibraryNet45))]
@@ -61,8 +69,11 @@ namespace Build.Tasks
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["net45"].LibSuccess == true;
 
-        public override void OnError(Exception exception, Context context) =>
+        public override void OnError(Exception exception, Context context)
+        {
+            DisplayError(context, exception.Message);
             context.LibBuilds["net45"].CliSuccess = false;
+        }
     }
 
     [Dependency(typeof(RestoreUwp))]
@@ -92,9 +103,12 @@ namespace Build.Tasks
         }
 
         public override void Finally(Context context) =>
-            context.DeleteFile(context.UwpSideloadManifest);
+            DeleteFile(context, context.UwpSideloadManifest, false);
 
-        public override void OnError(Exception exception, Context context) =>
+        public override void OnError(Exception exception, Context context)
+        {
+            DisplayError(context, exception.Message);
             context.OtherBuilds["uwp"] = false;
+        }
     }
 }

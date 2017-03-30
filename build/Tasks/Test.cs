@@ -17,8 +17,11 @@ namespace Build.Tasks
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["netstandard"].LibSuccess == true;
 
-        public override void OnError(Exception exception, Context context) =>
+        public override void OnError(Exception exception, Context context)
+        {
+            DisplayError(context, exception.Message);
             context.LibBuilds["netstandard"].TestSuccess = false;
+        }
     }
 
     [Dependency(typeof(Restore))]
@@ -34,7 +37,10 @@ namespace Build.Tasks
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["net45"].LibSuccess == true;
 
-        public override void OnError(Exception exception, Context context) =>
+        public override void OnError(Exception exception, Context context)
+        {
+            DisplayError(context, exception.Message);
             context.LibBuilds["net45"].TestSuccess = false;
+        }
     }
 }

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Build.Utilities;
-using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Core.IO;
 using Cake.Frosting;
+using static Build.Utilities.Runners;
 
 namespace Build.Tasks
 {
@@ -27,17 +26,17 @@ namespace Build.Tasks
             //Add merged assembly
             toSign.Add(context.CliBinDir.CombineWithFilePath("VGAudioCli.exe"));
 
-            Runners.SignFiles(context, toSign.Where(context.FileExists), context.ReleaseCertThumbprint);
+            SignFiles(context, toSign.Where(context.FileExists), context.ReleaseCertThumbprint);
         }
 
         public override bool ShouldRun(Context context) =>
             context.SignBuild &&
             context.CliBuildsSucceeded &&
             context.TestsSucceeded &&
-            Runners.CertificateExists(context.ReleaseCertThumbprint, true);
+            CertificateExists(context.ReleaseCertThumbprint, true);
 
         public override void OnError(Exception exception, Context context) =>
-           context.Information("Couldn't sign CLI assemblies");
+            DisplayError(context, "Couldn't sign CLI assemblies:\n" + exception.Message);
     }
 
     [Dependency(typeof(PublishLibrary))]
@@ -54,7 +53,7 @@ namespace Build.Tasks
                 context.Unzip(file, extracted);
 
                 FilePathCollection toSign = context.GetFiles($"{extracted}/lib/**/VGAudio.dll");
-                Runners.SignFiles(context, toSign, context.ReleaseCertThumbprint);
+                SignFiles(context, toSign, context.ReleaseCertThumbprint);
                 context.Zip(extracted, context.LibraryBinDir.CombineWithFilePath(file.GetFilename()));
                 context.DeleteDirectory(extracted, true);
             }
@@ -63,9 +62,9 @@ namespace Build.Tasks
         public override bool ShouldRun(Context context) =>
             context.SignBuild &&
             context.LibraryBuildsSucceeded &&
-            Runners.CertificateExists(context.ReleaseCertThumbprint, true);
+            CertificateExists(context.ReleaseCertThumbprint, true);
 
         public override void OnError(Exception exception, Context context) =>
-            context.Information("Couldn't sign nupkg");
+            DisplayError(context, "Couldn't sign nupkg:\n" + exception.Message);
     }
 }

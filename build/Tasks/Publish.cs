@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Pack;
@@ -11,6 +10,7 @@ using Cake.Common.Tools.ILRepack;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
+using static Build.Utilities.Runners;
 
 namespace Build.Tasks
 {
@@ -78,7 +78,7 @@ namespace Build.Tasks
             context.LibBuilds["net45"].CliSuccess == true;
 
         public override void OnError(Exception exception, Context context) =>
-            context.Information("Error creating merged assembly.");
+            DisplayError(context, "Error creating merged assembly:\n" + exception.Message);
     }
 
     [Dependency(typeof(BuildUwp))]
@@ -111,6 +111,6 @@ namespace Build.Tasks
             context.OtherBuilds["uwp"] == true;
 
         public override void OnError(Exception exception, Context context) =>
-            context.Information("Error publishing UWP app.");
+            DisplayError(context, "Error publishing UWP app:\n" + exception.Message);
     }
 }
