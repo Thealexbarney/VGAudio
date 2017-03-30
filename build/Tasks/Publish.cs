@@ -59,6 +59,7 @@ namespace Build.Tasks
                     OutputDirectory = context.CliBinDir.Combine(build.CliFramework)
                 });
             }
+            DeleteFile(context, context.CliBinDir.Combine("net45").CombineWithFilePath("VGAudioCli.runtimeconfig.json"), false);
         }
 
         public override bool ShouldRun(Context context) =>
