@@ -38,15 +38,6 @@ namespace Build.Tasks
             }
             builder.AppendLine(cliTable.ToMarkDownString());
 
-            builder.AppendLine("Tests");
-            builder.Append('-', 35).AppendLine();
-            var testsTable = new ConsoleTable("Name", "Status");
-            foreach (LibraryBuildStatus build in context.LibBuilds.Values)
-            {
-                testsTable.AddRow(build.TestFramework, GetStatusString(build.TestSuccess));
-            }
-            builder.AppendLine(testsTable.ToMarkDownString());
-
             builder.AppendLine("Other Builds");
             builder.Append('-', 35).AppendLine();
             var otherTable = new ConsoleTable("Name", "Status");
@@ -54,7 +45,16 @@ namespace Build.Tasks
             {
                 otherTable.AddRow(build.Key, GetStatusString(build.Value));
             }
-            builder.Append(otherTable.ToMarkDownString());
+            builder.AppendLine(otherTable.ToMarkDownString());
+
+            builder.AppendLine("Tests");
+            builder.Append('-', 35).AppendLine();
+            var testsTable = new ConsoleTable("Name", "Status");
+            foreach (LibraryBuildStatus build in context.LibBuilds.Values)
+            {
+                testsTable.AddRow(build.TestFramework, GetStatusString(build.TestSuccess));
+            }
+            builder.Append(testsTable.ToMarkDownString());
 
             return builder.ToString();
         }
