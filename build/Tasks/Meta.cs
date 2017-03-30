@@ -3,19 +3,14 @@
 namespace Build.Tasks
 {
     [Dependency(typeof(Rebuild))]
-    [Dependency(typeof(TestLibrary))]
-    [Dependency(typeof(Sign))]
+    [Dependency(typeof(Test))]
     [Dependency(typeof(Package))]
     [Dependency(typeof(BuildReport))]
     public sealed class Default : FrostingTask<Context> { }
 
-    [Dependency(typeof(Default))]
-    [Dependency(typeof(UploadAppVeyorArtifacts))]
-    [Dependency(typeof(VerifyBuildSuccess))]
-    public sealed class AppVeyor : FrostingTask<Context> { }
-
     [Dependency(typeof(CleanBuild))]
     [Dependency(typeof(CleanTopBin))]
+    [Dependency(typeof(CleanPackage))]
     public sealed class Clean : FrostingTask<Context> { }
 
     [Dependency(typeof(CleanBuild))]
@@ -29,14 +24,6 @@ namespace Build.Tasks
     [Dependency(typeof(Publish))]
     public sealed class Build : FrostingTask<Context> { }
 
-    [Dependency(typeof(BuildLibraryNetStandard))]
-    [Dependency(typeof(BuildLibraryNet45))]
-    public sealed class BuildLibrary : FrostingTask<Context> { }
-
-    [Dependency(typeof(BuildCliNetCore))]
-    [Dependency(typeof(BuildCliNet45))]
-    public sealed class BuildCli : FrostingTask<Context> { }
-
     [Dependency(typeof(PublishLibrary))]
     [Dependency(typeof(PublishCli))]
     [Dependency(typeof(IlRepackCli))]
@@ -45,15 +32,26 @@ namespace Build.Tasks
 
     [Dependency(typeof(TestLibraryNetStandard))]
     [Dependency(typeof(TestLibraryNet45))]
-    public sealed class TestLibrary : FrostingTask<Context> { }
+    public sealed class Test : FrostingTask<Context> { }
 
     [Dependency(typeof(SignLibrary))]
     [Dependency(typeof(SignCli))]
     [Dependency(typeof(SignUwp))]
     public sealed class Sign : FrostingTask<Context> { }
 
+    [Dependency(typeof(CleanPackage))]
     [Dependency(typeof(PackageLibrary))]
     [Dependency(typeof(PackageCli))]
     [Dependency(typeof(PackageUwp))]
     public sealed class Package : FrostingTask<Context> { }
+    
+    [Dependency(typeof(Clean))]
+    [Dependency(typeof(Sign))]
+    [Dependency(typeof(Package))]
+    public sealed class Release : FrostingTask<Context> { }
+
+    [Dependency(typeof(Default))]
+    [Dependency(typeof(UploadAppVeyorArtifacts))]
+    [Dependency(typeof(VerifyBuildSuccess))]
+    public sealed class AppVeyor : FrostingTask<Context> { }
 }

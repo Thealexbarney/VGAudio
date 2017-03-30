@@ -3,7 +3,6 @@ using Cake.Frosting;
 
 namespace Build.Tasks
 {
-    [Dependency(typeof(CleanPackage))]
     [Dependency(typeof(PublishLibrary))]
     public sealed class PackageLibrary : FrostingTask<Context>
     {
@@ -12,7 +11,6 @@ namespace Build.Tasks
         public override bool ShouldRun(Context context) => context.LibraryBuildsSucceeded;
     }
 
-    [Dependency(typeof(CleanPackage))]
     [Dependency(typeof(PublishCli))]
     public sealed class PackageCli : FrostingTask<Context>
     {
@@ -22,7 +20,6 @@ namespace Build.Tasks
         public override bool ShouldRun(Context context) => context.CliBuildsSucceeded;
     }
 
-    [Dependency(typeof(CleanPackage))]
     [Dependency(typeof(PublishUwp))]
     public sealed class PackageUwp : FrostingTask<Context>
     {

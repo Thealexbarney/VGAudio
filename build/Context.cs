@@ -41,7 +41,6 @@ namespace Build
         public string SideloadAppxName { get; set; }
         public string AppxPublisher { get; set; }
 
-        public bool SignBuild { get; set; }
         public string ReleaseCertThumbprint { get; set; }
 
         public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>

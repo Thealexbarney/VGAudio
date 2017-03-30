@@ -9,7 +9,7 @@ using static Build.Utilities.Runners;
 namespace Build.Tasks
 {
     [Dependency(typeof(PublishCli))]
-    [Dependency(typeof(TestLibrary))]
+    [Dependency(typeof(Test))]
     public sealed class SignCli : FrostingTask<Context>
     {
         public override void Run(Context context)
@@ -30,7 +30,6 @@ namespace Build.Tasks
         }
 
         public override bool ShouldRun(Context context) =>
-            context.SignBuild &&
             context.CliBuildsSucceeded &&
             context.TestsSucceeded &&
             CertificateExists(context.ReleaseCertThumbprint, true);
@@ -40,7 +39,7 @@ namespace Build.Tasks
     }
 
     [Dependency(typeof(PublishLibrary))]
-    [Dependency(typeof(TestLibrary))]
+    [Dependency(typeof(Test))]
     public sealed class SignLibrary : FrostingTask<Context>
     {
         public override void Run(Context context)
@@ -60,7 +59,6 @@ namespace Build.Tasks
         }
 
         public override bool ShouldRun(Context context) =>
-            context.SignBuild &&
             context.LibraryBuildsSucceeded &&
             context.TestsSucceeded &&
             CertificateExists(context.ReleaseCertThumbprint, true);
@@ -70,14 +68,13 @@ namespace Build.Tasks
     }
 
     [Dependency(typeof(PublishUwp))]
-    [Dependency(typeof(TestLibrary))]
+    [Dependency(typeof(Test))]
     public sealed class SignUwp : FrostingTask<Context>
     {
         public override void Run(Context context) =>
             SignFiles(context, context.GetFiles($"{context.UwpBinDir}/*.appxbundle"), context.ReleaseCertThumbprint);
 
         public override bool ShouldRun(Context context) =>
-            context.SignBuild &&
             context.OtherBuilds["uwp"] == true &&
             context.TestsSucceeded &&
             CertificateExists(context.ReleaseCertThumbprint, true);

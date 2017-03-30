@@ -6,6 +6,14 @@ using static Build.Utilities.Runners;
 
 namespace Build.Tasks
 {
+    [Dependency(typeof(BuildLibraryNetStandard))]
+    [Dependency(typeof(BuildLibraryNet45))]
+    public sealed class BuildLibrary : FrostingTask<Context> { }
+
+    [Dependency(typeof(BuildCliNetCore))]
+    [Dependency(typeof(BuildCliNet45))]
+    public sealed class BuildCli : FrostingTask<Context> { }
+
     [Dependency(typeof(Restore))]
     public sealed class BuildLibraryNetStandard : FrostingTask<Context>
     {
