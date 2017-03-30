@@ -25,6 +25,7 @@ namespace Build.Tasks
             files += context.GetFiles($"{context.UwpDir}/*.csproj.user");
             files += context.UwpDir.CombineWithFilePath("_pkginfo.txt");
             files += context.UwpDir.CombineWithFilePath("project.lock.json");
+            files += context.UwpSideloadManifest;
 
             foreach (FilePath file in files)
             {
@@ -42,6 +43,7 @@ namespace Build.Tasks
     {
         public override void Run(Context context) => DeleteDirectory(context, context.TopBinDir, true);
     }
+
     public sealed class CleanPackage : FrostingTask<Context>
     {
         public override void Run(Context context) => DeleteDirectory(context, context.PackageDir, true);
