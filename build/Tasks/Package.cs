@@ -14,8 +14,11 @@ namespace Build.Tasks
     [Dependency(typeof(PublishCli))]
     public sealed class PackageCli : FrostingTask<Context>
     {
-        public override void Run(Context context) =>
+        public override void Run(Context context)
+        {
+            context.EnsureDirectoryExists(context.PackageDir);
             context.Zip(context.CliBinDir, context.PackageDir.CombineWithFilePath("VGAudioCli.zip"));
+        }
 
         public override bool ShouldRun(Context context) => context.CliBuildsSucceeded;
     }
