@@ -49,6 +49,7 @@ namespace Build.Tasks
 
     [Dependency(typeof(SignLibrary))]
     [Dependency(typeof(SignCli))]
+    [Dependency(typeof(SignUwp))]
     public sealed class Sign : FrostingTask<Context> { }
 
     [Dependency(typeof(PackageLibrary))]

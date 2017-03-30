@@ -62,9 +62,27 @@ namespace Build.Tasks
         public override bool ShouldRun(Context context) =>
             context.SignBuild &&
             context.LibraryBuildsSucceeded &&
+            context.TestsSucceeded &&
             CertificateExists(context.ReleaseCertThumbprint, true);
 
         public override void OnError(Exception exception, Context context) =>
             DisplayError(context, "Couldn't sign nupkg:\n" + exception.Message);
+    }
+
+    [Dependency(typeof(PublishUwp))]
+    [Dependency(typeof(TestLibrary))]
+    public sealed class SignUwp : FrostingTask<Context>
+    {
+        public override void Run(Context context) =>
+            SignFiles(context, context.GetFiles($"{context.UwpBinDir}/*.appxbundle"), context.ReleaseCertThumbprint);
+
+        public override bool ShouldRun(Context context) =>
+            context.SignBuild &&
+            context.OtherBuilds["uwp"] == true &&
+            context.TestsSucceeded &&
+            CertificateExists(context.ReleaseCertThumbprint, true);
+
+        public override void OnError(Exception exception, Context context) =>
+            DisplayError(context, "Couldn't sign UWP app:\n" + exception.Message);
     }
 }
