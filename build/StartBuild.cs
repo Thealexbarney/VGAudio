@@ -7,7 +7,7 @@ namespace Build
         public static int Main(string[] args)
         {
             // Create the host.
-            var host = new CakeHostBuilder()
+            ICakeHost host = new CakeHostBuilder()
                 .WithArguments(args)
                 .UseStartup<StartBuild>()
                 .Build();

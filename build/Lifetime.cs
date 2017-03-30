@@ -18,10 +18,10 @@ namespace Build
             context.LibraryDir = context.SourceDir.Combine("VGAudio");
             context.CliDir = context.SourceDir.Combine("VGAudio.Cli");
             context.TestsDir = context.SourceDir.Combine("VGAudio.Tests");
-            context.BenchmarkDir = context.SourceDir.Combine("VGAudio.Benchmark");
+            context.SourceDir.Combine("VGAudio.Benchmark");
             context.UwpDir = context.SourceDir.Combine("VGAudio.Uwp");
 
-            context.SlnFile = context.SourceDir.CombineWithFilePath("VGAudio.sln");
+            context.SourceDir.CombineWithFilePath("VGAudio.sln");
             context.TestsCsproj = context.TestsDir.CombineWithFilePath("VGAudio.Tests.csproj");
             context.UwpCsproj = context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj");
 

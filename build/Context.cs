@@ -23,10 +23,8 @@ namespace Build
         public DirectoryPath LibraryDir { get; set; }
         public DirectoryPath CliDir { get; set; }
         public DirectoryPath TestsDir { get; set; }
-        public DirectoryPath BenchmarkDir { get; set; }
         public DirectoryPath UwpDir { get; set; }
 
-        public FilePath SlnFile { get; set; }
         public FilePath TestsCsproj { get; set; }
         public FilePath UwpCsproj { get; set; }
 
