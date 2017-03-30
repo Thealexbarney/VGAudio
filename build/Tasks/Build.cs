@@ -1,4 +1,5 @@
 ﻿using System;
+using Cake.Common;
 using Cake.Common.Tools.MSBuild;
 using Cake.Core.Diagnostics;
 using Cake.Frosting;
@@ -39,6 +40,8 @@ namespace Build.Tasks
             context.LibBuilds["net45"].LibSuccess = true;
         }
 
+        public override bool ShouldRun(Context context) => context.IsRunningOnWindows();
+
         public override void OnError(Exception exception, Context context)
         {
             DisplayError(context, exception.Message);
@@ -75,7 +78,8 @@ namespace Build.Tasks
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["net45"].LibSuccess == true;
+            context.LibBuilds["net45"].LibSuccess == true &&
+            context.IsRunningOnWindows();
 
         public override void OnError(Exception exception, Context context)
         {
@@ -109,6 +113,8 @@ namespace Build.Tasks
 
             context.OtherBuilds["uwp"] = true;
         }
+
+        public override bool ShouldRun(Context context) => context.IsRunningOnWindows();
 
         public override void Finally(Context context) =>
             DeleteFile(context, context.UwpSideloadManifest, false);

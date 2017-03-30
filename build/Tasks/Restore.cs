@@ -1,9 +1,12 @@
-﻿using Cake.Common.Tools.DotNetCore;
+﻿using System;
+using Cake.Common;
+using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Restore;
 using Cake.Common.Tools.MSBuild;
 using Cake.Core;
 using Cake.Core.Diagnostics;
 using Cake.Frosting;
+using static Build.Utilities.Runners;
 
 namespace Build.Tasks
 {
@@ -20,6 +23,10 @@ namespace Build.Tasks
                 Targets = { "Restore" },
                 Verbosity = Verbosity.Minimal
             });
+
+        public override bool ShouldRun(Context context) => context.IsRunningOnWindows();
+
+        public override void OnError(Exception exception, Context context) => DisplayError(context, exception.Message);
     }
 
     public sealed class RestoreTools : FrostingTask<Context>

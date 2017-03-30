@@ -123,7 +123,7 @@ namespace Build.Utilities
         {
             byte[] commandBytes = Encoding.Unicode.GetBytes(command);
             string commandBase64 = Convert.ToBase64String(commandBytes);
-            Process.Start("powershell", "-EncodedCommand " + commandBase64);
+            Process.Start("powershell", "-NoProfile -EncodedCommand " + commandBase64);
         }
     }
 }
