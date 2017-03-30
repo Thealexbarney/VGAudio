@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Cake.Common.IO;
+﻿using Cake.Common.IO;
 using Cake.Frosting;
 
 namespace Build.Tasks
@@ -10,8 +9,7 @@ namespace Build.Tasks
     {
         public override void Run(Context context) => context.CopyDirectory(context.LibraryBinDir, context.PackageDir);
 
-        public override bool ShouldRun(Context context) =>
-          context.LibBuilds.Values.All(x => x.LibSuccess == true);
+        public override bool ShouldRun(Context context) => context.LibraryBuildsSucceeded;
     }
 
     [Dependency(typeof(CleanPackage))]
@@ -21,8 +19,7 @@ namespace Build.Tasks
         public override void Run(Context context) =>
             context.Zip(context.CliBinDir, context.PackageDir.CombineWithFilePath("VGAudioCli.zip"));
 
-        public override bool ShouldRun(Context context) =>
-            context.LibBuilds.Values.All(x => x.CliSuccess == true);
+        public override bool ShouldRun(Context context) => context.CliBuildsSucceeded;
     }
 
     [Dependency(typeof(CleanPackage))]
@@ -32,7 +29,6 @@ namespace Build.Tasks
         public override void Run(Context context) =>
             context.CopyFiles(context.GetFiles($"{context.UwpBinDir}/*.appxbundle"), context.PackageDir);
 
-        public override bool ShouldRun(Context context) =>
-          context.OtherBuilds["uwp"] == true;
+        public override bool ShouldRun(Context context) => context.OtherBuilds["uwp"] == true;
     }
 }

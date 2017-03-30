@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
@@ -53,5 +54,9 @@ namespace Build
         {
             ["uwp"] = null
         };
+
+        public bool LibraryBuildsSucceeded => LibBuilds.Values.All(x => x.LibSuccess == true);
+        public bool CliBuildsSucceeded => LibBuilds.Values.All(x => x.CliSuccess == true);
+        public bool TestsSucceeded => LibBuilds.Values.All(x => x.TestSuccess == true);
     }
 }

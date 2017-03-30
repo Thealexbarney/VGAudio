@@ -32,8 +32,8 @@ namespace Build.Tasks
 
         public override bool ShouldRun(Context context) =>
             context.SignBuild &&
-            context.LibBuilds.Values.All(x => x.CliSuccess == true) &&
-            context.LibBuilds.Values.All(x => x.TestSuccess == true) &&
+            context.CliBuildsSucceeded &&
+            context.TestsSucceeded &&
             Runners.CertificateExists(context.ReleaseCertThumbprint, true);
 
         public override void OnError(Exception exception, Context context) =>
@@ -62,7 +62,7 @@ namespace Build.Tasks
 
         public override bool ShouldRun(Context context) =>
             context.SignBuild &&
-            context.LibBuilds.Values.All(x => x.TestSuccess == true) &&
+            context.LibraryBuildsSucceeded &&
             Runners.CertificateExists(context.ReleaseCertThumbprint, true);
 
         public override void OnError(Exception exception, Context context) =>

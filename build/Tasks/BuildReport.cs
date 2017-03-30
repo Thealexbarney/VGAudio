@@ -77,17 +77,17 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            if (context.LibBuilds.Values.Any(x => x.LibSuccess != true))
+            if (!context.LibraryBuildsSucceeded)
             {
                 throw new Exception("Library build failed");
             }
 
-            if (context.LibBuilds.Values.Any(x => x.CliSuccess != true))
+            if (!context.CliBuildsSucceeded)
             {
                 throw new Exception("CLI build failed");
             }
 
-            if (context.LibBuilds.Values.Any(x => x.TestSuccess != true))
+            if (!context.TestsSucceeded)
             {
                 throw new Exception("Library tests failed");
             }
