@@ -17,11 +17,17 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
-    <PackageCertificateKeyFile>VGAudio.Uwp_TemporaryKey.pfx</PackageCertificateKeyFile>
-    <PackageCertificateThumbprint>EB553661E803DE06AA93B72183F93CA767804F1E</PackageCertificateThumbprint>
+    <PackageCertificateKeyFile>VGAudio.Uwp_TemporaryKey.pfx</PackageCertificateKeyFile>    
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>		
-	<AppxBundle>Always</AppxBundle>		
-	<AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
+    <AppxBundle>Always</AppxBundle>	
+    <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(AppxBuildType)' == 'store' ">
+    <UapAppxPackageBuildMode>CI</UapAppxPackageBuildMode>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(AppxBuildType)' == 'sideload' ">
+    <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
+    <PackageCertificateThumbprint>2043012AE523F7FA0F77A537387633BEB7A9F4DD</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -116,8 +122,13 @@
       <DependentUpon>Main.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(AppxBuildType)' != 'sideload' ">
     <AppxManifest Include="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </AppxManifest>
+  </ItemGroup>
+  <ItemGroup Condition="'$(AppxBuildType)' == 'sideload' ">
+    <AppxManifest Include="Sideload.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
   </ItemGroup>

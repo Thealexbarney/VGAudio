@@ -1,4 +1,5 @@
 ﻿using System;
+using Cake.Common.IO;
 using Cake.Common.Tools.MSBuild;
 using Cake.Core.Diagnostics;
 using Cake.Frosting;
@@ -69,7 +70,8 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            string thumbprint = SetupUwpSigningCertificate(context);
+            SetupUwpSigningCertificate(context);
+
             var settings = new MSBuildSettings
             {
                 Verbosity = Verbosity.Minimal,
@@ -77,14 +79,20 @@ namespace Build.Tasks
                 Configuration = context.Configuration
             };
 
-            if (thumbprint != null)
-            {
-                settings.WithProperty("PackageCertificateThumbprint", thumbprint);
-            }
-
+            settings.WithProperty("AppxBuildType", "store");
             context.MSBuild(context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj"), settings);
+
+            //The second manifext MUST be written after the first build, otherwise incremental builds will mess stuff up
+            CreateSideloadAppxmanifest(context);
+            settings.WithProperty("AppxBuildType", "sideload");
+            settings.WithProperty("PackageCertificateThumbprint", context.ReleaseCertThumbprint);
+            context.MSBuild(context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj"), settings);
+
             context.OtherBuilds["uwp"] = true;
         }
+
+        public override void Finally(Context context) =>
+            context.DeleteFile(context.UwpSideloadManifest);
 
         public override void OnError(Exception exception, Context context) =>
             context.OtherBuilds["uwp"] = false;

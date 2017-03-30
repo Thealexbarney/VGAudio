@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml.Linq;
@@ -81,36 +82,29 @@ namespace Build.Utilities
             }
         }
 
-        public static string SetupUwpSigningCertificate(Context context)
+        public static void CreateSideloadAppxmanifest(Context context)
         {
-            XDocument manifest = XDocument.Load(context.UwpCsproj.FullPath);
+            XDocument manifest = XDocument.Load(context.UwpStoreManifest.FullPath);
             XNamespace ns = manifest.Root?.GetDefaultNamespace();
-            string storeThumbprint = manifest.Root?.Element(ns + "PropertyGroup")?.Element(ns + "PackageCertificateThumbprint")?.Value;
-            string pfxFileName = manifest.Root?.Element(ns + "PropertyGroup")?.Element(ns + "PackageCertificateKeyFile")?.Value;
+            manifest.Root?.Element(ns + "Identity")?.SetAttributeValue("Name", context.SideloadAppxName);
+            using (var stream = new FileStream(context.UwpSideloadManifest.FullPath, FileMode.Create))
+            {
+                manifest.Save(stream);
+            }
+        }
+
+        public static void SetupUwpSigningCertificate(Context context)
+        {
+            XDocument csproj = XDocument.Load(context.UwpCsproj.FullPath);
+            XNamespace ns = csproj.Root?.GetDefaultNamespace();
+            string pfxFileName = csproj.Root?.Element(ns + "PropertyGroup")?.Element(ns + "PackageCertificateKeyFile")?.Value;
             FilePath pfxFile = context.UwpDir.CombineWithFilePath(pfxFileName);
 
-            if (CertificateExists(storeThumbprint, false))
+            if (!context.FileExists(pfxFile))
             {
-                context.Information($"Using store code signing certificate with thumbprint {storeThumbprint} in certificate store");
-                return storeThumbprint;
+                CreateSelfSignedCertificate(pfxFile, context.AppxPublisher);
+                context.Information($"Created self-signed test certificate at {pfxFile}");
             }
-
-            if (CertificateExists(context.ReleaseCertThumbprint, true))
-            {
-                context.Information($"Using release code signing certificate with thumbprint {context.ReleaseCertThumbprint} in certificate store");
-                return context.ReleaseCertThumbprint;
-            }
-
-            if (context.FileExists(pfxFile))
-            {
-                context.Information($"Using code signing certificate at {pfxFile}");
-                return null;
-            }
-
-            CreateSelfSignedCertificate(pfxFile, Environment.GetEnvironmentVariable("username"));
-            context.Information($"Created self-signed test certificate at {pfxFile}");
-
-            return null;
         }
 
         public static void CreateSelfSignedCertificate(FilePath outputPath, string subject)

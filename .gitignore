@@ -278,6 +278,7 @@ BenchmarkDotNet.Artifacts/
 /build/runbuild.txt
 /build/global.json
 /build/tools/cake
+Sideload.appxmanifest
 
 #Build output
 [Pp]ackage/

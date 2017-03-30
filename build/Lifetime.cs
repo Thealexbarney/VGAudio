@@ -31,6 +31,11 @@ namespace Build
             context.CliBinDir = context.BinDir.Combine("cli");
             context.UwpBinDir = context.BinDir.Combine("uwp");
 
+            context.UwpStoreManifest = context.UwpDir.CombineWithFilePath("Package.appxmanifest");
+            context.UwpSideloadManifest = context.UwpDir.CombineWithFilePath("Sideload.appxmanifest");
+            context.SideloadAppxName = "TheAlexBarney.VGAudio";
+            context.AppxPublisher = "2E186599-2EB7-4677-93A5-C222C2F74D01";
+
             context.ReleaseCertThumbprint = "2043012AE523F7FA0F77A537387633BEB7A9F4DD";
         }
     }

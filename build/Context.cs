@@ -35,6 +35,11 @@ namespace Build
         public DirectoryPath CliBinDir { get; set; }
         public DirectoryPath UwpBinDir { get; set; }
 
+        public FilePath UwpStoreManifest { get; set; }
+        public FilePath UwpSideloadManifest { get; set; }
+        public string SideloadAppxName { get; set; }
+        public string AppxPublisher { get; set; }
+
         public bool SignBuild { get; set; }
         public string ReleaseCertThumbprint { get; set; }
 
