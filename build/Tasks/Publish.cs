@@ -10,7 +10,7 @@ using Cake.Common.Tools.ILRepack;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
-using static Build.Utilities.Runners;
+using static Build.Utilities;
 
 namespace Build.Tasks
 {

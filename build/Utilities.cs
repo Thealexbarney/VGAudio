@@ -13,9 +13,9 @@ using Cake.Common.Tools.DotNetCore.Test;
 using Cake.Common.Tools.SignTool;
 using Cake.Core.IO;
 
-namespace Build.Utilities
+namespace Build
 {
-    internal static class Runners
+    internal static class Utilities
     {
         public static void BuildNetCli(Context context, string path, string framework)
         {

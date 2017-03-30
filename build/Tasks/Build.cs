@@ -3,7 +3,7 @@ using Cake.Common;
 using Cake.Common.Tools.MSBuild;
 using Cake.Core.Diagnostics;
 using Cake.Frosting;
-using static Build.Utilities.Runners;
+using static Build.Utilities;
 
 namespace Build.Tasks
 {

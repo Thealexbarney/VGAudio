@@ -1,6 +1,6 @@
 ﻿using System;
 using Cake.Frosting;
-using static Build.Utilities.Runners;
+using static Build.Utilities;
 
 namespace Build.Tasks
 {
