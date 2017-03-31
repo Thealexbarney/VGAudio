@@ -273,6 +273,7 @@ BenchmarkDotNet.Artifacts/
 
 /src/VGAudio.Cli/Properties/launchSettings.json
 /build/Properties/launchSettings.json
+!*_TemporaryKey.pfx
 
 #Build script tools
 /build/runbuild.txt

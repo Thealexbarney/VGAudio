@@ -97,10 +97,7 @@ namespace Build
 
         public static void SetupUwpSigningCertificate(Context context)
         {
-            XDocument csproj = XDocument.Load(context.UwpCsproj.FullPath);
-            XNamespace ns = csproj.Root?.GetDefaultNamespace();
-            string pfxFileName = csproj.Root?.Element(ns + "PropertyGroup")?.Element(ns + "PackageCertificateKeyFile")?.Value;
-            FilePath pfxFile = context.UwpDir.CombineWithFilePath(pfxFileName);
+            FilePath pfxFile = context.UwpDir.CombineWithFilePath("VGAudio.Uwp_StoreKey.pfx");
 
             if (!context.FileExists(pfxFile))
             {

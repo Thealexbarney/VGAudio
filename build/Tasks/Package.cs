@@ -26,8 +26,11 @@ namespace Build.Tasks
     [Dependency(typeof(PublishUwp))]
     public sealed class PackageUwp : FrostingTask<Context>
     {
-        public override void Run(Context context) =>
+        public override void Run(Context context)
+        {
+            context.EnsureDirectoryExists(context.PackageDir);
             context.CopyFiles(context.GetFiles($"{context.UwpBinDir}/*.appxbundle"), context.PackageDir);
+        }
 
         public override bool ShouldRun(Context context) => context.OtherBuilds["uwp"] == true;
     }
