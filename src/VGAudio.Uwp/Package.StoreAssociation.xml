@@ -361,6 +361,7 @@
     <MainPackageIdentityName>35626TheAlexBarney.DSP-ADPCMEncoder</MainPackageIdentityName>
     <ReservedNames>
       <ReservedName>DSP-ADPCM Encoder</ReservedName>
+      <ReservedName>VGAudio</ReservedName>
     </ReservedNames>
   </ProductReservedInfo>
   <AccountPackageIdentityNames />

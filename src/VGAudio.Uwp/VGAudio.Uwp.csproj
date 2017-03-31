@@ -9,6 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VGAudio.Uwp</RootNamespace>
     <AssemblyName>VGAudio.Uwp</AssemblyName>
+    <ProjectName>VGAudio</ProjectName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
