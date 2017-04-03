@@ -80,15 +80,31 @@
         public int SeekChunkSize { get; set; }
 
         /// <summary>
+        /// The size of the REGN chunk as stated in the
+        /// REGN chunk header.
+        /// </summary>
+        public int RegnChunkSize { get; set; }
+
+        /// <summary>
         /// The size of the DATA chunk as stated in the
         /// DATA chunk header.
         /// </summary>
         public int DataChunkSize { get; set; }
 
         /// <summary>
+        /// The REGN chunk.
+        /// </summary>
+        public RegnChunk Regn { get; set; }
+
+        /// <summary>
         /// The audio codec.
         /// </summary>
         public BxstmCodec Codec { get; set; }
+
+        /// <summary>
+        /// The number of audio sections in the file.
+        /// </summary>
+        public int SectionCount { get; set; }
 
         /// <summary>
         /// Specifies whether the file includes an extra chunk in the header

@@ -38,6 +38,7 @@ namespace VGAudio.Containers.Bxstm
                 ReadHeader(reader, structure);
                 ReadInfoChunk(reader, structure);
                 ReadSeekChunk(reader, structure);
+                ReadRegnChunk(reader, structure);
                 ReadDataChunk(reader, structure, readAudioData);
 
                 return structure;
@@ -163,7 +164,7 @@ namespace VGAudio.Containers.Bxstm
 
             structure.Looping = reader.ReadByte() == 1;
             structure.ChannelCount = reader.ReadByte();
-            reader.BaseStream.Position += 1;
+            structure.SectionCount = reader.ReadByte();
 
             structure.SampleRate = reader.ReadInt32();
 
@@ -293,6 +294,60 @@ namespace VGAudio.Containers.Bxstm
 
             structure.SeekTable = tableBytes.ToShortArray()
                 .DeInterleave(2, structure.ChannelCount);
+        }
+
+        private static void ReadRegnChunk(BinaryReader reader, BCFstmStructure structure)
+        {
+            if (structure.RegnChunkOffset == 0) return;
+
+            reader.BaseStream.Position = structure.RegnChunkOffset;
+
+            if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "REGN")
+            {
+                throw new InvalidDataException("Unknown or invalid REGN chunk");
+            }
+            structure.RegnChunkSize = reader.ReadInt32();
+
+            if (structure.RegnChunkSizeHeader != structure.RegnChunkSize)
+            {
+                throw new InvalidDataException("REGN chunk size in header doesn't match size in REGN header");
+            }
+
+            if (structure.SectionCount * 0x100 + 0x20 != structure.RegnChunkSize)
+            {
+                throw new InvalidDataException(
+                    $"Invalid REGN chunk size 0x{structure.RegnChunkSize:x}. Expected 0x{structure.SectionCount * 0x100 + 0x20:x}");
+            }
+
+            var regn = new RegnChunk
+            {
+                Size = structure.RegnChunkSize,
+                EntryCount = structure.SectionCount
+            };
+
+            for (int i = 0; i < regn.EntryCount; i++)
+            {
+                reader.BaseStream.Position = structure.RegnChunkOffset + 0x20 + 0x100 * i;
+
+                var entry = new RegnEntry
+                {
+                    StartSample = reader.ReadInt32(),
+                    EndSample = reader.ReadInt32()
+                };
+
+                for (int c = 0; c < structure.ChannelCount; c++)
+                {
+                    entry.Channels.Add(new RegnChannel
+                    {
+                        PredScale = reader.ReadInt16(),
+                        Value1 = reader.ReadInt16(),
+                        Value2 = reader.ReadInt16()
+                    });
+                }
+                regn.Entries.Add(entry);
+            }
+
+            structure.Regn = regn;
         }
 
         private static void ReadDataChunk(BinaryReader reader, BCFstmStructure structure, bool readAudioData)
