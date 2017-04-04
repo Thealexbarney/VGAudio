@@ -77,9 +77,7 @@ namespace Build
                     DigestAlgorithm = SignToolDigestAlgorithm.Sha256,
                     CertThumbprint = thumbprint,
                     TimeStampDigestAlgorithm = SignToolDigestAlgorithm.Sha256,
-                    TimeStampUri = new Uri("http://timestamp.digicert.com"),
-                    //TODO: remove hard coded path once CAKE resolution is fixed
-                    ToolPath = context.Environment.GetSpecialPath(SpecialPath.ProgramFilesX86).Combine(@"Windows Kits\10\bin\x64").CombineWithFilePath("signtool.exe")
+                    TimeStampUri = new Uri("http://timestamp.digicert.com")
                 });
             }
         }
