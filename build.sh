@@ -90,5 +90,5 @@ fi
 
 echo "Running build..."
 dotnet publish /v:q /nologo
-dotnet bin/Debug/netcoreapp1.0/publish/Build.dll --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
+dotnet bin/Debug/netcoreapp1.1/publish/Build.dll --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
 exit $?

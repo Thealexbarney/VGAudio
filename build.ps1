@@ -108,7 +108,7 @@ try {
 
     Write-Output "Running build..."
 	& dotnet publish /v:q /nologo
-    & dotnet bin/Debug/netcoreapp1.0/publish/Build.dll $Arguments
+    & dotnet bin/Debug/netcoreapp1.1/publish/Build.dll $Arguments
     exit $LASTEXITCODE;
 
 } finally {
