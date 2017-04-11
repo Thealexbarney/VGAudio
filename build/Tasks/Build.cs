@@ -102,6 +102,8 @@ namespace Build.Tasks
                 Configuration = context.Configuration
             };
 
+            settings.WithProperty("VisualStudioVersion", "15.0");
+
             context.MSBuild(context.UwpCsproj, settings.WithProperty("AppxBuildType", "Store"));
 
             //The second manifext MUST be written after the first build, otherwise incremental builds will mess stuff up
