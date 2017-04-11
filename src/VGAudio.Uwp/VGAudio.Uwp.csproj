@@ -12,7 +12,7 @@
     <ProjectName>VGAudio</ProjectName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
+    <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
@@ -22,16 +22,16 @@
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
-  </PropertyGroup>  
+  </PropertyGroup>
   <PropertyGroup Condition="'$(AppxBuildType)' == 'Store' ">
     <UapAppxPackageBuildMode>CI</UapAppxPackageBuildMode>
     <PackageCertificateKeyFile>VGAudio.Uwp_StoreKey.pfx</PackageCertificateKeyFile>
-  </PropertyGroup>  
+  </PropertyGroup>
   <PropertyGroup Condition="'$(AppxBuildType)' == 'Sideload' ">
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <PackageCertificateKeyFile>VGAudio.Uwp_StoreKey.pfx</PackageCertificateKeyFile>
     <PackageCertificateThumbprint>2043012AE523F7FA0F77A537387633BEB7A9F4DD</PackageCertificateThumbprint>
-  </PropertyGroup>  
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x86\Debug\</OutputPath>
