@@ -15,6 +15,8 @@ using VGAudio.Formats;
 using VGAudio.Uwp.Audio;
 using GalaSoft.MvvmLight.Command;
 using PropertyChanged;
+using VGAudio.Containers;
+using VGAudio.Containers.Idsp;
 
 namespace VGAudio.Uwp.ViewModels
 {
@@ -25,11 +27,11 @@ namespace VGAudio.Uwp.ViewModels
 
         //Hacky solution due to weird issues in UWP
         //Binding problems with Dictionary<enum, object> but not Dictionary<int, object>
-        public Dictionary<int, FileTypeInfo> FileTypesBinding { get; }
+        public Dictionary<int, ContainerType> FileTypesBinding { get; }
         public int SelectedFileTypeBinding
         {
-            get { return (int)SelectedFileType; }
-            set { SelectedFileType = (FileType)value; }
+            get => (int)SelectedFileType;
+            set => SelectedFileType = (FileType)value;
         }
 
         public FileType SelectedFileType { get; set; } = FileType.Dsp;
@@ -44,9 +46,12 @@ namespace VGAudio.Uwp.ViewModels
 
         public DspConfiguration DspConfiguration { get; set; } = new DspConfiguration();
         public BrstmConfiguration BrstmConfiguration { get; set; } = new BrstmConfiguration();
+        public BcstmConfiguration BcstmConfiguration { get; set; } = new BcstmConfiguration();
+        public BfstmConfiguration BfstmConfiguration { get; set; } = new BfstmConfiguration();
+        public IdspConfiguration IdspConfiguration { get; set; } = new IdspConfiguration();
 
         public string InPath { get; set; }
-        private List<IAudioFormat> InFormats { get; set; }
+        private IAudioFormat InFormat { get; set; }
 
         public AudioData AudioData { get; set; }
         public bool Looping { get; set; }
@@ -59,7 +64,7 @@ namespace VGAudio.Uwp.ViewModels
 
         public MainViewModel()
         {
-            FileTypesBinding = AudioInfo.FileTypes.Where(x => x.Value.GetWriter != null).ToDictionary(x => (int)x.Key, x => x.Value);
+            FileTypesBinding = AudioInfo.Containers.Where(x => x.Value.GetWriter != null).ToDictionary(x => (int)x.Key, x => x.Value);
 
             SaveFileCommand = new RelayCommand(SaveFile, CanSave);
             OpenFileCommand = new RelayCommand(OpenFile);
@@ -90,8 +95,8 @@ namespace VGAudio.Uwp.ViewModels
                     FutureAccessList.AddOrReplace("Input File", file);
                 InPath = file.Path;
 
-                InFormats = await Task.Run(() => IO.OpenFiles(file.Path));
-                IAudioFormat format = InFormats.First();
+                InFormat = await Task.Run(() => IO.OpenFile(file.Path));
+                IAudioFormat format = InFormat;
 
                 LoopStart = format.LoopStart;
                 LoopEnd = format.LoopEnd;
@@ -112,9 +117,9 @@ namespace VGAudio.Uwp.ViewModels
         {
             var savePicker = new FileSavePicker
             {
-                SuggestedFileName = Path.ChangeExtension(Path.GetFileName(InPath), "." + AudioInfo.FileTypes[SelectedFileType].Extensions.First())
+                SuggestedFileName = Path.ChangeExtension(Path.GetFileName(InPath), "." + AudioInfo.Containers[SelectedFileType].Extensions.First())
             };
-            savePicker.FileTypeChoices.Add(AudioInfo.FileTypes[SelectedFileType].Description, new List<string> { "." + AudioInfo.FileTypes[SelectedFileType].Extensions.First() });
+            savePicker.FileTypeChoices.Add(AudioInfo.Containers[SelectedFileType].Description, new List<string> { "." + AudioInfo.Containers[SelectedFileType].Extensions.First() });
 
             Saving = true;
             SaveFileCommand.RaiseCanExecuteChanged();
@@ -135,7 +140,7 @@ namespace VGAudio.Uwp.ViewModels
                 await Task.Run(() =>
                 {
                     watch.Start();
-                    file = AudioInfo.FileTypes[SelectedFileType].GetWriter().GetFile(AudioData);
+                    file = AudioInfo.Containers[SelectedFileType].GetWriter().GetFile(AudioData, GetConfiguration(SelectedFileType));
                     watch.Stop();
                 });
 
@@ -153,6 +158,25 @@ namespace VGAudio.Uwp.ViewModels
             {
                 Saving = false;
                 SaveFileCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        private IConfiguration GetConfiguration(FileType type)
+        {
+            switch (type)
+            {
+                case FileType.Dsp:
+                    return DspConfiguration;
+                case FileType.Idsp:
+                    return IdspConfiguration;
+                case FileType.Brstm:
+                    return BrstmConfiguration;
+                case FileType.Bcstm:
+                    return BcstmConfiguration;
+                case FileType.Bfstm:
+                    return BfstmConfiguration;
+                default:
+                    return null;
             }
         }
 

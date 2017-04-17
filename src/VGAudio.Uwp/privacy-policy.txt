@@ -1,0 +1,1 @@
+This application does not collect or transmit any user's personally identifiable information. A small set of non-identifiable information is sent to Microsoft for statistical information about app usage, device type and capabilities.

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using VGAudio.Containers;
 using VGAudio.Formats;
 
@@ -7,19 +6,15 @@ namespace VGAudio.Uwp.Audio
 {
     public static class IO
     {
-        public static List<IAudioFormat> OpenFiles(string path)
+        public static IAudioFormat OpenFile(string path)
         {
-            var output = new List<IAudioFormat>();
-
             FileType type = AudioInfo.GetFileTypeFromName(path);
-            IAudioReader reader = AudioInfo.FileTypes[type].GetReader();
+            IAudioReader reader = AudioInfo.Containers[type].GetReader();
 
             using (var stream = new FileStream(path, FileMode.Open))
             {
-                output.Add(reader.ReadFormat(stream));
+                return reader.ReadFormat(stream);
             }
-
-            return output;
         }
 
         public static void SaveFile(AudioData audio, string path)

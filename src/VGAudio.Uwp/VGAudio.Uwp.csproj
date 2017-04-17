@@ -9,24 +9,27 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VGAudio.Uwp</RootNamespace>
     <AssemblyName>VGAudio.Uwp</AssemblyName>
+    <ProjectName>VGAudio</ProjectName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
+    <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
-    <PackageCertificateKeyFile>VGAudio.Uwp_TemporaryKey.pfx</PackageCertificateKeyFile>    
-    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>		
-    <AppxBundle>Always</AppxBundle>	
+    <PackageCertificateKeyFile>VGAudio.Uwp_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
+    <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(AppxBuildType)' == 'store' ">
+  <PropertyGroup Condition="'$(AppxBuildType)' == 'Store' ">
     <UapAppxPackageBuildMode>CI</UapAppxPackageBuildMode>
+    <PackageCertificateKeyFile>VGAudio.Uwp_StoreKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(AppxBuildType)' == 'sideload' ">
+  <PropertyGroup Condition="'$(AppxBuildType)' == 'Sideload' ">
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
+    <PackageCertificateKeyFile>VGAudio.Uwp_StoreKey.pfx</PackageCertificateKeyFile>
     <PackageCertificateThumbprint>2043012AE523F7FA0F77A537387633BEB7A9F4DD</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
@@ -101,6 +104,7 @@
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
     <None Include="project.json" />
+    <None Include="VGAudio.Uwp_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.xaml.cs">
@@ -114,6 +118,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\Bcstm.xaml.cs">
+      <DependentUpon>Bcstm.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Brstm.xaml.cs">
       <DependentUpon>Brstm.xaml</DependentUpon>
     </Compile>
@@ -122,14 +129,14 @@
       <DependentUpon>Main.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup Condition="'$(AppxBuildType)' != 'sideload' ">
+  <ItemGroup Condition="'$(AppxBuildType)' != 'Sideload' ">
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
   </ItemGroup>
-  <ItemGroup Condition="'$(AppxBuildType)' == 'sideload' ">
+  <ItemGroup Condition="'$(AppxBuildType)' == 'Sideload' ">
     <AppxManifest Include="Sideload.appxmanifest">
-      <SubType>Designer</SubType>
+      <Visible>false</Visible>
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
@@ -188,6 +195,10 @@
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Bcstm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\Brstm.xaml">
       <SubType>Designer</SubType>

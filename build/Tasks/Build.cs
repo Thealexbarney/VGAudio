@@ -102,14 +102,13 @@ namespace Build.Tasks
                 Configuration = context.Configuration
             };
 
-            settings.WithProperty("AppxBuildType", "store");
-            context.MSBuild(context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj"), settings);
+            settings.WithProperty("VisualStudioVersion", "15.0");
+
+            context.MSBuild(context.UwpCsproj, settings.WithProperty("AppxBuildType", "Store"));
 
             //The second manifext MUST be written after the first build, otherwise incremental builds will mess stuff up
             CreateSideloadAppxmanifest(context);
-            settings.WithProperty("AppxBuildType", "sideload");
-            settings.WithProperty("PackageCertificateThumbprint", context.ReleaseCertThumbprint);
-            context.MSBuild(context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj"), settings);
+            context.MSBuild(context.UwpCsproj, settings.WithProperty("AppxBuildType", "Sideload"));
 
             context.OtherBuilds["uwp"] = true;
         }

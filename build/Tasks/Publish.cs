@@ -89,11 +89,11 @@ namespace Build.Tasks
         {
             XDocument manifest = XDocument.Load(context.UwpDir.CombineWithFilePath("Package.appxmanifest").FullPath);
             XNamespace ns = manifest.Root?.GetDefaultNamespace();
-            string packageVersion = manifest.Root?.Element(ns + "Identity")?.Attribute("Version").Value;
+            string packageVersion = manifest.Root?.Element(ns + "Identity")?.Attribute("Version")?.Value;
 
             string debugSuffix = context.IsReleaseBuild ? "" : "_Debug";
-            string packageName = $"VGAudio.Uwp_{packageVersion}_x86_x64_arm{debugSuffix}";
-            DirectoryPath packageDir = context.UwpDir.Combine($"AppPackages/VGAudio.Uwp_{packageVersion}{debugSuffix}_Test");
+            string packageName = $"VGAudio_{packageVersion}_x86_x64_arm{debugSuffix}";
+            DirectoryPath packageDir = context.UwpDir.Combine($"AppPackages/VGAudio_{packageVersion}{debugSuffix}_Test");
 
             FilePath appxbundle = packageDir.CombineWithFilePath($"{packageName}.appxbundle");
             var toCopy = new FilePathCollection(new[] { appxbundle }, PathComparer.Default);

@@ -8,15 +8,19 @@ namespace VGAudio.Uwp.Audio
 {
     internal static class AudioInfo
     {
-        public static readonly Dictionary<FileType, FileTypeInfo> FileTypes = new Dictionary<FileType, FileTypeInfo>
+        public static readonly Dictionary<FileType, ContainerType> Containers = new Dictionary<FileType, ContainerType>
         {
-            [FileType.Wave] = new FileTypeInfo("WAVE", new[] { "wav" }, "WAVE Audio File", () => new WaveReader(), () => new WaveWriter()),
-            [FileType.Dsp] = new FileTypeInfo("DSP", new[] { "dsp" }, "Nintendo DSP ACPCM Audio File", () => new DspReader(), () => new DspWriter()),
-            [FileType.Brstm] = new FileTypeInfo("BRSTM", new[] { "brstm" }, "BRSTM Audio File", () => new BrstmReader(), () => new BrstmWriter())
+            [FileType.Wave] = new ContainerType("WAVE", new[] { "wav" }, "WAVE Audio File", () => new WaveReader(), () => new WaveWriter()),
+            [FileType.Dsp] = new ContainerType("DSP", new[] { "dsp" }, "Nintendo DSP ACPCM Audio File", () => new DspReader(), () => new DspWriter()),
+            [FileType.Idsp] = new ContainerType("IDSP", new[] { "idsp" }, "IDSP Audio File", () => new IdspReader(), () => new IdspWriter()),
+            [FileType.Brstm] = new ContainerType("BRSTM", new[] { "brstm" }, "BRSTM Audio File", () => new BrstmReader(), () => new BrstmWriter()),
+            [FileType.Bcstm] = new ContainerType("BCSTM", new[] { "bcstm" }, "BCSTM Audio File", () => new BcstmReader(), () => new BcstmWriter()),
+            [FileType.Bfstm] = new ContainerType("BFSTM", new[] { "bfstm" }, "BFSTM Audio File", () => new BfstmReader(), () => new BfstmWriter()),
+            [FileType.Genh] = new ContainerType("GENH", new[] { "genh" }, "GENH Audio File", () => new GenhReader(), null)
         };
 
         public static readonly Dictionary<string, FileType> Extensions =
-            FileTypes.SelectMany(x => x.Value.Extensions.Select(y => new { y, x.Key }))
+            Containers.SelectMany(x => x.Value.Extensions.Select(y => new { y, x.Key }))
             .ToDictionary(x => x.y, x => x.Key);
 
         public static FileType GetFileTypeFromName(string fileName)
@@ -40,7 +44,7 @@ namespace VGAudio.Uwp.Audio
         Genh
     }
 
-    public class FileTypeInfo
+    public class ContainerType
     {
         public string DisplayName { get; }
         public IEnumerable<string> Extensions { get; }
@@ -48,7 +52,7 @@ namespace VGAudio.Uwp.Audio
         public Func<IAudioReader> GetReader { get; }
         public Func<IAudioWriter> GetWriter { get; }
 
-        public FileTypeInfo(string displayName, IEnumerable<string> extensions, string description, Func<IAudioReader> getReader, Func<IAudioWriter> getWriter)
+        public ContainerType(string displayName, IEnumerable<string> extensions, string description, Func<IAudioReader> getReader, Func<IAudioWriter> getWriter)
         {
             DisplayName = displayName;
             Extensions = extensions.ToList();

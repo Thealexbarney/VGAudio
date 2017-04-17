@@ -20,6 +20,11 @@
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="4.0.1" />
   </ItemGroup>
 
+  <!-- Workarounds for MSBuild and SDK bugs https://github.com/dotnet/sdk/issues/955 -->
   <Target Name="GetPackagingOutputs" />
+  
+  <PropertyGroup Condition="'$(AppxBuildType)' == 'Store'">
+    <DebugType>pdbonly</DebugType>
+  </PropertyGroup>  
 
 </Project>
