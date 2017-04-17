@@ -39,6 +39,7 @@ namespace Build.Tasks
     [Dependency(typeof(SignUwp))]
     public sealed class Sign : FrostingTask<Context> { }
 
+    [Dependency(typeof(Publish))]
     [Dependency(typeof(CleanPackage))]
     [Dependency(typeof(PackageLibrary))]
     [Dependency(typeof(PackageCli))]
@@ -46,6 +47,7 @@ namespace Build.Tasks
     public sealed class Package : FrostingTask<Context> { }
     
     [Dependency(typeof(Clean))]
+    [Dependency(typeof(Publish))]
     [Dependency(typeof(Sign))]
     [Dependency(typeof(Package))]
     public sealed class Release : FrostingTask<Context> { }
