@@ -32,9 +32,8 @@ namespace VGAudio.Codecs
                 }
         }
 
-        private static bool AnalyzeRanges(double[][] mtx, int[] vecIdxsOut)
+        private static bool AnalyzeRanges(double[][] mtx, int[] vecIdxsOut, double[] recips)
         {
-            double[] recips = new double[3];
             double val, tmp, min, max;
 
             /* Get greatest distance from zero */
@@ -185,14 +184,8 @@ namespace VGAudio.Codecs
             outR[2] = inR[2];
         }
 
-        private static void MatrixFilter(double[,] src, int row, double[] dst)
+        private static void MatrixFilter(double[,] src, int row, double[] dst, double[][] mtx)
         {
-            double[][] mtx = new double[3][];
-            for (int i = 0; i < mtx.Length; i++)
-            {
-                mtx[i] = new double[3];
-            }
-
             mtx[2][0] = 1.0;
             for (int i = 1; i <= 2; i++)
                 mtx[2][i] = -src[row, i];
@@ -258,6 +251,12 @@ namespace VGAudio.Codecs
                 bufferList[i] = new double[3];
             }
 
+            double[][] mtx = new double[3][];
+            for (int i = 0; i < mtx.Length; i++)
+            {
+                mtx[i] = new double[3];
+            }
+
             int[] buffer1 = new int[8];
             double[] buffer2 = new double[3];
 
@@ -283,7 +282,7 @@ namespace VGAudio.Codecs
                         }
                     }
                     buffer1[index]++;
-                    MatrixFilter(records, z, buffer2);
+                    MatrixFilter(records, z, buffer2, mtx);
                     for (int i = 0; i <= 2; i++)
                         bufferList[index][i] += buffer2[i];
                 }
@@ -308,6 +307,7 @@ namespace VGAudio.Codecs
 
             double[] vec1 = new double[3];
             double[] vec2 = new double[3];
+            double[] buffer = new double[3];
 
             double[][] mtx = new double[3][];
             for (int i = 0; i < mtx.Length; i++)
@@ -328,15 +328,16 @@ namespace VGAudio.Codecs
             }
 
             /* Iterate though one frame at a time */
-            foreach (var frame in source.Batch(14))
+            for (int sample = 0, remaining = source.Length; sample < source.Length; sample += 14, remaining -= 14)
             {
-                Array.Copy(frame, 0, pcmHistBuffer, 14, 14);
+                Array.Clear(pcmHistBuffer, 14, 14);
+                Array.Copy(source, sample, pcmHistBuffer, 14, Math.Min(14, remaining));
 
                 InnerProductMerge(vec1, pcmHistBuffer);
                 if (Math.Abs(vec1[0]) > 10.0)
                 {
                     OuterProductMerge(mtx, pcmHistBuffer);
-                    if (!AnalyzeRanges(mtx, vecIdxs))
+                    if (!AnalyzeRanges(mtx, vecIdxs, buffer))
                     {
                         BidirectionalFilter(mtx, vecIdxs, vec1);
                         if (!QuadraticMerge(vec1))
@@ -356,7 +357,7 @@ namespace VGAudio.Codecs
 
             for (int z = 0; z < recordCount; z++)
             {
-                MatrixFilter(records, z, vecBest[0]);
+                MatrixFilter(records, z, vecBest[0], mtx);
                 for (int y = 1; y <= 2; y++)
                     vec1[y] += vecBest[0][y];
             }
