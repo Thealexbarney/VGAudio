@@ -13,12 +13,13 @@
             <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <local:DoubleToVisibilityConverter x:Key="DoubleToVisibilityConverter" />
             <local:BrstmToVisibilityConverter x:Key="BrstmToVisibilityConverter" />
+            <local:BcstmToVisibilityConverter x:Key="BcstmToVisibilityConverter" />
         </Grid.Resources>
         <StackPanel Margin="30">
             <Button Content="Open File" Command="{Binding OpenFileCommand}"/>
             <StackPanel Visibility="{Binding StateOpened, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock TextWrapping="Wrap">
-                    Successfully opened <Run Text="{Binding InputFileType}"/> file.
+                    Successfully opened file.
                 </TextBlock>
             </StackPanel>
             <StackPanel Visibility="{Binding StateOpened, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -40,6 +41,7 @@
                 <TextBlock Margin="0,20,0,0">Save File Type:</TextBlock>
                 <ComboBox  Margin="0,10,0,0" ItemsSource="{Binding Path=FileTypesBinding, Mode=OneTime}" DisplayMemberPath="Value.DisplayName" SelectedValuePath="Key" SelectedValue="{Binding SelectedFileTypeBinding, Mode=TwoWay}"/>
                 <Button  Margin="0,10,0,0" Content="Save File" Command="{Binding SaveFileCommand}"/>
+                <local:Bcstm Visibility="{Binding SelectedFileType, Converter={StaticResource BcstmToVisibilityConverter}}"></local:Bcstm>
                 <local:Brstm Visibility="{Binding SelectedFileType, Converter={StaticResource BrstmToVisibilityConverter}}"></local:Brstm>
             </StackPanel>
         </StackPanel>
