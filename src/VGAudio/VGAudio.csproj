@@ -5,7 +5,7 @@
     <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
 
     <AssemblyTitle>VGAudio</AssemblyTitle>
-    <VersionPrefix>2.0.0-beta1</VersionPrefix>
+    <VersionPrefix>2.0.0-beta2</VersionPrefix>
     <Authors>Alex Barney</Authors>
     <Copyright>Copyright © 2016 Alex Barney</Copyright>
     <Description>A library for encoding, decoding, and manipulating audio files using Nintendo's DSP-ADPCM format.</Description>
