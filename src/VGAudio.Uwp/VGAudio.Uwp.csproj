@@ -22,6 +22,7 @@
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
+	<RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <PropertyGroup Condition="'$(AppxBuildType)' == 'Store' ">
     <UapAppxPackageBuildMode>CI</UapAppxPackageBuildMode>
@@ -102,8 +103,6 @@
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <None Include="project.json" />
     <None Include="VGAudio.Uwp_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
@@ -210,6 +209,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.3.2" />
+    <PackageReference Include="MvvmLightLibs" Version="5.3.0" />
+    <PackageReference Include="PropertyChanged.Fody" Version="1.52.1" />
     <ProjectReference Include="..\VGAudio\VGAudio.csproj">
       <Project>{2414DAA9-779C-4E7E-A97F-4DE09B22B88F}</Project>
       <Name>VGAudio</Name>

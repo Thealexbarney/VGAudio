@@ -20,11 +20,8 @@ namespace Build.Tasks
             }
 
             FilePathCollection files = context.GetFiles($"{context.UwpDir}/_scale-*.appx");
-            files += context.GetFiles($"{context.UwpDir}/*.nuget.props");
-            files += context.GetFiles($"{context.UwpDir}/*.nuget.targets");
             files += context.GetFiles($"{context.UwpDir}/*.csproj.user");
             files += context.UwpDir.CombineWithFilePath("_pkginfo.txt");
-            files += context.UwpDir.CombineWithFilePath("project.lock.json");
             files += context.UwpSideloadManifest;
 
             foreach (FilePath file in files)
