@@ -64,11 +64,14 @@ namespace VGAudio.Containers
                 channels[c] = channel;
             }
 
-            var adpcm = new GcAdpcmFormat(structure.SampleCount, structure.SampleRate, channels);
-            adpcm.SetLoop(structure.Looping, structure.LoopStart, structure.SampleCount);
-            adpcm.Tracks = structure.Tracks;
-
-            return adpcm;
+            var builder = new GcAdpcmFormat.Builder
+            {
+                SampleCount = structure.SampleCount,
+                SampleRate = structure.SampleRate,
+                Channels = channels,
+                Tracks = structure.Tracks
+            };
+            return builder.Loop(structure.Looping, structure.LoopStart, structure.SampleCount).Build();
         }
 
         protected override BrstmConfiguration GetConfiguration(BrstmStructure structure)

@@ -3,33 +3,24 @@ using System.Collections.Generic;
 
 namespace VGAudio.Formats
 {
-    public abstract class AudioFormatBase<T> : IAudioFormat
-        where T : AudioFormatBase<T>
+    public abstract class AudioFormatBase<TFormat, TBuilder> : IAudioFormat
+        where TFormat : AudioFormatBase<TFormat, TBuilder>
+        where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>, new()
     {
         public int SampleCount { get; }
         public int SampleRate { get; }
-        public int ChannelCount { get; protected set; }
-        public int LoopStart { get; protected set; }
-        public int LoopEnd { get; protected set; }
-        public bool Looping { get; protected set; }
+        public int ChannelCount { get; }
+        public int LoopStart { get; }
+        public int LoopEnd { get; }
+        public bool Looping { get; }
 
         IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16);
         IAudioFormat IAudioFormat.GetChannels(IEnumerable<int> channelRange) => GetChannels(channelRange);
-        IAudioFormat IAudioFormat.SetLoop(bool loop, int loopStart, int loopEnd) => SetLoop(loop, loopStart, loopEnd);
-        IAudioFormat IAudioFormat.SetLoop(bool loop) => SetLoop(loop);
+        IAudioFormat IAudioFormat.WithLoop(bool loop, int loopStart, int loopEnd) => WithLoop(loop, loopStart, loopEnd);
+        IAudioFormat IAudioFormat.WithLoop(bool loop) => WithLoop(loop);
 
         public abstract Pcm16Format ToPcm16();
-        public abstract T EncodeFromPcm16(Pcm16Format pcm16);
-
-        public T GetChannels(IEnumerable<int> channelRange)
-        {
-            if (channelRange == null)
-                throw new ArgumentNullException(nameof(channelRange));
-
-            return GetChannelsInternal(channelRange);
-        }
-
-        protected abstract T GetChannelsInternal(IEnumerable<int> channelRange);
+        public abstract TFormat EncodeFromPcm16(Pcm16Format pcm16);
 
         protected AudioFormatBase(int sampleCount, int sampleRate, int channelCount)
         {
@@ -38,61 +29,58 @@ namespace VGAudio.Formats
             ChannelCount = channelCount;
         }
 
-        public virtual T SetLoop(bool loop, int loopStart, int loopEnd)
+        protected AudioFormatBase(TBuilder builder)
+            : this(builder.SampleCount, builder.SampleRate, builder.ChannelCount)
         {
-            if (!loop)
-            {
-                return SetLoop(false);
-            }
-
-            if (loopStart < 0 || loopStart > SampleCount)
-            {
-                throw new ArgumentOutOfRangeException(nameof(loopStart), loopStart, "Loop points must be less than the number of samples and non-negative.");
-            }
-
-            if (loopEnd < 0 || loopEnd > SampleCount)
-            {
-                throw new ArgumentOutOfRangeException(nameof(loopEnd), loopEnd, "Loop points must be less than the number of samples and non-negative.");
-            }
-
-            if (loopEnd < loopStart)
-            {
-                throw new ArgumentOutOfRangeException(nameof(loopEnd), loopEnd, "The loop end must be greater than the loop start");
-            }
-
-            Looping = true;
-            LoopStart = loopStart;
-            LoopEnd = loopEnd;
-
-            return this as T;
+            Looping = builder.Looping;
+            LoopStart = builder.LoopStart;
+            LoopEnd = builder.LoopEnd;
         }
 
-        public virtual T SetLoop(bool loop)
+        private TFormat GetChannels(IEnumerable<int> channelRange)
         {
-            Looping = loop;
-            LoopStart = 0;
-            LoopEnd = loop ? SampleCount : 0;
-            return this as T;
+            if (channelRange == null)
+                throw new ArgumentNullException(nameof(channelRange));
+
+            return GetChannelsInternal(channelRange);
         }
+
+        protected abstract TFormat GetChannelsInternal(IEnumerable<int> channelRange);
+
+        public virtual TFormat WithLoop(bool loop) => GetCloneBuilder().Loop(loop).Build();
+        public virtual TFormat WithLoop(bool loop, int loopStart, int loopEnd) =>
+            GetCloneBuilder().Loop(loop, loopStart, loopEnd).Build();
 
         public bool TryAdd(IAudioFormat format)
         {
-            T castFormat = format as T;
+            TFormat castFormat = format as TFormat;
             if (castFormat == null) return false;
             Add(castFormat);
             return true;
         }
 
-        public virtual void Add(T format)
+        public virtual TFormat Add(TFormat format)
         {
             if (format.SampleCount != SampleCount)
             {
                 throw new ArgumentException("Only audio streams of the same length can be added to each other.");
             }
 
-            AddInternal(format);
+            return AddInternal(format);
         }
 
-        protected abstract void AddInternal(T format);
+        protected abstract TFormat AddInternal(TFormat format);
+
+        public virtual TBuilder GetCloneBuilder()
+        {
+            return new TBuilder
+            {
+                SampleCount = SampleCount,
+                SampleRate = SampleRate,
+                Looping = Looping,
+                LoopStart = LoopStart,
+                LoopEnd = LoopEnd
+            };
+        }
     }
 }

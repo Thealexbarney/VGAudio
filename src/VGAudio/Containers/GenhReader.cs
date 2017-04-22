@@ -12,8 +12,6 @@ namespace VGAudio.Containers
 {
     public class GenhReader : AudioReader<GenhReader, GenhStructure, GenhConfiguration>
     {
-        private static int HeaderSize => 0x60;
-
         protected override GenhStructure ReadFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
@@ -46,10 +44,8 @@ namespace VGAudio.Containers
                 channels[c] = channel;
             }
 
-            var adpcm = new GcAdpcmFormat(structure.SampleCount, structure.SampleRate, channels);
-            adpcm.SetLoop(structure.Looping, structure.LoopStart, structure.LoopEnd);
-
-            return adpcm;
+            return new GcAdpcmFormat(structure.SampleCount, structure.SampleRate, channels)
+                .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd);
         }
 
         private static void ReadHeader(BinaryReader reader, GenhStructure structure)

@@ -36,16 +36,16 @@ namespace VGAudio.Formats
 
         public void SetLoop(bool loop, int loopStart, int loopEnd)
         {
-            foreach (IAudioFormat format in Formats.Values)
+            foreach (Type format in Formats.Keys.ToList())
             {
-                format.SetLoop(loop, loopStart, loopEnd);
+                Formats[format] = Formats[format].WithLoop(loop, loopStart, loopEnd);
             }
         }
         public void SetLoop(bool loop)
         {
-            foreach (IAudioFormat format in Formats.Values)
+            foreach (Type format in Formats.Keys.ToList())
             {
-                format.SetLoop(loop);
+                Formats[format] = Formats[format].WithLoop(loop);
             }
         }
 
