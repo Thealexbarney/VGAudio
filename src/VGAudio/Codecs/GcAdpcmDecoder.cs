@@ -11,8 +11,8 @@ namespace VGAudio.Codecs
         public static short[] Decode(byte[] adpcm, short[] coefficients, int length)
         {
             int nibbles = adpcm.Length * 2;
-            int samples = NibbleCountToSampleCount(nibbles);
-            var audio = new GcAdpcmChannel(samples, adpcm) { Coefs = coefficients };
+            int sampleCount = NibbleCountToSampleCount(nibbles);
+            var audio = new GcAdpcmChannel(adpcm, coefficients, sampleCount);
             return Decode(audio, 0, length);
         }
 
@@ -56,7 +56,7 @@ namespace VGAudio.Codecs
 
             byte[] adpcm = audio.GetAudioData();
 
-            var history = audio.GetStartingHistory(startSample);
+            var history = new Tuple<int, short, short>(0, 0, 0);
 
             short hist1 = history.Item2;
             short hist2 = history.Item3;

@@ -36,10 +36,8 @@ namespace VGAudio.Containers
 
             for (int c = 0; c < structure.ChannelCount; c++)
             {
-                var channel = new GcAdpcmChannel(structure.SampleCount, structure.AudioData[c])
-                {
-                    Coefs = structure.Channels[c].Coefs
-                };
+                GcAdpcmChannel channel = 
+                    new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, structure.SampleCount).Build();
 
                 channels[c] = channel;
             }

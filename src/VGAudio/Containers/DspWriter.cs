@@ -71,9 +71,9 @@ namespace VGAudio.Containers
                 writer.Write(channel.Hist2);
                 if (Adpcm.Looping)
                 {
-                    writer.Write(channel.LoopPredScale(LoopStart));
-                    writer.Write(channel.LoopHist1(LoopStart));
-                    writer.Write(channel.LoopHist2(LoopStart));
+                    writer.Write(channel.LoopPredScale);
+                    writer.Write(channel.LoopHist1);
+                    writer.Write(channel.LoopHist2);
                 }
                 else
                 {

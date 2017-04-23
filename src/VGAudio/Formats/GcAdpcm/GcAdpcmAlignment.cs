@@ -7,66 +7,56 @@ namespace VGAudio.Formats.GcAdpcm
 {
     internal class GcAdpcmAlignment
     {
-        public byte[] AudioDataAligned { get; private set; }
+        public byte[] Adpcm { get; }
+        public byte[] AdpcmAligned { get; }
+        public short[] Pcm { get; }
 
-        private int AlignmentMultiple { get; set; }
-        private int LoopStart { get; set; }
-        private int LoopEnd { get; set; }
-        public int SampleCountAligned { get; private set; }
+        public int AlignmentMultiple { get; }
+        public int LoopStart { get; }
+        public int LoopStartAligned { get; }
+        public int LoopEnd { get; }
+        public int SampleCountAligned { get; }
+        public bool AlignmentNeeded { get; }
 
-        public bool SetAlignment(int multiple, int loopStart, int loopEnd, GcAdpcmChannel audio, int samplesPerSeekTableEntry = 0x3800)
+        public GcAdpcmAlignment(int multiple, int loopStart, int loopEnd, byte[] adpcm, short[] coefs)
         {
-            if (Helpers.LoopPointsAreAligned(loopStart, multiple))
-            {
-                if (AudioDataAligned != null)
-                {
-                    audio.ClearSeekTableCache();
-                }
-
-                AudioDataAligned = null;
-                AlignmentMultiple = multiple;
-                LoopStart = loopStart;
-                LoopEnd = loopEnd;
-                SampleCountAligned = audio.SampleCount;
-                return false;
-            }
-
-            if (AlignmentMultiple == multiple
-                && LoopStart == loopStart
-                && LoopEnd == loopEnd)
-            {
-                return true;
-            }
-
-            int loopStartAligned = Helpers.GetNextMultiple(loopStart, multiple);
-            SampleCountAligned = loopEnd + (loopStartAligned - loopStart);
-
-            int newAudioDataLength = SampleCountToByteCount(SampleCountAligned);
-            AudioDataAligned = new byte[newAudioDataLength];
-
-            int framesToCopy = loopEnd / SamplesPerFrame;
-            int bytesToCopy = framesToCopy * BytesPerFrame; 
-            int samplesToCopy = framesToCopy * SamplesPerFrame;
-            Array.Copy(audio.AudioData, 0, AudioDataAligned, 0, bytesToCopy);
-
-            //We're gonna be doing some seeking, so make sure the seek table is built
-            audio.GetSeekTable(samplesPerSeekTableEntry, true);
-
-            int samplesToEncode = SampleCountAligned - samplesToCopy;
-
-            short[] history = audio.GetPcmAudioLooped(samplesToCopy, 16, loopStart, loopEnd, true);
-            short[] pcm = audio.GetPcmAudioLooped(samplesToCopy, samplesToEncode, loopStart, loopEnd);
-            var adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, audio.Coefs, samplesToEncode, history[1], history[0]);
-
-            Array.Copy(adpcm, 0, AudioDataAligned, bytesToCopy, adpcm.Length);
-
+            Adpcm = adpcm;
             AlignmentMultiple = multiple;
             LoopStart = loopStart;
             LoopEnd = loopEnd;
+            AlignmentNeeded = !Helpers.LoopPointsAreAligned(loopStart, multiple);
 
-            audio.ClearSeekTableCache();
+            if (!AlignmentNeeded) return;
 
-            return true;
+            int loopLength = loopEnd - loopStart;
+            LoopStartAligned = Helpers.GetNextMultiple(loopStart, multiple);
+            SampleCountAligned = loopEnd + (LoopStartAligned - loopStart);
+
+            AdpcmAligned = new byte[SampleCountToByteCount(SampleCountAligned)];
+            Pcm = new short[SampleCountAligned];
+
+            int framesToKeep = loopEnd / SamplesPerFrame;
+            int bytesToKeep = framesToKeep * BytesPerFrame;
+            int samplesToKeep = framesToKeep * SamplesPerFrame;
+            int samplesToEncode = SampleCountAligned - samplesToKeep;
+
+            short[] oldPcm = GcAdpcmDecoder.Decode(adpcm, coefs, loopEnd);
+            Array.Copy(oldPcm, 0, Pcm, 0, samplesToKeep);
+            var newPcm = new short[samplesToEncode];
+
+            Array.Copy(oldPcm, samplesToKeep, newPcm, 0, loopEnd - samplesToKeep);
+
+            for (int currentSample = loopEnd - samplesToKeep; currentSample < samplesToEncode; currentSample += loopLength)
+            {
+                Array.Copy(Pcm, loopStart, newPcm, currentSample, Math.Min(loopLength, samplesToEncode - currentSample));
+            }
+
+            byte[] newAdpcm = GcAdpcmEncoder.EncodeAdpcm(newPcm, coefs, samplesToEncode, oldPcm[samplesToKeep - 1], oldPcm[samplesToKeep - 2]);
+            Array.Copy(adpcm, 0, AdpcmAligned, 0, bytesToKeep);
+            Array.Copy(newAdpcm, 0, AdpcmAligned, bytesToKeep, newAdpcm.Length);
+
+            short[] decodedPcm = GcAdpcmDecoder.Decode(newAdpcm, coefs, samplesToEncode);
+            Array.Copy(decodedPcm, 0, Pcm, samplesToKeep, samplesToEncode);
         }
     }
 }

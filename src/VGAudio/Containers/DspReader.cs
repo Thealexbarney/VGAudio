@@ -37,17 +37,17 @@ namespace VGAudio.Containers
 
             for (int c = 0; c < structure.ChannelCount; c++)
             {
-                var channel = new GcAdpcmChannel(structure.SampleCount, structure.AudioData[c])
+                var channelBuilder = new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, structure.SampleCount)
                 {
-                    Coefs = structure.Channels[c].Coefs,
                     Gain = structure.Channels[c].Gain,
                     Hist1 = structure.Channels[c].Hist1,
                     Hist2 = structure.Channels[c].Hist2
                 };
-                channel.SetLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
+
+                channelBuilder.SetLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
                     structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
 
-                channels[c] = channel;
+                channels[c] = channelBuilder.Build();
             }
 
             return new GcAdpcmFormat(structure.SampleCount, structure.SampleRate, channels)

@@ -88,9 +88,9 @@ namespace VGAudio.Containers
                 writer.Write(channel.PredScale);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
-                writer.Write(channel.LoopPredScale(LoopStart, Configuration.RecalculateLoopContext));
-                writer.Write(channel.LoopHist1(LoopStart, Configuration.RecalculateLoopContext));
-                writer.Write(channel.LoopHist2(LoopStart, Configuration.RecalculateLoopContext));
+                writer.Write(channel.LoopPredScale);
+                writer.Write(channel.LoopHist1);
+                writer.Write(channel.LoopHist2);
             }
         }
 

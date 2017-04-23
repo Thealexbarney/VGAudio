@@ -76,15 +76,21 @@ namespace VGAudio.Containers
 
             if (!LoopPointsAreAligned(LoopStart, Configuration.LoopPointAlignment))
             {
-                var builder = Adpcm.GetCloneBuilder();
+                GcAdpcmFormat.Builder builder = Adpcm.GetCloneBuilder();
                 builder.AlignmentMultiple = Configuration.LoopPointAlignment;
                 Adpcm = builder.Build();
             }
 
             Parallel.For(0, ChannelCount, i =>
             {
-                Adpcm.Channels[i].GetSeekTable(SamplesPerSeekTableEntry, Configuration.RecalculateSeekTable);
-                Adpcm.Channels[i].LoopHist1(LoopStart, Configuration.RecalculateLoopContext);
+                GcAdpcmChannelBuilder builder = Adpcm.Channels[i].GetCloneBuilder()
+                    .SetSeekTable(SamplesPerSeekTableEntry)
+                    .SetLoop(Adpcm.UnalignedLoopStart, Adpcm.UnalignedLoopEnd);
+
+                builder.LoopAlignmentMultiple = Configuration.LoopPointAlignment;
+                builder.EnsureLoopContextIsSelfCalculated = Configuration.RecalculateLoopContext;
+                builder.EnsureSeekTableIsSelfCalculated = Configuration.RecalculateSeekTable;
+                Adpcm.Channels[i] = builder.Build();
             });
         }
 
@@ -213,9 +219,9 @@ namespace VGAudio.Containers
                 writer.Write(channel.PredScale);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
-                writer.Write(Adpcm.Looping ? channel.LoopPredScale(LoopStart, Configuration.RecalculateLoopContext) : channel.PredScale);
-                writer.Write(Adpcm.Looping ? channel.LoopHist1(LoopStart, Configuration.RecalculateLoopContext) : (short)0);
-                writer.Write(Adpcm.Looping ? channel.LoopHist2(LoopStart, Configuration.RecalculateLoopContext) : (short)0);
+                writer.Write(Adpcm.Looping ? channel.LoopPredScale : channel.PredScale);
+                writer.Write(Adpcm.Looping ? channel.LoopHist1 : (short)0);
+                writer.Write(Adpcm.Looping ? channel.LoopHist2 : (short)0);
                 writer.Write((short)0);
             }
         }

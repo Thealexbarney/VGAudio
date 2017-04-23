@@ -22,6 +22,10 @@ namespace VGAudio.Formats
         public new int LoopEnd => base.LoopEnd + AlignmentSamples;
         public new int SampleCount => AlignmentSamples == 0 ? base.SampleCount : LoopEnd;
 
+        public int UnalignedLoopStart => base.LoopStart;
+        public int UnalignedLoopEnd => base.LoopEnd;
+        public int UnalignedSampleCount =>  base.SampleCount;
+
         public GcAdpcmFormat() : base(0, 0, 0) => Channels = new GcAdpcmChannel[0];
         public GcAdpcmFormat(int sampleCount, int sampleRate, GcAdpcmChannel[] channels)
             : base(sampleCount, sampleRate, channels.Length)
@@ -37,7 +41,9 @@ namespace VGAudio.Formats
 
             Parallel.For(0, Channels.Length, i =>
             {
-                Channels[i].SetAlignment(AlignmentMultiple, base.LoopStart, base.LoopEnd);
+                var builder = Channels[i].GetCloneBuilder();
+                builder.LoopAlignmentMultiple = b.AlignmentMultiple;
+                Channels[i] = builder.Build();
             });
         }
         
@@ -116,7 +122,7 @@ namespace VGAudio.Formats
             short[] coefs = GcAdpcmEncoder.DspCorrelateCoefs(pcm);
             byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
 
-            return new GcAdpcmChannel(sampleCount, adpcm) { Coefs = coefs };
+            return new GcAdpcmChannel(adpcm, coefs, sampleCount);
         }
 
         private static IEnumerable<GcAdpcmTrack> GetDefaultTrackList(int channelCount)

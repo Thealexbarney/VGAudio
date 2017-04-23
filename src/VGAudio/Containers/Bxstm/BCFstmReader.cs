@@ -51,23 +51,22 @@ namespace VGAudio.Containers.Bxstm
 
             for (int c = 0; c < channels.Length; c++)
             {
-                var channel = new GcAdpcmChannel(structure.SampleCount, structure.AudioData[c])
+                var channelBuilder = new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, structure.SampleCount)
                 {
-                    Coefs = structure.Channels[c].Coefs,
                     Gain = structure.Channels[c].Gain,
                     Hist1 = structure.Channels[c].Hist1,
                     Hist2 = structure.Channels[c].Hist2
                 };
 
-                if (structure.SeekTable != null)
-                {
-                    channel.AddSeekTable(structure.SeekTable[c], structure.SamplesPerSeekTableEntry);
-                }
-
-                channel.SetLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
+                channelBuilder.SetLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
                     structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
 
-                channels[c] = channel;
+                if (structure.SeekTable != null)
+                {
+                    channelBuilder.SetSeekTable(structure.SeekTable[c], structure.SamplesPerSeekTableEntry);
+                }
+
+                channels[c] = channelBuilder.Build();
             }
 
             var builder = new GcAdpcmFormat.Builder

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using VGAudio.Formats;
+using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
@@ -96,8 +97,14 @@ namespace VGAudio.Containers.Bxstm
 
             Parallel.For(0, ChannelCount, i =>
             {
-                Adpcm.Channels[i].GetSeekTable(SamplesPerSeekTableEntry, Configuration.RecalculateSeekTable);
-                Adpcm.Channels[i].LoopHist1(LoopStart, Configuration.RecalculateLoopContext);
+                GcAdpcmChannelBuilder builder = Adpcm.Channels[i].GetCloneBuilder()
+                    .SetSeekTable(SamplesPerSeekTableEntry)
+                    .SetLoop(Adpcm.UnalignedLoopStart, Adpcm.UnalignedLoopEnd);
+
+                builder.LoopAlignmentMultiple = Configuration.LoopPointAlignment;
+                builder.EnsureLoopContextIsSelfCalculated = Configuration.RecalculateLoopContext;
+                builder.EnsureSeekTableIsSelfCalculated = Configuration.RecalculateSeekTable;
+                Adpcm.Channels[i] = builder.Build();
             });
         }
 
@@ -284,9 +291,9 @@ namespace VGAudio.Containers.Bxstm
                 writer.Write(channel.PredScale);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
-                writer.Write(Adpcm.Looping ? channel.LoopPredScale(LoopStart, Configuration.RecalculateLoopContext) : channel.PredScale);
-                writer.Write(Adpcm.Looping ? channel.LoopHist1(LoopStart, Configuration.RecalculateLoopContext) : (short)0);
-                writer.Write(Adpcm.Looping ? channel.LoopHist2(LoopStart, Configuration.RecalculateLoopContext) : (short)0);
+                writer.Write(Adpcm.Looping ? channel.LoopPredScale : channel.PredScale);
+                writer.Write(Adpcm.Looping ? channel.LoopHist1 : (short)0);
+                writer.Write(Adpcm.Looping ? channel.LoopHist2 : (short)0);
                 writer.Write(channel.Gain);
             }
         }
