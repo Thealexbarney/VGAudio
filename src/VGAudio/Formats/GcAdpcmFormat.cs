@@ -31,6 +31,7 @@ namespace VGAudio.Formats
             : base(sampleCount, sampleRate, channels.Length)
         {
             Channels = channels;
+            Tracks = GetDefaultTrackList(Channels.Length).ToList();
         }
 
         private GcAdpcmFormat(Builder b) : base(b)

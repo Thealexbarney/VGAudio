@@ -54,12 +54,9 @@ namespace VGAudio.Benchmark
 
             for (int i = 0; i < channelCount; i++)
             {
-                channels[i] = new GcAdpcmChannel(sampleCount,
-                    new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)])
-                {
-                    Coefs = new short[16]
-                };
-                channels[i].AddSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry);
+                var builder =  new GcAdpcmChannelBuilder(new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)], new short[16], sampleCount);
+                builder.SetSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry, true);
+                channels[i] = builder.Build();
             }
 
             var adpcm = new GcAdpcmFormat(sampleCount, sampleRate, channels);
