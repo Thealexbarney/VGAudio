@@ -7,7 +7,6 @@ namespace VGAudio.Formats.GcAdpcm
 {
     internal class GcAdpcmAlignment
     {
-        public byte[] Adpcm { get; }
         public byte[] AdpcmAligned { get; }
         public short[] Pcm { get; }
 
@@ -20,7 +19,6 @@ namespace VGAudio.Formats.GcAdpcm
 
         public GcAdpcmAlignment(int multiple, int loopStart, int loopEnd, byte[] adpcm, short[] coefs)
         {
-            Adpcm = adpcm;
             AlignmentMultiple = multiple;
             LoopStart = loopStart;
             LoopEnd = loopEnd;

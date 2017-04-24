@@ -44,7 +44,7 @@ namespace VGAudio.Containers.Idsp
         /// or not divisible by 8.</exception>
         public int BytesPerInterleave
         {
-            get { return _bytesPerInterleave; }
+            get => _bytesPerInterleave;
             set
             {
                 if (value < 0)

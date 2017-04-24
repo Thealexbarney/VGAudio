@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace VGAudio.Cli
 {
-    internal class CliArguments
+    internal static class CliArguments
     {
         public static Options Parse(string[] args)
         {
@@ -169,9 +169,8 @@ namespace VGAudio.Cli
 
         private static FileType GetFileTypeFromName(string fileName)
         {
-            FileType fileType;
             string extension = Path.GetExtension(fileName)?.TrimStart('.').ToLower() ?? "";
-            ContainerTypes.Extensions.TryGetValue(extension, out fileType);
+            ContainerTypes.Extensions.TryGetValue(extension, out FileType fileType);
             return fileType;
         }
 
@@ -181,19 +180,17 @@ namespace VGAudio.Cli
 
             foreach (string s in input.Split(','))
             {
-                int num;
-                if (int.TryParse(s, out num))
+                if (int.TryParse(s, out int num))
                 {
                     range.Add(num);
                     continue;
                 }
 
                 string[] subs = s.Split('-');
-                int start, end;
 
                 if (subs.Length > 1 &&
-                    int.TryParse(subs[0], out start) &&
-                    int.TryParse(subs[1], out end) &&
+                    int.TryParse(subs[0], out int start) &&
+                    int.TryParse(subs[1], out int end) &&
                     end >= start)
                 {
                     for (int i = start; i <= end; i++)

@@ -37,7 +37,7 @@ namespace VGAudio.Containers.Bxstm
         /// or not divisible by 14.</exception>
         public int SamplesPerInterleave
         {
-            get { return _samplesPerInterleave; }
+            get => _samplesPerInterleave;
             set
             {
                 if (value < 1)
@@ -63,7 +63,7 @@ namespace VGAudio.Containers.Bxstm
         /// value is less than 2.</exception>
         public int SamplesPerSeekTableEntry
         {
-            get { return _samplesPerSeekTableEntry; }
+            get => _samplesPerSeekTableEntry;
             set
             {
                 if (value < 2)
