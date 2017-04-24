@@ -41,48 +41,5 @@
         /// a stereo track.
         /// </summary>
         public int ChannelRight { get; set; }
-
-        /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to this instance.
-        /// </summary>
-        /// <param name="obj">The <see cref="object"/> to compare with this instance.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public override bool Equals(object obj)
-        {
-            var item = obj as GcAdpcmTrack;
-
-            if (item == null)
-            {
-                return false;
-            }
-
-            return
-                item.Volume == Volume &&
-                item.Panning == Panning &&
-                item.ChannelCount == ChannelCount &&
-                item.ChannelLeft == ChannelLeft &&
-                item.ChannelRight == ChannelRight;
-        }
-
-        /// <summary>
-        /// Returns a hash code for the <see cref="GcAdpcmTrack"/> instance.
-        /// </summary>
-        /// <returns>A hash code for the <see cref="GcAdpcmTrack"/> instance.</returns>
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = Volume.GetHashCode();
-                hashCode = (hashCode * 397) ^ Panning.GetHashCode();
-                hashCode = (hashCode * 397) ^ ChannelCount.GetHashCode();
-                hashCode = (hashCode * 397) ^ ChannelLeft.GetHashCode();
-                hashCode = (hashCode * 397) ^ ChannelRight.GetHashCode();
-                return hashCode;
-            }
-        }
-
-        internal GcAdpcmTrack Clone() => (GcAdpcmTrack)MemberwiseClone();
     }
 }

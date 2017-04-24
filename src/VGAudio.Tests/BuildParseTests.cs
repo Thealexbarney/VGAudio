@@ -1,5 +1,6 @@
 ﻿using VGAudio.Containers;
 using VGAudio.Formats;
+using VGAudio.Tests.Equality;
 using Xunit;
 
 namespace VGAudio.Tests
@@ -10,7 +11,7 @@ namespace VGAudio.Tests
         {
             byte[] builtFile = writer.GetFile(audio);
             IAudioFormat parsedAudio = reader.ReadFormat(builtFile);
-            Assert.Equal(audio, parsedAudio);
+            Assert.Equal(audio, parsedAudio, new AudioFormatComparer());
         }
     }
 }

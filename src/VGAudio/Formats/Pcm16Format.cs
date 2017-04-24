@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using VGAudio.Utilities;
 
 namespace VGAudio.Formats
 {
@@ -20,8 +19,7 @@ namespace VGAudio.Formats
             Channels = channels;
         }
 
-        private Pcm16Format(Builder b)
-            : base(b.SampleCount, b.SampleRate, b.Channels.Length)
+        private Pcm16Format(Builder b) : base(b)
         {
             Channels = b.Channels;
         }
@@ -66,37 +64,6 @@ namespace VGAudio.Formats
             internal override int ChannelCount => Channels.Length;
 
             public override Pcm16Format Build() => new Pcm16Format(this);
-        }
-
-        public override bool Equals(object obj)
-        {
-            var item = obj as Pcm16Format;
-
-            if (item == null)
-            {
-                return false;
-            }
-
-            return
-                item.SampleCount == SampleCount &&
-                item.SampleRate == SampleRate &&
-                item.LoopStart == LoopStart &&
-                item.LoopEnd == LoopEnd &&
-                item.Looping == Looping &&
-                !Channels.Where((t, i) => !Helpers.ArraysEqual(item.Channels[i], t)).Any();
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = SampleCount.GetHashCode();
-                hashCode = (hashCode * 397) ^ SampleRate.GetHashCode();
-                hashCode = (hashCode * 397) ^ LoopStart.GetHashCode();
-                hashCode = (hashCode * 397) ^ LoopEnd.GetHashCode();
-                hashCode = (hashCode * 397) ^ Looping.GetHashCode();
-                return hashCode;
-            }
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using VGAudio.Codecs;
-using VGAudio.Utilities;
 
 namespace VGAudio.Formats.GcAdpcm
 {
@@ -153,36 +152,6 @@ namespace VGAudio.Formats.GcAdpcm
             }
 
             return builder;
-        }
-
-        public override bool Equals(object obj)
-        {
-            var item = obj as GcAdpcmChannel;
-
-            if (item == null)
-            {
-                return false;
-            }
-
-            return
-                item.SampleCount == SampleCount &&
-                item.Gain == Gain &&
-                item.Hist1 == Hist1 &&
-                item.Hist2 == Hist2 &&
-                Helpers.ArraysEqual(item.Coefs, Coefs) &&
-                Helpers.ArraysEqual(item.Adpcm, Adpcm);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = SampleCount.GetHashCode();
-                hashCode = (hashCode * 397) ^ Gain.GetHashCode();
-                hashCode = (hashCode * 397) ^ Hist1.GetHashCode();
-                hashCode = (hashCode * 397) ^ Hist2.GetHashCode();
-                return hashCode;
-            }
         }
     }
 }
