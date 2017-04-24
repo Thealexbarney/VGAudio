@@ -121,16 +121,9 @@ namespace VGAudio.Formats.GcAdpcm
             void EnsurePcmDecoded() => pcm = pcm ?? GcAdpcmDecoder.Decode(Adpcm, Coefs, SampleCount);
         }
 
-        public short[] GetPcmAudio(bool includeHistorySamples = false) =>
-            GcAdpcmDecoder.Decode(this, 0, SampleCount, includeHistorySamples);
-
-        public short[] GetSeekTable(int samplesPerEntry, bool ensureSelfCalculated = false)
-            => SeekTable?.SeekTable ?? new short[0];
-
-        public byte[] GetAudioData()
-        {
-            return AlignmentNeeded ? Alignment.AdpcmAligned : Adpcm;
-        }
+        public short[] GetPcmAudio() => Pcm ?? GcAdpcmDecoder.Decode(GetAudioData(), Coefs, SampleCount, Hist1, Hist2);
+        public short[] GetSeekTable() => SeekTable?.SeekTable ?? new short[0];
+        public byte[] GetAudioData() => AlignmentNeeded ? Alignment.AdpcmAligned : Adpcm;
 
         public GcAdpcmChannelBuilder GetCloneBuilder()
         {
@@ -158,7 +151,7 @@ namespace VGAudio.Formats.GcAdpcm
             {
                 builder.SetLoop(Alignment.LoopStart, Alignment.LoopEnd);
             }
-            
+
             return builder;
         }
 

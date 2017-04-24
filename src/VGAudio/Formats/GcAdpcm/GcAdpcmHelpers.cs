@@ -53,7 +53,7 @@ namespace VGAudio.Formats.GcAdpcm
 
             Parallel.For(0, tables.Length, i =>
             {
-                tables[i] = channels[i].GetSeekTable(samplesPerEntry, ensureSelfCalculated);
+                tables[i] = channels[i].GetSeekTable();
             });
 
             short[] table = tables.Interleave(2);

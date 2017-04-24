@@ -76,5 +76,23 @@ namespace VGAudio.Tests.Formats.GcAdpcm
 
             Assert.All(diff, x => Assert.InRange(x, 0, tolerance));
         }
+
+        [Theory]
+        [InlineData(1000, 4524, 100, 2)]
+        [InlineData(1000, 2012, 1, 2)]
+        [InlineData(1000, 60, 1, 2)]
+        [InlineData(1000, 60, 20, 2)]
+        public void AlignedPcmIsCorrect(int multiple, int loopStart, int sineCycles, int tolerance)
+        {
+            int loopEnd = sineCycles * 4 * SamplesPerFrame + loopStart;
+            var pcm = GenerateSineWave(GetNextMultiple(loopEnd, SamplesPerFrame), 1, SamplesPerFrame * 4);
+            var coefs = GcAdpcmEncoder.DspCorrelateCoefs(pcm);
+            var adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
+            var alignment = new GcAdpcmAlignment(multiple, loopStart, loopEnd, adpcm, coefs);
+            var pcmAligned = alignment.Pcm;
+            var pcmExpected = GcAdpcmDecoder.Decode(alignment.AdpcmAligned, coefs, alignment.SampleCountAligned);
+
+            Assert.Equal(pcmExpected, pcmAligned);
+        }
     }
 }

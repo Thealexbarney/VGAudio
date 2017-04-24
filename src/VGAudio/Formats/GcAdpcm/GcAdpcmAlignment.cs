@@ -57,7 +57,7 @@ namespace VGAudio.Formats.GcAdpcm
             Array.Copy(adpcm, 0, AdpcmAligned, 0, bytesToKeep);
             Array.Copy(newAdpcm, 0, AdpcmAligned, bytesToKeep, newAdpcm.Length);
 
-            short[] decodedPcm = GcAdpcmDecoder.Decode(newAdpcm, coefs, samplesToEncode);
+            short[] decodedPcm = GcAdpcmDecoder.Decode(newAdpcm, coefs, samplesToEncode, hist1, hist2);
             Array.Copy(decodedPcm, 0, Pcm, samplesToKeep, samplesToEncode);
         }
     }

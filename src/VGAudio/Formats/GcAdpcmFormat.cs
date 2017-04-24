@@ -52,8 +52,7 @@ namespace VGAudio.Formats
             var pcmChannels = new short[Channels.Length][];
             Parallel.For(0, Channels.Length, i =>
             {
-                GcAdpcmChannel channel = Channels[i];
-                pcmChannels[i] = GcAdpcmDecoder.Decode(channel, SampleCount);
+                pcmChannels[i] = Channels[i].GetPcmAudio();
             });
 
             return new Pcm16Format(SampleCount, SampleRate, pcmChannels)

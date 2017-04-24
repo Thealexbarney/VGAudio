@@ -1,5 +1,4 @@
 ﻿using System;
-using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
@@ -8,45 +7,15 @@ namespace VGAudio.Codecs
 {
     public static class GcAdpcmDecoder
     {
-        public static short[] Decode(byte[] adpcm, short[] coefficients, int length)
+        public static short[] Decode(byte[] adpcm, short[] coefficients, short hist1 = 0, short hist2 = 0)
         {
             int nibbles = adpcm.Length * 2;
             int sampleCount = NibbleCountToSampleCount(nibbles);
-            var audio = new GcAdpcmChannel(adpcm, coefficients, sampleCount);
-            return Decode(audio, 0, length);
+            return Decode(adpcm, coefficients, sampleCount, hist1, hist2);
         }
 
-        public static short[] Decode(GcAdpcmChannel audio, int length) => Decode(audio, 0, length);
-
-        public static short[] Decode(GcAdpcmChannel audio, int startSample, int length, bool includeHistorySamples = false)
+        public static short[] Decode(byte[] adpcm, short[] coefficients, int length, short hist1 = 0, short hist2 = 0)
         {
-            if (audio == null)
-            {
-                throw new ArgumentNullException(nameof(audio));
-            }
-
-            if (startSample < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(startSample), startSample, "Argument must be non-negative");
-            }
-
-            if (length < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(length), length, "Argument must be non-negative");
-            }
-
-            if (audio.SampleCount - startSample < length)
-            {
-                throw new ArgumentException("startSample and length were out of bounds for the array, or length is" +
-                                            " greater than the number of samples from the startSample to the end of the ADPCM data.");
-            }
-
-            if (includeHistorySamples)
-            {
-                startSample -= 2;
-                length += 2;
-            }
-
             var pcm = new short[length];
 
             if (length == 0)
@@ -54,26 +23,11 @@ namespace VGAudio.Codecs
                 return pcm;
             }
 
-            byte[] adpcm = audio.GetAudioData();
-
-            var history = new Tuple<int, short, short>(0, 0, 0);
-
-            short hist1 = history.Item2;
-            short hist2 = history.Item3;
-            int currentSample = history.Item1;
+            int currentSample = 0;
+            const int startSample = 0;
 
             int outIndex = 0;
-            int inIndex = currentSample / SamplesPerFrame * BytesPerFrame;
-
-            if (startSample == currentSample - 2)
-            {
-                pcm[outIndex++] = hist2;
-                pcm[outIndex++] = hist1;
-            }
-            if (startSample == currentSample - 1)
-            {
-                pcm[outIndex++] = hist1;
-            }
+            int inIndex = 0;
 
             int endSample = startSample + length;
             int frameCount = (endSample - currentSample).DivideByRoundUp(SamplesPerFrame);
@@ -83,8 +37,8 @@ namespace VGAudio.Codecs
                 byte ps = adpcm[inIndex++];
                 int scale = 1 << GetLowNibble(ps);
                 int predictor = GetHighNibble(ps);
-                short coef1 = audio.Coefs[predictor * 2];
-                short coef2 = audio.Coefs[predictor * 2 + 1];
+                short coef1 = coefficients[predictor * 2];
+                short coef2 = coefficients[predictor * 2 + 1];
 
                 int samplesToRead = Math.Min(SamplesPerFrame, endSample - currentSample);
 
