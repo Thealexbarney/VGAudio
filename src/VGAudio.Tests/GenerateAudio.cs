@@ -54,17 +54,25 @@ namespace VGAudio.Tests
 
             for (int i = 0; i < channelCount; i++)
             {
-                channels[i] = new GcAdpcmChannel(sampleCount,
-                    new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)])
-                {
-                    Coefs = new short[16]
-                };
-                channels[i].AddSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry);
+                channels[i] =
+                    new GcAdpcmChannelBuilder(new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)], new short[16], sampleCount)
+                        .SetSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry, true)
+                        .Build();
             }
 
             var adpcm = new GcAdpcmFormat(sampleCount, sampleRate, channels);
 
             return adpcm;
+        }
+
+        public static short[] GenerateAccendingShorts(int count)
+        {
+            var pcm = new short[count];
+            for (int i = 0; i < count; i++)
+            {
+                pcm[i] = (short)(i + 1);
+            }
+            return pcm;
         }
     }
 }

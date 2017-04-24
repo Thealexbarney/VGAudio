@@ -41,7 +41,7 @@ namespace VGAudio.Formats.GcAdpcm
             int samplesToEncode = SampleCountAligned - samplesToKeep;
 
             short[] oldPcm = GcAdpcmDecoder.Decode(adpcm, coefs, loopEnd);
-            Array.Copy(oldPcm, 0, Pcm, 0, samplesToKeep);
+            Array.Copy(oldPcm, 0, Pcm, 0, loopEnd);
             var newPcm = new short[samplesToEncode];
 
             Array.Copy(oldPcm, samplesToKeep, newPcm, 0, loopEnd - samplesToKeep);
@@ -51,7 +51,9 @@ namespace VGAudio.Formats.GcAdpcm
                 Array.Copy(Pcm, loopStart, newPcm, currentSample, Math.Min(loopLength, samplesToEncode - currentSample));
             }
 
-            byte[] newAdpcm = GcAdpcmEncoder.EncodeAdpcm(newPcm, coefs, samplesToEncode, oldPcm[samplesToKeep - 1], oldPcm[samplesToKeep - 2]);
+            short hist1 = samplesToKeep < 1 ? (short)0 : oldPcm[samplesToKeep - 1];
+            short hist2 = samplesToKeep < 2 ? (short)0 : oldPcm[samplesToKeep - 2];
+            byte[] newAdpcm = GcAdpcmEncoder.EncodeAdpcm(newPcm, coefs, samplesToEncode, hist1, hist2);
             Array.Copy(adpcm, 0, AdpcmAligned, 0, bytesToKeep);
             Array.Copy(newAdpcm, 0, AdpcmAligned, bytesToKeep, newAdpcm.Length);
 
