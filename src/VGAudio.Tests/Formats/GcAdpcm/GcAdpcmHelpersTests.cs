@@ -62,6 +62,21 @@ namespace VGAudio.Tests.Formats.GcAdpcm
             Assert.Equal(expected, actual);
         }
 
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(1, 2)]
+        [InlineData(2, 2)]
+        [InlineData(3, 3)]
+        [InlineData(13, 8)]
+        [InlineData(14, 8)]
+        [InlineData(15, 10)]
+        [InlineData(87500, 50000)]
+        public void SampleCountToByteCountTest(int sampleCount, int expected)
+        {
+            int actual = GcAdpcmHelpers.SampleCountToByteCount(sampleCount);
+            Assert.Equal(expected, actual);
+        }
+
         [Fact]
         public void SampleToNibbleConversionIsReversable()
         {

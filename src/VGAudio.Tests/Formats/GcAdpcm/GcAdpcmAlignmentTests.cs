@@ -35,6 +35,18 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         }
 
         [Theory]
+        [InlineData(0, 0, 10, 0x40)]
+        [InlineData(1, 7, 10, 0x40)]
+        [InlineData(5, 10, 13, 0x40)]
+        public void PassedInDataIsSet(int multiple, int loopStart, int loopEnd, int adpcmLength)
+        {
+            var alignment = new GcAdpcmAlignment(multiple, loopStart, loopEnd, new byte[adpcmLength], new short[16]);
+            var expected = new[] { multiple, loopStart, loopEnd };
+            var actual = new[] { alignment.AlignmentMultiple, alignment.LoopStart, alignment.LoopEnd };
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
         [InlineData(2, 3, 10, 0x40, 4, 11)]
         [InlineData(4, 2, 10, 0x40, 4, 12)]
         [InlineData(3, 31, 50, 0x40, 33, 52)]
