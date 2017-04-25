@@ -68,15 +68,29 @@
             LoopHist1 = loopHist1;
             LoopHist2 = loopHist2;
             LoopContextIsSelfCalculated = isSelfCalculated;
-            PreviousSeekTable = null;
+            PreviousLoopContext = null;
             return this;
         }
 
-        public GcAdpcmChannelBuilder SetLoop(int loopStart, int loopEnd)
+        public GcAdpcmChannelBuilder SetLoop(bool loop, int loopStart, int loopEnd)
         {
+            if (!loop)
+            {
+                return SetLoop(false);
+            }
+
             Looping = true;
             LoopStart = loopStart;
             LoopEnd = loopEnd;
+            PreviousAlignment = null;
+            return this;
+        }
+
+        public GcAdpcmChannelBuilder SetLoop(bool loop)
+        {
+            Looping = loop;
+            LoopStart = 0;
+            LoopEnd = loop ? SampleCount : 0;
             PreviousAlignment = null;
             return this;
         }

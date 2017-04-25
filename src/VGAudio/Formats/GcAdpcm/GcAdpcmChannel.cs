@@ -148,7 +148,7 @@ namespace VGAudio.Formats.GcAdpcm
 
             if (Alignment != null)
             {
-                builder.SetLoop(Alignment.LoopStart, Alignment.LoopEnd);
+                builder.SetLoop(true, Alignment.LoopStart, Alignment.LoopEnd);
             }
 
             return builder;

@@ -85,7 +85,7 @@ namespace VGAudio.Containers
             {
                 GcAdpcmChannelBuilder builder = Adpcm.Channels[i].GetCloneBuilder()
                     .SetSeekTable(SamplesPerSeekTableEntry)
-                    .SetLoop(Adpcm.UnalignedLoopStart, Adpcm.UnalignedLoopEnd);
+                    .SetLoop(Adpcm.Looping, Adpcm.UnalignedLoopStart, Adpcm.UnalignedLoopEnd);
 
                 builder.LoopAlignmentMultiple = Configuration.LoopPointAlignment;
                 builder.EnsureLoopContextIsSelfCalculated = Configuration.RecalculateLoopContext;
