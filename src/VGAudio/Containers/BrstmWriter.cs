@@ -231,7 +231,7 @@ namespace VGAudio.Containers
             writer.WriteUTF8("ADPC");
             writer.Write(AdpcChunkSize);
 
-            var table = BuildSeekTable(Adpcm.Channels, SamplesPerSeekTableEntry, SeekTableEntryCount, Endianness.BigEndian, Configuration.RecalculateSeekTable);
+            var table = Adpcm.BuildSeekTable(SeekTableEntryCount, Endianness.BigEndian);
 
             writer.Write(table);
         }

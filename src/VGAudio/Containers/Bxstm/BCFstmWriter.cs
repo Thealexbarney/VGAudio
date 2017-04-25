@@ -303,7 +303,7 @@ namespace VGAudio.Containers.Bxstm
             writer.WriteUTF8("SEEK");
             writer.Write(SeekChunkSize);
 
-            var table = BuildSeekTable(Adpcm.Channels, SamplesPerSeekTableEntry, SeekTableEntryCount, Endianness.LittleEndian, Configuration.RecalculateSeekTable);
+            var table = Adpcm.BuildSeekTable(SeekTableEntryCount, Endianness.LittleEndian);
 
             writer.Write(table);
         }

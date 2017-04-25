@@ -97,6 +97,21 @@ namespace VGAudio.Formats
             return copy.Build();
         }
 
+        public byte[] BuildSeekTable(int entryCount, Endianness endianness)
+        {
+            var tables = new short[Channels.Length][];
+
+            Parallel.For(0, tables.Length, i =>
+            {
+                tables[i] = Channels[i].GetSeekTable();
+            });
+
+            short[] table = tables.Interleave(2);
+
+            Array.Resize(ref table, entryCount * 2 * Channels.Length);
+            return table.ToByteArray(endianness);
+        }
+
         public static Builder GetBuilder() => new Builder();
         public override Builder GetCloneBuilder()
         {
