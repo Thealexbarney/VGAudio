@@ -42,6 +42,24 @@ namespace VGAudio.Tests.Formats.GcAdpcm
             Assert.Equal(expected, actual);
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(139)]
+        public void CreatingLoopContextLoopStartSet(int loopStart)
+        {
+            var context = new GcAdpcmLoopContext(Adpcm, Pcm, loopStart);
+            Assert.Equal(loopStart, context.LoopStart);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(139)]
+        public void CreatingLoopContextSelfCalculatedIsTrue(int loopStart)
+        {
+            var context = new GcAdpcmLoopContext(Adpcm, Pcm, loopStart);
+            Assert.True(context.IsSelfCalculated);
+        }
+
         private byte[] Adpcm { get; } =
         {
             0x4A, 0x15, 0x9F, 0x66, 0xF0, 0xD1, 0x21, 0x93,

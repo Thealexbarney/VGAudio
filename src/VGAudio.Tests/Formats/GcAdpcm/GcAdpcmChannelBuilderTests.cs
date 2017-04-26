@@ -67,7 +67,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void SetLoopContextAssignsVariables(int loopStart, short predScale, short loopHist1, short loopHist2, bool isSelfCalculated)
         {
             var builder = GetBuilder().SetLoopContext(loopStart, predScale, loopHist1, loopHist2, isSelfCalculated);
-            Assert.Equal(loopStart, builder.LoopStart);
+            Assert.Equal(loopStart, builder.LoopContextStart);
             Assert.Equal(predScale, builder.LoopPredScale);
             Assert.Equal(loopHist1, builder.LoopHist1);
             Assert.Equal(loopHist2, builder.LoopHist2);
@@ -117,15 +117,6 @@ namespace VGAudio.Tests.Formats.GcAdpcm
                 .SetPrevious(new GcAdpcmSeekTable(new short[10], 2), null, null)
                 .SetSeekTable(new short[10], 3);
             Assert.Null(builder.PreviousSeekTable);
-        }
-
-        [Fact]
-        public void SetLoopContextRemovesPreviousLoopContext()
-        {
-            var builder = GetBuilder()
-                .SetPrevious(null, new GcAdpcmLoopContext(5, 5, 5, 5, true), null)
-                .SetLoopContext(10, 10, 10, 10);
-            Assert.Null(builder.PreviousLoopContext);
         }
 
         [Fact]

@@ -24,6 +24,8 @@ namespace VGAudio.Formats.GcAdpcm
             PredScale = GcAdpcmDecoder.GetPredictorScale(adpcm, loopStart);
             Hist1 = loopStart < 1 ? (short) 0 : pcm[loopStart - 1];
             Hist2 = loopStart < 2 ? (short) 0 : pcm[loopStart - 2];
+            LoopStart = loopStart;
+            IsSelfCalculated = true;
         }
     }
 }

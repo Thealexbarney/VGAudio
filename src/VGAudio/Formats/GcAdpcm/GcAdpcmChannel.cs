@@ -50,74 +50,69 @@ namespace VGAudio.Formats.GcAdpcm
             Hist1 = b.Hist1;
             Hist2 = b.Hist2;
 
-            int loopStart = b.LoopStart;
-            int loopEnd = b.LoopEnd;
-
-            Alignment = CreateAlignment();
+            Alignment = CreateAlignment(b);
             if (AlignmentNeeded)
             {
                 pcm = Alignment.Pcm;
             }
-            LoopContext = CreateLoopContext();
-            SeekTable = CreateSeekTable();
+            LoopContext = CreateLoopContext(b, ref pcm, Alignment.LoopStartAligned);
+            SeekTable = CreateSeekTable(b, ref pcm);
 
             Pcm = pcm;
+        }
 
-            GcAdpcmAlignment CreateAlignment()
+        private void EnsurePcmDecoded(ref short[] pcm) => pcm = pcm ?? GcAdpcmDecoder.Decode(Adpcm, Coefs, SampleCount);
+
+        internal GcAdpcmAlignment CreateAlignment(GcAdpcmChannelBuilder b)
+        {
+            GcAdpcmAlignment previous = b.PreviousAlignment;
+
+            if (b.Looping && previous?.LoopStart == b.LoopStart && previous.LoopEnd == b.LoopEnd &&
+                previous.AlignmentMultiple == b.LoopAlignmentMultiple)
             {
-                GcAdpcmAlignment previous = b.PreviousAlignment;
-
-                if (b.Looping && previous?.LoopStart == loopStart && previous.LoopEnd == loopEnd &&
-                    previous.AlignmentMultiple == b.LoopAlignmentMultiple)
-                {
-                    return previous;
-                }
-
-                return new GcAdpcmAlignment(b.LoopAlignmentMultiple, loopStart, loopEnd, Adpcm, Coefs);
+                return previous;
             }
 
-            GcAdpcmLoopContext CreateLoopContext()
+            return new GcAdpcmAlignment(b.LoopAlignmentMultiple, b.LoopStart, b.LoopEnd, Adpcm, Coefs);
+        }
+
+        internal GcAdpcmLoopContext CreateLoopContext(GcAdpcmChannelBuilder b, ref short[] pcm, int loopStartAligned)
+        {
+            GcAdpcmLoopContext previous = b.PreviousLoopContext;
+
+            if (previous?.LoopStart == loopStartAligned && (!b.EnsureLoopContextIsSelfCalculated || previous.IsSelfCalculated))
             {
-                GcAdpcmLoopContext previous = b.PreviousLoopContext;
-
-                if (previous?.LoopStart == Alignment.LoopStartAligned && (b.EnsureLoopContextIsSelfCalculated && previous.IsSelfCalculated || !b.EnsureLoopContextIsSelfCalculated))
-                {
-                    return previous;
-                }
-
-                if (b.EnsureLoopContextIsSelfCalculated && b.LoopContextIsSelfCalculated ||
-                    !b.EnsureLoopContextIsSelfCalculated)
-                {
-                    return new GcAdpcmLoopContext(b.LoopPredScale, b.LoopHist1, b.LoopHist2, Alignment.LoopStartAligned, b.LoopContextIsSelfCalculated);
-                }
-
-                EnsurePcmDecoded();
-                return new GcAdpcmLoopContext(Adpcm, pcm, Alignment.LoopStartAligned);
+                return previous;
             }
 
-            GcAdpcmSeekTable CreateSeekTable()
+            if (b.LoopContextStart == loopStartAligned && (!b.EnsureLoopContextIsSelfCalculated || b.LoopContextIsSelfCalculated))
             {
-                if (b.SamplesPerSeekTableEntry == 0)
-                {
-                    return null;
-                }
-
-                GcAdpcmSeekTable previous = b.PreviousSeekTable;
-                if (previous?.SamplesPerEntry == b.SamplesPerSeekTableEntry && (b.EnsureSeekTableIsSelfCalculated && previous.IsSelfCalculated || !b.EnsureSeekTableIsSelfCalculated))
-                {
-                    return previous;
-                }
-
-                if (b.SeekTable != null && (b.EnsureSeekTableIsSelfCalculated && b.SeekTableIsSelfCalculated ||
-                                            !b.EnsureSeekTableIsSelfCalculated))
-                {
-                    return new GcAdpcmSeekTable(b.SeekTable, b.SamplesPerSeekTableEntry, b.SeekTableIsSelfCalculated);
-                }
-                EnsurePcmDecoded();
-                return new GcAdpcmSeekTable(pcm, b.SamplesPerSeekTableEntry);
+                return new GcAdpcmLoopContext(b.LoopPredScale, b.LoopHist1, b.LoopHist2, b.LoopContextStart, b.LoopContextIsSelfCalculated);
             }
 
-            void EnsurePcmDecoded() => pcm = pcm ?? GcAdpcmDecoder.Decode(Adpcm, Coefs, SampleCount);
+            EnsurePcmDecoded(ref pcm);
+            return new GcAdpcmLoopContext(Adpcm, pcm, loopStartAligned);
+        }
+
+        internal GcAdpcmSeekTable CreateSeekTable(GcAdpcmChannelBuilder b, ref short[] pcm)
+        {
+            if (b.SamplesPerSeekTableEntry == 0)
+            {
+                return null;
+            }
+
+            GcAdpcmSeekTable previous = b.PreviousSeekTable;
+            if (previous?.SamplesPerEntry == b.SamplesPerSeekTableEntry && (!b.EnsureSeekTableIsSelfCalculated || previous.IsSelfCalculated))
+            {
+                return previous;
+            }
+
+            if (b.SeekTable != null && (!b.EnsureSeekTableIsSelfCalculated || b.SeekTableIsSelfCalculated))
+            {
+                return new GcAdpcmSeekTable(b.SeekTable, b.SamplesPerSeekTableEntry, b.SeekTableIsSelfCalculated);
+            }
+            EnsurePcmDecoded(ref pcm);
+            return new GcAdpcmSeekTable(pcm, b.SamplesPerSeekTableEntry);
         }
 
         public short[] GetPcmAudio() => Pcm ?? GcAdpcmDecoder.Decode(GetAudioData(), Coefs, SampleCount, Hist1, Hist2);

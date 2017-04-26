@@ -21,6 +21,7 @@
         internal short LoopPredScale { get; private set; }
         internal short LoopHist1 { get; private set; }
         internal short LoopHist2 { get; private set; }
+        internal int LoopContextStart { get; private set; }
         internal bool LoopContextIsSelfCalculated { get; private set; }
 
 
@@ -63,12 +64,11 @@
 
         public GcAdpcmChannelBuilder SetLoopContext(int loopStart, short predScale, short loopHist1, short loopHist2, bool isSelfCalculated = false)
         {
-            LoopStart = loopStart;
+            LoopContextStart = loopStart;
             LoopPredScale = predScale;
             LoopHist1 = loopHist1;
             LoopHist2 = loopHist2;
             LoopContextIsSelfCalculated = isSelfCalculated;
-            PreviousLoopContext = null;
             return this;
         }
 

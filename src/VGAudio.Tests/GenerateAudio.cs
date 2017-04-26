@@ -65,6 +65,13 @@ namespace VGAudio.Tests
             return adpcm;
         }
 
+        public static (byte[] adpcm, short[] coefs) GenerateAdpcmEmpty(int sampleCount)
+        {
+            var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            var coefs = new short[16];
+            return (adpcm, coefs);
+        }
+
         public static short[] GenerateAccendingShorts(int count)
         {
             var pcm = new short[count];
