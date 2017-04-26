@@ -8,7 +8,7 @@ namespace VGAudio.Formats.GcAdpcm
     internal class GcAdpcmAlignment
     {
         public byte[] AdpcmAligned { get; }
-        public short[] Pcm { get; }
+        public short[] PcmAligned { get; }
 
         public int AlignmentMultiple { get; }
         public int LoopStart { get; }
@@ -31,7 +31,7 @@ namespace VGAudio.Formats.GcAdpcm
             SampleCountAligned = loopEnd + (LoopStartAligned - loopStart);
 
             AdpcmAligned = new byte[SampleCountToByteCount(SampleCountAligned)];
-            Pcm = new short[SampleCountAligned];
+            PcmAligned = new short[SampleCountAligned];
 
             int framesToKeep = loopEnd / SamplesPerFrame;
             int bytesToKeep = framesToKeep * BytesPerFrame;
@@ -39,14 +39,14 @@ namespace VGAudio.Formats.GcAdpcm
             int samplesToEncode = SampleCountAligned - samplesToKeep;
 
             short[] oldPcm = GcAdpcmDecoder.Decode(adpcm, coefs, loopEnd);
-            Array.Copy(oldPcm, 0, Pcm, 0, loopEnd);
+            Array.Copy(oldPcm, 0, PcmAligned, 0, loopEnd);
             var newPcm = new short[samplesToEncode];
 
             Array.Copy(oldPcm, samplesToKeep, newPcm, 0, loopEnd - samplesToKeep);
 
             for (int currentSample = loopEnd - samplesToKeep; currentSample < samplesToEncode; currentSample += loopLength)
             {
-                Array.Copy(Pcm, loopStart, newPcm, currentSample, Math.Min(loopLength, samplesToEncode - currentSample));
+                Array.Copy(PcmAligned, loopStart, newPcm, currentSample, Math.Min(loopLength, samplesToEncode - currentSample));
             }
 
             short hist1 = samplesToKeep < 1 ? (short)0 : oldPcm[samplesToKeep - 1];
@@ -56,7 +56,7 @@ namespace VGAudio.Formats.GcAdpcm
             Array.Copy(newAdpcm, 0, AdpcmAligned, bytesToKeep, newAdpcm.Length);
 
             short[] decodedPcm = GcAdpcmDecoder.Decode(newAdpcm, coefs, samplesToEncode, hist1, hist2);
-            Array.Copy(decodedPcm, 0, Pcm, samplesToKeep, samplesToEncode);
+            Array.Copy(decodedPcm, 0, PcmAligned, samplesToKeep, samplesToEncode);
         }
     }
 }

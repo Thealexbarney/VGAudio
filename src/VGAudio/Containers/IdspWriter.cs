@@ -98,7 +98,7 @@ namespace VGAudio.Containers
         {
             writer.BaseStream.Position = HeaderSize;
 
-            byte[][] channels = Adpcm.Channels.Select(x => x.GetAudioData()).ToArray();
+            byte[][] channels = Adpcm.Channels.Select(x => x.GetAdpcmAudio()).ToArray();
             channels.Interleave(writer.BaseStream, InterleaveSize, AudioDataSize);
         }
     }

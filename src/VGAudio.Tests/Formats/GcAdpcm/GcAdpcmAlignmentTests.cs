@@ -101,7 +101,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
             var coefs = GcAdpcmEncoder.DspCorrelateCoefs(pcm);
             var adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
             var alignment = new GcAdpcmAlignment(multiple, loopStart, loopEnd, adpcm, coefs);
-            var pcmAligned = alignment.Pcm;
+            var pcmAligned = alignment.PcmAligned;
             var pcmExpected = GcAdpcmDecoder.Decode(alignment.AdpcmAligned, coefs, alignment.SampleCountAligned);
 
             Assert.Equal(pcmExpected, pcmAligned);

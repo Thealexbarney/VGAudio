@@ -89,11 +89,11 @@ namespace VGAudio.Containers
             writer.BaseStream.Position = HeaderSize * ChannelCount;
             if (ChannelCount == 1)
             {
-                writer.Write(Adpcm.Channels[0].GetAudioData(), 0, SampleCountToByteCount(SampleCount));
+                writer.Write(Adpcm.Channels[0].GetAdpcmAudio(), 0, SampleCountToByteCount(SampleCount));
             }
             else
             {
-                byte[][] channels = Adpcm.Channels.Select(x => x.GetAudioData()).ToArray();
+                byte[][] channels = Adpcm.Channels.Select(x => x.GetAdpcmAudio()).ToArray();
                 channels.Interleave(writer.BaseStream, BytesPerInterleave, AudioDataSize);
             }
         }

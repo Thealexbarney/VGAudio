@@ -13,8 +13,8 @@ namespace VGAudio.Formats.GcAdpcm
         public short Hist2 { get; set; }
         public int LoopAlignmentMultiple { get; set; }
 
-        internal bool EnsureSeekTableIsSelfCalculated { get; set; }
-        internal bool EnsureLoopContextIsSelfCalculated { get; set; }
+        public bool EnsureSeekTableIsSelfCalculated { get; set; }
+        public bool EnsureLoopContextIsSelfCalculated { get; set; }
 
         internal short[] SeekTable { get; private set; }
         internal int SamplesPerSeekTableEntry { get; private set; }
@@ -157,7 +157,8 @@ namespace VGAudio.Formats.GcAdpcm
 
             if (alignment.AlignmentNeeded)
             {
-                AlignedPcm = alignment.Pcm;
+                AlignedAdpcm = alignment.AdpcmAligned;
+                AlignedPcm = alignment.PcmAligned;
                 AlignedLoopStart = alignment.LoopStart;
             }
 
