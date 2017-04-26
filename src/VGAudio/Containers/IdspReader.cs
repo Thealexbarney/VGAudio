@@ -46,7 +46,7 @@ namespace VGAudio.Containers
                     Hist2 = structure.Channels[c].Hist2
                 };
 
-                channelBuilder.SetLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
+                channelBuilder.WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
                     structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
 
                 channels[c] = channelBuilder.Build();

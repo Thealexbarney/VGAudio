@@ -98,8 +98,8 @@ namespace VGAudio.Containers.Bxstm
             Parallel.For(0, ChannelCount, i =>
             {
                 GcAdpcmChannelBuilder builder = Adpcm.Channels[i].GetCloneBuilder()
-                    .SetSeekTable(SamplesPerSeekTableEntry)
-                    .SetLoop(Adpcm.Looping, Adpcm.UnalignedLoopStart, Adpcm.UnalignedLoopEnd);
+                    .WithSamplesPerSeekTableEntry(SamplesPerSeekTableEntry)
+                    .WithLoop(Adpcm.Looping, Adpcm.UnalignedLoopStart, Adpcm.UnalignedLoopEnd);
 
                 builder.LoopAlignmentMultiple = Configuration.LoopPointAlignment;
                 builder.EnsureLoopContextIsSelfCalculated = Configuration.RecalculateLoopContext;

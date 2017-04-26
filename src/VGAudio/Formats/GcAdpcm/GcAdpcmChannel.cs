@@ -43,76 +43,17 @@ namespace VGAudio.Formats.GcAdpcm
 
             _sampleCount = b.SampleCount;
             Adpcm = b.Adpcm;
-            short[] pcm = b.Pcm;
 
             Coefs = b.Coefs;
             Gain = b.Gain;
             Hist1 = b.Hist1;
             Hist2 = b.Hist2;
 
-            Alignment = CreateAlignment(b);
-            if (AlignmentNeeded)
-            {
-                pcm = Alignment.Pcm;
-            }
-            LoopContext = CreateLoopContext(b, ref pcm, Alignment.LoopStartAligned);
-            SeekTable = CreateSeekTable(b, ref pcm);
+            Alignment = b.GetAlignment();
+            LoopContext = b.GetLoopContext();
+            SeekTable = b.GetSeekTable();
 
-            Pcm = pcm;
-        }
-
-        private void EnsurePcmDecoded(ref short[] pcm) => pcm = pcm ?? GcAdpcmDecoder.Decode(Adpcm, Coefs, SampleCount);
-
-        internal GcAdpcmAlignment CreateAlignment(GcAdpcmChannelBuilder b)
-        {
-            GcAdpcmAlignment previous = b.PreviousAlignment;
-
-            if (b.Looping && previous?.LoopStart == b.LoopStart && previous.LoopEnd == b.LoopEnd &&
-                previous.AlignmentMultiple == b.LoopAlignmentMultiple)
-            {
-                return previous;
-            }
-
-            return new GcAdpcmAlignment(b.LoopAlignmentMultiple, b.LoopStart, b.LoopEnd, Adpcm, Coefs);
-        }
-
-        internal GcAdpcmLoopContext CreateLoopContext(GcAdpcmChannelBuilder b, ref short[] pcm, int loopStartAligned)
-        {
-            GcAdpcmLoopContext previous = b.PreviousLoopContext;
-
-            if (previous?.LoopStart == loopStartAligned && (!b.EnsureLoopContextIsSelfCalculated || previous.IsSelfCalculated))
-            {
-                return previous;
-            }
-
-            if (b.LoopContextStart == loopStartAligned && (!b.EnsureLoopContextIsSelfCalculated || b.LoopContextIsSelfCalculated))
-            {
-                return new GcAdpcmLoopContext(b.LoopPredScale, b.LoopHist1, b.LoopHist2, b.LoopContextStart, b.LoopContextIsSelfCalculated);
-            }
-
-            EnsurePcmDecoded(ref pcm);
-            return new GcAdpcmLoopContext(Adpcm, pcm, loopStartAligned);
-        }
-
-        internal GcAdpcmSeekTable CreateSeekTable(GcAdpcmChannelBuilder b, ref short[] pcm)
-        {
-            if (b.SamplesPerSeekTableEntry == 0)
-            {
-                return null;
-            }
-
-            GcAdpcmSeekTable previous = b.PreviousSeekTable;
-            if (previous?.SamplesPerEntry == b.SamplesPerSeekTableEntry && (!b.EnsureSeekTableIsSelfCalculated || previous.IsSelfCalculated))
-            {
-                return previous;
-            }
-
-            if (b.SeekTable != null && (!b.EnsureSeekTableIsSelfCalculated || b.SeekTableIsSelfCalculated))
-            {
-                return new GcAdpcmSeekTable(b.SeekTable, b.SamplesPerSeekTableEntry, b.SeekTableIsSelfCalculated);
-            }
-            EnsurePcmDecoded(ref pcm);
-            return new GcAdpcmSeekTable(pcm, b.SamplesPerSeekTableEntry);
+            Pcm = b.AlignedPcm;
         }
 
         public short[] GetPcmAudio() => Pcm ?? GcAdpcmDecoder.Decode(GetAudioData(), Coefs, SampleCount, Hist1, Hist2);
@@ -129,21 +70,21 @@ namespace VGAudio.Formats.GcAdpcm
                 Hist2 = Hist2,
                 LoopAlignmentMultiple = AlignmentMultiple
             };
-            builder.SetPrevious(SeekTable, LoopContext, Alignment);
+            builder.WithPrevious(SeekTable, LoopContext, Alignment);
 
             if (SeekTable != null)
             {
-                builder.SetSeekTable(SeekTable.SeekTable, SeekTable.SamplesPerEntry, SeekTable.IsSelfCalculated);
+                builder.WithSeekTable(SeekTable.SeekTable, SeekTable.SamplesPerEntry, SeekTable.IsSelfCalculated);
             }
 
             if (LoopContext != null)
             {
-                builder.SetLoopContext(LoopContext.LoopStart, PredScale, Hist1, Hist2);
+                builder.WithLoopContext(LoopContext.LoopStart, PredScale, Hist1, Hist2);
             }
 
             if (Alignment != null)
             {
-                builder.SetLoop(true, Alignment.LoopStart, Alignment.LoopEnd);
+                builder.WithLoop(true, Alignment.LoopStart, Alignment.LoopEnd);
             }
 
             return builder;

@@ -55,7 +55,7 @@ namespace VGAudio.Benchmark
             for (int i = 0; i < channelCount; i++)
             {
                 var builder =  new GcAdpcmChannelBuilder(new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)], new short[16], sampleCount);
-                builder.SetSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry, true);
+                builder.WithSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry, true);
                 channels[i] = builder.Build();
             }
 
