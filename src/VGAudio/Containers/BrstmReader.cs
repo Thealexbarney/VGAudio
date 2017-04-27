@@ -63,11 +63,10 @@ namespace VGAudio.Containers
                 channels[c] = channelBuilder.Build();
             }
 
-            var builder = new GcAdpcmFormat.Builder
+            var builder = new GcAdpcmFormat.Builder(channels)
             {
                 SampleCount = structure.SampleCount,
                 SampleRate = structure.SampleRate,
-                Channels = channels,
                 Tracks = structure.Tracks
             };
             return builder.Loop(structure.Looping, structure.LoopStart, structure.SampleCount).Build();

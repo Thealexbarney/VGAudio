@@ -5,7 +5,7 @@ namespace VGAudio.Formats
 {
     public abstract class AudioFormatBase<TFormat, TBuilder> : IAudioFormat
         where TFormat : AudioFormatBase<TFormat, TBuilder>
-        where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>, new()
+        where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>
     {
         public int SampleCount { get; }
         public int SampleRate { get; }
@@ -70,17 +70,16 @@ namespace VGAudio.Formats
         }
 
         protected abstract TFormat AddInternal(TFormat format);
+        public abstract TBuilder GetCloneBuilder();
 
-        public virtual TBuilder GetCloneBuilder()
+        protected TBuilder GetCloneBuilderBase(TBuilder builder)
         {
-            return new TBuilder
-            {
-                SampleCount = SampleCount,
-                SampleRate = SampleRate,
-                Looping = Looping,
-                LoopStart = LoopStart,
-                LoopEnd = LoopEnd
-            };
+            builder.SampleCount = SampleCount;
+            builder.SampleRate = SampleRate;
+            builder.Looping = Looping;
+            builder.LoopStart = LoopStart;
+            builder.LoopEnd = LoopEnd;
+            return builder;
         }
     }
 }

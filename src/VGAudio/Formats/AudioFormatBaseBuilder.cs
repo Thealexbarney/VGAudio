@@ -4,7 +4,7 @@ namespace VGAudio.Formats
 {
     public abstract class AudioFormatBaseBuilder<TFormat, TBuilder>
         where TFormat : AudioFormatBase<TFormat, TBuilder>
-        where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>, new()
+        where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>
     {
         internal abstract int ChannelCount { get; }
         internal bool Looping { get; set; }

@@ -19,10 +19,7 @@ namespace VGAudio.Formats
             Channels = channels;
         }
 
-        private Pcm16Format(Builder b) : base(b)
-        {
-            Channels = b.Channels;
-        }
+        private Pcm16Format(Builder b) : base(b) => Channels = b.Channels;
 
         public override Pcm16Format ToPcm16() => GetCloneBuilder().Build();
         public override Pcm16Format EncodeFromPcm16(Pcm16Format pcm16) => pcm16.GetCloneBuilder().Build();
@@ -50,19 +47,15 @@ namespace VGAudio.Formats
             return copy.Build();
         }
 
-        public static Builder GetBuilder() => new Builder();
-        public override Builder GetCloneBuilder()
-        {
-            Builder builder = base.GetCloneBuilder();
-            builder.Channels = Channels;
-            return builder;
-        }
+        public static Builder GetBuilder(short[][] channels) => new Builder(channels);
+        public override Builder GetCloneBuilder() => GetCloneBuilderBase(new Builder(Channels));
 
         public class Builder : AudioFormatBaseBuilder<Pcm16Format, Builder>
         {
             public short[][] Channels { get; set; }
             internal override int ChannelCount => Channels.Length;
 
+            public Builder(short[][] channels) => Channels = channels;
             public override Pcm16Format Build() => new Pcm16Format(this);
         }
     }

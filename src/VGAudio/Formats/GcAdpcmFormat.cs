@@ -112,12 +112,12 @@ namespace VGAudio.Formats
             return table.ToByteArray(endianness);
         }
 
-        public static Builder GetBuilder() => new Builder();
+        public static Builder GetBuilder(GcAdpcmChannel[] channels) => new Builder(channels);
         public override Builder GetCloneBuilder()
         {
-            Builder builder = base.GetCloneBuilder();
+            var builder = new Builder(Channels);
+            builder = GetCloneBuilderBase(builder);
             builder.Tracks = Tracks;
-            builder.Channels = Channels;
             builder.AlignmentMultiple = AlignmentMultiple;
             return builder;
         }
@@ -129,6 +129,7 @@ namespace VGAudio.Formats
             public int AlignmentMultiple { get; set; }
             internal override int ChannelCount => Channels.Length;
 
+            public Builder(GcAdpcmChannel[] channels) => Channels = channels;
             public override GcAdpcmFormat Build() => new GcAdpcmFormat(this);
         }
 
