@@ -37,7 +37,7 @@ namespace VGAudio.Formats
             LoopEnd = builder.LoopEnd;
         }
 
-        private TFormat GetChannels(IEnumerable<int> channelRange)
+        public TFormat GetChannels(IEnumerable<int> channelRange)
         {
             if (channelRange == null)
                 throw new ArgumentNullException(nameof(channelRange));

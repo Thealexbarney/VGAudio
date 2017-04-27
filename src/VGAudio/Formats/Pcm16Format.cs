@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace VGAudio.Formats
@@ -47,15 +48,33 @@ namespace VGAudio.Formats
             return copy.Build();
         }
 
-        public static Builder GetBuilder(short[][] channels) => new Builder(channels);
-        public override Builder GetCloneBuilder() => GetCloneBuilderBase(new Builder(Channels));
+        public static Builder GetBuilder(short[][] channels, int sampleRate) => new Builder(channels, sampleRate);
+        public override Builder GetCloneBuilder() => GetCloneBuilderBase(new Builder(Channels, SampleRate));
 
         public class Builder : AudioFormatBaseBuilder<Pcm16Format, Builder>
         {
             public short[][] Channels { get; set; }
             internal override int ChannelCount => Channels.Length;
 
-            public Builder(short[][] channels) => Channels = channels;
+            public Builder(short[][] channels, int sampleRate)
+            {
+                if (channels == null || channels.Length < 1)
+                    throw new InvalidDataException("Channels parameter cannot be empty or null");
+
+                Channels = channels.ToArray();
+                SampleCount = Channels[0]?.Length ?? 0;
+                SampleRate = sampleRate;
+
+                foreach (var channel in Channels)
+                {
+                    if (channel == null)
+                        throw new InvalidDataException("All provided channels must be non-null");
+
+                    if (channel.Length != SampleCount)
+                        throw new InvalidDataException("All channels must have the same sample count");
+                }
+            }
+
             public override Pcm16Format Build() => new Pcm16Format(this);
         }
     }

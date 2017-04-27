@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
@@ -29,16 +28,21 @@ namespace VGAudio.Tests
             return wave;
         }
 
-        public static Pcm16Format GeneratePcmSineWave(int sampleCount, int channelCount, int sampleRate)
+        public static short[][] GeneratePcmSineWaveChannels(int sampleCount, int channelCount, int sampleRate)
         {
-            double[] frequencies = Frequencies.Take(channelCount).ToArray();
             var channels = new short[channelCount][];
 
             for (int i = 0; i < channelCount; i++)
             {
-                channels[i] = GenerateSineWave(sampleCount, frequencies[i], sampleRate);
+                channels[i] = GenerateSineWave(sampleCount, Frequencies[i], sampleRate);
             }
 
+            return channels;
+        }
+
+        public static Pcm16Format GeneratePcmSineWave(int sampleCount, int channelCount, int sampleRate)
+        {
+            short[][] channels = GeneratePcmSineWaveChannels(sampleCount, channelCount, sampleRate);
             return new Pcm16Format(sampleCount, sampleRate, channels);
         }
 
