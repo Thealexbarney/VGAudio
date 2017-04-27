@@ -63,13 +63,10 @@ namespace VGAudio.Containers
                 channels[c] = channelBuilder.Build();
             }
 
-            var builder = new GcAdpcmFormat.Builder(channels)
-            {
-                SampleCount = structure.SampleCount,
-                SampleRate = structure.SampleRate,
-                Tracks = structure.Tracks
-            };
-            return builder.Loop(structure.Looping, structure.LoopStart, structure.SampleCount).Build();
+            return new GcAdpcmFormatBuilder(channels, structure.SampleRate)
+                .WithTracks(structure.Tracks)
+                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .Build();
         }
 
         protected override BrstmConfiguration GetConfiguration(BrstmStructure structure)

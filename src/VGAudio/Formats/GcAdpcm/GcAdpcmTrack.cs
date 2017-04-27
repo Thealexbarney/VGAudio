@@ -7,6 +7,24 @@
     /// </summary>
     public class GcAdpcmTrack
     {
+        public GcAdpcmTrack(int channelCount, int channelLeft, int channelRight, int panning, int volume)
+        {
+            ChannelCount = channelCount;
+            ChannelLeft = channelLeft;
+            ChannelRight = channelRight;
+            Panning = panning;
+            Volume = volume;
+        }
+
+        public GcAdpcmTrack(int channelCount, int channelLeft, int channelRight)
+        {
+            ChannelCount = channelCount;
+            ChannelLeft = channelLeft;
+            ChannelRight = channelRight;
+        }
+
+        public GcAdpcmTrack() { }
+
         /// <summary>
         /// The volume of the track. Ranges from
         /// 0 to 127 (0x7f).

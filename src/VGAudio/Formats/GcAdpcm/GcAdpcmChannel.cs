@@ -5,11 +5,10 @@ namespace VGAudio.Formats.GcAdpcm
 {
     public class GcAdpcmChannel
     {
-        private readonly int _sampleCount;
-
         public byte[] Adpcm { get; }
         private short[] Pcm { get; }
-        public int SampleCount => AlignmentNeeded ? Alignment.SampleCountAligned : _sampleCount;
+        internal int UnalignedSampleCount { get; }
+        public int SampleCount => AlignmentNeeded ? Alignment.SampleCountAligned : UnalignedSampleCount;
 
         public short Gain { get; }
         public short[] Coefs { get; }
@@ -31,7 +30,7 @@ namespace VGAudio.Formats.GcAdpcm
         {
             Adpcm = adpcm;
             Coefs = coefs;
-            _sampleCount = sampleCount;
+            UnalignedSampleCount = sampleCount;
         }
 
         internal GcAdpcmChannel(GcAdpcmChannelBuilder b)
@@ -41,7 +40,7 @@ namespace VGAudio.Formats.GcAdpcm
                 throw new ArgumentException("Audio array length is too short for the specified number of samples.");
             }
 
-            _sampleCount = b.SampleCount;
+            UnalignedSampleCount = b.SampleCount;
             Adpcm = b.Adpcm;
             Pcm = b.Pcm;
 
@@ -67,7 +66,7 @@ namespace VGAudio.Formats.GcAdpcm
 
         public GcAdpcmChannelBuilder GetCloneBuilder()
         {
-            var builder = new GcAdpcmChannelBuilder(Adpcm, Coefs, _sampleCount)
+            var builder = new GcAdpcmChannelBuilder(Adpcm, Coefs, UnalignedSampleCount)
             {
                 Pcm = Pcm,
                 Gain = Gain,

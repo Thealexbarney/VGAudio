@@ -79,7 +79,7 @@ namespace VGAudio.Tests
             {
                 var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
                 var coefs = new short[16];
-                channels[i] = new GcAdpcmChannel(adpcm, coefs, sampleCount);
+                channels[i] = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount).Build();
             }
             return channels;
         }

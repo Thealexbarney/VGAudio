@@ -69,13 +69,10 @@ namespace VGAudio.Containers.Bxstm
                 channels[c] = channelBuilder.Build();
             }
 
-            var builder = new GcAdpcmFormat.Builder(channels)
-            {
-                SampleCount = structure.SampleCount,
-                SampleRate = structure.SampleRate,
-                Tracks = structure.Tracks
-            };
-            return builder.Loop(structure.Looping, structure.LoopStart, structure.SampleCount).Build();
+            return new GcAdpcmFormatBuilder(channels, structure.SampleRate)
+                .WithTracks(structure.Tracks)
+                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .Build();
         }
 
         private static void ReadHeader(BinaryReader reader, BCFstmStructure structure)

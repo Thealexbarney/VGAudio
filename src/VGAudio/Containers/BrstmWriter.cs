@@ -76,9 +76,7 @@ namespace VGAudio.Containers
 
             if (!LoopPointsAreAligned(LoopStart, Configuration.LoopPointAlignment))
             {
-                GcAdpcmFormat.Builder builder = Adpcm.GetCloneBuilder();
-                builder.AlignmentMultiple = Configuration.LoopPointAlignment;
-                Adpcm = builder.Build();
+                Adpcm = Adpcm.GetCloneBuilder().WithAlignment(Configuration.LoopPointAlignment).Build();
             }
 
             Parallel.For(0, ChannelCount, i =>

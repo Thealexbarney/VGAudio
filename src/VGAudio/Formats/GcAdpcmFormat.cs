@@ -11,7 +11,7 @@ namespace VGAudio.Formats
     /// A 4-bit Nintendo ADPCM audio stream.
     /// The stream can contain any number of individual channels.
     /// </summary>
-    public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat, GcAdpcmFormat.Builder>
+    public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat, GcAdpcmFormatBuilder>
     {
         public GcAdpcmChannel[] Channels { get; }
         public List<GcAdpcmTrack> Tracks { get; }
@@ -34,7 +34,7 @@ namespace VGAudio.Formats
             Tracks = GetDefaultTrackList(Channels.Length).ToList();
         }
 
-        private GcAdpcmFormat(Builder b) : base(b)
+        internal GcAdpcmFormat(GcAdpcmFormatBuilder b) : base(b)
         {
             Channels = b.Channels;
             Tracks = b.Tracks == null || b.Tracks.Count == 0 ? GetDefaultTrackList(b.Channels.Length).ToList() : b.Tracks;
@@ -42,9 +42,11 @@ namespace VGAudio.Formats
 
             Parallel.For(0, Channels.Length, i =>
             {
-                var builder = Channels[i].GetCloneBuilder();
-                builder.LoopAlignmentMultiple = b.AlignmentMultiple;
-                Channels[i] = builder.Build();
+                Channels[i] = Channels[i]
+                    .GetCloneBuilder()
+                    .WithLoop(Looping, UnalignedLoopStart, UnalignedLoopEnd)
+                    .WithLoopAlignment(b.AlignmentMultiple)
+                    .Build();
             });
         }
         
@@ -75,7 +77,7 @@ namespace VGAudio.Formats
 
         protected override GcAdpcmFormat AddInternal(GcAdpcmFormat adpcm)
         {
-            Builder copy = GetCloneBuilder();
+            GcAdpcmFormatBuilder copy = GetCloneBuilder();
             copy.Channels = Channels.Concat(adpcm.Channels).ToArray();
             return copy.Build();
         }
@@ -91,7 +93,7 @@ namespace VGAudio.Formats
                 channels.Add(Channels[i]);
             }
 
-            Builder copy = GetCloneBuilder();
+            GcAdpcmFormatBuilder copy = GetCloneBuilder();
             copy.Channels = channels.ToArray();
             copy.Tracks = null;
             return copy.Build();
@@ -112,25 +114,14 @@ namespace VGAudio.Formats
             return table.ToByteArray(endianness);
         }
 
-        public static Builder GetBuilder(GcAdpcmChannel[] channels) => new Builder(channels);
-        public override Builder GetCloneBuilder()
+        public static GcAdpcmFormatBuilder GetBuilder(GcAdpcmChannel[] channels, int sampleRate) => new GcAdpcmFormatBuilder(channels, sampleRate);
+        public override GcAdpcmFormatBuilder GetCloneBuilder()
         {
-            var builder = new Builder(Channels);
+            var builder = new GcAdpcmFormatBuilder(Channels, SampleRate);
             builder = GetCloneBuilderBase(builder);
             builder.Tracks = Tracks;
             builder.AlignmentMultiple = AlignmentMultiple;
             return builder;
-        }
-
-        public class Builder : AudioFormatBaseBuilder<GcAdpcmFormat, Builder>
-        {
-            public GcAdpcmChannel[] Channels { get; set; }
-            public List<GcAdpcmTrack> Tracks { get; set; }
-            public int AlignmentMultiple { get; set; }
-            internal override int ChannelCount => Channels.Length;
-
-            public Builder(GcAdpcmChannel[] channels) => Channels = channels;
-            public override GcAdpcmFormat Build() => new GcAdpcmFormat(this);
         }
 
         private static GcAdpcmChannel EncodeChannel(int sampleCount, short[] pcm)
