@@ -32,7 +32,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void CreatingSeekTableContentIsCorrect()
         {
             short[] expected = { 0, 0, 50, 49, 100, 99 };
-            short[] pcm = GenerateAudio.GenerateAccendingShorts(101);
+            short[] pcm = GenerateAudio.GenerateAccendingShorts(0, 101);
             var seekTable = new GcAdpcmSeekTable(pcm, 50);
 
             Assert.Equal(expected, seekTable.SeekTable);
@@ -41,7 +41,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [Fact]
         public void CreatingSeekTableFirstEntryIsZero()
         {
-            short[] pcm = GenerateAudio.GenerateAccendingShorts(50);
+            short[] pcm = GenerateAudio.GenerateAccendingShorts(0, 50);
             var seekTable = new GcAdpcmSeekTable(pcm, 10);
             Assert.Equal(seekTable.SeekTable.Take(2), new short[] { 0, 0 });
         }

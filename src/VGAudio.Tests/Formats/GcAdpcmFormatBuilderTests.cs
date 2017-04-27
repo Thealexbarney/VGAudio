@@ -2,6 +2,7 @@
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using Xunit;
+using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
 namespace VGAudio.Tests.Formats
 {
@@ -52,6 +53,90 @@ namespace VGAudio.Tests.Formats
             GcAdpcmFormat unused = adpcm.GetCloneBuilder().WithAlignment(7).Build();
             Assert.All(adpcm.Channels, x => Assert.Equal(100, x.UnalignedSampleCount));
             Assert.All(adpcm.Channels, x => Assert.Equal(105, x.SampleCount));
+        }
+
+        [Theory]
+        [InlineData(100, true, 30, 90)]
+        public void AdpcmDataLengthIsCorrectAfterLooping(int sampleCount, bool looping, int loopStart, int loopEnd)
+        {
+            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+                .WithLoop(looping, loopStart, loopEnd);
+
+            Assert.Equal(SampleCountToByteCount(sampleCount), adpcm.Channels[0].GetAdpcmAudio().Length);
+        }
+
+        [Theory]
+        [InlineData(100, true, 30, 90, 50)]
+        public void AdpcmDataLengthIsCorrectAfterUnlooping(int sampleCount, bool looping, int loopStart, int loopEnd, int alignment)
+        {
+            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+                .WithAlignment(alignment)
+                .WithLoop(looping, loopStart, loopEnd)
+                .WithLoop(false);
+
+            Assert.Equal(SampleCountToByteCount(sampleCount), adpcm.Channels[0].GetAdpcmAudio().Length);
+        }
+
+        [Theory]
+        [InlineData(100, true, 30, 90, 50)]
+        public void AdpcmDataLengthIsCorrectAfterAlignment(int sampleCount, bool looping, int loopStart, int loopEnd, int alignment)
+        {
+            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+                .WithAlignment(alignment)
+                .WithLoop(looping, loopStart, loopEnd);
+
+            int extraSamples = Utilities.Helpers.GetNextMultiple(loopStart, alignment) - loopStart;
+
+            Assert.Equal(SampleCountToByteCount(loopEnd + extraSamples), adpcm.Channels[0].GetAdpcmAudio().Length);
+        }
+
+        [Theory]
+        [InlineData(100, true, 30, 90, 50)]
+        public void AdpcmDataLengthIsCorrectAfterUnalignment(int sampleCount, bool looping, int loopStart, int loopEnd, int alignment)
+        {
+            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+                .WithAlignment(alignment)
+                .WithLoop(looping, loopStart, loopEnd)
+                .WithAlignment(0);
+
+            Assert.Equal(SampleCountToByteCount(sampleCount), adpcm.Channels[0].GetAdpcmAudio().Length);
+        }
+
+        [Theory]
+        [InlineData(100, true, 30, 90, 50)]
+        public void AdpcmLoopIsCorrectAfterAlignment(int sampleCount, bool looping, int loopStart, int loopEnd, int alignment)
+        {
+            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+                .WithAlignment(alignment)
+                .WithLoop(looping, loopStart, loopEnd);
+
+            int extraSamples = Utilities.Helpers.GetNextMultiple(loopStart, alignment) - loopStart;
+
+            Assert.Equal(loopStart + extraSamples, adpcm.LoopStart);
+            Assert.Equal(loopEnd + extraSamples, adpcm.LoopEnd);
+        }
+
+        [Theory]
+        [InlineData(100, true, 30, 90, 50)]
+        public void AdpcmLoopIsCorrectAfterUnalignment(int sampleCount, bool looping, int loopStart, int loopEnd, int alignment)
+        {
+            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+                .WithAlignment(alignment)
+                .WithLoop(looping, loopStart, loopEnd)
+                .WithAlignment(0);
+
+            Assert.Equal(loopStart, adpcm.LoopStart);
+            Assert.Equal(loopEnd, adpcm.LoopEnd);
+        }
+
+        [Theory]
+        [InlineData(100, true, 30, 90)]
+        public void AdpcmSampleCountIsCorrectAfterLooping(int sampleCount, bool looping, int loopStart, int loopEnd)
+        {
+            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+                .WithLoop(looping, loopStart, loopEnd);
+
+            Assert.Equal(sampleCount, adpcm.SampleCount);
         }
     }
 }

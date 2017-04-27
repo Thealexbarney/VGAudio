@@ -71,8 +71,9 @@ namespace VGAudio.Formats
                 channels[i] = EncodeChannel(pcm16.SampleCount, pcm16.Channels[i]);
             });
 
-            return new GcAdpcmFormat(pcm16.SampleCount, pcm16.SampleRate, channels)
-                .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd);
+            return new GcAdpcmFormatBuilder(channels, pcm16.SampleRate)
+                .Loop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
+                .Build();
         }
 
         protected override GcAdpcmFormat AddInternal(GcAdpcmFormat adpcm)
@@ -123,6 +124,10 @@ namespace VGAudio.Formats
             builder.AlignmentMultiple = AlignmentMultiple;
             return builder;
         }
+
+        public GcAdpcmFormat WithAlignment(int loopStartAlignment) => GetCloneBuilder()
+            .WithAlignment(loopStartAlignment)
+            .Build();
 
         private static GcAdpcmChannel EncodeChannel(int sampleCount, short[] pcm)
         {
