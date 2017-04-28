@@ -55,7 +55,7 @@ namespace VGAudio.Tests.Formats
         {
             short[][] channels = GetChannels(100, 4);
             Pcm16Format pcm = Pcm16Format.GetBuilder(channels, 32000).Build();
-            Pcm16Format partial = pcm.GetChannels(new[] { 2, 0, 2 });
+            Pcm16Format partial = pcm.GetChannels(2, 0, 2);
 
             Assert.Equal(100, partial.SampleCount);
             Assert.Equal(3, partial.ChannelCount);
@@ -70,7 +70,7 @@ namespace VGAudio.Tests.Formats
             short[][] channels = GetChannels(100, 4);
             Pcm16Format pcm = Pcm16Format.GetBuilder(channels, 32000).Build();
 
-            Exception ex = Record.Exception(() => pcm.GetChannels(new[] { 4, 0 }));
+            Exception ex = Record.Exception(() => pcm.GetChannels(4, 0));
             Assert.IsType<ArgumentException>(ex);
         }
 

@@ -51,7 +51,8 @@ namespace VGAudio.Formats
 
         public static AudioData Combine(params AudioData[] audio)
         {
-            if (audio == null || audio.Length <= 0) return null;
+            if (audio == null || audio.Length <= 0 || audio.Any(x => x == null))
+                throw new ArgumentException("Audio cannot be null, empty, or have any null elements");
 
             List<Type> commonTypes = audio
                 .Select(x => x.ListAvailableFormats())

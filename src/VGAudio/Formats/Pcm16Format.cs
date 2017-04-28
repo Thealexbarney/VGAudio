@@ -32,7 +32,7 @@ namespace VGAudio.Formats
             return copy.Build();
         }
 
-        protected override Pcm16Format GetChannelsInternal(IEnumerable<int> channelRange)
+        protected override Pcm16Format GetChannelsInternal(int[] channelRange)
         {
             var channels = new List<short[]>();
 

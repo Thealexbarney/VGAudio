@@ -83,7 +83,7 @@ namespace VGAudio.Formats
             return copy.Build();
         }
 
-        protected override GcAdpcmFormat GetChannelsInternal(IEnumerable<int> channelRange)
+        protected override GcAdpcmFormat GetChannelsInternal(int[] channelRange)
         {
             var channels = new List<GcAdpcmChannel>();
 

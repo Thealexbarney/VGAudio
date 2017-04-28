@@ -74,7 +74,7 @@ namespace VGAudio.Cli
             foreach (AudioFile file in options.InFiles.Where(x => x.Channels != null))
             {
                 IAudioFormat format = file.Audio.GetAllFormats().First();
-                file.Audio = new AudioData(format.GetChannels(file.Channels));
+                file.Audio = new AudioData(format.GetChannels(file.Channels.ToArray()));
             }
 
             Audio = options.InFiles[0].Audio;

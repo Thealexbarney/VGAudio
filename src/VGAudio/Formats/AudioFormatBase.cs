@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace VGAudio.Formats
 {
@@ -15,7 +14,7 @@ namespace VGAudio.Formats
         public bool Looping { get; }
 
         IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16);
-        IAudioFormat IAudioFormat.GetChannels(IEnumerable<int> channelRange) => GetChannels(channelRange);
+        IAudioFormat IAudioFormat.GetChannels(params int[] channelRange) => GetChannels(channelRange);
         IAudioFormat IAudioFormat.WithLoop(bool loop, int loopStart, int loopEnd) => WithLoop(loop, loopStart, loopEnd);
         IAudioFormat IAudioFormat.WithLoop(bool loop) => WithLoop(loop);
 
@@ -37,7 +36,7 @@ namespace VGAudio.Formats
             LoopEnd = builder.LoopEnd;
         }
 
-        public TFormat GetChannels(IEnumerable<int> channelRange)
+        public TFormat GetChannels(params int[] channelRange)
         {
             if (channelRange == null)
                 throw new ArgumentNullException(nameof(channelRange));
@@ -45,7 +44,7 @@ namespace VGAudio.Formats
             return GetChannelsInternal(channelRange);
         }
 
-        protected abstract TFormat GetChannelsInternal(IEnumerable<int> channelRange);
+        protected abstract TFormat GetChannelsInternal(int[] channelRange);
 
         public virtual TFormat WithLoop(bool loop) => GetCloneBuilder().Loop(loop).Build();
         public virtual TFormat WithLoop(bool loop, int loopStart, int loopEnd) =>
@@ -56,7 +55,14 @@ namespace VGAudio.Formats
             result = null;
             TFormat castFormat = format as TFormat;
             if (castFormat == null) return false;
-            result = Add(castFormat);
+            try
+            {
+                result = Add(castFormat);
+            }
+            catch
+            {
+                return false;
+            }
             return true;
         }
 

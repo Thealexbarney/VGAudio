@@ -67,7 +67,7 @@ namespace VGAudio.Tests.Formats
         public void GettingSpecificChannels()
         {
             GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmSineWave(100, 4, 48000);
-            GcAdpcmFormat partial = adpcm.GetChannels(new[] { 2, 0, 2 });
+            GcAdpcmFormat partial = adpcm.GetChannels(2, 0, 2);
 
             Assert.Equal(100, partial.SampleCount);
             Assert.Equal(3, partial.ChannelCount);
@@ -81,7 +81,7 @@ namespace VGAudio.Tests.Formats
         {
             GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmSineWave(100, 4, 48000);
 
-            Exception ex = Record.Exception(() => adpcm.GetChannels(new[] { 4, 0 }));
+            Exception ex = Record.Exception(() => adpcm.GetChannels(4, 0));
             Assert.IsType<ArgumentException>(ex);
         }
 
