@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace VGAudio.Utilities
 {
@@ -35,12 +36,12 @@ namespace VGAudio.Utilities
 
         public static BinaryReader GetBinaryReader(Stream stream, Endianness endianness) =>
             endianness == Endianness.LittleEndian
-                ? GetStream.GetBinaryReader(stream)
-                : GetStream.GetBinaryReaderBE(stream);
+                ? new BinaryReader(stream, Encoding.UTF8, true)
+                : new BinaryReaderBE(stream, Encoding.UTF8, true);
 
         public static BinaryWriter GetBinaryWriter(Stream stream, Endianness endianness) =>
             endianness == Endianness.LittleEndian
-                ? GetStream.GetBinaryWriter(stream)
-                : GetStream.GetBinaryWriterBE(stream);
+                ? new BinaryWriter(stream, Encoding.UTF8, true)
+                : new BinaryWriterBE(stream, Encoding.UTF8, true);
     }
 }

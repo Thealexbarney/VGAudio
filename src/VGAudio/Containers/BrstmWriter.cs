@@ -22,7 +22,6 @@ namespace VGAudio.Containers
         private int LoopEnd => Adpcm.LoopEnd;
 
         private static BxstmCodec Codec => BxstmCodec.Adpcm;
-        private byte Looping => (byte)(Adpcm.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
 
         /// <summary>
@@ -143,7 +142,7 @@ namespace VGAudio.Containers
         private void WriteHeadChunk1(BinaryWriter writer)
         {
             writer.Write((byte)Codec);
-            writer.Write(Looping);
+            writer.Write(Adpcm.Looping);
             writer.Write((byte)ChannelCount);
             writer.Write((byte)0); //padding
             writer.Write((ushort)Adpcm.SampleRate);

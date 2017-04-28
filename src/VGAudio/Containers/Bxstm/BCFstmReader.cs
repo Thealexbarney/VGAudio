@@ -160,7 +160,7 @@ namespace VGAudio.Containers.Bxstm
                 throw new NotSupportedException("File must contain 4-bit ADPCM encoded audio");
             }
 
-            structure.Looping = reader.ReadByte() == 1;
+            structure.Looping = reader.ReadBoolean();
             structure.ChannelCount = reader.ReadByte();
             structure.SectionCount = reader.ReadByte();
 
