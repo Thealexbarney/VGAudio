@@ -25,9 +25,8 @@ namespace VGAudio.Uwp.Audio
 
         public static FileType GetFileTypeFromName(string fileName)
         {
-            FileType fileType;
             string extension = Path.GetExtension(fileName)?.TrimStart('.').ToLower() ?? "";
-            Extensions.TryGetValue(extension, out fileType);
+            Extensions.TryGetValue(extension, out FileType fileType);
             return fileType;
         }
     }
