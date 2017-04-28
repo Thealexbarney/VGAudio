@@ -81,7 +81,7 @@ namespace VGAudio.Cli
 
             List<AudioData> toMerge = options.InFiles.Skip(1).Select(x => x.Audio).ToList();
 
-            Audio.Add(toMerge);
+            AudioData.Combine(toMerge.ToArray());
 
             if (options.NoLoop)
             {

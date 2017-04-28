@@ -16,6 +16,6 @@ namespace VGAudio.Formats
         Pcm16Format ToPcm16();
         IAudioFormat EncodeFromPcm16(Pcm16Format pcm16);
         IAudioFormat GetChannels(IEnumerable<int> channelRange);
-        bool TryAdd(IAudioFormat format);
+        bool TryAdd(IAudioFormat format, out IAudioFormat result);
     }
 }

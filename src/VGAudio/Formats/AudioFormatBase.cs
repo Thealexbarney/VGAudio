@@ -51,11 +51,12 @@ namespace VGAudio.Formats
         public virtual TFormat WithLoop(bool loop, int loopStart, int loopEnd) =>
             GetCloneBuilder().Loop(loop, loopStart, loopEnd).Build();
 
-        public bool TryAdd(IAudioFormat format)
+        public bool TryAdd(IAudioFormat format, out IAudioFormat result)
         {
+            result = null;
             TFormat castFormat = format as TFormat;
             if (castFormat == null) return false;
-            Add(castFormat);
+            result = Add(castFormat);
             return true;
         }
 
