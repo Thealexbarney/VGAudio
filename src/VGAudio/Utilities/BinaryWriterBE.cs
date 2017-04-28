@@ -33,5 +33,14 @@ namespace VGAudio.Utilities
             _buffer[3] = (byte)value;
             OutStream.Write(_buffer, 0, 4);
         }
+
+        public override void Write(uint value)
+        {
+            _buffer[0] = (byte)(value >> 24);
+            _buffer[1] = (byte)(value >> 16);
+            _buffer[2] = (byte)(value >> 8);
+            _buffer[3] = (byte)value;
+            OutStream.Write(_buffer, 0, 4);
+        }
     }
 }

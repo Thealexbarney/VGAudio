@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using VGAudio.Containers;
@@ -39,8 +38,7 @@ namespace VGAudio.Cli
         {
             using (var stream = new FileStream(file.Path, FileMode.Open))
             {
-                ContainerType type;
-                ContainerTypes.Containers.TryGetValue(file.Type, out type);
+                ContainerTypes.Containers.TryGetValue(file.Type, out ContainerType type);
 
                 if (type == null)
                 {
@@ -57,8 +55,7 @@ namespace VGAudio.Cli
         {
             using (var stream = new FileStream(fileName, FileMode.Create))
             {
-                ContainerType type;
-                ContainerTypes.Containers.TryGetValue(fileType, out type);
+                ContainerTypes.Containers.TryGetValue(fileType, out ContainerType type);
 
                 if (type == null)
                 {
@@ -74,14 +71,12 @@ namespace VGAudio.Cli
             foreach (AudioFile file in options.InFiles.Where(x => x.Channels != null))
             {
                 IAudioFormat format = file.Audio.GetAllFormats().First();
-                file.Audio = new AudioData(format.GetChannels(file.Channels));
+                file.Audio = new AudioData(format.GetChannels(file.Channels.ToArray()));
             }
 
-            Audio = options.InFiles[0].Audio;
+            AudioData[] toMerge = options.InFiles.Select(x => x.Audio).ToArray();
 
-            List<AudioData> toMerge = options.InFiles.Skip(1).Select(x => x.Audio).ToList();
-
-            Audio.Add(toMerge);
+            Audio = AudioData.Combine(toMerge);
 
             if (options.NoLoop)
             {

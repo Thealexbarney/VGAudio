@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
@@ -29,16 +28,21 @@ namespace VGAudio.Tests
             return wave;
         }
 
-        public static Pcm16Format GeneratePcmSineWave(int sampleCount, int channelCount, int sampleRate)
+        public static short[][] GeneratePcmSineWaveChannels(int sampleCount, int channelCount, int sampleRate)
         {
-            double[] frequencies = Frequencies.Take(channelCount).ToArray();
             var channels = new short[channelCount][];
 
             for (int i = 0; i < channelCount; i++)
             {
-                channels[i] = GenerateSineWave(sampleCount, frequencies[i], sampleRate);
+                channels[i] = GenerateSineWave(sampleCount, Frequencies[i], sampleRate);
             }
 
+            return channels;
+        }
+
+        public static Pcm16Format GeneratePcmSineWave(int sampleCount, int channelCount, int sampleRate)
+        {
+            short[][] channels = GeneratePcmSineWaveChannels(sampleCount, channelCount, sampleRate);
             return new Pcm16Format(sampleCount, sampleRate, channels);
         }
 
@@ -54,17 +58,44 @@ namespace VGAudio.Tests
 
             for (int i = 0; i < channelCount; i++)
             {
-                channels[i] = new GcAdpcmChannel(sampleCount,
-                    new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)])
-                {
-                    Coefs = new short[16]
-                };
-                channels[i].AddSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry);
+                channels[i] =
+                    new GcAdpcmChannelBuilder(new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)], new short[16], sampleCount)
+                        .WithSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry, true)
+                        .Build();
             }
 
             var adpcm = new GcAdpcmFormat(sampleCount, sampleRate, channels);
 
             return adpcm;
+        }
+
+        public static (byte[] adpcm, short[] coefs) GenerateAdpcmEmpty(int sampleCount)
+        {
+            var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            var coefs = new short[16];
+            return (adpcm, coefs);
+        }
+
+        public static GcAdpcmChannel[] GenerateAdpcmChannelsEmpty(int sampleCount, int channelCount)
+        {
+            var channels = new GcAdpcmChannel[channelCount];
+            for (int i = 0; i < channelCount; i++)
+            {
+                var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+                var coefs = new short[16];
+                channels[i] = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount).Build();
+            }
+            return channels;
+        }
+
+        public static short[] GenerateAccendingShorts(int start, int count)
+        {
+            var pcm = new short[count];
+            for (int i = 0; i < count; i++)
+            {
+                pcm[i] = (short)(i + 1 + start);
+            }
+            return pcm;
         }
     }
 }

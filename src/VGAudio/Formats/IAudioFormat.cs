@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace VGAudio.Formats
+﻿namespace VGAudio.Formats
 {
     public interface IAudioFormat
     {
@@ -11,11 +9,11 @@ namespace VGAudio.Formats
         int LoopEnd { get; }
         bool Looping { get; }
 
-        IAudioFormat SetLoop(bool loop, int loopStart, int loopEnd);
-        IAudioFormat SetLoop(bool loop);
+        IAudioFormat WithLoop(bool loop, int loopStart, int loopEnd);
+        IAudioFormat WithLoop(bool loop);
         Pcm16Format ToPcm16();
         IAudioFormat EncodeFromPcm16(Pcm16Format pcm16);
-        IAudioFormat GetChannels(IEnumerable<int> channelRange);
-        bool TryAdd(IAudioFormat format);
+        IAudioFormat GetChannels(params int[] channelRange);
+        bool TryAdd(IAudioFormat format, out IAudioFormat result);
     }
 }

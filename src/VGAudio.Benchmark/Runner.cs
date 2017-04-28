@@ -42,6 +42,7 @@ namespace VGAudio.Benchmark
             }
         }
 
+        // ReSharper disable once UnusedMember.Local
         private static void RunFast(IEnumerable<Type> benchmarks)
         {
             foreach (Type benchmark in benchmarks)

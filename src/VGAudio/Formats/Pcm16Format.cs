@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using VGAudio.Utilities;
 
 namespace VGAudio.Formats
 {
@@ -9,40 +9,30 @@ namespace VGAudio.Formats
     /// A 16-bit PCM audio stream.
     /// The stream can contain any number of individual channels.
     /// </summary>
-    public class Pcm16Format : AudioFormatBase<Pcm16Format>
+    public class Pcm16Format : AudioFormatBase<Pcm16Format, Pcm16Format.Builder>
     {
-        public short[][] Channels { get; private set; }
+        public short[][] Channels { get; }
 
+        public Pcm16Format() : base(0, 0, 0) => Channels = new short[0][];
         public Pcm16Format(int sampleCount, int sampleRate, short[][] channels)
             : base(sampleCount, sampleRate, channels.Length)
         {
             Channels = channels;
         }
 
-        public Pcm16Format() : base(0, 0, 0)
+        private Pcm16Format(Builder b) : base(b) => Channels = b.Channels;
+
+        public override Pcm16Format ToPcm16() => GetCloneBuilder().Build();
+        public override Pcm16Format EncodeFromPcm16(Pcm16Format pcm16) => pcm16.GetCloneBuilder().Build();
+
+        protected override Pcm16Format AddInternal(Pcm16Format pcm16)
         {
-            Channels = new short[0][];
+            Builder copy = GetCloneBuilder();
+            copy.Channels = Channels.Concat(pcm16.Channels).ToArray();
+            return copy.Build();
         }
 
-        public override Pcm16Format ToPcm16()
-        {
-            return new Pcm16Format(SampleCount, SampleRate, Channels)
-                .SetLoop(Looping, LoopStart, LoopEnd);
-        }
-
-        public override Pcm16Format EncodeFromPcm16(Pcm16Format pcm16)
-        {
-            return new Pcm16Format(pcm16.SampleCount, pcm16.SampleRate, pcm16.Channels)
-                .SetLoop(Looping, LoopStart, LoopEnd);
-        }
-
-        protected override void AddInternal(Pcm16Format pcm16)
-        {
-            Channels = Channels.Concat(pcm16.Channels).ToArray();
-            ChannelCount = Channels.Length;
-        }
-
-        protected override Pcm16Format GetChannelsInternal(IEnumerable<int> channelRange)
+        protected override Pcm16Format GetChannelsInternal(int[] channelRange)
         {
             var channels = new List<short[]>();
 
@@ -53,38 +43,39 @@ namespace VGAudio.Formats
                 channels.Add(Channels[i]);
             }
 
-            return new Pcm16Format(SampleCount, SampleRate, channels.ToArray());
+            Builder copy = GetCloneBuilder();
+            copy.Channels = channels.ToArray();
+            return copy.Build();
         }
 
-        public override bool Equals(object obj)
-        {
-            var item = obj as Pcm16Format;
+        public static Builder GetBuilder(short[][] channels, int sampleRate) => new Builder(channels, sampleRate);
+        public override Builder GetCloneBuilder() => GetCloneBuilderBase(new Builder(Channels, SampleRate));
 
-            if (item == null)
+        public class Builder : AudioFormatBaseBuilder<Pcm16Format, Builder>
+        {
+            public short[][] Channels { get; set; }
+            internal override int ChannelCount => Channels.Length;
+
+            public Builder(short[][] channels, int sampleRate)
             {
-                return false;
+                if (channels == null || channels.Length < 1)
+                    throw new InvalidDataException("Channels parameter cannot be empty or null");
+
+                Channels = channels.ToArray();
+                SampleCount = Channels[0]?.Length ?? 0;
+                SampleRate = sampleRate;
+
+                foreach (var channel in Channels)
+                {
+                    if (channel == null)
+                        throw new InvalidDataException("All provided channels must be non-null");
+
+                    if (channel.Length != SampleCount)
+                        throw new InvalidDataException("All channels must have the same sample count");
+                }
             }
 
-            return
-                item.SampleCount == SampleCount &&
-                item.SampleRate == SampleRate &&
-                item.LoopStart == LoopStart &&
-                item.LoopEnd == LoopEnd &&
-                item.Looping == Looping &&
-                !Channels.Where((t, i) => !Helpers.ArraysEqual(item.Channels[i], t)).Any();
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = SampleCount.GetHashCode();
-                hashCode = (hashCode * 397) ^ SampleRate.GetHashCode();
-                hashCode = (hashCode * 397) ^ LoopStart.GetHashCode();
-                hashCode = (hashCode * 397) ^ LoopEnd.GetHashCode();
-                hashCode = (hashCode * 397) ^ Looping.GetHashCode();
-                return hashCode;
-            }
+            public override Pcm16Format Build() => new Pcm16Format(this);
         }
     }
 }

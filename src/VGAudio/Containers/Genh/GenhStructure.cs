@@ -93,9 +93,9 @@ namespace VGAudio.Containers.Genh
 
     internal static class GenhCoefTypeExtension
     {
-        public static Helpers.Endianness Endianness(this GenhCoefType coefType) =>
+        public static Endianness Endianness(this GenhCoefType coefType) =>
             coefType.HasFlag(GenhCoefType.LittleEndian)
-                ? Helpers.Endianness.LittleEndian
-                : Helpers.Endianness.BigEndian;
+                ? Utilities.Endianness.LittleEndian
+                : Utilities.Endianness.BigEndian;
     }
 }

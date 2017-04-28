@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using VGAudio.Utilities;
+﻿using VGAudio.Utilities;
 
 namespace VGAudio.Formats.GcAdpcm
 {
@@ -46,20 +44,5 @@ namespace VGAudio.Formats.GcAdpcm
         }
 
         public static int SampleCountToByteCount(int sampleCount) => SampleCountToNibbleCount(sampleCount).DivideBy2RoundUp();
-
-        public static byte[] BuildSeekTable(IList<GcAdpcmChannel> channels, int samplesPerEntry, int entryCount, Helpers.Endianness endianness, bool ensureSelfCalculated = false)
-        {
-            var tables = new short[channels.Count][];
-
-            Parallel.For(0, tables.Length, i =>
-            {
-                tables[i] = channels[i].GetSeekTable(samplesPerEntry, ensureSelfCalculated);
-            });
-
-            short[] table = tables.Interleave(2);
-
-            Array.Resize(ref table, entryCount * 2 * channels.Count);
-            return table.ToByteArray(endianness);
-        }
     }
 }

@@ -1,153 +1,97 @@
 ﻿using System;
 using VGAudio.Codecs;
-using VGAudio.Utilities;
 
 namespace VGAudio.Formats.GcAdpcm
 {
     public class GcAdpcmChannel
     {
-        private readonly int _sampleCount;
+        public byte[] Adpcm { get; }
+        private short[] Pcm { get; }
+        internal int UnalignedSampleCount { get; }
+        public int SampleCount => AlignmentNeeded ? Alignment.SampleCountAligned : UnalignedSampleCount;
 
-        public byte[] AudioData { get; }
-        public int SampleCount => AlignmentNeeded ? Alignment.SampleCountAligned : _sampleCount;
+        public short Gain { get; }
+        public short[] Coefs { get; }
+        public short PredScale => Adpcm[0];
+        public short Hist1 { get; }
+        public short Hist2 { get; }
 
-        public short Gain { get; set; }
-        public short[] Coefs { get; set; }
-        public short PredScale => AudioData[0];
-        public short Hist1 { get; set; }
-        public short Hist2 { get; set; }
+        public short LoopPredScale => LoopContext?.PredScale ?? 0;
+        public short LoopHist1 => LoopContext?.Hist1 ?? 0;
+        public short LoopHist2 => LoopContext?.Hist2 ?? 0;
 
-        public short LoopPredScale(int loopStart, bool ensureSelfCalculated = false) => LoopContext.PredScale(loopStart, ensureSelfCalculated);
-        public short LoopHist1(int loopStart, bool ensureSelfCalculated = false) => LoopContext.Hist1(loopStart, ensureSelfCalculated);
-        public short LoopHist2(int loopStart, bool ensureSelfCalculated = false) => LoopContext.Hist2(loopStart, ensureSelfCalculated);
-        
         private GcAdpcmSeekTable SeekTable { get; }
         private GcAdpcmLoopContext LoopContext { get; }
-        private GcAdpcmAlignment Alignment { get; } = new GcAdpcmAlignment();
-        private bool AlignmentNeeded { get; set; }
+        private GcAdpcmAlignment Alignment { get; }
+        private int AlignmentMultiple => Alignment?.AlignmentMultiple ?? 0;
+        private bool AlignmentNeeded => Alignment?.AlignmentNeeded ?? false;
 
-        public GcAdpcmChannel(int sampleCount)
+        public GcAdpcmChannel(byte[] adpcm, short[] coefs, int sampleCount)
         {
-            _sampleCount = sampleCount;
-            AudioData = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
-            LoopContext = new GcAdpcmLoopContext(this);
-            SeekTable = new GcAdpcmSeekTable(this);
+            Adpcm = adpcm;
+            Coefs = coefs;
+            UnalignedSampleCount = sampleCount;
         }
 
-        public GcAdpcmChannel(int sampleCount, byte[] audio)
+        internal GcAdpcmChannel(GcAdpcmChannelBuilder b)
         {
-            if (audio.Length < GcAdpcmHelpers.SampleCountToByteCount(sampleCount))
+            if (b.AlignedAdpcm.Length < GcAdpcmHelpers.SampleCountToByteCount(b.SampleCount))
             {
                 throw new ArgumentException("Audio array length is too short for the specified number of samples.");
             }
 
-            _sampleCount = sampleCount;
-            AudioData = audio;
-            LoopContext = new GcAdpcmLoopContext(this);
-            SeekTable = new GcAdpcmSeekTable(this);
+            UnalignedSampleCount = b.SampleCount;
+            Adpcm = b.Adpcm;
+            Pcm = b.Pcm;
+
+            Coefs = b.Coefs;
+            Gain = b.Gain;
+            Hist1 = b.Hist1;
+            Hist2 = b.Hist2;
+
+            Alignment = b.GetAlignment();
+            LoopContext = b.GetLoopContext();
+            SeekTable = b.GetSeekTable();
+
+            //Grab the PCM data in case it was generated for the loop context or seek table
+            if (!AlignmentNeeded)
+            {
+                Pcm = b.AlignedPcm;
+            }
         }
 
-        public short[] GetPcmAudio(bool includeHistorySamples = false) =>
-            GcAdpcmDecoder.Decode(this, 0, SampleCount, includeHistorySamples);
+        public short[] GetPcmAudio() => AlignmentNeeded ? Alignment.PcmAligned : Pcm ?? GcAdpcmDecoder.Decode(GetAdpcmAudio(), Coefs, SampleCount, Hist1, Hist2);
+        public short[] GetSeekTable() => SeekTable?.SeekTable ?? new short[0];
+        public byte[] GetAdpcmAudio() => AlignmentNeeded ? Alignment.AdpcmAligned : Adpcm;
 
-        public short[] GetPcmAudioLooped(int startSample, int length, int loopStart, int loopEnd,
-            bool includeHistorySamples = false)
+        public GcAdpcmChannelBuilder GetCloneBuilder()
         {
-            short[] output = new short[length + (includeHistorySamples ? 2 : 0)];
-            int outIndex = 0;
-            int samplesRemaining = length;
-            int currentSample = GetLoopedSample(startSample, loopStart, loopEnd);
-            bool firstTime = true;
-
-            while (samplesRemaining > 0 || firstTime && includeHistorySamples)
+            var builder = new GcAdpcmChannelBuilder(Adpcm, Coefs, UnalignedSampleCount)
             {
-                int samplesToGet = Math.Min(loopEnd - currentSample, samplesRemaining);
-                short[] samples = GcAdpcmDecoder.Decode(this, currentSample, samplesToGet, firstTime && includeHistorySamples);
-                Array.Copy(samples, 0, output, outIndex, samples.Length);
-                samplesRemaining -= samplesToGet;
-                outIndex += samples.Length;
-                currentSample = loopStart;
-                firstTime = false;
+                Pcm = Pcm,
+                Gain = Gain,
+                Hist1 = Hist1,
+                Hist2 = Hist2,
+                LoopAlignmentMultiple = AlignmentMultiple
+            };
+            builder.WithPrevious(SeekTable, LoopContext, Alignment);
+
+            if (SeekTable != null)
+            {
+                builder.WithSeekTable(SeekTable.SeekTable, SeekTable.SamplesPerEntry, SeekTable.IsSelfCalculated);
             }
 
-            return output;
-        }
-
-        public short[] GetSeekTable(int samplesPerEntry, bool ensureSelfCalculated = false)
-            => SeekTable.GetSeekTable(samplesPerEntry, ensureSelfCalculated);
-
-        public void AddSeekTable(short[] table, int samplesPerEntry) => SeekTable.AddSeekTable(table, samplesPerEntry);
-
-        internal void ClearSeekTableCache() => SeekTable.ClearSeekTableCache();
-
-        internal void SetAlignment(int multiple, int loopStart, int loopEnd)
-        {
-            AlignmentNeeded = Alignment.SetAlignment(multiple, loopStart, loopEnd, this);
-        }
-
-        private static int GetLoopedSample(int sample, int loopStart, int loopEnd)
-        {
-            return sample < loopStart ? sample : (sample - loopStart) % (loopEnd - loopStart + 1) + loopStart;
-        }
-
-        public byte[] GetAudioData()
-        {
-            return AlignmentNeeded ? Alignment.AudioDataAligned : AudioData;
-        }
-
-        internal Tuple<int, short, short> GetStartingHistory(int firstSample)
-        {
-            Tuple<int, short[]> seekInfo = SeekTable.GetTableForSeeking();
-            if (seekInfo == null)
+            if (LoopContext != null)
             {
-                return new Tuple<int, short, short>(0, Hist1, Hist2);
+                builder.WithLoopContext(LoopContext.LoopStart, PredScale, Hist1, Hist2);
             }
 
-            short[] seekTable = seekInfo.Item2;
-            int samplesPerEntry = seekInfo.Item1;
-
-            int entry = firstSample / samplesPerEntry;
-            while (entry * 2 + 1 > seekTable.Length)
-                entry--;
-
-            int sample = entry * samplesPerEntry;
-            short hist1 = seekTable[entry * 2];
-            short hist2 = seekTable[entry * 2 + 1];
-
-            return new Tuple<int, short, short>(sample, hist1, hist2);
-        }
-
-        public void SetLoopContext(int loopStart, short predScale, short hist1, short hist2)
-            => LoopContext.AddLoopContext(loopStart, predScale, hist1, hist2);
-
-        public override bool Equals(object obj)
-        {
-            var item = obj as GcAdpcmChannel;
-
-            if (item == null)
+            if (Alignment != null)
             {
-                return false;
+                builder.WithLoop(true, Alignment.LoopStart, Alignment.LoopEnd);
             }
 
-            return
-                item.SampleCount == SampleCount &&
-                item.Gain == Gain &&
-                item.Hist1 == Hist1 &&
-                item.Hist2 == Hist2 &&
-                Helpers.ArraysEqual(item.Coefs, Coefs) &&
-                Helpers.ArraysEqual(item.AudioData, AudioData);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = SampleCount.GetHashCode();
-                hashCode = (hashCode * 397) ^ Gain.GetHashCode();
-                hashCode = (hashCode * 397) ^ Hist1.GetHashCode();
-                hashCode = (hashCode * 397) ^ Hist2.GetHashCode();
-                return hashCode;
-            }
+            return builder;
         }
     }
 }

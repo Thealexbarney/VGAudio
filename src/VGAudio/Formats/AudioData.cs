@@ -36,22 +36,23 @@ namespace VGAudio.Formats
 
         public void SetLoop(bool loop, int loopStart, int loopEnd)
         {
-            foreach (IAudioFormat format in Formats.Values)
+            foreach (Type format in Formats.Keys.ToList())
             {
-                format.SetLoop(loop, loopStart, loopEnd);
+                Formats[format] = Formats[format].WithLoop(loop, loopStart, loopEnd);
             }
         }
         public void SetLoop(bool loop)
         {
-            foreach (IAudioFormat format in Formats.Values)
+            foreach (Type format in Formats.Keys.ToList())
             {
-                format.SetLoop(loop);
+                Formats[format] = Formats[format].WithLoop(loop);
             }
         }
 
-        public void Add(IList<AudioData> audio)
+        public static AudioData Combine(params AudioData[] audio)
         {
-            if (audio == null || audio.Count <= 0) return;
+            if (audio == null || audio.Length <= 0 || audio.Any(x => x == null))
+                throw new ArgumentException("Audio cannot be null, empty, or have any null elements");
 
             List<Type> commonTypes = audio
                 .Select(x => x.ListAvailableFormats())
@@ -63,31 +64,32 @@ namespace VGAudio.Formats
             if (commonTypes.Count == 0 || commonTypes.Count == 1 && commonTypes.Contains(typeof(Pcm16Format)))
             {
                 formatToUse = typeof(Pcm16Format);
+                foreach (AudioData a in audio)
+                {
+                    a.CreatePcm16();
+                }
             }
             else
             {
                 formatToUse = commonTypes.First(x => x != typeof(Pcm16Format));
             }
 
-            IAudioFormat baseFormat = Formats[formatToUse];
+            IAudioFormat combined = audio[0].Formats[formatToUse];
 
-            foreach (IAudioFormat format in audio.Select(x => x.Formats[formatToUse]))
+            foreach (IAudioFormat format in audio.Select(x => x.Formats[formatToUse]).Skip(1))
             {
-                if (baseFormat.TryAdd(format) == false)
+                if (combined.TryAdd(format, out combined) == false)
                 {
                     throw new ArgumentException("Audio streams cannot be added together");
                 }
             }
 
-            Formats.Clear();
-            Formats[baseFormat.GetType()] = baseFormat;
+            return new AudioData(combined);
         }
 
         private T GetAudioFormat<T>() where T : class, IAudioFormat
         {
-            IAudioFormat format;
-
-            Formats.TryGetValue(typeof(T), out format);
+            Formats.TryGetValue(typeof(T), out IAudioFormat format);
 
             return (T)format;
         }

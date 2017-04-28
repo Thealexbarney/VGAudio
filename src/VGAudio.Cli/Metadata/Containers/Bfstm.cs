@@ -18,7 +18,7 @@ namespace VGAudio.Cli.Metadata.Containers
 
             if (bfstm.Regn == null) return;
 
-            builder.AppendLine($"\nREGN Chunk");
+            builder.AppendLine("\nREGN Chunk");
             builder.AppendLine(new string('-', 40));
 
             for (int i = 0; i < bfstm.Regn.EntryCount; i++)

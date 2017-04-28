@@ -51,30 +51,28 @@ namespace VGAudio.Containers.Bxstm
 
             for (int c = 0; c < channels.Length; c++)
             {
-                var channel = new GcAdpcmChannel(structure.SampleCount, structure.AudioData[c])
+                var channelBuilder = new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, structure.SampleCount)
                 {
-                    Coefs = structure.Channels[c].Coefs,
                     Gain = structure.Channels[c].Gain,
                     Hist1 = structure.Channels[c].Hist1,
                     Hist2 = structure.Channels[c].Hist2
                 };
 
-                if (structure.SeekTable != null)
-                {
-                    channel.AddSeekTable(structure.SeekTable[c], structure.SamplesPerSeekTableEntry);
-                }
-
-                channel.SetLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
+                channelBuilder.WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
                     structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
 
-                channels[c] = channel;
+                if (structure.SeekTable != null)
+                {
+                    channelBuilder.WithSeekTable(structure.SeekTable[c], structure.SamplesPerSeekTableEntry);
+                }
+
+                channels[c] = channelBuilder.Build();
             }
 
-            var adpcm = new GcAdpcmFormat(structure.SampleCount, structure.SampleRate, channels);
-            adpcm.SetLoop(structure.Looping, structure.LoopStart, structure.SampleCount);
-            adpcm.Tracks = structure.Tracks;
-
-            return adpcm;
+            return new GcAdpcmFormatBuilder(channels, structure.SampleRate)
+                .WithTracks(structure.Tracks)
+                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .Build();
         }
 
         private static void ReadHeader(BinaryReader reader, BCFstmStructure structure)
@@ -162,7 +160,7 @@ namespace VGAudio.Containers.Bxstm
                 throw new NotSupportedException("File must contain 4-bit ADPCM encoded audio");
             }
 
-            structure.Looping = reader.ReadByte() == 1;
+            structure.Looping = reader.ReadBoolean();
             structure.ChannelCount = reader.ReadByte();
             structure.SectionCount = reader.ReadByte();
 

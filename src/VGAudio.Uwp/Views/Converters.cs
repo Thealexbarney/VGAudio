@@ -33,6 +33,7 @@ namespace VGAudio.Uwp.Views
                 return Visibility.Collapsed;
             }
 
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             return (double)value == 0 ? Visibility.Collapsed : Visibility.Visible;
         }
 

@@ -36,7 +36,7 @@ namespace VGAudio.Containers.Dsp
         /// or not divisible by 14.</exception>
         public int SamplesPerInterleave
         {
-            get { return _samplesPerInterleave; }
+            get => _samplesPerInterleave;
             set
             {
                 if (value < 1)

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using VGAudio.Formats;
+using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
@@ -25,7 +26,6 @@ namespace VGAudio.Containers.Bxstm
         private int LoopEnd => Adpcm.LoopEnd;
 
         private static BxstmCodec Codec => BxstmCodec.Adpcm;
-        private byte Looping => (byte)(Adpcm.Looping ? 1 : 0);
         private int AudioDataOffset => DataChunkOffset + 0x20;
 
         /// <summary>
@@ -89,13 +89,21 @@ namespace VGAudio.Containers.Bxstm
 
             if (!LoopPointsAreAligned(LoopStart, Configuration.LoopPointAlignment))
             {
-                Adpcm.SetAlignment(Configuration.LoopPointAlignment);
+                var builder = Adpcm.GetCloneBuilder();
+                builder.AlignmentMultiple = Configuration.LoopPointAlignment;
+                Adpcm = builder.Build();
             }
 
             Parallel.For(0, ChannelCount, i =>
             {
-                Adpcm.Channels[i].GetSeekTable(SamplesPerSeekTableEntry, Configuration.RecalculateSeekTable);
-                Adpcm.Channels[i].LoopHist1(LoopStart, Configuration.RecalculateLoopContext);
+                GcAdpcmChannelBuilder builder = Adpcm.Channels[i].GetCloneBuilder()
+                    .WithSamplesPerSeekTableEntry(SamplesPerSeekTableEntry)
+                    .WithLoop(Adpcm.Looping, Adpcm.UnalignedLoopStart, Adpcm.UnalignedLoopEnd);
+
+                builder.LoopAlignmentMultiple = Configuration.LoopPointAlignment;
+                builder.EnsureLoopContextIsSelfCalculated = Configuration.RecalculateLoopContext;
+                builder.EnsureSeekTableIsSelfCalculated = Configuration.RecalculateSeekTable;
+                Adpcm.Channels[i] = builder.Build();
             });
         }
 
@@ -188,7 +196,7 @@ namespace VGAudio.Containers.Bxstm
         private void WriteInfoChunk1(BinaryWriter writer)
         {
             writer.Write((byte)Codec);
-            writer.Write(Looping);
+            writer.Write(Adpcm.Looping);
             writer.Write((byte)ChannelCount);
             writer.Write((byte)0);
             writer.Write(Adpcm.SampleRate);
@@ -282,9 +290,9 @@ namespace VGAudio.Containers.Bxstm
                 writer.Write(channel.PredScale);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
-                writer.Write(Adpcm.Looping ? channel.LoopPredScale(LoopStart, Configuration.RecalculateLoopContext) : channel.PredScale);
-                writer.Write(Adpcm.Looping ? channel.LoopHist1(LoopStart, Configuration.RecalculateLoopContext) : (short)0);
-                writer.Write(Adpcm.Looping ? channel.LoopHist2(LoopStart, Configuration.RecalculateLoopContext) : (short)0);
+                writer.Write(Adpcm.Looping ? channel.LoopPredScale : channel.PredScale);
+                writer.Write(Adpcm.Looping ? channel.LoopHist1 : (short)0);
+                writer.Write(Adpcm.Looping ? channel.LoopHist2 : (short)0);
                 writer.Write(channel.Gain);
             }
         }
@@ -294,7 +302,7 @@ namespace VGAudio.Containers.Bxstm
             writer.WriteUTF8("SEEK");
             writer.Write(SeekChunkSize);
 
-            var table = BuildSeekTable(Adpcm.Channels, SamplesPerSeekTableEntry, SeekTableEntryCount, Endianness.LittleEndian, Configuration.RecalculateSeekTable);
+            var table = Adpcm.BuildSeekTable(SeekTableEntryCount, Endianness.LittleEndian);
 
             writer.Write(table);
         }
@@ -306,7 +314,7 @@ namespace VGAudio.Containers.Bxstm
 
             writer.BaseStream.Position = AudioDataOffset;
 
-            byte[][] channels = Adpcm.Channels.Select(x => x.GetAudioData()).ToArray();
+            byte[][] channels = Adpcm.Channels.Select(x => x.GetAdpcmAudio()).ToArray();
 
             channels.Interleave(writer.BaseStream, InterleaveSize, AudioDataSize);
         }

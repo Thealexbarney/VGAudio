@@ -11,61 +11,55 @@ namespace VGAudio.Formats
     /// A 4-bit Nintendo ADPCM audio stream.
     /// The stream can contain any number of individual channels.
     /// </summary>
-    public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat>
+    public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat, GcAdpcmFormatBuilder>
     {
-        public GcAdpcmChannel[] Channels { get; private set; }
+        public GcAdpcmChannel[] Channels { get; }
+        public List<GcAdpcmTrack> Tracks { get; }
 
-        private List<GcAdpcmTrack> _tracks;
-        public List<GcAdpcmTrack> Tracks
-        {
-            get { return _tracks == null || _tracks.Count == 0 ? GetDefaultTrackList().ToList() : _tracks; }
-            set { _tracks = value; }
-        }
-
-        public int AlignmentMultiple { get; private set; }
+        public int AlignmentMultiple { get; }
         private int AlignmentSamples => Helpers.GetNextMultiple(base.LoopStart, AlignmentMultiple) - base.LoopStart;
         public new int LoopStart => base.LoopStart + AlignmentSamples;
         public new int LoopEnd => base.LoopEnd + AlignmentSamples;
         public new int SampleCount => AlignmentSamples == 0 ? base.SampleCount : LoopEnd;
 
+        public int UnalignedLoopStart => base.LoopStart;
+        public int UnalignedLoopEnd => base.LoopEnd;
+        public int UnalignedSampleCount =>  base.SampleCount;
+
+        public GcAdpcmFormat() : base(0, 0, 0) => Channels = new GcAdpcmChannel[0];
         public GcAdpcmFormat(int sampleCount, int sampleRate, GcAdpcmChannel[] channels)
             : base(sampleCount, sampleRate, channels.Length)
         {
             Channels = channels;
+            Tracks = GetDefaultTrackList(Channels.Length).ToList();
         }
 
-        public GcAdpcmFormat() : base(0, 0, 0)
+        internal GcAdpcmFormat(GcAdpcmFormatBuilder b) : base(b)
         {
-            Channels = new GcAdpcmChannel[0];
-        }
+            Channels = b.Channels;
+            Tracks = b.Tracks == null || b.Tracks.Count == 0 ? GetDefaultTrackList(b.Channels.Length).ToList() : b.Tracks;
+            AlignmentMultiple = b.AlignmentMultiple;
 
-        public GcAdpcmFormat SetAlignment(int multiple)
-        {
-            AlignmentMultiple = multiple;
             Parallel.For(0, Channels.Length, i =>
             {
-                Channels[i].SetAlignment(multiple, base.LoopStart, base.LoopEnd);
+                Channels[i] = Channels[i]
+                    .GetCloneBuilder()
+                    .WithLoop(Looping, UnalignedLoopStart, UnalignedLoopEnd)
+                    .WithLoopAlignment(b.AlignmentMultiple)
+                    .Build();
             });
-
-            return this;
         }
-
-        public override GcAdpcmFormat SetLoop(bool loop, int loopStart, int loopEnd)
-            => base.SetLoop(loop, loopStart, loopEnd).SetAlignment(AlignmentMultiple);
-
-        public override GcAdpcmFormat SetLoop(bool loop) => base.SetLoop(loop).SetAlignment(AlignmentMultiple);
-
+        
         public override Pcm16Format ToPcm16()
         {
             var pcmChannels = new short[Channels.Length][];
             Parallel.For(0, Channels.Length, i =>
             {
-                GcAdpcmChannel channel = Channels[i];
-                pcmChannels[i] = GcAdpcmDecoder.Decode(channel, SampleCount);
+                pcmChannels[i] = Channels[i].GetPcmAudio();
             });
 
             return new Pcm16Format(SampleCount, SampleRate, pcmChannels)
-                .SetLoop(Looping, LoopStart, LoopEnd);
+                .WithLoop(Looping, LoopStart, LoopEnd);
         }
 
         public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16)
@@ -77,22 +71,21 @@ namespace VGAudio.Formats
                 channels[i] = EncodeChannel(pcm16.SampleCount, pcm16.Channels[i]);
             });
 
-            return new GcAdpcmFormat(pcm16.SampleCount, pcm16.SampleRate, channels)
-                .SetLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd);
+            return new GcAdpcmFormatBuilder(channels, pcm16.SampleRate)
+                .Loop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
+                .Build();
         }
 
-        protected override void AddInternal(GcAdpcmFormat adpcm)
+        protected override GcAdpcmFormat AddInternal(GcAdpcmFormat adpcm)
         {
-            Channels = Channels.Concat(adpcm.Channels).ToArray();
-            ChannelCount = Channels.Length;
-            SetAlignment(AlignmentMultiple);
+            GcAdpcmFormatBuilder copy = GetCloneBuilder();
+            copy.Channels = Channels.Concat(adpcm.Channels).ToArray();
+            return copy.Build();
         }
 
-        protected override GcAdpcmFormat GetChannelsInternal(IEnumerable<int> channelRange)
+        protected override GcAdpcmFormat GetChannelsInternal(int[] channelRange)
         {
-            GcAdpcmFormat copy = ShallowClone();
             var channels = new List<GcAdpcmChannel>();
-            copy._tracks = null;
 
             foreach (int i in channelRange)
             {
@@ -100,65 +93,62 @@ namespace VGAudio.Formats
                     throw new ArgumentException($"Channel {i} does not exist.", nameof(channelRange));
                 channels.Add(Channels[i]);
             }
+
+            GcAdpcmFormatBuilder copy = GetCloneBuilder();
             copy.Channels = channels.ToArray();
-            copy.ChannelCount = channels.Count;
-            return copy;
+            copy.Tracks = null;
+            return copy.Build();
         }
 
-        private GcAdpcmChannel EncodeChannel(int sampleCount, short[] pcm)
+        public byte[] BuildSeekTable(int entryCount, Endianness endianness)
+        {
+            var tables = new short[Channels.Length][];
+
+            Parallel.For(0, tables.Length, i =>
+            {
+                tables[i] = Channels[i].GetSeekTable();
+            });
+
+            short[] table = tables.Interleave(2);
+
+            Array.Resize(ref table, entryCount * 2 * Channels.Length);
+            return table.ToByteArray(endianness);
+        }
+
+        public static GcAdpcmFormatBuilder GetBuilder(GcAdpcmChannel[] channels, int sampleRate) => new GcAdpcmFormatBuilder(channels, sampleRate);
+        public override GcAdpcmFormatBuilder GetCloneBuilder()
+        {
+            var builder = new GcAdpcmFormatBuilder(Channels, SampleRate);
+            builder = GetCloneBuilderBase(builder);
+            builder.Tracks = Tracks;
+            builder.AlignmentMultiple = AlignmentMultiple;
+            return builder;
+        }
+
+        public GcAdpcmFormat WithAlignment(int loopStartAlignment) => GetCloneBuilder()
+            .WithAlignment(loopStartAlignment)
+            .Build();
+
+        private static GcAdpcmChannel EncodeChannel(int sampleCount, short[] pcm)
         {
             short[] coefs = GcAdpcmEncoder.DspCorrelateCoefs(pcm);
             byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
 
-            return new GcAdpcmChannel(sampleCount, adpcm) { Coefs = coefs };
+            return new GcAdpcmChannel(adpcm, coefs, sampleCount);
         }
 
-        private IEnumerable<GcAdpcmTrack> GetDefaultTrackList()
+        private static IEnumerable<GcAdpcmTrack> GetDefaultTrackList(int channelCount)
         {
-            int trackCount = Channels.Length.DivideByRoundUp(2);
+            int trackCount = channelCount.DivideByRoundUp(2);
             for (int i = 0; i < trackCount; i++)
             {
-                int channelCount = Math.Min(Channels.Length - i * 2, 2);
+                int trackChannelCount = Math.Min(channelCount - i * 2, 2);
                 yield return new GcAdpcmTrack
                 {
-                    ChannelCount = channelCount,
+                    ChannelCount = trackChannelCount,
                     ChannelLeft = i * 2,
-                    ChannelRight = channelCount >= 2 ? i * 2 + 1 : 0
+                    ChannelRight = trackChannelCount >= 2 ? i * 2 + 1 : 0
                 };
-            }
-        }
-
-        private GcAdpcmFormat ShallowClone() => (GcAdpcmFormat)MemberwiseClone();
-
-        public override bool Equals(object obj)
-        {
-            var item = obj as GcAdpcmFormat;
-
-            if (item == null)
-            {
-                return false;
-            }
-
-            return
-                item.SampleCount == SampleCount &&
-                item.SampleRate == SampleRate &&
-                item.LoopStart == LoopStart &&
-                item.LoopEnd == LoopEnd &&
-                item.Looping == Looping &&
-                Helpers.ArraysEqual(item.Tracks.ToArray(), Tracks.ToArray()) &&
-                Helpers.ArraysEqual(item.Channels.ToArray(), Channels.ToArray());
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = SampleCount.GetHashCode();
-                hashCode = (hashCode * 397) ^ SampleRate.GetHashCode();
-                hashCode = (hashCode * 397) ^ LoopStart.GetHashCode();
-                hashCode = (hashCode * 397) ^ LoopEnd.GetHashCode();
-                hashCode = (hashCode * 397) ^ Looping.GetHashCode();
-                return hashCode;
             }
         }
     }
