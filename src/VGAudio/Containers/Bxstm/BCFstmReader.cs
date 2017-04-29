@@ -219,7 +219,7 @@ namespace VGAudio.Containers.Bxstm
             {
                 reader.BaseStream.Position = part2Offset + offset;
 
-                var track = new GcAdpcmTrack();
+                var track = new AudioTrack();
                 track.Volume = reader.ReadByte();
                 track.Panning = reader.ReadByte();
                 reader.BaseStream.Position += 2;

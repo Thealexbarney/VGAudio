@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using VGAudio.Containers.Bxstm;
+using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 
 namespace VGAudio.Cli.Metadata.Containers
@@ -58,7 +59,7 @@ namespace VGAudio.Cli.Metadata.Containers
             GcAdpcm.PrintAdpcmMetadata(bxstm.Channels.Cast<GcAdpcmChannelInfo>().ToList(), builder);
         }
 
-        public static void PrintTrackMetadata(GcAdpcmTrack track, StringBuilder builder)
+        public static void PrintTrackMetadata(AudioTrack track, StringBuilder builder)
         {
             builder.AppendLine($"Channel Count: {track.ChannelCount}");
             builder.AppendLine($"Left channel ID: {track.ChannelLeft}");

@@ -16,7 +16,7 @@ namespace VGAudio.Containers
 
         private int SampleCount => Adpcm.Looping ? LoopEnd : Adpcm.SampleCount;
         private int ChannelCount => Adpcm.ChannelCount;
-        private int TrackCount => Adpcm.Tracks.Count;
+        private int TrackCount => Adpcm.Tracks?.Count ?? 0;
 
         private int LoopStart => Adpcm.LoopStart;
         private int LoopEnd => Adpcm.LoopEnd;
@@ -175,8 +175,9 @@ namespace VGAudio.Containers
                 writer.Write(baseOffset + offsetTableSize + TrackInfoSize * i);
             }
 
-            foreach (GcAdpcmTrack track in Adpcm.Tracks)
+            for (int i = 0; i < TrackCount; i++)
             {
+                AudioTrack track = Adpcm.Tracks[i];
                 if (HeaderType == BrstmTrackType.Standard)
                 {
                     writer.Write((byte)track.Volume);

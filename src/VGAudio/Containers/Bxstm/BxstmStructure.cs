@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using VGAudio.Formats.GcAdpcm;
+using VGAudio.Formats;
 
 namespace VGAudio.Containers.Bxstm
 {
@@ -83,7 +83,7 @@ namespace VGAudio.Containers.Bxstm
         /// <summary>
         /// A list of all tracks defined in the file.
         /// </summary>
-        public List<GcAdpcmTrack> Tracks { get; set; } = new List<GcAdpcmTrack>();
+        public List<AudioTrack> Tracks { get; set; } = new List<AudioTrack>();
         /// <summary>
         /// The ADPCM information for each channel.
         /// </summary>

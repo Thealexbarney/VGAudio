@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using VGAudio.Formats.GcAdpcm;
+using VGAudio.Formats;
 
 namespace VGAudio.Tests.Equality
 {
-    public sealed class GcAdpcmTrackComparer : EqualityComparer<GcAdpcmTrack>
+    public sealed class AudioTrackComparer : EqualityComparer<AudioTrack>
     {
-        public override bool Equals(GcAdpcmTrack x, GcAdpcmTrack y)
+        public override bool Equals(AudioTrack x, AudioTrack y)
         {
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;
@@ -19,7 +19,7 @@ namespace VGAudio.Tests.Equality
                 x.Volume == y.Volume;
         }
 
-        public override int GetHashCode(GcAdpcmTrack obj)
+        public override int GetHashCode(AudioTrack obj)
         {
             unchecked
             {

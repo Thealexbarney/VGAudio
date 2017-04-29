@@ -14,7 +14,6 @@ namespace VGAudio.Formats
     public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat, GcAdpcmFormatBuilder>
     {
         public GcAdpcmChannel[] Channels { get; }
-        public List<GcAdpcmTrack> Tracks { get; }
 
         public int AlignmentMultiple { get; }
         private int AlignmentSamples => Helpers.GetNextMultiple(base.LoopStart, AlignmentMultiple) - base.LoopStart;
@@ -31,13 +30,11 @@ namespace VGAudio.Formats
             : base(sampleCount, sampleRate, channels.Length)
         {
             Channels = channels;
-            Tracks = GetDefaultTrackList(Channels.Length).ToList();
         }
 
         internal GcAdpcmFormat(GcAdpcmFormatBuilder b) : base(b)
         {
             Channels = b.Channels;
-            Tracks = b.Tracks == null || b.Tracks.Count == 0 ? GetDefaultTrackList(b.Channels.Length).ToList() : b.Tracks;
             AlignmentMultiple = b.AlignmentMultiple;
 
             Parallel.For(0, Channels.Length, i =>
@@ -58,8 +55,10 @@ namespace VGAudio.Formats
                 pcmChannels[i] = Channels[i].GetPcmAudio();
             });
 
-            return new Pcm16Format(SampleCount, SampleRate, pcmChannels)
-                .WithLoop(Looping, LoopStart, LoopEnd);
+            return new Pcm16Format.Builder(pcmChannels, SampleRate)
+                .Loop(Looping, LoopStart, LoopEnd)
+                .WithTracks(Tracks)
+                .Build();
         }
 
         public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16)
@@ -73,6 +72,7 @@ namespace VGAudio.Formats
 
             return new GcAdpcmFormatBuilder(channels, pcm16.SampleRate)
                 .Loop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
+                .WithTracks(pcm16.Tracks)
                 .Build();
         }
 
@@ -135,21 +135,6 @@ namespace VGAudio.Formats
             byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
 
             return new GcAdpcmChannel(adpcm, coefs, sampleCount);
-        }
-
-        private static IEnumerable<GcAdpcmTrack> GetDefaultTrackList(int channelCount)
-        {
-            int trackCount = channelCount.DivideByRoundUp(2);
-            for (int i = 0; i < trackCount; i++)
-            {
-                int trackChannelCount = Math.Min(channelCount - i * 2, 2);
-                yield return new GcAdpcmTrack
-                {
-                    ChannelCount = trackChannelCount,
-                    ChannelLeft = i * 2,
-                    ChannelRight = trackChannelCount >= 2 ? i * 2 + 1 : 0
-                };
-            }
         }
     }
 }

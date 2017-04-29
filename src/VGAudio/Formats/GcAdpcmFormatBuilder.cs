@@ -8,7 +8,6 @@ namespace VGAudio.Formats
     public class GcAdpcmFormatBuilder : AudioFormatBaseBuilder<GcAdpcmFormat, GcAdpcmFormatBuilder>
     {
         public GcAdpcmChannel[] Channels { get; set; }
-        public List<GcAdpcmTrack> Tracks { get; set; }
         public int AlignmentMultiple { get; set; }
         internal override int ChannelCount => Channels.Length;
 
@@ -32,12 +31,6 @@ namespace VGAudio.Formats
         }
 
         public override GcAdpcmFormat Build() => new GcAdpcmFormat(this);
-
-        public GcAdpcmFormatBuilder WithTracks(IEnumerable<GcAdpcmTrack> tracks)
-        {
-            Tracks = tracks.ToList();
-            return this;
-        }
 
         public GcAdpcmFormatBuilder WithAlignment(int loopAlignmentMultiple)
         {

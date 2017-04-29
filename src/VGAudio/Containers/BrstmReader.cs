@@ -191,7 +191,7 @@ namespace VGAudio.Containers
             foreach (int offset in trackOffsets)
             {
                 reader.BaseStream.Position = baseOffset + offset;
-                var track = new GcAdpcmTrack();
+                var track = new AudioTrack();
 
                 if (structure.HeaderType == BrstmTrackType.Standard)
                 {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace VGAudio.Formats
 {
@@ -12,6 +13,7 @@ namespace VGAudio.Formats
         public int LoopStart { get; }
         public int LoopEnd { get; }
         public bool Looping { get; }
+        public List<AudioTrack> Tracks { get; }
 
         IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16);
         IAudioFormat IAudioFormat.GetChannels(params int[] channelRange) => GetChannels(channelRange);
@@ -34,6 +36,7 @@ namespace VGAudio.Formats
             Looping = builder.Looping;
             LoopStart = builder.LoopStart;
             LoopEnd = builder.LoopEnd;
+            Tracks = builder.Tracks;
         }
 
         public TFormat GetChannels(params int[] channelRange)
@@ -86,6 +89,7 @@ namespace VGAudio.Formats
             builder.Looping = Looping;
             builder.LoopStart = LoopStart;
             builder.LoopEnd = LoopEnd;
+            builder.Tracks = Tracks;
             return builder;
         }
     }
