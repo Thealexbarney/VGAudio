@@ -43,8 +43,8 @@ namespace VGAudio.Tests.Formats
         {
             GcAdpcmChannel[] channels = GenerateAudio.GenerateAdpcmSineWave(100, 2, 48000).Channels;
 
-            GcAdpcmFormat adpcm = new GcAdpcmFormat(100, 48000, new[] { channels[0] });
-            GcAdpcmFormat adpcm2 = new GcAdpcmFormat(100, 48000, new[] { channels[1] });
+            GcAdpcmFormat adpcm = new GcAdpcmFormat(new[] { channels[0] }, 48000);
+            GcAdpcmFormat adpcm2 = new GcAdpcmFormat(new[] { channels[1] }, 48000);
             GcAdpcmFormat combined = adpcm.Add(adpcm2);
 
             Assert.Equal(adpcm.Channels[0], combined.Channels[0], new GcAdpcmChannelComparer());
@@ -56,8 +56,8 @@ namespace VGAudio.Tests.Formats
         {
             GcAdpcmChannel[] channels = GenerateAudio.GenerateAdpcmSineWave(100, 2, 48000).Channels;
             GcAdpcmChannel[] channels2 = GenerateAudio.GenerateAdpcmSineWave(200, 2, 48000).Channels;
-            GcAdpcmFormat adpcm = new GcAdpcmFormat(100, 48000, new[] { channels[0] });
-            GcAdpcmFormat adpcm2 = new GcAdpcmFormat(200, 48000, new[] { channels2[1] });
+            GcAdpcmFormat adpcm = new GcAdpcmFormat(new[] { channels[0] }, 48000);
+            GcAdpcmFormat adpcm2 = new GcAdpcmFormat(new[] { channels2[1] }, 48000);
 
             Exception ex = Record.Exception(() => adpcm.Add(adpcm2));
             Assert.IsType<ArgumentException>(ex);

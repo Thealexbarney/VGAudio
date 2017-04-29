@@ -43,7 +43,7 @@ namespace VGAudio.Tests
         public static Pcm16Format GeneratePcmSineWave(int sampleCount, int channelCount, int sampleRate)
         {
             short[][] channels = GeneratePcmSineWaveChannels(sampleCount, channelCount, sampleRate);
-            return new Pcm16Format(sampleCount, sampleRate, channels);
+            return new Pcm16Format(channels, sampleRate);
         }
 
         public static GcAdpcmFormat GenerateAdpcmSineWave(int sampleCount, int channelCount, int sampleRate)
@@ -64,7 +64,7 @@ namespace VGAudio.Tests
                         .Build();
             }
 
-            var adpcm = new GcAdpcmFormat(sampleCount, sampleRate, channels);
+            var adpcm = new GcAdpcmFormat(channels, sampleRate);
 
             return adpcm;
         }

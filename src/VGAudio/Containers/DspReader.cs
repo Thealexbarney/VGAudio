@@ -50,8 +50,9 @@ namespace VGAudio.Containers
                 channels[c] = channelBuilder.Build();
             }
 
-            return new GcAdpcmFormat(structure.SampleCount, structure.SampleRate, channels)
-                .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd);
+            return new GcAdpcmFormatBuilder(channels, structure.SampleRate)
+                .Loop(structure.Looping, structure.LoopStart, structure.LoopEnd)
+                .Build();
         }
 
         private static void ReadHeader(BinaryReader reader, DspStructure structure)

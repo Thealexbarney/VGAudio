@@ -25,22 +25,17 @@ namespace VGAudio.Formats
         public abstract Pcm16Format ToPcm16();
         public abstract TFormat EncodeFromPcm16(Pcm16Format pcm16);
 
-        protected AudioFormatBase(int sampleCount, int sampleRate, int channelCount)
-        {
-            SampleCount = sampleCount;
-            SampleRate = sampleRate;
-            ChannelCount = channelCount;
-            Tracks = _tracks ?? AudioTrack.GetDefaultTrackList(ChannelCount).ToList();
-        }
-
+        protected AudioFormatBase() { }
         protected AudioFormatBase(TBuilder builder)
-            : this(builder.SampleCount, builder.SampleRate, builder.ChannelCount)
         {
+            SampleCount = builder.SampleCount;
+            SampleRate = builder.SampleRate;
+            ChannelCount = builder.ChannelCount;
             Looping = builder.Looping;
             LoopStart = builder.LoopStart;
             LoopEnd = builder.LoopEnd;
             _tracks = builder.Tracks;
-            Tracks = _tracks ?? AudioTrack.GetDefaultTrackList(ChannelCount).ToList();
+            Tracks = _tracks != null && _tracks.Count > 0 ? _tracks : AudioTrack.GetDefaultTrackList(ChannelCount).ToList();
         }
 
         public TFormat GetChannels(params int[] channelRange)

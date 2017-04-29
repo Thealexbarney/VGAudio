@@ -39,7 +39,7 @@ namespace VGAudio.Benchmark
                 channels[i] = GenerateSineWave(sampleCount, frequencies[i], sampleRate);
             }
 
-            return new Pcm16Format(sampleCount, sampleRate, channels);
+            return new Pcm16Format(channels, sampleRate);
         }
 
         public static GcAdpcmFormat GenerateAdpcmSineWave(int sampleCount, int channelCount, int sampleRate)
@@ -59,7 +59,7 @@ namespace VGAudio.Benchmark
                 channels[i] = builder.Build();
             }
 
-            var adpcm = new GcAdpcmFormat(sampleCount, sampleRate, channels);
+            var adpcm = new GcAdpcmFormat(channels, sampleRate);
 
             return adpcm;
         }

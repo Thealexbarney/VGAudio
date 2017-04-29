@@ -23,14 +23,10 @@ namespace VGAudio.Formats
 
         public int UnalignedLoopStart => base.LoopStart;
         public int UnalignedLoopEnd => base.LoopEnd;
-        public int UnalignedSampleCount =>  base.SampleCount;
+        public int UnalignedSampleCount => base.SampleCount;
 
-        public GcAdpcmFormat() : base(0, 0, 0) => Channels = new GcAdpcmChannel[0];
-        public GcAdpcmFormat(int sampleCount, int sampleRate, GcAdpcmChannel[] channels)
-            : base(sampleCount, sampleRate, channels.Length)
-        {
-            Channels = channels;
-        }
+        public GcAdpcmFormat() => Channels = new GcAdpcmChannel[0];
+        public GcAdpcmFormat(GcAdpcmChannel[] channels, int sampleRate) : this(new GcAdpcmFormatBuilder(channels, sampleRate)) { }
 
         internal GcAdpcmFormat(GcAdpcmFormatBuilder b) : base(b)
         {
@@ -46,7 +42,7 @@ namespace VGAudio.Formats
                     .Build();
             });
         }
-        
+
         public override Pcm16Format ToPcm16()
         {
             var pcmChannels = new short[Channels.Length][];
