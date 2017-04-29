@@ -32,7 +32,7 @@ namespace VGAudio.Cli.Metadata.Containers
 
         public static string CoefficientsToString(short[] coefs)
         {
-            if (coefs.Length < 14) return "";
+            if (coefs == null || coefs.Length < 14) return "";
 
             var coefOut = new StringBuilder();
 

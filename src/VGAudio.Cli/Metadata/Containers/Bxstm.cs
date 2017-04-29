@@ -18,7 +18,7 @@ namespace VGAudio.Cli.Metadata.Containers
                 SampleCount = bxstm.SampleCount,
                 SampleRate = bxstm.SampleRate,
                 ChannelCount = bxstm.ChannelCount,
-                Format = AudioFormat.GcAdpcm,
+                Format = Common.FromBxstm(bxstm.Codec),
                 Looping = bxstm.Looping,
                 LoopStart = bxstm.LoopStart,
                 LoopEnd = bxstm.SampleCount
@@ -54,6 +54,7 @@ namespace VGAudio.Cli.Metadata.Containers
                 PrintTrackMetadata(bxstm.Tracks[i], builder);
             }
 
+            if (bxstm.Codec != BxstmCodec.Adpcm) return;
             GcAdpcm.PrintAdpcmMetadata(bxstm.Channels.Cast<GcAdpcmChannelInfo>().ToList(), builder);
         }
 
