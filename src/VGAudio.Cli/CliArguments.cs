@@ -91,6 +91,27 @@ namespace VGAudio.Cli
 
                             options.NoLoop = true;
                             continue;
+                        case "F":
+                            if (options.OutFormat != AudioFormat.None)
+                            {
+                                PrintWithUsage("Can't set multiple formats.");
+                                return null;
+                            }
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after -f switch.");
+                                return null;
+                            }
+                            var format = GetFormat(args[i + 1]);
+                            if (format == AudioFormat.None)
+                            {
+                                PrintWithUsage("Format must be one of pcm16, pcm8, or GcAdpcm");
+                                return null;
+                            }
+
+                            options.OutFormat = format;
+                            i++;
+                            continue;
                         case "-HELP":
                         case "H":
                             PrintUsage();
@@ -201,6 +222,17 @@ namespace VGAudio.Cli
             }
 
             return range;
+        }
+
+        private static AudioFormat GetFormat(string format)
+        {
+            switch (format.ToLower())
+            {
+                case "pcm16": return AudioFormat.Pcm16;
+                case "pcm8": return AudioFormat.Pcm8;
+                case "gcadpcm": return AudioFormat.GcAdpcm;
+                default: return AudioFormat.None;
+            }
         }
 
         private static void PrintWithUsage(string toPrint)

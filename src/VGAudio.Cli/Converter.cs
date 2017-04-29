@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using VGAudio.Cli.Metadata;
 
 namespace VGAudio.Cli
@@ -14,18 +15,25 @@ namespace VGAudio.Cli
 
             if (options.Job == JobType.Convert)
             {
-                Stopwatch watch = Stopwatch.StartNew();
-                bool success = Convert.ConvertFile(options);
-                watch.Stop();
+                try
+                {
+                    Stopwatch watch = Stopwatch.StartNew();
+                    bool success = Convert.ConvertFile(options);
+                    watch.Stop();
 
-                if (success)
-                {
-                    Console.WriteLine("Success!");
-                    Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
+                    if (success)
+                    {
+                        Console.WriteLine("Success!");
+                        Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
-                else
+                catch (InvalidDataException ex)
                 {
-                    return false;
+                    Console.WriteLine(ex.Message);
                 }
             }
 

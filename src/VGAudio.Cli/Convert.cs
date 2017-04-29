@@ -11,6 +11,7 @@ namespace VGAudio.Cli
         private Convert() { }
         private AudioData Audio { get; set; }
         private IConfiguration Configuration { get; set; }
+        private ContainerType OutType { get; set; }
 
         public static bool ConvertFile(Options options)
         {
@@ -23,13 +24,9 @@ namespace VGAudio.Cli
                 converter.ReadFile(file);
             }
 
-            if (!options.KeepConfiguration)
-            {
-                converter.Configuration = null;
-            }
-
             converter.EncodeFiles(options);
-            converter.WriteFile(options.OutFiles[0].Path, options.OutFiles[0].Type);
+            converter.SetConfiguration(options);
+            converter.WriteFile(options.OutFiles[0].Path);
 
             return true;
         }
@@ -51,18 +48,11 @@ namespace VGAudio.Cli
             }
         }
 
-        private void WriteFile(string fileName, FileType fileType)
+        private void WriteFile(string fileName)
         {
             using (var stream = new FileStream(fileName, FileMode.Create))
             {
-                ContainerTypes.Containers.TryGetValue(fileType, out ContainerType type);
-
-                if (type == null)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(fileType), fileType, null);
-                }
-
-                type.GetWriter().WriteToStream(Audio, stream, Configuration);
+                OutType.GetWriter().WriteToStream(Audio, stream, Configuration);
             }
         }
 
@@ -87,6 +77,22 @@ namespace VGAudio.Cli
             {
                 Audio.SetLoop(options.Loop, options.LoopStart, options.LoopEnd);
             }
+        }
+
+        private void SetConfiguration(Options options)
+        {
+            if (!options.KeepConfiguration)
+            {
+                Configuration = null;
+            }
+
+            if (!ContainerTypes.Containers.TryGetValue(options.OutFiles[0].Type, out ContainerType type))
+            {
+                throw new ArgumentOutOfRangeException(nameof(type), "Output type not in type dictionary");
+            }
+            OutType = type;
+
+            Configuration = OutType.GetConfiguration(options);
         }
     }
 }

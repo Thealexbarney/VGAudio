@@ -16,6 +16,7 @@ namespace VGAudio.Cli
         public bool NoLoop { get; set; }
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
+        public AudioFormat OutFormat { get; set; }
     }
 
     internal class AudioFile
