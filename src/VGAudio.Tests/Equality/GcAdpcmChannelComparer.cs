@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using VGAudio.Formats.GcAdpcm;
 
@@ -26,7 +25,7 @@ namespace VGAudio.Tests.Equality
         {
             unchecked
             {
-                Debug.Assert(obj != null, "obj != null");
+                if (obj == null) return 0;
                 int hashCode = obj.SampleCount;
                 hashCode = (hashCode * 397) ^ obj.Gain;
                 hashCode = (hashCode * 397) ^ obj.Hist1;

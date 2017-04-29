@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using VGAudio.Formats;
 
 namespace VGAudio.Tests.Equality
@@ -24,7 +23,7 @@ namespace VGAudio.Tests.Equality
 
         public override int GetHashCode(IAudioFormat obj)
         {
-            Debug.Assert(obj != null, "obj != null");
+            if (obj == null) return 0;
             if (obj.GetType() == typeof(Pcm16Format))
             {
                 return new Pcm16FormatComparer().GetHashCode(obj as Pcm16Format);
