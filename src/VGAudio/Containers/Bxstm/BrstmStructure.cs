@@ -76,11 +76,6 @@
         public int DataChunkSize { get; set; }
 
         /// <summary>
-        /// The audio codec.
-        /// </summary>
-        public BxstmCodec Codec { get; set; }
-
-        /// <summary>
         /// The type of description used for the tracks
         /// in part 2 of the HEAD chunk.
         /// </summary>

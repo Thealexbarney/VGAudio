@@ -77,6 +77,10 @@ namespace VGAudio.Containers.Bxstm
         /// </summary>
         public int BytesPerSeekTableEntry { get; set; }
         /// <summary>
+        /// The audio codec.
+        /// </summary>
+        public BxstmCodec Codec { get; set; }
+        /// <summary>
         /// A list of all tracks defined in the file.
         /// </summary>
         public List<GcAdpcmTrack> Tracks { get; set; } = new List<GcAdpcmTrack>();
