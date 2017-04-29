@@ -8,7 +8,8 @@ namespace VGAudio.Containers.Bxstm
     /// </summary>
     public abstract class BxstmConfiguration
     {
-        private int _samplesPerInterleave = 0x3800;
+        private const int Default = -1;
+        private int _samplesPerInterleave = Default;
         private int _samplesPerSeekTableEntry = 0x3800;
 
         /// <summary>
@@ -37,7 +38,20 @@ namespace VGAudio.Containers.Bxstm
         /// or not divisible by 14.</exception>
         public int SamplesPerInterleave
         {
-            get => _samplesPerInterleave;
+            get
+            {
+                if (_samplesPerInterleave != Default) return _samplesPerInterleave;
+
+                switch (Codec)
+                {
+                    case BxstmCodec.Adpcm:
+                        return 0x3800;
+                    case BxstmCodec.Pcm16Bit:
+                        return 0x1000;
+                    default:
+                        return 0;
+                }
+            }
             set
             {
                 if (value < 1)
@@ -45,7 +59,7 @@ namespace VGAudio.Containers.Bxstm
                     throw new ArgumentOutOfRangeException(nameof(value), value,
                         "Number of samples per interleave must be positive");
                 }
-                if (value % SamplesPerFrame != 0)
+                if (Codec == BxstmCodec.Adpcm && value % SamplesPerFrame != 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), value,
                         "Number of samples per interleave must be divisible by 14");
@@ -81,5 +95,6 @@ namespace VGAudio.Containers.Bxstm
         /// this number. Default is 14,336 (0x3800).
         /// </summary>
         public int LoopPointAlignment { get; set; } = 0x3800;
+        public BxstmCodec Codec { get; set; } = BxstmCodec.Adpcm;
     }
 }

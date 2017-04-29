@@ -80,7 +80,10 @@ namespace VGAudio.Containers
         private static Pcm16Format ToPcm16Stream(BrstmStructure structure)
         {
             short[][] channels = structure.AudioData.Select(x => x.ToShortArray(Endianness.BigEndian)).ToArray();
-            return new Pcm16Format(structure.SampleCount, structure.SampleRate, channels);
+            return new Pcm16Format.Builder(channels, structure.SampleRate)
+                .WithTracks(structure.Tracks)
+                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .Build();
         }
 
         protected override BrstmConfiguration GetConfiguration(BrstmStructure structure)
@@ -88,9 +91,10 @@ namespace VGAudio.Containers
             var configuration = new BrstmConfiguration();
             if (structure.Codec == BxstmCodec.Adpcm)
             {
-                configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
                 configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
             }
+            configuration.Codec = structure.Codec;
+            configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
             configuration.TrackType = structure.HeaderType;
             configuration.SeekTableType = structure.SeekTableType;
             return configuration;

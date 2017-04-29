@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace VGAudio.Formats
 {
@@ -7,6 +8,7 @@ namespace VGAudio.Formats
         where TFormat : AudioFormatBase<TFormat, TBuilder>
         where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>
     {
+        private readonly List<AudioTrack> _tracks;
         public int SampleCount { get; }
         public int SampleRate { get; }
         public int ChannelCount { get; }
@@ -28,6 +30,7 @@ namespace VGAudio.Formats
             SampleCount = sampleCount;
             SampleRate = sampleRate;
             ChannelCount = channelCount;
+            Tracks = _tracks ?? AudioTrack.GetDefaultTrackList(ChannelCount).ToList();
         }
 
         protected AudioFormatBase(TBuilder builder)
@@ -36,7 +39,8 @@ namespace VGAudio.Formats
             Looping = builder.Looping;
             LoopStart = builder.LoopStart;
             LoopEnd = builder.LoopEnd;
-            Tracks = builder.Tracks;
+            _tracks = builder.Tracks;
+            Tracks = _tracks ?? AudioTrack.GetDefaultTrackList(ChannelCount).ToList();
         }
 
         public TFormat GetChannels(params int[] channelRange)
@@ -89,7 +93,7 @@ namespace VGAudio.Formats
             builder.Looping = Looping;
             builder.LoopStart = LoopStart;
             builder.LoopEnd = LoopEnd;
-            builder.Tracks = Tracks;
+            builder.Tracks = _tracks;
             return builder;
         }
     }
