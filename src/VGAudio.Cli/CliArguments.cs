@@ -251,6 +251,7 @@ namespace VGAudio.Cli
             Console.WriteLine("  -l <start-end> Set the start and end loop points");
             Console.WriteLine("                 Loop points are given in zero-based samples");
             Console.WriteLine("      --no-loop  Sets the audio to not loop");
+            Console.WriteLine("  -f             Specify the audio format to use in the output file");
             Console.WriteLine("  -h, --help     Display this help and exit");
             Console.WriteLine("      --version  Display version information and exit");
         }
