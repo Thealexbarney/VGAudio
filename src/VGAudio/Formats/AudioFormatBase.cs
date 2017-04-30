@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace VGAudio.Formats
 {
@@ -6,12 +8,14 @@ namespace VGAudio.Formats
         where TFormat : AudioFormatBase<TFormat, TBuilder>
         where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>
     {
+        private readonly List<AudioTrack> _tracks;
         public int SampleCount { get; }
         public int SampleRate { get; }
         public int ChannelCount { get; }
         public int LoopStart { get; }
         public int LoopEnd { get; }
         public bool Looping { get; }
+        public List<AudioTrack> Tracks { get; }
 
         IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16);
         IAudioFormat IAudioFormat.GetChannels(params int[] channelRange) => GetChannels(channelRange);
@@ -21,19 +25,17 @@ namespace VGAudio.Formats
         public abstract Pcm16Format ToPcm16();
         public abstract TFormat EncodeFromPcm16(Pcm16Format pcm16);
 
-        protected AudioFormatBase(int sampleCount, int sampleRate, int channelCount)
-        {
-            SampleCount = sampleCount;
-            SampleRate = sampleRate;
-            ChannelCount = channelCount;
-        }
-
+        protected AudioFormatBase() { }
         protected AudioFormatBase(TBuilder builder)
-            : this(builder.SampleCount, builder.SampleRate, builder.ChannelCount)
         {
+            SampleCount = builder.SampleCount;
+            SampleRate = builder.SampleRate;
+            ChannelCount = builder.ChannelCount;
             Looping = builder.Looping;
             LoopStart = builder.LoopStart;
             LoopEnd = builder.LoopEnd;
+            _tracks = builder.Tracks;
+            Tracks = _tracks != null && _tracks.Count > 0 ? _tracks : AudioTrack.GetDefaultTrackList(ChannelCount).ToList();
         }
 
         public TFormat GetChannels(params int[] channelRange)
@@ -86,6 +88,7 @@ namespace VGAudio.Formats
             builder.Looping = Looping;
             builder.LoopStart = LoopStart;
             builder.LoopEnd = LoopEnd;
+            builder.Tracks = _tracks;
             return builder;
         }
     }

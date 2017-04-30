@@ -18,9 +18,8 @@ namespace VGAudio.Tests.Equality
                 x.LoopStart == y.LoopStart &&
                 x.LoopEnd == y.LoopEnd &&
                 x.Looping == y.Looping &&
-                x.Tracks.SequenceEqual(y.Tracks, new GcAdpcmTrackComparer()) &&
+                (x.Tracks ?? new List<AudioTrack>()).SequenceEqual(y.Tracks ?? new List<AudioTrack>(), new AudioTrackComparer()) &&
                 x.Channels.SequenceEqual(y.Channels, new GcAdpcmChannelComparer());
-
         }
 
         public override int GetHashCode(GcAdpcmFormat obj)

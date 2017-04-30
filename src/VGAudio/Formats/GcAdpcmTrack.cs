@@ -1,13 +1,16 @@
-﻿namespace VGAudio.Formats.GcAdpcm
+﻿using System;
+using System.Collections.Generic;
+using VGAudio.Utilities;
+
+namespace VGAudio.Formats
 {
     /// <summary>
-    /// Defines an audio track in an ADPCM audio
-    /// stream. Each track is composed of one
-    /// or two channels.
+    /// Defines an audio track in an audio stream.
+    /// Each track is composed of one or two channels.
     /// </summary>
-    public class GcAdpcmTrack
+    public class AudioTrack
     {
-        public GcAdpcmTrack(int channelCount, int channelLeft, int channelRight, int panning, int volume)
+        public AudioTrack(int channelCount, int channelLeft, int channelRight, int panning, int volume)
         {
             ChannelCount = channelCount;
             ChannelLeft = channelLeft;
@@ -16,14 +19,14 @@
             Volume = volume;
         }
 
-        public GcAdpcmTrack(int channelCount, int channelLeft, int channelRight)
+        public AudioTrack(int channelCount, int channelLeft, int channelRight)
         {
             ChannelCount = channelCount;
             ChannelLeft = channelLeft;
             ChannelRight = channelRight;
         }
 
-        public GcAdpcmTrack() { }
+        public AudioTrack() { }
 
         /// <summary>
         /// The volume of the track. Ranges from
@@ -59,5 +62,20 @@
         /// a stereo track.
         /// </summary>
         public int ChannelRight { get; set; }
+
+        public static IEnumerable<AudioTrack> GetDefaultTrackList(int channelCount)
+        {
+            int trackCount = channelCount.DivideByRoundUp(2);
+            for (int i = 0; i < trackCount; i++)
+            {
+                int trackChannelCount = Math.Min(channelCount - i * 2, 2);
+                yield return new AudioTrack
+                {
+                    ChannelCount = trackChannelCount,
+                    ChannelLeft = i * 2,
+                    ChannelRight = trackChannelCount >= 2 ? i * 2 + 1 : 0
+                };
+            }
+        }
     }
 }

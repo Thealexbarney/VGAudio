@@ -97,11 +97,6 @@
         public RegnChunk Regn { get; set; }
 
         /// <summary>
-        /// The audio codec.
-        /// </summary>
-        public BxstmCodec Codec { get; set; }
-
-        /// <summary>
         /// The number of audio sections in the file.
         /// </summary>
         public int SectionCount { get; set; }

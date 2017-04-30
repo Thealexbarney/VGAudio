@@ -15,7 +15,7 @@ namespace VGAudio.Containers
         public void WriteToStream(AudioData audio, Stream stream, IConfiguration configuration = null) => WriteStream(audio, stream, configuration as TConfig);
         
         protected AudioData AudioStream { get; set; }
-        protected TConfig Configuration { get; set; } = new TConfig();
+        public TConfig Configuration { get; set; } = new TConfig();
         protected abstract int FileSize { get; }
 
         protected abstract void SetupWriter(AudioData audio);

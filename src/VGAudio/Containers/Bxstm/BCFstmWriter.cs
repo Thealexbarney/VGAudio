@@ -20,7 +20,7 @@ namespace VGAudio.Containers.Bxstm
         public BCFstmType Type { get; }
         private int SampleCount => Adpcm.Looping ? LoopEnd : Adpcm.SampleCount;
         private int ChannelCount => Adpcm.ChannelCount;
-        private int TrackCount => Adpcm.Tracks.Count;
+        private int TrackCount => Adpcm.Tracks?.Count ?? 0;
 
         private int LoopStart => Adpcm.LoopStart;
         private int LoopEnd => Adpcm.LoopEnd;
@@ -260,7 +260,7 @@ namespace VGAudio.Containers.Bxstm
                 writer.Write(channelTableSize + trackTableSize + 8 * i);
             }
 
-            if (IncludeTrackInformation)
+            if (IncludeTrackInformation && Adpcm.Tracks != null)
             {
                 foreach (var track in Adpcm.Tracks)
                 {

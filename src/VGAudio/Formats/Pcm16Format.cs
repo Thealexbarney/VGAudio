@@ -13,13 +13,8 @@ namespace VGAudio.Formats
     {
         public short[][] Channels { get; }
 
-        public Pcm16Format() : base(0, 0, 0) => Channels = new short[0][];
-        public Pcm16Format(int sampleCount, int sampleRate, short[][] channels)
-            : base(sampleCount, sampleRate, channels.Length)
-        {
-            Channels = channels;
-        }
-
+        public Pcm16Format() => Channels = new short[0][];
+        public Pcm16Format(short[][] channels, int sampleRate) : this(new Builder(channels, sampleRate)) { }
         private Pcm16Format(Builder b) : base(b) => Channels = b.Channels;
 
         public override Pcm16Format ToPcm16() => GetCloneBuilder().Build();

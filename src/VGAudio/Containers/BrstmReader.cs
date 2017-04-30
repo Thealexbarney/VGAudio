@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using VGAudio.Containers.Bxstm;
@@ -41,6 +40,15 @@ namespace VGAudio.Containers
 
         protected override IAudioFormat ToAudioStream(BrstmStructure structure)
         {
+            if (structure.Codec == BxstmCodec.Adpcm)
+            {
+                return ToAdpcmStream(structure);
+            }
+            return ToPcm16Stream(structure);
+        }
+
+        private static GcAdpcmFormat ToAdpcmStream(BrstmStructure structure)
+        {
             var channels = new GcAdpcmChannel[structure.ChannelCount];
 
             for (int c = 0; c < channels.Length; c++)
@@ -69,15 +77,27 @@ namespace VGAudio.Containers
                 .Build();
         }
 
+        private static Pcm16Format ToPcm16Stream(BrstmStructure structure)
+        {
+            short[][] channels = structure.AudioData.Select(x => x.ToShortArray(Endianness.BigEndian)).ToArray();
+            return new Pcm16Format.Builder(channels, structure.SampleRate)
+                .WithTracks(structure.Tracks)
+                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .Build();
+        }
+
         protected override BrstmConfiguration GetConfiguration(BrstmStructure structure)
         {
-            return new BrstmConfiguration
+            var configuration = new BrstmConfiguration();
+            if (structure.Codec == BxstmCodec.Adpcm)
             {
-                SamplesPerInterleave = structure.SamplesPerInterleave,
-                SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry,
-                TrackType = structure.HeaderType,
-                SeekTableType = structure.SeekTableType
-            };
+                configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
+            }
+            configuration.Codec = structure.Codec;
+            configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
+            configuration.TrackType = structure.HeaderType;
+            configuration.SeekTableType = structure.SeekTableType;
+            return configuration;
         }
 
         private static void ReadRstmHeader(BinaryReader reader, BrstmStructure structure)
@@ -133,10 +153,6 @@ namespace VGAudio.Containers
         {
             reader.BaseStream.Position = structure.HeadChunkOffset + 8 + structure.HeadChunk1Offset;
             structure.Codec = (BxstmCodec)reader.ReadByte();
-            if (structure.Codec != BxstmCodec.Adpcm)
-            {
-                throw new NotSupportedException("File must contain 4-bit ADPCM encoded audio");
-            }
 
             structure.Looping = reader.ReadBoolean();
             structure.ChannelCount = reader.ReadByte();
@@ -179,7 +195,7 @@ namespace VGAudio.Containers
             foreach (int offset in trackOffsets)
             {
                 reader.BaseStream.Position = baseOffset + offset;
-                var track = new GcAdpcmTrack();
+                var track = new AudioTrack();
 
                 if (structure.HeaderType == BrstmTrackType.Standard)
                 {
@@ -216,6 +232,8 @@ namespace VGAudio.Containers
             {
                 reader.BaseStream.Position = baseOffset + channel.Offset;
                 reader.Expect(OffsetMarker);
+                if (structure.Codec != BxstmCodec.Adpcm) continue;
+
                 int coefsOffset = reader.ReadInt32();
                 reader.BaseStream.Position = baseOffset + coefsOffset;
 
@@ -232,6 +250,7 @@ namespace VGAudio.Containers
 
         private static void ReadAdpcChunk(BinaryReader reader, BrstmStructure structure)
         {
+            if (structure.AdpcChunkOffset == 0) return;
             reader.BaseStream.Position = structure.AdpcChunkOffset;
 
             if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "ADPC")
@@ -292,9 +311,12 @@ namespace VGAudio.Containers
 
             reader.BaseStream.Position = structure.AudioDataOffset;
             int audioDataLength = structure.DataChunkSize - (structure.AudioDataOffset - structure.DataChunkOffset);
+            int outputSize = structure.Codec == BxstmCodec.Adpcm
+                ? SampleCountToByteCount(structure.SampleCount)
+                : structure.SampleCount * 2;
 
             structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.ChannelCount, SampleCountToByteCount(structure.SampleCount));
+                structure.ChannelCount, outputSize);
         }
     }
 }

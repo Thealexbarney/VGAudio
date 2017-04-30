@@ -65,7 +65,7 @@ namespace VGAudio.Containers
                 channels[i] = structure.AudioData[i];
             }
 
-            var waveFormat = new Pcm16Format(structure.SampleCount, structure.SampleRate, channels);
+            var waveFormat = new Pcm16Format(channels, structure.SampleRate);
 
             return waveFormat;
         }

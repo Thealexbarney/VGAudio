@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace VGAudio.Formats
 {
@@ -12,6 +14,7 @@ namespace VGAudio.Formats
         internal int LoopEnd { get; set; }
         internal int SampleCount { get; set; }
         internal int SampleRate { get; set; }
+        internal List<AudioTrack> Tracks { get; set; }
 
         public abstract TFormat Build();
 
@@ -49,6 +52,12 @@ namespace VGAudio.Formats
             Looping = loop;
             LoopStart = 0;
             LoopEnd = loop ? SampleCount : 0;
+            return this as TBuilder;
+        }
+
+        public TBuilder WithTracks(IEnumerable<AudioTrack> tracks)
+        {
+            Tracks = tracks?.ToList();
             return this as TBuilder;
         }
     }

@@ -17,6 +17,10 @@
             <local:SeekTableTypeEnumToBoolConverter x:Key="SeekTableTypeConverter" />
         </Grid.Resources>
         <StackPanel>
+            <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                <TextBlock Text="Audio format:" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                <ComboBox  Margin="10, 0" ItemsSource="{Binding Path=FormatTypesBinding, Mode=OneTime}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding BrstmConfiguration.Codec, Mode=TwoWay}"/>
+            </StackPanel>
             <ToggleButton x:Name="Advanced" Margin="0,10,0,0">
                 <TextBlock Text="Show Advanced Options"/>
             </ToggleButton>

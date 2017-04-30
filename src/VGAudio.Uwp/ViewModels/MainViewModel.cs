@@ -34,6 +34,12 @@ namespace VGAudio.Uwp.ViewModels
             set => SelectedFileType = (FileType)value;
         }
 
+        public Dictionary<BxstmCodec, string> FormatTypesBinding { get; } = new Dictionary<BxstmCodec, string>
+        {
+            [BxstmCodec.Adpcm] = "DSP-ADPCM",
+            [BxstmCodec.Pcm16Bit] = "16-bit PCM"
+        };
+
         public FileType SelectedFileType { get; set; } = FileType.Dsp;
 
         public bool StateNotOpened => State == MainState.NotOpened;

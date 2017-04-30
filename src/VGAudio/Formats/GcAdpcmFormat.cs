@@ -14,7 +14,6 @@ namespace VGAudio.Formats
     public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat, GcAdpcmFormatBuilder>
     {
         public GcAdpcmChannel[] Channels { get; }
-        public List<GcAdpcmTrack> Tracks { get; }
 
         public int AlignmentMultiple { get; }
         private int AlignmentSamples => Helpers.GetNextMultiple(base.LoopStart, AlignmentMultiple) - base.LoopStart;
@@ -24,20 +23,14 @@ namespace VGAudio.Formats
 
         public int UnalignedLoopStart => base.LoopStart;
         public int UnalignedLoopEnd => base.LoopEnd;
-        public int UnalignedSampleCount =>  base.SampleCount;
+        public int UnalignedSampleCount => base.SampleCount;
 
-        public GcAdpcmFormat() : base(0, 0, 0) => Channels = new GcAdpcmChannel[0];
-        public GcAdpcmFormat(int sampleCount, int sampleRate, GcAdpcmChannel[] channels)
-            : base(sampleCount, sampleRate, channels.Length)
-        {
-            Channels = channels;
-            Tracks = GetDefaultTrackList(Channels.Length).ToList();
-        }
+        public GcAdpcmFormat() => Channels = new GcAdpcmChannel[0];
+        public GcAdpcmFormat(GcAdpcmChannel[] channels, int sampleRate) : this(new GcAdpcmFormatBuilder(channels, sampleRate)) { }
 
         internal GcAdpcmFormat(GcAdpcmFormatBuilder b) : base(b)
         {
             Channels = b.Channels;
-            Tracks = b.Tracks == null || b.Tracks.Count == 0 ? GetDefaultTrackList(b.Channels.Length).ToList() : b.Tracks;
             AlignmentMultiple = b.AlignmentMultiple;
 
             Parallel.For(0, Channels.Length, i =>
@@ -49,7 +42,7 @@ namespace VGAudio.Formats
                     .Build();
             });
         }
-        
+
         public override Pcm16Format ToPcm16()
         {
             var pcmChannels = new short[Channels.Length][];
@@ -58,8 +51,10 @@ namespace VGAudio.Formats
                 pcmChannels[i] = Channels[i].GetPcmAudio();
             });
 
-            return new Pcm16Format(SampleCount, SampleRate, pcmChannels)
-                .WithLoop(Looping, LoopStart, LoopEnd);
+            return new Pcm16Format.Builder(pcmChannels, SampleRate)
+                .Loop(Looping, LoopStart, LoopEnd)
+                .WithTracks(Tracks)
+                .Build();
         }
 
         public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16)
@@ -73,6 +68,7 @@ namespace VGAudio.Formats
 
             return new GcAdpcmFormatBuilder(channels, pcm16.SampleRate)
                 .Loop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
+                .WithTracks(pcm16.Tracks)
                 .Build();
         }
 
@@ -135,21 +131,6 @@ namespace VGAudio.Formats
             byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
 
             return new GcAdpcmChannel(adpcm, coefs, sampleCount);
-        }
-
-        private static IEnumerable<GcAdpcmTrack> GetDefaultTrackList(int channelCount)
-        {
-            int trackCount = channelCount.DivideByRoundUp(2);
-            for (int i = 0; i < trackCount; i++)
-            {
-                int trackChannelCount = Math.Min(channelCount - i * 2, 2);
-                yield return new GcAdpcmTrack
-                {
-                    ChannelCount = trackChannelCount,
-                    ChannelLeft = i * 2,
-                    ChannelRight = trackChannelCount >= 2 ? i * 2 + 1 : 0
-                };
-            }
         }
     }
 }

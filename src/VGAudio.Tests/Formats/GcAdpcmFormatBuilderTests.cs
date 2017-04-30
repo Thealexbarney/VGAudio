@@ -21,7 +21,7 @@ namespace VGAudio.Tests.Formats
         public void TracksAreSetAfterCreation()
         {
             GcAdpcmChannel[] channels = GenerateAudio.GenerateAdpcmChannelsEmpty(100, 2);
-            var tracks = new List<GcAdpcmTrack> { new GcAdpcmTrack(1, 0, 0), new GcAdpcmTrack(1, 1, 0) };
+            var tracks = new List<AudioTrack> { new AudioTrack(1, 0, 0), new AudioTrack(1, 1, 0) };
             GcAdpcmFormat adpcm = GcAdpcmFormat.GetBuilder(channels, 32000).WithTracks(tracks).Build();
             Assert.Equal(tracks, adpcm.Tracks);
         }
