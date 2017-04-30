@@ -17,9 +17,11 @@ namespace VGAudio.Cli
                 case AudioFormat.GcAdpcm:
                     throw new InvalidDataException("Can't use format GcAdpcm with Wave files");
                 case AudioFormat.Pcm16:
+                    config.Codec = WaveCodec.Pcm16Bit;
                     break;
                 case AudioFormat.Pcm8:
-                    throw new InvalidDataException("Can't use format PCM8 with Wave files");
+                    config.Codec = WaveCodec.Pcm8Bit;
+                    break;
             }
 
             return config;

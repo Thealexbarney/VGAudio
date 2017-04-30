@@ -64,6 +64,7 @@ namespace VGAudio.Containers.Wave
         /// The number of samples in the audio file.
         /// </summary>
         public int SampleCount { get; set; }
-        internal short[][] AudioData { get; set; }
+        internal short[][] AudioData16 { get; set; }
+        internal byte[][] AudioData8 { get; set; }
     }
 }
