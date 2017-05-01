@@ -22,10 +22,22 @@ namespace VGAudio.Tests.Containers
         [InlineData(1)]
         [InlineData(2)]
         [InlineData(8)]
-        public void BrstmBuildAndParseEqualPcm(int numChannels)
+        public void BrstmBuildAndParseEqualPcm16(int numChannels)
         {
             Pcm16Format audio = GenerateAudio.GeneratePcmSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate);
             var writer = new BrstmWriter {Configuration = {Codec = BxstmCodec.Pcm16Bit}};
+
+            BuildParseTests.BuildParseCompareAudio(audio, writer, new BrstmReader());
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(8)]
+        public void BrstmBuildAndParseEqualPcm8(int numChannels)
+        {
+            Pcm8SignedFormat audio = GenerateAudio.GeneratePcm8SignedSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate);
+            var writer = new BrstmWriter {Configuration = {Codec = BxstmCodec.Pcm8Bit}};
 
             BuildParseTests.BuildParseCompareAudio(audio, writer, new BrstmReader());
         }

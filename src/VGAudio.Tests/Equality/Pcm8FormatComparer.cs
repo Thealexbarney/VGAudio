@@ -4,9 +4,9 @@ using VGAudio.Formats;
 
 namespace VGAudio.Tests.Equality
 {
-    public class Pcm16FormatComparer : EqualityComparer<Pcm16Format>
+    public class Pcm8FormatComparer : EqualityComparer<Pcm8Format>
     {
-        public override bool Equals(Pcm16Format x, Pcm16Format y)
+        public override bool Equals(Pcm8Format x, Pcm8Format y)
         {
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;
@@ -22,7 +22,7 @@ namespace VGAudio.Tests.Equality
                 !x.Channels.Where((t, i) => !t.SequenceEqual(y.Channels[i])).Any();
         }
 
-        public override int GetHashCode(Pcm16Format obj)
+        public override int GetHashCode(Pcm8Format obj)
         {
             unchecked
             {
