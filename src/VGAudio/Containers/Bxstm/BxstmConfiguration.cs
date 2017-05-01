@@ -48,6 +48,8 @@ namespace VGAudio.Containers.Bxstm
                         return 0x3800;
                     case BxstmCodec.Pcm16Bit:
                         return 0x1000;
+                    case BxstmCodec.Pcm8Bit:
+                        return 0x2000;
                     default:
                         return 0;
                 }

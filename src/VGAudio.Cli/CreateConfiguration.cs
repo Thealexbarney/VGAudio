@@ -70,7 +70,8 @@ namespace VGAudio.Cli
                     config.Codec = BxstmCodec.Pcm16Bit;
                     break;
                 case AudioFormat.Pcm8:
-                    throw new InvalidDataException("Can't use format PCM8 with BRSTM files");
+                    config.Codec = BxstmCodec.Pcm8Bit;
+                    break;
             }
 
             return config;

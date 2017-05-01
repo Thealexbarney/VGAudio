@@ -9,10 +9,11 @@ namespace VGAudio.Formats
     public class Pcm8Format : AudioFormatBase<Pcm8Format, Pcm8Format.Builder>
     {
         public byte[][] Channels { get; }
+        public virtual bool Signed { get; } = false;
 
         public Pcm8Format() => Channels = new byte[0][];
         public Pcm8Format(byte[][] channels, int sampleRate) : this(new Builder(channels, sampleRate)) { }
-        private Pcm8Format(Builder b) : base(b) => Channels = b.Channels;
+        protected Pcm8Format(Builder b) : base(b) => Channels = b.Channels;
 
         public override Pcm16Format ToPcm16()
         {
@@ -20,7 +21,7 @@ namespace VGAudio.Formats
 
             for (int i = 0; i < ChannelCount; i++)
             {
-                channels[i] = Pcm8Codec.Decode(Channels[i]);
+                channels[i] = Signed ? Pcm8Codec.DecodeSigned(Channels[i]) : Pcm8Codec.Decode(Channels[i]);
             }
 
             return new Pcm16Format.Builder(channels, SampleRate)
@@ -35,10 +36,10 @@ namespace VGAudio.Formats
 
             for (int i = 0; i < pcm16.ChannelCount; i++)
             {
-                channels[i] = Pcm8Codec.Encode(pcm16.Channels[i]);
+                channels[i] = Signed ? Pcm8Codec.EncodeSigned(pcm16.Channels[i]) : Pcm8Codec.Encode(pcm16.Channels[i]);
             }
 
-            return new Builder(channels, pcm16.SampleRate)
+            return new Builder(channels, pcm16.SampleRate, Signed)
                 .Loop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
                 .WithTracks(pcm16.Tracks)
                 .Build();
@@ -73,9 +74,10 @@ namespace VGAudio.Formats
         public class Builder : AudioFormatBaseBuilder<Pcm8Format, Builder>
         {
             public byte[][] Channels { get; set; }
+            public bool Signed { get; set; }
             internal override int ChannelCount => Channels.Length;
 
-            public Builder(byte[][] channels, int sampleRate)
+            public Builder(byte[][] channels, int sampleRate, bool signed = false)
             {
                 if (channels == null || channels.Length < 1)
                     throw new InvalidDataException("Channels parameter cannot be empty or null");
@@ -83,6 +85,7 @@ namespace VGAudio.Formats
                 Channels = channels.ToArray();
                 SampleCount = Channels[0]?.Length ?? 0;
                 SampleRate = sampleRate;
+                Signed = signed;
 
                 foreach (var channel in Channels)
                 {
@@ -94,7 +97,7 @@ namespace VGAudio.Formats
                 }
             }
 
-            public override Pcm8Format Build() => new Pcm8Format(this);
+            public override Pcm8Format Build() => Signed ? new Pcm8SignedFormat(this) : new Pcm8Format(this);
         }
     }
 }

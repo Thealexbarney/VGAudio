@@ -40,11 +40,16 @@ namespace VGAudio.Containers
 
         protected override IAudioFormat ToAudioStream(BrstmStructure structure)
         {
-            if (structure.Codec == BxstmCodec.Adpcm)
+            switch (structure.Codec)
             {
-                return ToAdpcmStream(structure);
+                case BxstmCodec.Adpcm:
+                    return ToAdpcmStream(structure);
+                case BxstmCodec.Pcm16Bit:
+                    return ToPcm16Stream(structure);
+                case BxstmCodec.Pcm8Bit:
+                    return ToPcm8Stream(structure);
             }
-            return ToPcm16Stream(structure);
+            return null;
         }
 
         private static GcAdpcmFormat ToAdpcmStream(BrstmStructure structure)
@@ -84,6 +89,14 @@ namespace VGAudio.Containers
                 .WithTracks(structure.Tracks)
                 .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
                 .Build();
+        }
+
+        private static Pcm8SignedFormat ToPcm8Stream(BrstmStructure structure)
+        {
+            return new Pcm8Format.Builder(structure.AudioData, structure.SampleRate, true)
+                .WithTracks(structure.Tracks)
+                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .Build() as Pcm8SignedFormat;
         }
 
         protected override BrstmConfiguration GetConfiguration(BrstmStructure structure)
@@ -311,12 +324,25 @@ namespace VGAudio.Containers
 
             reader.BaseStream.Position = structure.AudioDataOffset;
             int audioDataLength = structure.DataChunkSize - (structure.AudioDataOffset - structure.DataChunkOffset);
-            int outputSize = structure.Codec == BxstmCodec.Adpcm
-                ? SampleCountToByteCount(structure.SampleCount)
-                : structure.SampleCount * 2;
+            int outputSize = SamplesToBytes(structure.Codec, structure.SampleCount);
 
             structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
                 structure.ChannelCount, outputSize);
+        }
+
+        private static int SamplesToBytes(BxstmCodec codec, int sampleCount)
+        {
+            switch (codec)
+            {
+                case BxstmCodec.Adpcm:
+                    return SampleCountToByteCount(sampleCount);
+                case BxstmCodec.Pcm16Bit:
+                    return sampleCount * 2;
+                case BxstmCodec.Pcm8Bit:
+                    return sampleCount;
+                default:
+                    return 0;
+            }
         }
     }
 }

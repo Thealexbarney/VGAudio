@@ -14,6 +14,7 @@ namespace VGAudio.Containers
     {
         private GcAdpcmFormat Adpcm { get; set; }
         private Pcm16Format Pcm16 { get; set; }
+        private Pcm8SignedFormat Pcm8 { get; set; }
         private IAudioFormat AudioFormat { get; set; }
 
         protected override int FileSize => RstmHeaderSize + HeadChunkSize + AdpcChunkSize + DataChunkSize;
@@ -104,6 +105,12 @@ namespace VGAudio.Containers
                 Pcm16 = audio.GetFormat<Pcm16Format>();
                 AudioFormat = Pcm16;
                 Tracks = Pcm16.Tracks;
+            }
+            else if (Codec == BxstmCodec.Pcm8Bit)
+            {
+                Pcm8 = audio.GetFormat<Pcm8SignedFormat>();
+                AudioFormat = Pcm8;
+                Tracks = Pcm8.Tracks;
             }
         }
 
@@ -274,6 +281,9 @@ namespace VGAudio.Containers
                 case BxstmCodec.Pcm16Bit:
                     channels = Pcm16.Channels.Select(x => x.ToByteArray(Endianness.BigEndian)).ToArray();
                     break;
+                case BxstmCodec.Pcm8Bit:
+                    channels = Pcm8.Channels;
+                    break;
             }
 
             channels.Interleave(writer.BaseStream, InterleaveSize, AudioDataSize);
@@ -287,6 +297,8 @@ namespace VGAudio.Containers
                     return SampleCountToByteCount(sampleCount);
                 case BxstmCodec.Pcm16Bit:
                     return sampleCount * 2;
+                case BxstmCodec.Pcm8Bit:
+                    return sampleCount;
                 default:
                     return 0;
             }
