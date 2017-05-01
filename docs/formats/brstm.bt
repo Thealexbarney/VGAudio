@@ -62,7 +62,7 @@ struct Track(TrackType type)
     if (type == Long)
     {
         byte Volume;
-        byte Padding;
+        byte Panning;
         int16 Unknown1;
         int32 Unknown2;   
     } 
