@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using VGAudio.Codecs;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
@@ -44,6 +46,20 @@ namespace VGAudio.Tests
         {
             short[][] channels = GeneratePcmSineWaveChannels(sampleCount, channelCount, sampleRate);
             return new Pcm16Format(channels, sampleRate);
+        }
+
+        public static Pcm8Format GeneratePcm8SineWave(int sampleCount, int channelCount, int sampleRate)
+        {
+            byte[][] channels = GeneratePcmSineWaveChannels(sampleCount, channelCount, sampleRate)
+                .Select(Pcm8Codec.EncodeSigned).ToArray();
+            return new Pcm8Format(channels, sampleRate);
+        }
+
+        public static Pcm8SignedFormat GeneratePcm8SignedSineWave(int sampleCount, int channelCount, int sampleRate)
+        {
+            byte[][] channels = GeneratePcmSineWaveChannels(sampleCount, channelCount, sampleRate)
+                .Select(Pcm8Codec.EncodeSigned).ToArray();
+            return new Pcm8SignedFormat(channels, sampleRate);
         }
 
         public static GcAdpcmFormat GenerateAdpcmSineWave(int sampleCount, int channelCount, int sampleRate)

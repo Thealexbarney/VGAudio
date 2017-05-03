@@ -10,15 +10,19 @@ namespace VGAudio.Containers
     public class WaveWriter : AudioWriter<WaveWriter, WaveConfiguration>
     {
         private Pcm16Format Pcm16 { get; set; }
-        private int ChannelCount => Pcm16.ChannelCount;
-        private int SampleCount => Pcm16.SampleCount;
-        private int SampleRate => Pcm16.SampleRate;
+        private Pcm8Format Pcm8 { get; set; }
+        private IAudioFormat AudioFormat { get; set; }
+
+        private WaveCodec Codec => Configuration.Codec;
+        private int ChannelCount => AudioFormat.ChannelCount;
+        private int SampleCount => AudioFormat.SampleCount;
+        private int SampleRate => AudioFormat.SampleRate;
         protected override int FileSize => 8 + RiffChunkSize;
         private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize;
         private int FmtChunkSize => ChannelCount > 2 ? 40 : 16;
-        private int DataChunkSize => ChannelCount * SampleCount * sizeof(short);
+        private int DataChunkSize => ChannelCount * SampleCount * BytesPerSample;
 
-        private int BitDepth => 16;
+        private int BitDepth => Configuration.Codec == WaveCodec.Pcm16Bit ? 16 : 8;
         private int BytesPerSample => BitDepth.DivideByRoundUp(8);
         private int BytesPerSecond => SampleRate * BytesPerSample * ChannelCount;
         private int BlockAlign => BytesPerSample * ChannelCount;
@@ -32,7 +36,16 @@ namespace VGAudio.Containers
 
         protected override void SetupWriter(AudioData audio)
         {
-            Pcm16 = audio.GetFormat<Pcm16Format>();
+            if (Codec == WaveCodec.Pcm16Bit)
+            {
+                Pcm16 = audio.GetFormat<Pcm16Format>();
+                AudioFormat = Pcm16;
+            }
+            else if (Codec == WaveCodec.Pcm8Bit)
+            {
+                Pcm8 = audio.GetFormat<Pcm8Format>();
+                AudioFormat = Pcm8;
+            }
         }
 
         protected override void WriteStream(Stream stream)
@@ -77,10 +90,16 @@ namespace VGAudio.Containers
         {
             writer.WriteUTF8("data");
             writer.Write(DataChunkSize);
-            short[][] channels = Pcm16.Channels;
 
-            var audioData = channels.ShortToInterleavedByte();
-            writer.BaseStream.Write(audioData, 0, audioData.Length);
+            if (Codec == WaveCodec.Pcm16Bit)
+            {
+                byte[] audioData = Pcm16.Channels.ShortToInterleavedByte();
+                writer.BaseStream.Write(audioData, 0, audioData.Length);
+            }
+            else if (Codec == WaveCodec.Pcm8Bit)
+            {
+                Pcm8.Channels.Interleave(writer.BaseStream, BytesPerSample);
+            }           
         }
 
         private static int GetChannelMask(int channelCount)

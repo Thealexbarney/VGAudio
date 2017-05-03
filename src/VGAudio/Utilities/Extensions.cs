@@ -126,7 +126,7 @@ namespace VGAudio.Utilities
         public static string ToDelimitedString<T>(this IList<T> items)
         {
             var sb = new StringBuilder();
-            for(int i = 0; i < items.Count; i++)
+            for (int i = 0; i < items.Count; i++)
             {
                 if (i != 0)
                 {

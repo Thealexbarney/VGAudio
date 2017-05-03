@@ -22,6 +22,7 @@ namespace VGAudio.Containers
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 var structure = new WaveStructure();
+                var dataChunkRead = false;
 
                 ReadRiffHeader(reader, structure);
 
@@ -41,13 +42,14 @@ namespace VGAudio.Containers
                             return structure;
                         }
                         ReadDataChunk(reader, chunkSize, structure);
+                        dataChunkRead = true;
                         break;
                     }
                     else
                         reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
                 }
 
-                if ((structure.AudioData?.Length ?? 0) == 0)
+                if (!dataChunkRead)
                 {
                     throw new InvalidDataException("Must have a valid data chunk following a fmt chunk");
                 }
@@ -58,16 +60,15 @@ namespace VGAudio.Containers
 
         protected override IAudioFormat ToAudioStream(WaveStructure structure)
         {
-            var channels = new short[structure.ChannelCount][];
-
-            for (int i = 0; i < structure.ChannelCount; i++)
+            switch (structure.BitsPerSample)
             {
-                channels[i] = structure.AudioData[i];
+                case 16:
+                    return new Pcm16Format.Builder(structure.AudioData16, structure.SampleRate).Build();
+                case 8:
+                    return new Pcm8Format.Builder(structure.AudioData8, structure.SampleRate).Build();
+                default:
+                    return null;
             }
-
-            var waveFormat = new Pcm16Format(channels, structure.SampleRate);
-
-            return waveFormat;
         }
 
         private static void ReadRiffHeader(BinaryReader reader, WaveStructure structure)
@@ -106,9 +107,9 @@ namespace VGAudio.Containers
                 throw new InvalidDataException($"Must contain PCM data. Has invalid format {structure.FormatTag}");
             }
 
-            if (structure.BitsPerSample != 16)
+            if (structure.BitsPerSample != 16 && structure.BitsPerSample != 8)
             {
-                throw new InvalidDataException($"Must have 16 bits per sample, not {structure.BitsPerSample} bits per sample");
+                throw new InvalidDataException($"Must have 8 or 16 bits per sample, not {structure.BitsPerSample} bits per sample");
             }
 
             if (structure.BlockAlign != structure.BytesPerSample * structure.ChannelCount)
@@ -152,7 +153,15 @@ namespace VGAudio.Containers
                 throw new InvalidDataException("Incomplete Wave file");
             }
 
-            structure.AudioData = interleavedAudio.InterleavedByteToShort(structure.ChannelCount);
+            switch (structure.BitsPerSample)
+            {
+                case 16:
+                    structure.AudioData16 = interleavedAudio.InterleavedByteToShort(structure.ChannelCount);
+                    break;
+                case 8:
+                    structure.AudioData8 = interleavedAudio.DeInterleave(structure.BytesPerSample, structure.ChannelCount);
+                    break;
+            }
         }
     }
 }

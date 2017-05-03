@@ -9,31 +9,32 @@ namespace VGAudio.Tests.Equality
         {
             if (x.GetType() != y.GetType()) return false;
 
-            if (x.GetType() == typeof(Pcm16Format))
+            switch (x)
             {
-                return new Pcm16FormatComparer().Equals(x as Pcm16Format, y as Pcm16Format);
+                case Pcm16Format f:
+                    return new Pcm16FormatComparer().Equals(f, y as Pcm16Format);
+                case Pcm8Format f:
+                    return new Pcm8FormatComparer().Equals(f, y as Pcm8Format);
+                case GcAdpcmFormat f:
+                    return new GcAdpcmFormatComparer().Equals(f, y as GcAdpcmFormat);
+                default:
+                    return false;
             }
-            if (x.GetType() == typeof(GcAdpcmFormat))
-            {
-                return new GcAdpcmFormatComparer().Equals(x as GcAdpcmFormat, y as GcAdpcmFormat);
-            }
-
-            return false;
         }
 
         public override int GetHashCode(IAudioFormat obj)
         {
-            if (obj == null) return 0;
-            if (obj.GetType() == typeof(Pcm16Format))
+            switch (obj)
             {
-                return new Pcm16FormatComparer().GetHashCode(obj as Pcm16Format);
+                case Pcm16Format f:
+                    return new Pcm16FormatComparer().GetHashCode(f);
+                case Pcm8Format f:
+                    return new Pcm8FormatComparer().GetHashCode(f);
+                case GcAdpcmFormat f:
+                    return new GcAdpcmFormatComparer().GetHashCode(f);
+                default:
+                    return 0;
             }
-            if (obj.GetType() == typeof(GcAdpcmFormat))
-            {
-                return new GcAdpcmFormatComparer().GetHashCode(obj as GcAdpcmFormat);
-            }
-
-            return 0;
         }
     }
 }
