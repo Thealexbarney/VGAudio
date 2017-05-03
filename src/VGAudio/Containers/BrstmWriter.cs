@@ -5,6 +5,7 @@ using VGAudio.Containers.Bxstm;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
+using static VGAudio.Containers.Bxstm.Common;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
@@ -33,14 +34,14 @@ namespace VGAudio.Containers
         /// <summary>
         /// Size of a single channel's audio data with padding when written to a file
         /// </summary>
-        private int AudioDataSize => GetNextMultiple(SamplesToBytes(SampleCount), 0x20);
+        private int AudioDataSize => GetNextMultiple(SamplesToBytes(SampleCount, Codec), 0x20);
 
         private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
-        private int InterleaveSize => SamplesToBytes(SamplesPerInterleave);
+        private int InterleaveSize => SamplesToBytes(SamplesPerInterleave, Codec);
         private int InterleaveCount => SampleCount.DivideByRoundUp(SamplesPerInterleave);
 
         private int LastBlockSamples => SampleCount - ((InterleaveCount - 1) * SamplesPerInterleave);
-        private int LastBlockSizeWithoutPadding => SamplesToBytes(LastBlockSamples);
+        private int LastBlockSizeWithoutPadding => SamplesToBytes(LastBlockSamples, Codec);
         private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
 
         private int SamplesPerSeekTableEntry => Codec == BxstmCodec.Adpcm ? Configuration.SamplesPerSeekTableEntry : 0;
@@ -287,21 +288,6 @@ namespace VGAudio.Containers
             }
 
             channels.Interleave(writer.BaseStream, InterleaveSize, AudioDataSize);
-        }
-
-        private int SamplesToBytes(int sampleCount)
-        {
-            switch (Codec)
-            {
-                case BxstmCodec.Adpcm:
-                    return SampleCountToByteCount(sampleCount);
-                case BxstmCodec.Pcm16Bit:
-                    return sampleCount * 2;
-                case BxstmCodec.Pcm8Bit:
-                    return sampleCount;
-                default:
-                    return 0;
-            }
         }
     }
 }

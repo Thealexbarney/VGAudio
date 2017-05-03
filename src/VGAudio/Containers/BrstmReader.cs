@@ -324,25 +324,10 @@ namespace VGAudio.Containers
 
             reader.BaseStream.Position = structure.AudioDataOffset;
             int audioDataLength = structure.DataChunkSize - (structure.AudioDataOffset - structure.DataChunkOffset);
-            int outputSize = SamplesToBytes(structure.Codec, structure.SampleCount);
+            int outputSize = Common.SamplesToBytes(structure.SampleCount, structure.Codec);
 
             structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
                 structure.ChannelCount, outputSize);
-        }
-
-        private static int SamplesToBytes(BxstmCodec codec, int sampleCount)
-        {
-            switch (codec)
-            {
-                case BxstmCodec.Adpcm:
-                    return SampleCountToByteCount(sampleCount);
-                case BxstmCodec.Pcm16Bit:
-                    return sampleCount * 2;
-                case BxstmCodec.Pcm8Bit:
-                    return sampleCount;
-                default:
-                    return 0;
-            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using static VGAudio.Containers.Bxstm.Common;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
 namespace VGAudio.Containers.Bxstm
@@ -9,6 +10,8 @@ namespace VGAudio.Containers.Bxstm
     public abstract class BxstmConfiguration
     {
         private const int Default = -1;
+        private const int DefaultInterleave = 0x2000;
+        private int _loopPointAlignment = Default;
         private int _samplesPerInterleave = Default;
         private int _samplesPerSeekTableEntry = 0x3800;
 
@@ -38,22 +41,7 @@ namespace VGAudio.Containers.Bxstm
         /// or not divisible by 14.</exception>
         public int SamplesPerInterleave
         {
-            get
-            {
-                if (_samplesPerInterleave != Default) return _samplesPerInterleave;
-
-                switch (Codec)
-                {
-                    case BxstmCodec.Adpcm:
-                        return 0x3800;
-                    case BxstmCodec.Pcm16Bit:
-                        return 0x1000;
-                    case BxstmCodec.Pcm8Bit:
-                        return 0x2000;
-                    default:
-                        return 0;
-                }
-            }
+            get => _samplesPerInterleave != Default ? _samplesPerInterleave : BytesToSamples(DefaultInterleave, Codec);
             set
             {
                 if (value < 1)
@@ -96,7 +84,12 @@ namespace VGAudio.Containers.Bxstm
         /// be adjusted so that the start loop point is a multiple of
         /// this number. Default is 14,336 (0x3800).
         /// </summary>
-        public int LoopPointAlignment { get; set; } = 0x3800;
+        public int LoopPointAlignment
+        {
+            get => _loopPointAlignment != Default ? _loopPointAlignment : BytesToSamples(DefaultInterleave, Codec);
+            set => _loopPointAlignment = value;
+        }
+
         public BxstmCodec Codec { get; set; } = BxstmCodec.Adpcm;
     }
 }
