@@ -37,7 +37,8 @@ namespace VGAudio.Uwp.ViewModels
         public Dictionary<BxstmCodec, string> FormatTypesBinding { get; } = new Dictionary<BxstmCodec, string>
         {
             [BxstmCodec.Adpcm] = "DSP-ADPCM",
-            [BxstmCodec.Pcm16Bit] = "16-bit PCM"
+            [BxstmCodec.Pcm16Bit] = "16-bit PCM",
+            [BxstmCodec.Pcm8Bit] = "8-bit PCM"
         };
 
         public FileType SelectedFileType { get; set; } = FileType.Dsp;
