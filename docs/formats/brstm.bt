@@ -5,16 +5,16 @@
 //   Authors: Alex Barney
 //   Version: 1.0
 //   Purpose: Parse BRSTM audio files
-//   Category: Audio
-//   File Mask: *.brstm
-//   ID Bytes: 52 53 54 4D //RSTM
+//  Category: Audio
+// File Mask: *.brstm
+//  ID Bytes: 52 53 54 4D //RSTM
 //   History: 
 //   1.0   Initial Release
 //------------------------------------------------
 
 //Change this variable to display info
 //on each ADPCM frame
-const int detailedData = 0;
+const int detailedData = 1;
 
 typedef char ID[4];
 struct RSTMHeader
@@ -33,7 +33,6 @@ struct RSTMHeader
     int32 AdpcChunkSize;
     int32 DataChunkOffset;
     int32 DataChunkSize;
-    //byte Padding[HeaderSize - FTell() - base];
 };
 
 enum <byte> AudioCodec
@@ -49,17 +48,16 @@ enum <byte> TrackType
     Long  = 1
 };
 
-struct TrackOffset
+struct Pointer
 {
-    byte Marker;
-    TrackType Type;
+    int16 Marker <format=hex>;
     int16 Padding;
     int32 Offset;
 };
 
-struct Track(TrackType type)
+struct Track(int16 type)
 {
-    if (type == Long)
+    if (type == 0x101)
     {
         byte Volume;
         byte Panning;
@@ -72,17 +70,8 @@ struct Track(TrackType type)
     byte Padding;
 };
 
-struct ChannelOffset
+struct AdpcmChannel
 {
-    int32 Marker <format=hex>;
-    int32 Offset;
-};
-
-struct AdpcmChannel (int32 base)
-{
-    int32 Marker <format=hex>;
-    int32 Offset;
-    FSeek(base + Offset);
     SetBackColor(cSilver);
     uint16 Coefficients[16];
     SetBackColor(cAqua);
@@ -93,12 +82,6 @@ struct AdpcmChannel (int32 base)
     int16 LoopPredictorScale <format=hex>;
     int16 LoopHistory1;
     int16 LoopHistory2;
-};
-
-struct PcmChannel
-{
-    int32 Marker <format=hex>;
-    int32 Padding;
 };
 
 struct HEADChunk1
@@ -130,12 +113,12 @@ struct HEADChunk2 (int32 base)
     local int i;
     for( i = 0; i < TrackCount; i++ )
     {
-        TrackOffset Offsets;
+        Pointer pTracks;
     }
     for( i = 0; i < TrackCount; i++ )
     {
-        FSeek(base + Offsets[i].Offset);
-        Track track(Offsets[i].Type);
+        FSeek(base + pTracks[i].Offset);
+        Track track(pTracks[i].Marker);
     }
 };
 
@@ -146,19 +129,20 @@ struct HEADChunk3 (int32 base, AudioCodec codec)
     local int i;
     for( i = 0; i < ChannelCount; i++ )
     {
-        ChannelOffset Offsets;
+        Pointer ppChannels;
     }
+
     for( i = 0; i < ChannelCount; i++ )
     {
-        FSeek(base + Offsets[i].Offset);
-        if (codec == GcAdpcm)
-        {
-            AdpcmChannel Channel(base);
-        }
-        else if (codec == PCM_16Bit)
-        {
-            PcmChannel Channel;
-        }
+        FSeek(base + ppChannels[i].Offset);
+        Pointer pChannels;
+    }
+
+    for( i = 0; i < ChannelCount; i++ )
+    {
+        if(pChannels[i].Offset == 0) {continue;}
+        FSeek(base + pChannels[i].Offset);
+        AdpcmChannel Channel;
     }
 };
 
@@ -167,23 +151,20 @@ struct HEADChunk
     ID HeadId;
     int32 Size;
     local int32 base = FTell();
-    int32 Marker1 <format=hex>;
-    int32 Chunk1Offset;
-    int32 Marker2 <format=hex>;
-    int32 Chunk2Offset;
-    int32 Marker3 <format=hex>;
-    int32 Chunk3Offset;
+    Pointer Pointer1;
+    Pointer Pointer2;
+    Pointer Pointer3;
     
     SetBackColor(cLtBlue);
-    FSeek(base + Chunk1Offset);
+    FSeek(base + Pointer1.Offset);
     HEADChunk1 Chunk1;
 
     SetBackColor(cLtGreen);
-    FSeek(base + Chunk2Offset);
+    FSeek(base + Pointer2.Offset);
     HEADChunk2 Chunk2(base);
 
     SetBackColor(cAqua);
-    FSeek(base + Chunk3Offset);
+    FSeek(base + Pointer3.Offset);
     HEADChunk3 Chunk3(base, Chunk1.Codec);
 };
 
@@ -207,7 +188,7 @@ struct ADPCChunk (int32 channelCount)
     local int32 entrySize = channelCount * 4; 
     ID AdpcId;
     int32 Size;
-    local int32 entryCount = Size / entrySize; 
+    local int32 entryCount = (Size - 8) / entrySize; 
     local int32 i;
     for( i = 0; i < entryCount; i++ )
     {
@@ -225,37 +206,34 @@ typedef struct
     }
 } AdpcmFrame <size=8> ;
 
-struct Block(int32 size, AudioCodec codec)
+struct Channel(int32 size, int32 padding, AudioCodec codec)
 {
     if (codec == GcAdpcm && detailedData)
     {
-        local int32 frameCount = size / 8;
+        local int32 frameCount = (size + 7) / 8;
         local int32 j;
         for( j = 0; j < frameCount; j++ )
         {
             AdpcmFrame Frame;
         }
+        if (padding / 8 * 8 > 0)
+            byte Padding[padding / 8 * 8];
     }
     else
     {
-        byte Audio[size];
+        byte Data[size];
+        if (padding)
+            byte Padding[padding];
     }
 };
 
-struct Channel(int32 num, HEADChunk1 &head)
+struct Block(int32 count, int32 size, int32 padding, AudioCodec codec)
 {
-    local int32 fullBlocks = head.BlockCount - 1;
-    FSeek(head.AudioDataOffset + head.BlockSizeBytes * num);
-
-    local int32 i;
-    for (i = 0; i < fullBlocks; i++)
+    local int i;
+    for(i = 0; i < count; i++)
     {
-        FSeek(head.AudioDataOffset + (i * head.BlockSizeBytes * head.ChannelCount) + head.BlockSizeBytes * num);
-        Block block(head.BlockSizeBytes, head.Codec);
+        Channel Channels(size, padding, codec);
     }
-    
-    FSeek(head.AudioDataOffset + (fullBlocks * head.BlockSizeBytes * head.ChannelCount) + head.FinalBlockSizeBytesWithPadding * num);
-    Block block(head.FinalBlockSizeBytesWithoutPadding, head.Codec);
 };
 
 struct DATAChunk (HEADChunk1 &head)
@@ -268,13 +246,25 @@ struct DATAChunk (HEADChunk1 &head)
     FSeek(head.AudioDataOffset);
 
     local int32 i;
-    for (i = 0; i < head.ChannelCount; i++)
+    for (i = 0; i < head.BlockCount - 1; i++)
     {
-        Channel Channels(i, head);        
+        Block Blocks(head.ChannelCount, head.BlockSizeBytes, 0, head.Codec);
     }
+
+    local int padding = head.FinalBlockSizeBytesWithPadding - head.FinalBlockSizeBytesWithoutPadding;
+    Block Blocks(head.ChannelCount, head.FinalBlockSizeBytesWithoutPadding, padding, head.Codec);
 };
 
 BigEndian();
+switch(ReadUShort(4))
+{
+    case 0xFEFF: break;
+    case 0xFFFE: 
+        LittleEndian();
+        break;
+    default: Exit(1);
+}
+
 SetBackColor(cLtGray);
 RSTMHeader Rstm;
 
