@@ -1,4 +1,5 @@
 ﻿using System;
+using VGAudio.Utilities;
 using static VGAudio.Containers.Bxstm.Common;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
@@ -91,5 +92,6 @@ namespace VGAudio.Containers.Bxstm
         }
 
         public BxstmCodec Codec { get; set; } = BxstmCodec.Adpcm;
+        public Endianness? Endianness { get; set; }
     }
 }

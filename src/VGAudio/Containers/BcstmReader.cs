@@ -24,6 +24,7 @@ namespace VGAudio.Containers
                 configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
             }
             configuration.Codec = structure.Codec;
+            configuration.Endianness = structure.Endianness;
             configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
             configuration.IncludeTrackInformation = structure.IncludeTracks;
             configuration.InfoPart1Extra = structure.InfoPart1Extra;

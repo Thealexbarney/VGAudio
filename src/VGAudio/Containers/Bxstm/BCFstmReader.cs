@@ -13,6 +13,7 @@ namespace VGAudio.Containers.Bxstm
         public BCFstmStructure ReadFile(Stream stream, bool readAudioData = true)
         {
             BCFstmType type;
+            Endianness endianness;
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 string magic = Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4);
@@ -27,12 +28,26 @@ namespace VGAudio.Containers.Bxstm
                     default:
                         throw new InvalidDataException("File has no CSTM or FSTM header");
                 }
+
+                var bom = reader.ReadUInt16();
+                switch (bom)
+                {
+                    case 0xFEFF:
+                        endianness = Endianness.LittleEndian;
+                        break;
+                    case 0xFFFE:
+                        endianness = Endianness.BigEndian;
+                        break;
+                    default:
+                        throw new InvalidDataException("File has no byte order mark");
+                }
+                stream.Position -= 2;
             }
 
-            using (BinaryReader reader = GetBinaryReader(stream, GetTypeEndianness(type)))
+            using (BinaryReader reader = GetBinaryReader(stream, endianness))
             {
                 BCFstmStructure structure = type == BCFstmType.Bcstm ? (BCFstmStructure)new BcstmStructure() : new BfstmStructure();
-                structure.Endianness = GetTypeEndianness(type);
+                structure.Endianness = endianness;
 
                 ReadHeader(reader, structure);
                 ReadInfoChunk(reader, structure);
@@ -407,8 +422,5 @@ namespace VGAudio.Containers.Bxstm
             Bcstm,
             Bfstm
         }
-
-        private static Endianness GetTypeEndianness(BCFstmType type) =>
-            type == BCFstmType.Bcstm ? Endianness.LittleEndian : Endianness.BigEndian;
     }
 }

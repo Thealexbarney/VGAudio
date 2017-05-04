@@ -23,6 +23,7 @@ namespace VGAudio.Containers.Bxstm
         public BxstmConfiguration Configuration => Type == BCFstmType.Bcstm ? (BxstmConfiguration)BcstmConfig : BfstmConfig;
 
         public BCFstmType Type { get; }
+        public Endianness Endianness => Configuration.Endianness ?? GetTypeEndianness(Type);
         private int SampleCount => AudioFormat.Looping ? LoopEnd : AudioFormat.SampleCount;
         private int ChannelCount => AudioFormat.ChannelCount;
         private int TrackCount => Tracks?.Count ?? 0;
@@ -130,12 +131,12 @@ namespace VGAudio.Containers.Bxstm
 
         public void WriteStream(Stream stream)
         {
-            using (BinaryWriter writer = GetBinaryWriter(stream, GetTypeEndianess(Type)))
+            using (BinaryWriter writer = GetBinaryWriter(stream, Endianness))
             {
                 stream.Position = 0;
                 WriteHeader(writer);
                 stream.Position = InfoChunkOffset;
-                WriteInfoChunk(writer, GetTypeEndianess(Type));
+                WriteInfoChunk(writer);
                 stream.Position = SeekChunkOffset;
                 WriteSeekChunk(writer);
                 stream.Position = DataChunkOffset;
@@ -187,7 +188,7 @@ namespace VGAudio.Containers.Bxstm
             writer.Write(DataChunkSize);
         }
 
-        private void WriteInfoChunk(BinaryWriter writer, Endianness endianness)
+        private void WriteInfoChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("INFO");
             writer.Write(InfoChunkSize);
@@ -214,7 +215,7 @@ namespace VGAudio.Containers.Bxstm
 
             WriteInfoChunk1(writer);
             WriteInfoChunk2(writer);
-            WriteInfoChunk3(writer, endianness);
+            WriteInfoChunk3(writer);
         }
 
         private void WriteInfoChunk1(BinaryWriter writer)
@@ -271,7 +272,7 @@ namespace VGAudio.Containers.Bxstm
             }
         }
 
-        private void WriteInfoChunk3(BinaryWriter writer, Endianness endianness)
+        private void WriteInfoChunk3(BinaryWriter writer)
         {
             int channelTableSize = 4 + 8 * ChannelCount;
             int trackTableSize = IncludeTrackInformation ? 0x14 * TrackCount : 0;
@@ -320,7 +321,7 @@ namespace VGAudio.Containers.Bxstm
 
             foreach (var channel in Adpcm.Channels)
             {
-                writer.Write(channel.Coefs.ToByteArray(endianness));
+                writer.Write(channel.Coefs.ToByteArray(Endianness));
                 writer.Write(channel.PredScale);
                 writer.Write(channel.Hist1);
                 writer.Write(channel.Hist2);
@@ -356,7 +357,7 @@ namespace VGAudio.Containers.Bxstm
                     channels = Adpcm.Channels.Select(x => x.GetAdpcmAudio()).ToArray();
                     break;
                 case BxstmCodec.Pcm16Bit:
-                    channels = Pcm16.Channels.Select(x => x.ToByteArray(GetTypeEndianess(Type))).ToArray();
+                    channels = Pcm16.Channels.Select(x => x.ToByteArray(Endianness)).ToArray();
                     break;
                 case BxstmCodec.Pcm8Bit:
                     channels = Pcm8.Channels;
@@ -372,7 +373,7 @@ namespace VGAudio.Containers.Bxstm
             Bfstm
         }
 
-        private static Endianness GetTypeEndianess(BCFstmType type) =>
+        private static Endianness GetTypeEndianness(BCFstmType type) =>
             type == BCFstmType.Bcstm ? Endianness.LittleEndian : Endianness.BigEndian;
     }
 }

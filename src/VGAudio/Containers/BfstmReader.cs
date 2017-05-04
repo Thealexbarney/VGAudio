@@ -24,6 +24,7 @@ namespace VGAudio.Containers
                 configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
             }
             configuration.Codec = structure.Codec;
+            configuration.Endianness = structure.Endianness;
             configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
             configuration.IncludeUnalignedLoopPoints = structure.Version == 4;
             return configuration;
