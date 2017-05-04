@@ -86,8 +86,9 @@ namespace VGAudio.Containers.Bxstm
                     Hist2 = structure.Channels[c].Hist2
                 };
 
-                channelBuilder.WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
-                    structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
+                channelBuilder.WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                    .WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
+                        structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
 
                 if (structure.SeekTable != null)
                 {
