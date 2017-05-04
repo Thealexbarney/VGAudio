@@ -1,0 +1,325 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: bfstm.bt
+//   Authors: Alex Barney
+//   Version: 1.0
+//   Purpose: Parse BFSTM and BCSTM audio files
+//  Category: Audio
+// File Mask: *.bfstm, *.bcstm
+//  ID Bytes: 46 53 54 4D, 43 53 54 4D //FSTM, CSTM
+//   History: 
+//   1.0   Initial Release
+//------------------------------------------------
+
+typedef char ID[4];
+struct Header
+{
+    ID RstmId;
+    int16 BOM;
+    int16 HeaderSize;
+    int32 Version;
+    int32 FileSize;
+    int16 ChunkCount;
+    int16 Padding;
+    
+    local int i;
+    for( i = 0; i < ChunkCount; i++)
+    {
+        switch(ReadShort())
+        {
+            case 0x4000:
+                int16 InfoMarker <format=hex>;
+                FSkip(2);
+                int32 InfoChunkOffset;
+                int32 InfoChunkSize;
+                break;
+            case 0x4001:
+                int16 SeekMarker <format=hex>;
+                FSkip(2);
+                int32 SeekChunkOffset;
+                int32 SeekChunkSize;
+                break;
+            case 0x4002:
+                int16 DataMarker <format=hex>;
+                FSkip(2);
+                int32 DataChunkOffset;
+                int32 DataChunkSize;
+                break;
+            case 0x4003:
+                int16 RegnMarker <format=hex>;
+                FSkip(2);
+                int32 RegnChunkOffset;
+                int32 RegnChunkSize;
+                break;
+            case 0x4004:
+                int16 PdatMarker <format=hex>;
+                FSkip(2);
+                int32 PdatChunkOffset;
+                int32 PdatChunkSize;
+                break;
+        }
+    }
+};
+
+enum <byte> AudioCodec
+{
+    PCM_8Bit   = 0,
+    PCM_16Bit  = 1,
+    GcAdpcm    = 2
+};
+
+struct Pointer
+{
+    int16 Marker <format=hex>;
+    int16 Padding;
+    int32 Offset;
+};
+
+struct Track
+{
+    byte Volume;
+    byte Panning;
+    int16 Unknown1;
+    int32 Unknown2;
+    int32 Unknown3;
+    int32 ChannelCount;
+    byte LeftChannelId;
+    byte RightChannelId;
+    int16 Padding;
+};
+
+struct AdpcmChannel
+{
+    uint16 Coefficients[16];
+    int16 Gain;
+    int16 InitialPredictorScale <format=hex>;
+    int16 History1;
+    int16 History2;
+    int16 LoopPredictorScale <format=hex>;
+    int16 LoopHistory1;
+    int16 LoopHistory2;
+};
+
+struct INFOChunk1(Header &head)
+{
+    AudioCodec Codec;
+    byte Loops;
+    byte ChannelCount;
+    byte SectionCount;
+    int32 SampleRate;
+    int32 LoopStart;
+    int32 SampleCount;    
+    int32 BlockCount;
+    int32 BlockSizeBytes;
+    int32 BlockSizeSamples;
+    int32 FinalBlockSizeBytesWithoutPadding;
+    int32 FinalBlockSizeSamples;
+    int32 FinalBlockSizeBytesWithPadding;
+    int32 BytesPerSeekTableEntry;
+    int32 SamplesPerSeekTableEntry;
+
+    Pointer pAudioData;
+    
+    if(ReadShort() == 0x100)
+    {
+        int16 ExtraMarker <format=hex>;
+        byte Extra[10];
+    }
+
+    if(head.Version >> 16 == 4)
+    {
+        int32 UnalignedLoopStart;
+        int32 UnalignedSampleCount; 
+    }
+};
+
+struct INFOChunk2
+{
+    local int32 base = FTell();
+    int32 TrackCount;
+    local int i;
+    for(i = 0; i < TrackCount; i++)
+    {
+        Pointer pTracks;
+    }
+    for(i = 0; i < TrackCount; i++)
+    {
+        FSeek(base + pTracks[i].Offset);
+        Track tracks;
+    }
+};
+
+struct INFOChunk3(AudioCodec codec)
+{
+    local int32 base = FTell();
+    int32 ChannelCount;
+    local int i;
+    for(i = 0; i < ChannelCount; i++)
+    {
+        Pointer ppChannels;
+    }
+
+    for( i = 0; i < ChannelCount; i++ )
+    {
+        FSeek(base + ppChannels[i].Offset);
+        Pointer pChannels;
+    }
+
+    for( i = 0; i < ChannelCount; i++ )
+    {
+        if(pChannels[i].Offset == -1) {continue;}
+        FSeek(base + ppChannels[i].Offset + pChannels[i].Offset);
+        AdpcmChannel Channel;
+    }
+};
+
+struct INFOChunk(Header &head)
+{    
+    ID InfoId;
+    int32 Size;
+    local int32 base = FTell();
+    Pointer pChunk1;
+    Pointer pChunk2;
+    Pointer pChunk3;
+    
+    FSeek(base + pChunk1.Offset);
+    INFOChunk1 Chunk1(head);
+
+    if(pChunk2.Offset != -1)
+    {
+        FSeek(base + pChunk2.Offset);
+        INFOChunk2 Chunk2;
+    }
+
+    FSeek(base + pChunk3.Offset);
+    INFOChunk3 Chunk3(Chunk1.Codec);
+};
+
+struct REGNEntryChannel
+{
+    int16 PredScale;
+    int16 Unknown1;
+    int16 Unknown2;
+};
+
+struct REGNEntry (int32 channelCount)
+{
+    int32 StartSample;
+    int32 EndSample;
+    local int32 i;
+    for( i = 0; i < channelCount; i++ )
+    {
+        REGNEntryChannel Channel;
+    }
+};
+
+struct REGNChunk (int32 sectionCount, int32 channelCount)
+{
+    local int32 base = FTell();
+    ID InfoId;
+    int32 Size;
+    local int32 i;
+    for( i = 0; i < sectionCount; i++ )
+    {
+        FSeek(base + 0x20 + 0x100 * i);
+        REGNEntry Entry(channelCount);
+    }
+};
+
+struct SeekTableEntryChannel
+{
+    int16 History1;
+    int16 History2;
+};
+
+struct SeekTableEntry (int32 channelCount)
+{
+    local int32 i;
+    for( i = 0; i < channelCount; i++ )
+    {
+        SeekTableEntryChannel Channel;
+    }
+};
+
+struct SEEKChunk (int32 channelCount)
+{    
+    local int32 entrySize = channelCount * 4; 
+    ID SeekId;
+    int32 Size;
+    local int32 entryCount = (Size - 8) / entrySize; 
+    local int32 i;
+    for( i = 0; i < entryCount; i++ )
+    {
+        SeekTableEntry Entry(channelCount);
+    }
+};
+
+struct Channel(int32 size, int32 padding)
+{
+    byte Data[size];
+    if (padding)
+        byte Padding[padding];
+};
+
+
+struct Block(int32 count, int32 size, int32 padding)
+{
+    local int i;
+    for(i = 0; i < count; i++)
+    {
+        Channel Channels(size, padding);
+    }
+};
+
+struct DATAChunk (INFOChunk1 &head)
+{    
+    ID DataId;
+    int32 Size;
+    FSkip(head.pAudioData.Offset);
+
+    local int32 i;
+    for (i = 0; i < head.BlockCount - 1; i++)
+    {
+        Block Blocks(head.ChannelCount, head.BlockSizeBytes, 0);
+    }
+
+    local int padding = head.FinalBlockSizeBytesWithPadding - head.FinalBlockSizeBytesWithoutPadding;
+    Block Blocks(head.ChannelCount, head.FinalBlockSizeBytesWithoutPadding, padding); 
+};
+
+BigEndian();
+switch(ReadUShort(4))
+{
+    case 0xFEFF: break;
+    case 0xFFFE: 
+        LittleEndian();
+        break;
+    default: Exit(1);
+}
+
+Header Head;
+
+if(exists(Head.InfoMarker))
+{
+    FSeek(Head.InfoChunkOffset);
+    INFOChunk Info(Head);
+}
+
+if(exists(Head.SeekMarker))
+{
+    FSeek(Head.SeekChunkOffset);
+    SEEKChunk Seek(Info.Chunk1.ChannelCount);
+}
+
+if(exists(Head.RegnMarker))
+{
+    FSeek(Head.RegnChunkOffset);
+    REGNChunk Regn(Info.Chunk1.SectionCount, Info.Chunk1.ChannelCount);
+}
+
+if(exists(Head.DataMarker))
+{
+    FSeek(Head.DataChunkOffset);
+    DATAChunk Data(Info.Chunk1);
+}

@@ -1,4 +1,5 @@
 ﻿using System;
+using VGAudio.Utilities;
 using static VGAudio.Containers.Bxstm.Common;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
@@ -13,7 +14,7 @@ namespace VGAudio.Containers.Bxstm
         private const int DefaultInterleave = 0x2000;
         private int _loopPointAlignment = Default;
         private int _samplesPerInterleave = Default;
-        private int _samplesPerSeekTableEntry = 0x3800;
+        private int _samplesPerSeekTableEntry = Default;
 
         /// <summary>
         /// If <c>true</c>, rebuilds the seek table when building the file.
@@ -67,7 +68,7 @@ namespace VGAudio.Containers.Bxstm
         /// value is less than 2.</exception>
         public int SamplesPerSeekTableEntry
         {
-            get => _samplesPerSeekTableEntry;
+            get => _samplesPerSeekTableEntry != Default ? _samplesPerSeekTableEntry : BytesToSamples(DefaultInterleave, Codec);
             set
             {
                 if (value < 2)
@@ -91,5 +92,6 @@ namespace VGAudio.Containers.Bxstm
         }
 
         public BxstmCodec Codec { get; set; } = BxstmCodec.Adpcm;
+        public Endianness? Endianness { get; set; }
     }
 }
