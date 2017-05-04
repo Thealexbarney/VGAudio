@@ -1,11 +1,9 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
-using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.Bxstm
@@ -31,9 +29,10 @@ namespace VGAudio.Containers.Bxstm
                 }
             }
 
-            using (BinaryReader reader = GetBinaryReader(stream, GetTypeEndianess(type)))
+            using (BinaryReader reader = GetBinaryReader(stream, GetTypeEndianness(type)))
             {
                 BCFstmStructure structure = type == BCFstmType.Bcstm ? (BCFstmStructure)new BcstmStructure() : new BfstmStructure();
+                structure.Endianness = GetTypeEndianness(type);
 
                 ReadHeader(reader, structure);
                 ReadInfoChunk(reader, structure);
@@ -45,7 +44,21 @@ namespace VGAudio.Containers.Bxstm
             }
         }
 
-        public static IAudioFormat ToAudioStream(BCFstmStructure structure)
+        public static IAudioFormat ToAudioStream(BxstmStructure structure)
+        {
+            switch (structure.Codec)
+            {
+                case BxstmCodec.Adpcm:
+                    return ToAdpcmStream(structure);
+                case BxstmCodec.Pcm16Bit:
+                    return ToPcm16Stream(structure);
+                case BxstmCodec.Pcm8Bit:
+                    return ToPcm8Stream(structure);
+            }
+            return null;
+        }
+
+        private static GcAdpcmFormat ToAdpcmStream(BxstmStructure structure)
         {
             var channels = new GcAdpcmChannel[structure.ChannelCount];
 
@@ -73,6 +86,23 @@ namespace VGAudio.Containers.Bxstm
                 .WithTracks(structure.Tracks)
                 .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
                 .Build();
+        }
+
+        private static Pcm16Format ToPcm16Stream(BxstmStructure structure)
+        {
+            short[][] channels = structure.AudioData.Select(x => x.ToShortArray(structure.Endianness)).ToArray();
+            return new Pcm16Format.Builder(channels, structure.SampleRate)
+                .WithTracks(structure.Tracks)
+                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .Build();
+        }
+
+        private static Pcm8SignedFormat ToPcm8Stream(BxstmStructure structure)
+        {
+            return new Pcm8Format.Builder(structure.AudioData, structure.SampleRate, true)
+                .WithTracks(structure.Tracks)
+                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .Build() as Pcm8SignedFormat;
         }
 
         private static void ReadHeader(BinaryReader reader, BCFstmStructure structure)
@@ -155,10 +185,6 @@ namespace VGAudio.Containers.Bxstm
         {
             reader.BaseStream.Position = structure.InfoChunkOffset + 8 + structure.InfoChunk1Offset;
             structure.Codec = (BxstmCodec)reader.ReadByte();
-            if (structure.Codec != BxstmCodec.Adpcm)
-            {
-                throw new NotSupportedException("File must contain 4-bit ADPCM encoded audio");
-            }
 
             structure.Looping = reader.ReadBoolean();
             structure.ChannelCount = reader.ReadByte();
@@ -248,6 +274,8 @@ namespace VGAudio.Containers.Bxstm
                 structure.Channels.Add(channel);
             }
 
+            if (structure.Codec != BxstmCodec.Adpcm) return;
+
             foreach (BxstmChannelInfo channel in structure.Channels)
             {
                 int channelInfoOffset = part3Offset + channel.Offset;
@@ -270,6 +298,7 @@ namespace VGAudio.Containers.Bxstm
 
         private static void ReadSeekChunk(BinaryReader reader, BCFstmStructure structure)
         {
+            if (structure.SeekChunkOffset == 0) return;
             reader.BaseStream.Position = structure.SeekChunkOffset;
 
             if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "SEEK")
@@ -367,9 +396,10 @@ namespace VGAudio.Containers.Bxstm
 
             reader.BaseStream.Position = structure.AudioDataOffset;
             int audioDataLength = structure.DataChunkSize - (structure.AudioDataOffset - structure.DataChunkOffset);
+            int outputSize = Common.SamplesToBytes(structure.SampleCount, structure.Codec);
 
             structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.ChannelCount, SampleCountToByteCount(structure.SampleCount));
+                structure.ChannelCount, outputSize);
         }
 
         private enum BCFstmType
@@ -378,7 +408,7 @@ namespace VGAudio.Containers.Bxstm
             Bfstm
         }
 
-        private static Endianness GetTypeEndianess(BCFstmType type) =>
+        private static Endianness GetTypeEndianness(BCFstmType type) =>
             type == BCFstmType.Bcstm ? Endianness.LittleEndian : Endianness.BigEndian;
     }
 }

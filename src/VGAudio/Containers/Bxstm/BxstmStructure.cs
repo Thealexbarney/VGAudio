@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using VGAudio.Formats;
+using VGAudio.Utilities;
 
 namespace VGAudio.Containers.Bxstm
 {
@@ -9,6 +10,7 @@ namespace VGAudio.Containers.Bxstm
         /// The size of the entire file.
         /// </summary>
         public int FileSize { get; set; }
+        public Endianness Endianness { get; set; }
         /// <summary>
         /// The version listed in the header.
         /// </summary>
