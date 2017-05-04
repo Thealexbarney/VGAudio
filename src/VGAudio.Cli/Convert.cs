@@ -92,7 +92,7 @@ namespace VGAudio.Cli
             }
             OutType = type;
 
-            Configuration = OutType.GetConfiguration(options);
+            Configuration = OutType.GetConfiguration(options, Configuration);
         }
     }
 }

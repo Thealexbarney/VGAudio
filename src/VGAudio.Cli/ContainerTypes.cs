@@ -25,7 +25,7 @@ namespace VGAudio.Cli
 
     internal class ContainerType
     {
-        public ContainerType(IEnumerable<string> names, Func<IAudioReader> getReader, Func<IAudioWriter> getWriter, Func<Options, IConfiguration> getConfiguration)
+        public ContainerType(IEnumerable<string> names, Func<IAudioReader> getReader, Func<IAudioWriter> getWriter, Func<Options, IConfiguration, IConfiguration> getConfiguration)
         {
             Names = names;
             GetReader = getReader;
@@ -36,6 +36,6 @@ namespace VGAudio.Cli
         public IEnumerable<string> Names { get; }
         public Func<IAudioReader> GetReader { get; }
         public Func<IAudioWriter> GetWriter { get; }
-        public Func<Options, IConfiguration> GetConfiguration { get; }
+        public Func<Options, IConfiguration, IConfiguration> GetConfiguration { get; }
     }
 }
