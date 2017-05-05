@@ -1,5 +1,4 @@
 ﻿using System;
-using VGAudio.TestsLong.Rebuild;
 
 namespace VGAudio.TestsLong
 {
@@ -19,7 +18,7 @@ namespace VGAudio.TestsLong
                 return;
             }
 
-            string results = Runner.Run(args[0], index);
+            string results = Rebuild.Runner.Run(args[0], index);
 
             Console.WriteLine(results);
         }

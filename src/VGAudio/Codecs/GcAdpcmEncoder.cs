@@ -400,7 +400,7 @@ namespace VGAudio.Codecs
             return coefs;
         }
 
-        private static void DspEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn,
+        public static void DspEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn,
             AdpcmEncodeBuffers b = null)
         {
             b = b ?? new AdpcmEncodeBuffers();
@@ -561,7 +561,7 @@ namespace VGAudio.Codecs
             return adpcm;
         }
 
-        private class AdpcmEncodeBuffers
+        public class AdpcmEncodeBuffers
         {
             public short[][] Coefs { get; } = new short[8][];
             public int[][] InSamples { get; } = new int[8][];
