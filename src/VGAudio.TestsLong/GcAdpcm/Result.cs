@@ -6,6 +6,7 @@
         public int Channel { get; set; }
 
         public bool Equal { get; set; }
+        public bool RanFineComparison { get; set; }
         public bool CoefsEqual { get; set; }
 
         public short[] CoefsA { get; set; }

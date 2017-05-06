@@ -1,50 +1,15 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using VGAudio.Containers;
 
 namespace VGAudio.TestsLong.Rebuild
 {
     internal static class Runner
     {
-        private static Result[] Dsp(string path) =>
-            new Rebuilder(path, "*.dsp", () => new DspReader(), () => new DspWriter()).Run();
-
-        private static Result[] Idsp(string path) =>
-            new Rebuilder(path, "*.idsp", () => new IdspReader(), () => new IdspWriter()).Run();
-
-        private static Result[] Brstm(string path) =>
-            new Rebuilder(path, "*.brstm", () => new BrstmReader(), () => new BrstmWriter()).Run();
-
-        private static Result[] Bcstm(string path) =>
-            new Rebuilder(path, "*.bcstm", () => new BcstmReader(), () => new BcstmWriter()).Run();
-
-        private static Result[] Bfstm(string path) =>
-            new Rebuilder(path, "*.bfstm", () => new BfstmReader(), () => new BfstmWriter()).Run();
-
-        public static string Run(string path, FileType fileType)
+        public static string Run(FileType fileType, string path)
         {
-            Result[] results;
-            switch (fileType)
-            {
-                case FileType.Dsp:
-                    results = Dsp(path);
-                    break;
-                case FileType.Idsp:
-                    results = Idsp(path);
-                    break;
-                case FileType.Brstm:
-                    results = Brstm(path);
-                    break;
-                case FileType.Bcstm:
-                    results = Bcstm(path);
-                    break;
-                case FileType.Bfstm:
-                    results = Bfstm(path);
-                    break;
-                default:
-                    return "Rebuilding not implemented for this type";
-            }
+            var info = TestsLong.Common.FileTypes[fileType];
+            Result[] results = new Rebuilder(path, info.Extension, info.GetReader, info.GetWriter).Run();
 
             if (results.Length == 0)
                 return "No files found";
@@ -78,7 +43,7 @@ namespace VGAudio.TestsLong.Rebuild
             FileType fileType = Parse.ParseFileType(args[1]);
             if (fileType == FileType.NotSet) return;
 
-            string results = Run(args[2], fileType);
+            string results = Run(fileType, args[2]);
 
             Console.WriteLine(results);
         }

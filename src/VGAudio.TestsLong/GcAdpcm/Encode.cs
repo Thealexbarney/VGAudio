@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,33 +10,35 @@ namespace VGAudio.TestsLong.GcAdpcm
 {
     public class Encode
     {
+        private string[] Files { get; }
         private IDspTool DllA { get; }
         private IDspTool DllB { get; }
+        private Func<IAudioReader> GetReader { get; }
 
-        public Encode(IDspTool dllA, IDspTool dllB)
+        public Encode(string[] files, IDspTool dllA, IDspTool dllB, Func<IAudioReader> reader)
         {
+            Files = files;
             DllA = dllA;
             DllB = dllB;
+            GetReader = reader;
         }
 
-        public IEnumerable<Result> CompareWave(string path)
+        public ParallelQuery<Result> Run()
         {
-            byte[] wave = File.ReadAllBytes(path);
-            var pcm = new WaveReader().ReadFormat(wave) as Pcm16Format;
-            if (pcm == null) return new Result[0];
-
-            return ComparePcm(pcm, path);
-        }
-
-        public IEnumerable<Result> ComparePcm(Pcm16Format pcm, string path)
-        {
-            return pcm.Channels.AsParallel().Select((x, i) =>
+            return Files.AsParallel().SelectMany(path =>
             {
-                Result result = CompareEncodingCoarse(x) ? new Result { Equal = true } : CompareEncodingFine(x, DllA, DllB);
-                result.Channel = i;
-                result.Filename = path;
-                return result;
+                byte[] wave = File.ReadAllBytes(path);
+                Pcm16Format pcm = GetReader().ReadFormat(wave).ToPcm16();
+                return pcm.Channels.Select((x, i) => ComparePcm(x, path, i));
             });
+        }
+
+        public Result ComparePcm(short[] pcm, string name, int channel)
+        {
+            Result result = CompareEncodingCoarse(pcm) ? new Result { Equal = true } : CompareEncodingFine(pcm, DllA, DllB);
+            result.Channel = channel;
+            result.Filename = name;
+            return result;
         }
 
         private bool CompareEncodingCoarse(short[] pcm)
@@ -66,6 +67,7 @@ namespace VGAudio.TestsLong.GcAdpcm
                 {
                     Equal = false,
                     CoefsEqual = false,
+                    RanFineComparison = true,
                     CoefsA = coefsA,
                     CoefsB = coefsB
                 };
@@ -113,6 +115,7 @@ namespace VGAudio.TestsLong.GcAdpcm
                     {
                         Equal = false,
                         CoefsEqual = true,
+                        RanFineComparison = true,
                         CoefsA = coefsA,
                         CoefsB = coefsB,
                         Frame = frame,
@@ -135,8 +138,7 @@ namespace VGAudio.TestsLong.GcAdpcm
                 pcmBufferB[1] = pcmBufferB[15];
             }
 
-            Console.WriteLine("Encode Equal");
-            return new Result { Equal = true };
+            return new Result { Equal = true, RanFineComparison = true};
         }
 
         private static int ArraysEqual<T>(T[] a1, T[] a2)

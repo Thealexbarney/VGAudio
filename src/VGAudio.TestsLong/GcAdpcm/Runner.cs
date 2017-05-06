@@ -6,66 +6,73 @@ using System.Text;
 
 namespace VGAudio.TestsLong.GcAdpcm
 {
-    public static class Runner
+    internal static class Runner
     {
-        public static string Run(string audioPath, string dllPath)
+        public static void Run(FileType fileType, string audioPath, string dllPath)
         {
-            var waves = Directory.GetFiles(audioPath, "*.wav");
+            var info = Common.FileTypes[fileType];
+            var files = Directory.GetFiles(audioPath, info.Extension);
             var watch = Stopwatch.StartNew();
-            var encode = new Encode(new DspToolRevolution(dllPath), new DspToolVGAudio());
-            var results = waves.AsParallel().SelectMany(x => encode.CompareWave(x));
+            var encode = new Encode(files, new DspToolRevolution(dllPath), new DspToolVGAudio(), info.GetReader);
 
-            results.ForAll(PrintResult);
+             encode.Run().ForAll(x => Console.WriteLine(PrintResult(x)));
 
             watch.Stop();
             Console.WriteLine(watch.Elapsed.TotalMilliseconds);
-
-            return "";
         }
 
         public static void Run(string[] args)
         {
-            if (args.Length < 3)
+            if (args.Length < 4)
             {
-                Console.WriteLine("Usage: GcAdpcm <audio file path> <dsptool dlls path>");
+                Console.WriteLine("Usage: GcAdpcm <audio file type> <audio file path> <dsptool dlls path>");
                 return;
             }
 
-            string results = Run(args[1], args[2]);
+            FileType fileType = Parse.ParseFileType(args[1]);
+            if (fileType == FileType.NotSet) return;
 
-            Console.WriteLine(results);
+            Run(fileType, args[2], args[3]);
         }
 
-        private static void PrintResult(Result result)
+        public static string PrintResult(Result result)
         {
-            if (result.Equal) Console.WriteLine();
-            Console.Write($"Channel {result.Channel}; {result.Filename}: ");
+            var builder = new StringBuilder();
+            if (!result.Equal || result.RanFineComparison) builder.AppendLine();
+            builder.Append($"Channel {result.Channel}; {result.Filename}: ");
+
+            if (result.Equal && !result.RanFineComparison)
+            {
+                builder.Append("Equal");
+                return builder.ToString();
+            }
+
+            builder.AppendLine();
 
             if (result.Equal)
             {
-                Console.WriteLine("Equal");
-                return;
+                builder.AppendLine("Coarse comparison failed but fine comparison was equal");
+                return builder.ToString();
             }
-            Console.WriteLine();
 
             if (!result.CoefsEqual)
             {
-                Console.WriteLine("Coefficients not equal");
-                Console.WriteLine(PrintShort(result.CoefsA, "CoefsA"));
-                Console.WriteLine(PrintShort(result.CoefsB, "CoefsB"));
-                return;
+                builder.AppendLine("Coefficients not equal");
+                builder.AppendLine(PrintShort(result.CoefsA, "CoefsA"));
+                builder.AppendLine(PrintShort(result.CoefsB, "CoefsB"));
+                return builder.ToString();
             }
 
-            Console.WriteLine("Encode not equal");
-            Console.WriteLine($"Frame {result.Frame}; Frame Sample {result.FrameSample}; Sample {result.Sample}");
-            Console.WriteLine(PrintShort(result.CoefsA, "Coefs"));
-            Console.WriteLine(PrintShort(result.PcmIn, "PcmIn"));
-            Console.WriteLine(PrintShort(result.PcmOutA, "DecodedPcmA          "));
-            Console.WriteLine(PrintShort(result.PcmOutB, "DecodedPcmB          "));
+            builder.AppendLine("Encode not equal");
+            builder.AppendLine($"Frame {result.Frame}; Frame Sample {result.FrameSample}; Sample {result.Sample}");
+            builder.AppendLine(PrintShort(result.CoefsA, "Coefs"));
+            builder.AppendLine(PrintShort(result.PcmIn, "PcmIn"));
+            builder.AppendLine(PrintShort(result.PcmOutA, "DecodedPcmA          "));
+            builder.AppendLine(PrintShort(result.PcmOutB, "DecodedPcmB          "));
 
-            Console.WriteLine(PrintByte(result.AdpcmOutA, "EncodedAdpcmA"));
-            Console.WriteLine(PrintByte(result.AdpcmOutB, "EncodedAdpcmB"));
-            Console.WriteLine();
+            builder.AppendLine(PrintByte(result.AdpcmOutA, "EncodedAdpcmA"));
+            builder.AppendLine(PrintByte(result.AdpcmOutB, "EncodedAdpcmB"));
+            return builder.ToString();
         }
 
         private static string PrintShort(short[] data, string name)
