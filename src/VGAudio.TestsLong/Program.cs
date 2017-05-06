@@ -2,25 +2,36 @@
 
 namespace VGAudio.TestsLong
 {
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            if (args.Length < 2)
+            if (args.Length < 1)
             {
-                Console.WriteLine("Usage: <path> <file type index>");
+                Console.WriteLine("Usage: <test to run>");
                 return;
             }
 
-            if (!int.TryParse(args[1], out int index))
+            switch (args[0].ToLower())
             {
-                Console.WriteLine($"Couldn't parse {args[1]} as an integer");
-                return;
+                case "rebuild":
+                    Rebuild.Runner.Run(args);
+                    break;
+                case "gcadpcm":
+                    GcAdpcm.Runner.Run(args);
+                    break;
+                default:
+                    Console.WriteLine("Unknown test");
+                    PrintTestList();
+                    return;
             }
+        }
 
-            string results = Rebuild.Runner.Run(args[0], index);
-
-            Console.WriteLine(results);
+        private static void PrintTestList()
+        {
+            Console.WriteLine("Available tests:");
+            Console.WriteLine("Rebuild\t\tReads and rebuilds an audio file and compares the result with the original");
+            Console.WriteLine("GcAdpcm\t\tCompares GcAdpcm encoding with the official implementation");
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using VGAudio.Containers;
 
@@ -6,43 +7,43 @@ namespace VGAudio.TestsLong.Rebuild
 {
     internal static class Runner
     {
-        public static Result[] Dsp(string path) =>
+        private static Result[] Dsp(string path) =>
             new Rebuilder(path, "*.dsp", () => new DspReader(), () => new DspWriter()).Run();
 
-        public static Result[] Idsp(string path) =>
+        private static Result[] Idsp(string path) =>
             new Rebuilder(path, "*.idsp", () => new IdspReader(), () => new IdspWriter()).Run();
 
-        public static Result[] Brstm(string path) =>
+        private static Result[] Brstm(string path) =>
             new Rebuilder(path, "*.brstm", () => new BrstmReader(), () => new BrstmWriter()).Run();
 
-        public static Result[] Bcstm(string path) =>
+        private static Result[] Bcstm(string path) =>
             new Rebuilder(path, "*.bcstm", () => new BcstmReader(), () => new BcstmWriter()).Run();
 
-        public static Result[] Bfstm(string path) =>
+        private static Result[] Bfstm(string path) =>
             new Rebuilder(path, "*.bfstm", () => new BfstmReader(), () => new BfstmWriter()).Run();
 
-        public static string Run(string path, int index)
+        public static string Run(string path, FileType fileType)
         {
             Result[] results;
-            switch (index)
+            switch (fileType)
             {
-                case 0:
+                case FileType.Dsp:
                     results = Dsp(path);
                     break;
-                case 1:
+                case FileType.Idsp:
                     results = Idsp(path);
                     break;
-                case 2:
+                case FileType.Brstm:
                     results = Brstm(path);
                     break;
-                case 3:
+                case FileType.Bcstm:
                     results = Bcstm(path);
                     break;
-                case 4:
+                case FileType.Bfstm:
                     results = Bfstm(path);
                     break;
                 default:
-                    return "Index is not in range";
+                    return "Rebuilding not implemented for this type";
             }
 
             if (results.Length == 0)
@@ -64,6 +65,22 @@ namespace VGAudio.TestsLong.Rebuild
             builder.AppendLine($"Different size: {results.Count(x => x.ByteCount == -2)}");
             builder.AppendLine($"Error: {results.Count(x => x.ByteCount == -4)}");
             return builder.ToString();
+        }
+
+        public static void Run(string[] args)
+        {
+            if (args.Length < 3)
+            {
+                Console.WriteLine("Usage: Rebuild <file type> <path>");
+                return;
+            }
+
+            FileType fileType = Parse.ParseFileType(args[1]);
+            if (fileType == FileType.NotSet) return;
+
+            string results = Run(args[2], fileType);
+
+            Console.WriteLine(results);
         }
     }
 }

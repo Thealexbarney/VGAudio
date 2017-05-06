@@ -23,6 +23,19 @@ namespace VGAudio.TestsLong.GcAdpcm
             return "";
         }
 
+        public static void Run(string[] args)
+        {
+            if (args.Length < 3)
+            {
+                Console.WriteLine("Usage: GcAdpcm <audio file path> <dsptool dlls path>");
+                return;
+            }
+
+            string results = Run(args[1], args[2]);
+
+            Console.WriteLine(results);
+        }
+
         private static void PrintResult(Result result)
         {
             if (result.Equal) Console.WriteLine();
