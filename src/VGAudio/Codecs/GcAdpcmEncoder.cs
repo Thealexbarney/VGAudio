@@ -490,11 +490,11 @@ namespace VGAudio.Codecs
                     /* Multiply previous */
                     v1 = ((inSamples[s] * coefs[1]) + (inSamples[s + 1] * coefs[0]));
                     /* Evaluate from real sample */
-                    v2 = ((pcmInOut[s + 2] << 11) - v1) / 2048;
+                    v2 = (pcmInOut[s + 2] << 11) - v1;
                     /* Round to nearest sample */
                     v3 = (v2 > 0)
-                        ? (int)((double)v2 / (1 << scale) + 0.4999999f)
-                        : (int)((double)v2 / (1 << scale) - 0.4999999f);
+                        ? (int)((double)v2 / (1 << scale) / 2048 + 0.4999999f)
+                        : (int)((double)v2 / (1 << scale) / 2048 - 0.4999999f);
 
                     /* Clamp sample and set index */
                     if (v3 < -8)
