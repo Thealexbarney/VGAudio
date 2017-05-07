@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using VGAudio.Formats.GcAdpcm;
 
 namespace VGAudio.TestsLong.GcAdpcm
 {
-    public class DspToolCafe32 : IDspTool
+    public class DspToolDll : IDspTool
     {
-        private const string DllName = "dsptoolcafe32.dll";
+        public DspToolType DllType { get; }
+        private readonly IntPtr pDll;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void DspCorrelateCoefsDelegate(short[] src, uint samples, ref ADPCMINFO cxt);
@@ -24,12 +26,11 @@ namespace VGAudio.TestsLong.GcAdpcm
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void EncodeDelegate(short[] src, byte[] dst, ref ADPCMINFO cxt, uint samples);
         public EncodeDelegate Encode;
-
-        private IntPtr pDll;
-
-        public DspToolCafe32(string path)
+        
+        public DspToolDll(DspToolType type, string path)
         {
-            string dllPath = Path.Combine(path, DllName);
+            DllType = type;
+            string dllPath = Path.Combine(path, DllInfo[type].Filename);
             pDll = Native.LoadLibrary(dllPath);
             if (pDll == IntPtr.Zero)
             {
@@ -95,17 +96,48 @@ namespace VGAudio.TestsLong.GcAdpcm
 
         public void GetDelegates()
         {
+            DspToolInfo dll = DllInfo[DllType];
             IntPtr pDecode = Native.GetProcAddress(pDll, "decode");
             Decode = (DecodeDelegate)Marshal.GetDelegateForFunctionPointer(pDecode, typeof(DecodeDelegate));
 
             IntPtr pEncode = Native.GetProcAddress(pDll, "encode");
             Encode = (EncodeDelegate)Marshal.GetDelegateForFunctionPointer(pEncode, typeof(EncodeDelegate));
 
-            IntPtr pDspCorrelateCoefs = pDll + 0x3400;
+            IntPtr pDspCorrelateCoefs = pDll + dll.CorrelateCoefsAddress;
             DspCorrelateCoefsDll = (DspCorrelateCoefsDelegate)Marshal.GetDelegateForFunctionPointer(pDspCorrelateCoefs, typeof(DspCorrelateCoefsDelegate));
 
-            IntPtr pDspEncodeFrame = pDll + 0x1970;
+            IntPtr pDspEncodeFrame = pDll + dll.EncodeFrameAddress;
             DspEncodeFrameDll = (DspEncodeFrameDelegate)Marshal.GetDelegateForFunctionPointer(pDspEncodeFrame, typeof(DspEncodeFrameDelegate));
         }
+
+        private struct DspToolInfo
+        {
+            public readonly string Filename;
+            public readonly int EncodeFrameAddress;
+            public readonly int CorrelateCoefsAddress;
+
+            public DspToolInfo(string filename, int encodeFrameAddress, int correlateCoefsAddress)
+            {
+                Filename = filename;
+                EncodeFrameAddress = encodeFrameAddress;
+                CorrelateCoefsAddress = correlateCoefsAddress;
+            }
+        }
+
+        private static readonly Dictionary<DspToolType, DspToolInfo> DllInfo = new Dictionary<DspToolType, DspToolInfo>
+        {
+            [DspToolType.Revolution] = new DspToolInfo("dsptoolrevolution.dll", 0x19d0, 0x3ce0),
+            [DspToolType.Cafe32] = new DspToolInfo("dsptoolcafe32.dll", 0x1970, 0x3400),
+            [DspToolType.Cafe64] = new DspToolInfo("dsptoolcafe64.dll", 0x1b90, 0x3900),
+            [DspToolType.Cafe64Debug] = new DspToolInfo("dsptoolcafe64debug.dll", 0x2490, 0x53c0),
+        };
+    }
+
+    public enum DspToolType
+    {
+        Revolution,
+        Cafe32,
+        Cafe64,
+        Cafe64Debug
     }
 }

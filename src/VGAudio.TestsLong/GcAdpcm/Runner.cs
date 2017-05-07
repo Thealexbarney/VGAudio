@@ -13,7 +13,7 @@ namespace VGAudio.TestsLong.GcAdpcm
             var info = Common.FileTypes[fileType];
             var files = Directory.GetFiles(audioPath, info.Extension, SearchOption.AllDirectories);
             var watch = Stopwatch.StartNew();
-            var encode = new Encode(files, new DspToolCafe64(dllPath), new DspToolVGAudio(), info.GetReader);
+            var encode = new Encode(files, new DspToolDll(DspToolType.Cafe64, dllPath), new DspToolVGAudio(), info.GetReader);
 
              encode.Run().ForAll(x => Console.WriteLine(PrintResult(x)));
 
