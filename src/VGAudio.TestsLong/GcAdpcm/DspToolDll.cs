@@ -9,10 +9,10 @@ namespace VGAudio.TestsLong.GcAdpcm
     public class DspToolDll : IDspTool
     {
         public DspToolType DllType { get; }
-        private readonly IntPtr pDll;
+        private readonly IntPtr _pDll;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void DspCorrelateCoefsDelegate(short[] src, uint samples, ref ADPCMINFO cxt);
+        public delegate void DspCorrelateCoefsDelegate(short[] src, uint samples, short[] coefsOut);
         public DspCorrelateCoefsDelegate DspCorrelateCoefsDll;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -31,8 +31,8 @@ namespace VGAudio.TestsLong.GcAdpcm
         {
             DllType = type;
             string dllPath = Path.Combine(path, DllInfo[type].Filename);
-            pDll = Native.LoadLibrary(dllPath);
-            if (pDll == IntPtr.Zero)
+            _pDll = Native.LoadLibrary(dllPath);
+            if (_pDll == IntPtr.Zero)
             {
                 throw new DllNotFoundException($"Can't open {dllPath}");
             }
@@ -56,18 +56,10 @@ namespace VGAudio.TestsLong.GcAdpcm
             return new GcAdpcmChannel(adpcm, coefs, sampleCount);
         }
 
-        public unsafe short[] DspCorrelateCoefs(short[] pcm)
+        public short[] DspCorrelateCoefs(short[] pcm)
         {
-            var info = new ADPCMINFO();
-
-            DspCorrelateCoefsDll(pcm, (uint)pcm.Length, ref info);
-
-            short[] coefs = new short[16];
-            for (int i = 0; i < 16; i++)
-            {
-                coefs[i] = info.coef[i];
-            }
-
+            var coefs = new short[16];
+            DspCorrelateCoefsDll(pcm, (uint)pcm.Length, coefs);
             return coefs;
         }
 
@@ -97,16 +89,21 @@ namespace VGAudio.TestsLong.GcAdpcm
         public void GetDelegates()
         {
             DspToolInfo dll = DllInfo[DllType];
-            IntPtr pDecode = Native.GetProcAddress(pDll, "decode");
+
+            IntPtr pDecode = Native.GetProcAddress(_pDll, "decode");
+            IntPtr pEncode = Native.GetProcAddress(_pDll, "encode");
+            IntPtr pDspCorrelateCoefs = _pDll + dll.CorrelateCoefsAddress;
+            IntPtr pDspEncodeFrame = _pDll + dll.EncodeFrameAddress;
+
+            if (DllType == DspToolType.OpenSource)
+            {
+                pDspCorrelateCoefs = Native.GetProcAddress(_pDll, "correlateCoefs");
+                pDspEncodeFrame = Native.GetProcAddress(_pDll, "encodeFrame");
+            }
+
             Decode = (DecodeDelegate)Marshal.GetDelegateForFunctionPointer(pDecode, typeof(DecodeDelegate));
-
-            IntPtr pEncode = Native.GetProcAddress(pDll, "encode");
             Encode = (EncodeDelegate)Marshal.GetDelegateForFunctionPointer(pEncode, typeof(EncodeDelegate));
-
-            IntPtr pDspCorrelateCoefs = pDll + dll.CorrelateCoefsAddress;
             DspCorrelateCoefsDll = (DspCorrelateCoefsDelegate)Marshal.GetDelegateForFunctionPointer(pDspCorrelateCoefs, typeof(DspCorrelateCoefsDelegate));
-
-            IntPtr pDspEncodeFrame = pDll + dll.EncodeFrameAddress;
             DspEncodeFrameDll = (DspEncodeFrameDelegate)Marshal.GetDelegateForFunctionPointer(pDspEncodeFrame, typeof(DspEncodeFrameDelegate));
         }
 
@@ -130,6 +127,7 @@ namespace VGAudio.TestsLong.GcAdpcm
             [DspToolType.Cafe32] = new DspToolInfo("dsptoolcafe32.dll", 0x1970, 0x3400),
             [DspToolType.Cafe64] = new DspToolInfo("dsptoolcafe64.dll", 0x1b90, 0x3900),
             [DspToolType.Cafe64Debug] = new DspToolInfo("dsptoolcafe64debug.dll", 0x2490, 0x53c0),
+            [DspToolType.OpenSource] = new DspToolInfo("dsptoolopen.dll", 0, 0),
         };
     }
 
@@ -138,6 +136,7 @@ namespace VGAudio.TestsLong.GcAdpcm
         Revolution,
         Cafe32,
         Cafe64,
-        Cafe64Debug
+        Cafe64Debug,
+        OpenSource
     }
 }
