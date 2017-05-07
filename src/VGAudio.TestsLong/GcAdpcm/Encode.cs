@@ -27,9 +27,16 @@ namespace VGAudio.TestsLong.GcAdpcm
         {
             return Files.AsParallel().SelectMany(path =>
             {
-                byte[] wave = File.ReadAllBytes(path);
-                Pcm16Format pcm = GetReader().ReadFormat(wave).ToPcm16();
-                return pcm.Channels.Select((x, i) => ComparePcm(x, path, i));
+                try
+                {
+                    byte[] wave = File.ReadAllBytes(path);
+                    Pcm16Format pcm = GetReader().ReadFormat(wave).ToPcm16();
+                    return pcm.Channels.Select((x, i) => ComparePcm(x, path, i));
+                }
+                catch (Exception ex)
+                {
+                    return new[] { new Result { Filename = path, Channel = -1, Exception = ex } };
+                }
             });
         }
 
@@ -138,7 +145,7 @@ namespace VGAudio.TestsLong.GcAdpcm
                 pcmBufferB[1] = pcmBufferB[15];
             }
 
-            return new Result { Equal = true, RanFineComparison = true};
+            return new Result { Equal = true, RanFineComparison = true };
         }
 
         private static int ArraysEqual<T>(T[] a1, T[] a2)

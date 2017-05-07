@@ -1,9 +1,13 @@
-﻿namespace VGAudio.TestsLong.GcAdpcm
+﻿using System;
+
+namespace VGAudio.TestsLong.GcAdpcm
 {
     public class Result
     {
         public string Filename { get; set; }
         public int Channel { get; set; }
+
+        public Exception Exception { get; set; }
 
         public bool Equal { get; set; }
         public bool RanFineComparison { get; set; }

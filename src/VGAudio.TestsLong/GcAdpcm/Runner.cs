@@ -49,6 +49,13 @@ namespace VGAudio.TestsLong.GcAdpcm
 
             builder.AppendLine();
 
+            if (result.Exception != null)
+            {
+                builder.AppendLine("Exception thrown:");
+                builder.AppendLine(result.Exception.ToString());
+                return builder.ToString();
+            }
+
             if (result.Equal)
             {
                 builder.AppendLine("Coarse comparison failed but fine comparison was equal");
