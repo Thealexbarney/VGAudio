@@ -492,9 +492,10 @@ namespace VGAudio.Codecs
                     /* Evaluate from real sample */
                     v2 = (pcmInOut[s + 2] << 11) - v1;
                     /* Round to nearest sample */
+                    // The official encoder does the casting this way, so match that behavior
                     v3 = (v2 > 0)
-                        ? (int)((double)v2 / (1 << scale) / 2048 + 0.4999999f)
-                        : (int)((double)v2 / (1 << scale) / 2048 - 0.4999999f);
+                        ? (int)((double)((float)v2 / (1 << scale) / 2048) + 0.4999999f)
+                        : (int)((double)((float)v2 / (1 << scale) / 2048) - 0.4999999f);
 
                     /* Clamp sample and set index */
                     if (v3 < -8)
