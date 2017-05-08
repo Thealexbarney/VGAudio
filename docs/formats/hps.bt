@@ -1,0 +1,102 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: bfstm.bt
+//   Authors: Alex Barney
+//   Version: 1.0
+//   Purpose: Parse HPS audio files
+//  Category: Audio
+// File Mask: *.hps
+//  ID Bytes: 20 48 41 4C 50 53 54 00 // " HALPST\0"
+//   History: 
+//   1.0   Initial Release
+//------------------------------------------------
+
+int GetNextMultiple(int value, int multiple) 
+{
+    return ((value + multiple - 1) / multiple) * multiple;
+}
+
+int DivideBy2RoundUp(int value)
+{
+    return (value / 2) + (value & 1);
+}
+
+struct ChannelMainHeader
+{
+    int32 MaxBlock;
+    int32 Unknown1; //Audio start offset?? Always 2
+    int32 NibbleCount;
+    int32 Unknown2;
+    uint16 Coefficients[16];
+    int16 Gain;
+    int16 PredScale;
+    int16 Hist1;
+    int16 Hist2;
+};
+
+struct ChannelBlockHeader
+{
+    int16 PredScale;
+    int16 Hist1;
+    int16 Hist2;
+    int16 Unknown;
+};
+
+struct HpsHeader
+{
+    char Magic[8];
+    int32 SampleRate;
+    int32 ChannelCount;
+    local int i = 0;
+    for(i = 0; i < ChannelCount; i++)
+    {
+        ChannelMainHeader Channel;
+    }
+};
+
+struct Channel(int size)
+{
+    byte Audio[size];
+};
+
+struct Block(int channelCount)
+{
+    int32 BlockSize;
+    int32 FinalNibble;
+    int32 NextBlock;
+
+    local int i = 0;
+    for(i = 0; i < channelCount; i++)
+    {
+        ChannelBlockHeader Header;
+    }
+
+    FSeek(GetNextMultiple(FTell(), 0x20));
+    local int AudioStart = FTell();
+
+    for(i = 0; i < channelCount; i++)
+    {
+        FSeek(AudioStart + BlockSize / channelCount * i);
+        Channel channel(DivideBy2RoundUp(FinalNibble + 1));
+    }
+};
+
+BigEndian();
+HpsHeader Head;
+
+local int curAddr;
+local int blocksRemaining = 1;
+
+FSeek(GetNextMultiple(FTell(), 0x20));
+
+while(blocksRemaining)
+{
+    curAddr = FTell();
+    Block block(Head.ChannelCount);
+    if(block.NextBlock < curAddr)
+    {
+        blocksRemaining = 0;
+    }
+    FSeek(block.NextBlock);
+}
