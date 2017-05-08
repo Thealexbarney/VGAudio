@@ -23,6 +23,12 @@ namespace VGAudio.Tests.Helpers
             new byte[] { 08, 09, 10, 11, 12, 13 }
         };
 
+        //Tests truncating output to multiple blocks shorter than the input
+        private static byte[][] Deinterleaved26Size4Count2Length6 { get; } = {
+            new byte[] { 00, 01, 02, 03, 08, 09 },
+            new byte[] { 04, 05, 06, 07, 12, 13 }
+        };
+
         //Standard test
         private static byte[][] Deinterleaved16Size4Count2 { get; } = {
             new byte[] { 00, 01, 02, 03, 08, 09, 10, 11 },
@@ -74,12 +80,22 @@ namespace VGAudio.Tests.Helpers
             new byte[] { 08, 09, 14 }
         };
 
+        //Tests shortened last input and output blocks and truncated output
+        private static byte[][] Deinterleaved10Size2Count5Length1 { get; } = {
+            new byte[] { 00 },
+            new byte[] { 02 },
+            new byte[] { 04 },
+            new byte[] { 06 },
+            new byte[] { 08 }
+        };
+
         private static IEnumerable<object[]> ArrayData()
         {
             return new[]
             {
                 new object[] {Interleaved(16), Deinterleaved16Size8Count2, 8, 2, -1 },
                 new object[] {Interleaved(16), Deinterleaved16Size8Count2Length6, 8, 2, 6 },
+                new object[] {Interleaved(26), Deinterleaved26Size4Count2Length6, 4, 2, 6 },
                 new object[] {Interleaved(16), Deinterleaved16Size4Count2, 4, 2, -1 },
                 new object[] {Interleaved(16), Deinterleaved16Size4Count4, 4, 4, -1},
                 new object[] {Interleaved(16), Deinterleaved16Size8Count4, 8, 4, -1},
@@ -87,6 +103,7 @@ namespace VGAudio.Tests.Helpers
                 new object[] {Interleaved(12), Deinterleaved12Size2Count4Length6, 2, 4, 6},
                 new object[] {Interleaved(15), Deinterleaved15Size2Count5Length2, 2, 5, 2},
                 new object[] {Interleaved(15), Deinterleaved15Size2Count5Length3, 2, 5, 3},
+                new object[] {Interleaved(10), Deinterleaved10Size2Count5Length1, 2, 5, 1},
                 new object[] {Interleaved(16), new[] { Interleaved(16) }, 8, 1, -1 }
             };
         }

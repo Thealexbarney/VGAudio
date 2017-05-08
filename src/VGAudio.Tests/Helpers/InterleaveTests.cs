@@ -42,6 +42,14 @@ namespace VGAudio.Tests.Helpers
             new byte[] { 12, 13, 14, 15, 00, 00 }
         };
 
+        //Tests much longer input than output
+        private static byte[][] Deinterleaved20Size4Out5 { get; } = {
+            new byte[] { 00, 01, 02, 03, 16, 00, 00, 00, 00, 00 },
+            new byte[] { 04, 05, 06, 07, 17, 00, 00, 00, 00, 00 },
+            new byte[] { 08, 09, 10, 11, 18, 00, 00, 00, 00, 00 },
+            new byte[] { 12, 13, 14, 15, 19, 00, 00, 00, 00, 00 }
+        };
+
         //Tests shorter input than output
         private static byte[][] Deinterleaved16Size8Length6 { get; } = {
             new byte[] { 00, 01, 02, 03, 04, 05 },
@@ -51,6 +59,19 @@ namespace VGAudio.Tests.Helpers
         private static byte[] Interleaved16Size8Length6 { get; } = {
             00, 01, 02, 03, 04, 05, 00, 00,
             08, 09, 10, 11, 12, 13, 00, 00
+        };
+
+        //Tests much shorter input than output
+        private static byte[][] Deinterleaved26Size4Length6 { get; } = {
+            new byte[] { 00, 01, 02, 03, 08, 09 },
+            new byte[] { 04, 05, 06, 07, 12, 13 }
+        };
+
+        private static byte[] Interleaved26Size4Length6 { get; } = {
+            00, 01, 02, 03, 04, 05, 06, 07,
+            08, 09, 00, 00, 12, 13, 00, 00,
+            00, 00, 00, 00, 00, 00, 00, 00,
+            00, 00
         };
 
         //Tests shortened last block
@@ -70,7 +91,9 @@ namespace VGAudio.Tests.Helpers
                 new object[] { Deinterleaved16Size4Count2, Interleaved(16), 4, -1},
                 new object[] { Deinterleaved16Size4Count4, Interleaved(16), 4, -1},
                 new object[] { Deinterleaved16Size4Out4, Interleaved(16), 4, 4},
+                new object[] { Deinterleaved20Size4Out5, Interleaved(20), 4, 5},
                 new object[] { Deinterleaved16Size8Length6, Interleaved16Size8Length6, 8, 8},
+                new object[] { Deinterleaved26Size4Length6, Interleaved26Size4Length6, 4, 13},
                 new object[] { Deinterleaved15Size2Count5Length3, Interleaved(15), 2, -1},
                 //Tests shorter output than input
                 new object[] { Deinterleaved15Size2Count5Length3, Interleaved(10), 2, 2}

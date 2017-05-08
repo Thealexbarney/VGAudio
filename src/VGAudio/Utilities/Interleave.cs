@@ -16,23 +16,24 @@ namespace VGAudio.Utilities
                 throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be of equal length");
 
             int inputCount = inputs.Length;
-            int blockCount = outputSize.DivideByRoundUp(interleaveSize);
-            int lastInputInterleaveSize = inputSize - (blockCount - 1) * interleaveSize;
-            int lastOutputInterleaveSize = outputSize - (blockCount - 1) * interleaveSize;
-            lastInputInterleaveSize = Math.Min(lastOutputInterleaveSize, lastInputInterleaveSize);
+            int inBlockCount = inputSize.DivideByRoundUp(interleaveSize);
+            int outBlockCount = outputSize.DivideByRoundUp(interleaveSize);
+            int lastInputInterleaveSize = inputSize - (inBlockCount - 1) * interleaveSize;
+            int lastOutputInterleaveSize = outputSize - (outBlockCount - 1) * interleaveSize;
+            int blocksToCopy = Math.Min(inBlockCount, outBlockCount);
 
             var output = new T[outputSize * inputCount];
 
-            for (int b = 0; b < blockCount; b++)
+            for (int b = 0; b < blocksToCopy; b++)
             {
+                int currentInputInterleaveSize = b == inBlockCount - 1 ? lastInputInterleaveSize : interleaveSize;
+                int currentOutputInterleaveSize = b == outBlockCount - 1 ? lastOutputInterleaveSize : interleaveSize;
+                int bytesToCopy = Math.Min(currentInputInterleaveSize, currentOutputInterleaveSize);
+
                 for (int i = 0; i < inputCount; i++)
                 {
-                    int currentInputInterleaveSize = b == blockCount - 1 ? lastInputInterleaveSize : interleaveSize;
-                    int currentOutputInterleaveSize = b == blockCount - 1 ? lastOutputInterleaveSize : interleaveSize;
-
-                    Array.Copy(inputs[i], interleaveSize * b,
-                        output, interleaveSize * b * inputCount + currentOutputInterleaveSize * i,
-                        currentInputInterleaveSize);
+                    Array.Copy(inputs[i], interleaveSize * b, output,
+                        interleaveSize * b * inputCount + currentOutputInterleaveSize * i, bytesToCopy);
                 }
             }
 
@@ -49,28 +50,28 @@ namespace VGAudio.Utilities
                 throw new ArgumentOutOfRangeException(nameof(inputs), "Inputs must be of equal length");
 
             int inputCount = inputs.Length;
-            int blockCount = outputSize.DivideByRoundUp(interleaveSize);
-            int lastInputInterleaveSize = inputSize - (blockCount - 1) * interleaveSize;
-            int lastOutputInterleaveSize = outputSize - (blockCount - 1) * interleaveSize;
-            lastInputInterleaveSize = Math.Min(lastOutputInterleaveSize, lastInputInterleaveSize);
+            int inBlockCount = inputSize.DivideByRoundUp(interleaveSize);
+            int outBlockCount = outputSize.DivideByRoundUp(interleaveSize);
+            int lastInputInterleaveSize = inputSize - (inBlockCount - 1) * interleaveSize;
+            int lastOutputInterleaveSize = outputSize - (outBlockCount - 1) * interleaveSize;
+            int blocksToCopy = Math.Min(inBlockCount, outBlockCount);
 
-            for (int b = 0; b < blockCount - 1; b++)
+            for (int b = 0; b < blocksToCopy; b++)
             {
-                for (int o = 0; o < inputCount; o++)
+                int currentInputInterleaveSize = b == inBlockCount - 1 ? lastInputInterleaveSize : interleaveSize;
+                int currentOutputInterleaveSize = b == outBlockCount - 1 ? lastOutputInterleaveSize : interleaveSize;
+                int bytesToCopy = Math.Min(currentInputInterleaveSize, currentOutputInterleaveSize);
+
+                for (int i = 0; i < inputCount; i++)
                 {
-                    output.Write(inputs[o], interleaveSize * b, interleaveSize);
+                    output.Write(inputs[i], interleaveSize * b, bytesToCopy);
+                    output.Position += currentOutputInterleaveSize - bytesToCopy;
                 }
-            }
-
-            for (int o = 0; o < inputCount; o++)
-            {
-                output.Write(inputs[o], interleaveSize * (blockCount - 1), lastInputInterleaveSize);
-                output.Position += lastOutputInterleaveSize - lastInputInterleaveSize;
             }
 
             //Simply setting the position past the end of the stream doesn't expand the stream,
             //so we do that manually if necessary
-            output.SetLength(Math.Max(output.Position, output.Length));
+            output.SetLength(Math.Max(outputSize * inputCount, output.Length));
         }
 
         public static T[][] DeInterleave<T>(this T[] input, int interleaveSize, int outputCount, int outputSize = -1)
@@ -83,10 +84,11 @@ namespace VGAudio.Utilities
             if (outputSize == -1)
                 outputSize = inputSize;
 
-            int blockCount = inputSize.DivideByRoundUp(interleaveSize);
-            int lastInputInterleaveSize = inputSize - (blockCount - 1) * interleaveSize;
-            int lastOutputInterleaveSize = outputSize - (blockCount - 1) * interleaveSize;
-            lastOutputInterleaveSize = Math.Min(lastOutputInterleaveSize, lastInputInterleaveSize);
+            int inBlockCount = inputSize.DivideByRoundUp(interleaveSize);
+            int outBlockCount = outputSize.DivideByRoundUp(interleaveSize);
+            int lastInputInterleaveSize = inputSize - (inBlockCount - 1) * interleaveSize;
+            int lastOutputInterleaveSize = outputSize - (outBlockCount - 1) * interleaveSize;
+            int blocksToCopy = Math.Min(inBlockCount, outBlockCount);
 
             var outputs = new T[outputCount][];
             for (int i = 0; i < outputCount; i++)
@@ -94,16 +96,16 @@ namespace VGAudio.Utilities
                 outputs[i] = new T[outputSize];
             }
 
-            for (int b = 0; b < blockCount; b++)
+            for (int b = 0; b < blocksToCopy; b++)
             {
+                int currentInputInterleaveSize = b == inBlockCount - 1 ? lastInputInterleaveSize : interleaveSize;
+                int currentOutputInterleaveSize = b == outBlockCount - 1 ? lastOutputInterleaveSize : interleaveSize;
+                int bytesToCopy = Math.Min(currentInputInterleaveSize, currentOutputInterleaveSize);
+
                 for (int o = 0; o < outputCount; o++)
                 {
-                    int currentInputInterleaveSize = b == blockCount - 1 ? lastInputInterleaveSize : interleaveSize;
-                    int currentOutputInterleaveSize = b == blockCount - 1 ? lastOutputInterleaveSize : interleaveSize;
-
-                    Array.Copy(input, interleaveSize * b * outputCount + currentInputInterleaveSize * o,
-                        outputs[o], interleaveSize * b,
-                        currentOutputInterleaveSize);
+                    Array.Copy(input, interleaveSize * b * outputCount + currentInputInterleaveSize * o, outputs[o],
+                        interleaveSize * b, bytesToCopy);
                 }
             }
 
@@ -130,10 +132,11 @@ namespace VGAudio.Utilities
             if (outputSize == -1)
                 outputSize = inputSize;
 
-            int blockCount = inputSize.DivideByRoundUp(interleaveSize);
-            int lastInputInterleaveSize = inputSize - (blockCount - 1) * interleaveSize;
-            int lastOutputInterleaveSize = outputSize - (blockCount - 1) * interleaveSize;
-            lastOutputInterleaveSize = Math.Min(lastOutputInterleaveSize, lastInputInterleaveSize);
+            int inBlockCount = inputSize.DivideByRoundUp(interleaveSize);
+            int outBlockCount = outputSize.DivideByRoundUp(interleaveSize);
+            int lastInputInterleaveSize = inputSize - (inBlockCount - 1) * interleaveSize;
+            int lastOutputInterleaveSize = outputSize - (outBlockCount - 1) * interleaveSize;
+            int blocksToCopy = Math.Min(inBlockCount, outBlockCount);
 
             var outputs = new byte[outputCount][];
             for (int i = 0; i < outputCount; i++)
@@ -141,24 +144,23 @@ namespace VGAudio.Utilities
                 outputs[i] = new byte[outputSize];
             }
 
-            for (int b = 0; b < (blockCount - 1); b++)
+            for (int b = 0; b < blocksToCopy; b++)
             {
+                int currentInputInterleaveSize = b == inBlockCount - 1 ? lastInputInterleaveSize : interleaveSize;
+                int currentOutputInterleaveSize = b == outBlockCount - 1 ? lastOutputInterleaveSize : interleaveSize;
+                int bytesToCopy = Math.Min(currentInputInterleaveSize, currentOutputInterleaveSize);
+
                 for (int o = 0; o < outputCount; o++)
                 {
-                    input.Read(outputs[o], interleaveSize * b, interleaveSize);
+                    input.Read(outputs[o], interleaveSize * b, bytesToCopy);
+                    input.Position += currentInputInterleaveSize - bytesToCopy;
                 }
-            }
-
-            for (int o = 0; o < outputCount; o++)
-            {
-                input.Read(outputs[o], interleaveSize * (blockCount - 1), lastOutputInterleaveSize);
-                input.Position += lastInputInterleaveSize - lastOutputInterleaveSize;
             }
 
             return outputs;
         }
 
-        public static byte[] ShortToInterleavedByte( this short[][] input)
+        public static byte[] ShortToInterleavedByte(this short[][] input)
         {
             int inputCount = input.Length;
             int length = input[0].Length;
