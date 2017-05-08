@@ -2,6 +2,7 @@
 using VGAudio.Containers;
 using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
+using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
 using VGAudio.Containers.Wave;
 
@@ -113,6 +114,21 @@ namespace VGAudio.Cli
                 case AudioFormat.Pcm8:
                     config.Codec = BxstmCodec.Pcm8Bit;
                     break;
+            }
+
+            return config;
+        }
+
+        public static IConfiguration Hps(Options options, IConfiguration inConfig = null)
+        {
+            var config = inConfig as HpsConfiguration ?? new HpsConfiguration();
+
+            switch (options.OutFormat)
+            {
+                case AudioFormat.Pcm16:
+                    throw new InvalidDataException("Can't use format PCM16 with HPS files");
+                case AudioFormat.Pcm8:
+                    throw new InvalidDataException("Can't use format PCM8 with HPS files");
             }
 
             return config;

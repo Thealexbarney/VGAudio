@@ -15,6 +15,7 @@ namespace VGAudio.Cli
             [FileType.Brstm] = new ContainerType(new[] { "brstm" }, () => new BrstmReader(), () => new BrstmWriter(), CreateConfiguration.Brstm),
             [FileType.Bcstm] = new ContainerType(new[] { "bcstm" }, () => new BcstmReader(), () => new BcstmWriter(), CreateConfiguration.Bcstm),
             [FileType.Bfstm] = new ContainerType(new[] { "bfstm" }, () => new BfstmReader(), () => new BfstmWriter(), CreateConfiguration.Bfstm),
+            [FileType.Hps] = new ContainerType(new[] { "hps" }, () => new HpsReader(), () => null, CreateConfiguration.Hps),
             [FileType.Genh] = new ContainerType(new[] { "genh" }, () => new GenhReader(), null, null)
         };
 
