@@ -44,6 +44,7 @@ namespace VGAudio.Cli
         Bcstm,
         Bfstm,
         Hps,
+        Adx,
         Genh
     }
 }
