@@ -73,7 +73,11 @@ namespace Build.Tasks
         public override void Run(Context context) => context.ILRepack(
             context.CliBinDir.CombineWithFilePath("VGAudioCli.exe"),
             context.CliBinDir.CombineWithFilePath("net45/VGAudioCli.exe"),
-            new[] { context.CliBinDir.CombineWithFilePath("net45/VGAudio.dll") });
+            new[]
+            {
+                context.CliBinDir.CombineWithFilePath("net45/VGAudio.dll"),
+                context.CliBinDir.CombineWithFilePath("net45/VGAudioAdx.dll")
+            });
 
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["net45"].CliSuccess == true;

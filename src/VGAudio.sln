@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+VisualStudioVersion = 15.0.26430.4
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VGAudio", "VGAudio\VGAudio.csproj", "{2414DAA9-779C-4E7E-A97F-4DE09B22B88F}"
 EndProject
@@ -13,6 +13,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VGAudio.Benchmark", "VGAudio.Benchmark\VGAudio.Benchmark.csproj", "{DFCAF2E7-1B33-4164-A4E1-3C095AB44E69}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.TestsLong", "VGAudio.TestsLong\VGAudio.TestsLong.csproj", "{B97DBEB5-1674-4ACE-A480-E734F86CC762}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudioAdx", "VGAudioAdx\VGAudioAdx.csproj", "{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -126,6 +128,22 @@ Global
 		{B97DBEB5-1674-4ACE-A480-E734F86CC762}.Release|x64.Build.0 = Release|Any CPU
 		{B97DBEB5-1674-4ACE-A480-E734F86CC762}.Release|x86.ActiveCfg = Release|Any CPU
 		{B97DBEB5-1674-4ACE-A480-E734F86CC762}.Release|x86.Build.0 = Release|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Debug|ARM.Build.0 = Debug|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Debug|x64.Build.0 = Debug|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Debug|x86.Build.0 = Debug|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Release|ARM.ActiveCfg = Release|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Release|ARM.Build.0 = Release|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Release|x64.ActiveCfg = Release|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Release|x64.Build.0 = Release|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Release|x86.ActiveCfg = Release|Any CPU
+		{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
