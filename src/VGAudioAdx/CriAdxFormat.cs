@@ -12,6 +12,7 @@ namespace VGAudio.Formats
         public short HighpassFrequency { get; }
         public int FrameSize { get; }
 
+        public CriAdxFormat() => Channels = new byte[0][];
         private CriAdxFormat(Builder b) : base(b)
         {
             Channels = b.Channels;
