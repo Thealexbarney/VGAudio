@@ -12,15 +12,15 @@ namespace VGAudio.Containers
         private CriAdxFormat Adpcm { get; set; }
 
         private const int CopyrightOffset = 0x40;
-        private const int FooterSize = 0x12;
         private const ushort AdxHeaderSignature = 0x8000;
-        private const ushort AdxFooterSignature = 0x8100;
+        private const ushort AdxFooterSignature = 0x8001;
         protected override int FileSize => CopyrightOffset + 4 + FrameSize * FrameCount * ChannelCount + FooterSize;
 
         private int SampleCount => Adpcm.SampleCount;
         private int ChannelCount => Adpcm.ChannelCount;
         private int SamplesPerFrame => (FrameSize - 2) * 2;
         private int FrameSize => Adpcm.FrameSize;
+        private int FooterSize => Adpcm.FrameSize;
         private int FrameCount => SampleCount.DivideByRoundUp(SamplesPerFrame);
 
         protected override void SetupWriter(AudioData audio)
@@ -71,9 +71,9 @@ namespace VGAudio.Containers
 
         private void WriteFooter(BinaryWriter writer)
         {
-            short padding = 14;
+            int padding = Adpcm.FrameSize - 4;
             writer.Write(AdxFooterSignature);
-            writer.Write(padding);
+            writer.Write((short)padding);
         }
     }
 }

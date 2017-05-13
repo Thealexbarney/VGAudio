@@ -36,7 +36,17 @@ namespace VGAudio.Formats
 
         public override CriAdxFormat EncodeFromPcm16(Pcm16Format pcm16)
         {
-            throw new NotImplementedException();
+            var channels = new byte[pcm16.ChannelCount][];
+            int frameSize = 18;
+
+            Parallel.For(0, pcm16.ChannelCount, i =>
+            {
+                channels[i] = CriAdxCodec.Encode(pcm16.Channels[i], pcm16.SampleRate, frameSize);
+            });
+
+            return new Builder(channels, pcm16.SampleCount, pcm16.SampleRate, frameSize, 500)
+                .Loop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
+                .Build();
         }
 
         protected override CriAdxFormat GetChannelsInternal(int[] channelRange)
