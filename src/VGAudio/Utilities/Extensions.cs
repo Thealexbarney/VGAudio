@@ -69,9 +69,9 @@ namespace VGAudio.Utilities
             return output;
         }
 
-        public static string ReadUTF8(this BinaryReader binaryReader, int size)
+        public static string ReadUTF8(this BinaryReader reader, int size)
         {
-            return Encoding.UTF8.GetString(binaryReader.ReadBytes(size), 0, size);
+            return Encoding.UTF8.GetString(reader.ReadBytes(size), 0, size);
         }
 
         public static void WriteUTF8(this BinaryWriter writer, string value)
@@ -80,9 +80,9 @@ namespace VGAudio.Utilities
             writer.Write(text);
         }
 
-        public static bool EOF(this BinaryReader binaryReader)
+        public static bool EOF(this BinaryReader reader)
         {
-            var bs = binaryReader.BaseStream;
+            var bs = reader.BaseStream;
             return (bs.Position == bs.Length);
         }
 
