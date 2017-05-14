@@ -22,19 +22,21 @@ namespace VGAudio.Containers
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 var structure = new WaveStructure();
-                var dataChunkRead = false;
+                bool dataChunkRead = false;
 
                 ReadRiffHeader(reader, structure);
-
-                byte[] chunkId = new byte[4];
-                while (reader.Read(chunkId, 0, 4) == 4)
+                
+                string chunkId;
+                int chunkSize;
+                while (!reader.EOF())
                 {
-                    int chunkSize = reader.ReadInt32();
-                    if (Encoding.UTF8.GetString(chunkId, 0, 4) == "fmt ")
+                    chunkId = reader.ReadUTF8(4);
+                    chunkSize = reader.ReadInt32();
+                    if (chunkId == "fmt ")
                     {
                         ReadFmtChunk(reader, structure);
                     }
-                    else if (Encoding.UTF8.GetString(chunkId, 0, 4) == "data")
+                    else if (chunkId == "data")
                     {
                         if (!readAudioData)
                         {
@@ -43,7 +45,10 @@ namespace VGAudio.Containers
                         }
                         ReadDataChunk(reader, chunkSize, structure);
                         dataChunkRead = true;
-                        break;
+                    }
+                    else if (chunkId == "smpl")
+                    {
+                        ReadSmplChunk(reader, structure);
                     }
                     else
                         reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
@@ -63,9 +68,9 @@ namespace VGAudio.Containers
             switch (structure.BitsPerSample)
             {
                 case 16:
-                    return new Pcm16Format.Builder(structure.AudioData16, structure.SampleRate).Build();
+                    return new Pcm16Format.Builder(structure.AudioData16, structure.SampleRate).Loop(structure.Looping, structure.LoopStart, structure.LoopEnd).Build();
                 case 8:
-                    return new Pcm8Format.Builder(structure.AudioData8, structure.SampleRate).Build();
+                    return new Pcm8Format.Builder(structure.AudioData8, structure.SampleRate).Loop(structure.Looping, structure.LoopStart, structure.LoopEnd).Build();
                 default:
                     return null;
             }
@@ -73,16 +78,16 @@ namespace VGAudio.Containers
 
         private static void ReadRiffHeader(BinaryReader reader, WaveStructure structure)
         {
-            byte[] riffChunkId = reader.ReadBytes(4);
+            string riffChunkId = reader.ReadUTF8(4);
             structure.RiffSize = reader.ReadInt32();
-            byte[] riffType = reader.ReadBytes(4);
+            string riffType = reader.ReadUTF8(4);
 
-            if (Encoding.UTF8.GetString(riffChunkId, 0, 4) != "RIFF")
+            if (riffChunkId != "RIFF")
             {
                 throw new InvalidDataException("Not a valid RIFF file");
             }
 
-            if (Encoding.UTF8.GetString(riffType, 0, 4) != "WAVE")
+            if (riffType != "WAVE")
             {
                 throw new InvalidDataException("Not a valid WAVE file");
             }
@@ -161,6 +166,21 @@ namespace VGAudio.Containers
                 case 8:
                     structure.AudioData8 = interleavedAudio.DeInterleave(structure.BytesPerSample, structure.ChannelCount);
                     break;
+            }
+        }
+
+        private static void ReadSmplChunk(BinaryReader reader, WaveStructure structure)
+        {
+            reader.BaseStream.Seek(0x1c, SeekOrigin.Current);
+            int loopRegionCount = reader.ReadInt32();
+            int extraDataSize = reader.ReadInt32();
+            if (loopRegionCount == 1)  // Supporting only 1 loop region for now
+            {
+                reader.BaseStream.Seek(8, SeekOrigin.Current);
+                structure.LoopStart = reader.ReadInt32();
+                structure.LoopEnd = reader.ReadInt32();
+                structure.Looping = structure.LoopEnd > structure.LoopStart;
+                reader.BaseStream.Seek(8, SeekOrigin.Current);
             }
         }
     }

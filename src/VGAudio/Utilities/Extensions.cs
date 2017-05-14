@@ -69,10 +69,21 @@ namespace VGAudio.Utilities
             return output;
         }
 
+        public static string ReadUTF8(this BinaryReader binaryReader, int size)
+        {
+            return Encoding.UTF8.GetString(binaryReader.ReadBytes(size), 0, size);
+        }
+
         public static void WriteUTF8(this BinaryWriter writer, string value)
         {
             byte[] text = Encoding.UTF8.GetBytes(value);
             writer.Write(text);
+        }
+
+        public static bool EOF(this BinaryReader binaryReader)
+        {
+            var bs = binaryReader.BaseStream;
+            return (bs.Position == bs.Length);
         }
 
         public static void Expect(this BinaryReader reader, params int[] expected)

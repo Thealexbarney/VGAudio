@@ -17,10 +17,14 @@ namespace VGAudio.Containers
         private int ChannelCount => AudioFormat.ChannelCount;
         private int SampleCount => AudioFormat.SampleCount;
         private int SampleRate => AudioFormat.SampleRate;
+        private bool Looping => AudioFormat.Looping;
+        private int LoopStart => AudioFormat.LoopStart;
+        private int LoopEnd => AudioFormat.LoopEnd;
         protected override int FileSize => 8 + RiffChunkSize;
         private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize;
         private int FmtChunkSize => ChannelCount > 2 ? 40 : 16;
         private int DataChunkSize => ChannelCount * SampleCount * BytesPerSample;
+        private int SmplChunkSize => 0x3c;
 
         private int BitDepth => Configuration.Codec == WaveCodec.Pcm16Bit ? 16 : 8;
         private int BytesPerSample => BitDepth.DivideByRoundUp(8);
@@ -56,6 +60,8 @@ namespace VGAudio.Containers
                 WriteRiffHeader(writer);
                 WriteFmtChunk(writer);
                 WriteDataChunk(writer);
+                if (Looping)
+                    WriteSmplChunk(writer);
             }
         }
 
@@ -100,6 +106,21 @@ namespace VGAudio.Containers
             {
                 Pcm8.Channels.Interleave(writer.BaseStream, BytesPerSample);
             }           
+        }
+
+        private void WriteSmplChunk(BinaryWriter writer)
+        {
+            writer.WriteUTF8("smpl");
+            writer.Write(SmplChunkSize);
+            for (int i = 0; i < 7; i++)
+                writer.Write(0);
+            writer.Write(1);
+            for (int i = 0; i < 3; i++)
+                writer.Write(0);
+            writer.Write(LoopStart);
+            writer.Write(LoopEnd);
+            writer.Write(0);
+            writer.Write(0);
         }
 
         private static int GetChannelMask(int channelCount)

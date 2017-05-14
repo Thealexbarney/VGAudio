@@ -9,7 +9,7 @@ namespace VGAudio.Cli
     {
         public static readonly Dictionary<FileType, ContainerType> Containers = new Dictionary<FileType, ContainerType>
         {
-            [FileType.Wave] = new ContainerType(new[] { "wav", "wave" }, () => new WaveReader(), () => new WaveWriter(), CreateConfiguration.Wave),
+            [FileType.Wave] = new ContainerType(new[] { "wav", "wave", "lwav" }, () => new WaveReader(), () => new WaveWriter(), CreateConfiguration.Wave),
             [FileType.Dsp] = new ContainerType(new[] { "dsp" }, () => new DspReader(), () => new DspWriter(), CreateConfiguration.Dsp),
             [FileType.Idsp] = new ContainerType(new[] { "idsp" }, () => new IdspReader(), () => new IdspWriter(), CreateConfiguration.Idsp),
             [FileType.Brstm] = new ContainerType(new[] { "brstm" }, () => new BrstmReader(), () => new BrstmWriter(), CreateConfiguration.Brstm),
