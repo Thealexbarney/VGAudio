@@ -20,11 +20,11 @@ namespace VGAudio.Containers
         private bool Looping => AudioFormat.Looping;
         private int LoopStart => AudioFormat.LoopStart;
         private int LoopEnd => AudioFormat.LoopEnd;
-        protected override int FileSize => 8 + RiffChunkSize;
-        private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize + 8 + SmplChunkSize;
-        private int FmtChunkSize => ChannelCount > 2 ? 40 : 16;
-        private int DataChunkSize => ChannelCount * SampleCount * BytesPerSample;
-        private int SmplChunkSize => Looping ? 0x3c : 0;
+        protected override int FileSize => RiffChunkSize;
+        private int RiffChunkSize => 12 + FmtChunkSize + DataChunkSize + SmplChunkSize;
+        private int FmtChunkSize => 8 + (ChannelCount > 2 ? 40 : 16);
+        private int DataChunkSize => 8 + ChannelCount * SampleCount * BytesPerSample;
+        private int SmplChunkSize => Looping ? 8 + 0x3c : 0;
 
         private int BitDepth => Configuration.Codec == WaveCodec.Pcm16Bit ? 16 : 8;
         private int BytesPerSample => BitDepth.DivideByRoundUp(8);
@@ -68,14 +68,14 @@ namespace VGAudio.Containers
         private void WriteRiffHeader(BinaryWriter writer)
         {
             writer.WriteUTF8("RIFF");
-            writer.Write(RiffChunkSize);
+            writer.Write(RiffChunkSize - 8);
             writer.WriteUTF8("WAVE");
         }
 
         private void WriteFmtChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("fmt ");
-            writer.Write(FmtChunkSize);
+            writer.Write(FmtChunkSize - 8);
             writer.Write((short)(ChannelCount > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
             writer.Write((short)ChannelCount);
             writer.Write(SampleRate);
@@ -95,7 +95,7 @@ namespace VGAudio.Containers
         private void WriteDataChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("data");
-            writer.Write(DataChunkSize);
+            writer.Write(DataChunkSize - 8);
 
             if (Codec == WaveCodec.Pcm16Bit)
             {
@@ -111,7 +111,7 @@ namespace VGAudio.Containers
         private void WriteSmplChunk(BinaryWriter writer)
         {
             writer.WriteUTF8("smpl");
-            writer.Write(SmplChunkSize);
+            writer.Write(SmplChunkSize - 8);
             for (int i = 0; i < 7; i++)
                 writer.Write(0);
             writer.Write(1);

@@ -27,11 +27,11 @@ namespace VGAudio.Containers
                 ReadRiffHeader(reader, structure);
                 
                 string chunkId;
-                int chunkSize;
+                int chunkDataSize;
                 while (!reader.EOF())
                 {
                     chunkId = reader.ReadUTF8(4);
-                    chunkSize = reader.ReadInt32();
+                    chunkDataSize = reader.ReadInt32();
                     if (chunkId == "fmt ")
                     {
                         ReadFmtChunk(reader, structure);
@@ -40,10 +40,10 @@ namespace VGAudio.Containers
                     {
                         if (!readAudioData)
                         {
-                            structure.SampleCount = chunkSize / structure.BytesPerSample / structure.ChannelCount;
+                            structure.SampleCount = chunkDataSize / structure.BytesPerSample / structure.ChannelCount;
                             return structure;
                         }
-                        ReadDataChunk(reader, chunkSize, structure);
+                        ReadDataChunk(reader, chunkDataSize, structure);
                         dataChunkRead = true;
                     }
                     else if (chunkId == "smpl")
@@ -51,7 +51,7 @@ namespace VGAudio.Containers
                         ReadSmplChunk(reader, structure);
                     }
                     else
-                        reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
+                        reader.BaseStream.Seek(chunkDataSize, SeekOrigin.Current);
                 }
 
                 if (!dataChunkRead)
