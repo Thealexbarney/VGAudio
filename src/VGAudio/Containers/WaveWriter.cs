@@ -21,10 +21,10 @@ namespace VGAudio.Containers
         private int LoopStart => AudioFormat.LoopStart;
         private int LoopEnd => AudioFormat.LoopEnd;
         protected override int FileSize => 8 + RiffChunkSize;
-        private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize;
+        private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize + 8 + SmplChunkSize;
         private int FmtChunkSize => ChannelCount > 2 ? 40 : 16;
         private int DataChunkSize => ChannelCount * SampleCount * BytesPerSample;
-        private int SmplChunkSize => 0x3c;
+        private int SmplChunkSize => Looping ? 0x3c : 0;
 
         private int BitDepth => Configuration.Codec == WaveCodec.Pcm16Bit ? 16 : 8;
         private int BytesPerSample => BitDepth.DivideByRoundUp(8);
