@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
+using System.Text;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
@@ -98,6 +100,31 @@ namespace VGAudio.Containers.Bxstm
                 .WithTracks(structure.Tracks)
                 .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
                 .Build() as Pcm8SignedFormat;
+        }
+
+        public static void ReadDataChunk(BinaryReader reader, BxstmStructure structure, bool readAudioData)
+        {
+            reader.BaseStream.Position = structure.DataChunkOffset;
+
+            if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "DATA")
+            {
+                throw new InvalidDataException("Unknown or invalid DATA chunk");
+            }
+            structure.DataChunkSize = reader.ReadInt32();
+
+            if (structure.DataChunkSizeHeader != structure.DataChunkSize)
+            {
+                throw new InvalidDataException("DATA chunk size in header doesn't match size in DATA header");
+            }
+
+            if (!readAudioData) return;
+
+            reader.BaseStream.Position = structure.AudioDataOffset;
+            int audioDataLength = structure.DataChunkSize - (structure.AudioDataOffset - structure.DataChunkOffset);
+            int outputSize = SamplesToBytes(structure.SampleCount, structure.Codec);
+
+            structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
+                structure.ChannelCount, outputSize);
         }
     }
 }
