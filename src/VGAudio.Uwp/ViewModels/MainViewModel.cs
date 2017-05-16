@@ -168,7 +168,7 @@ namespace VGAudio.Uwp.ViewModels
             }
         }
 
-        private IConfiguration GetConfiguration(FileType type)
+        private Configuration GetConfiguration(FileType type)
         {
             switch (type)
             {

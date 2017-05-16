@@ -10,7 +10,7 @@ namespace VGAudio.Cli
     {
         private Convert() { }
         private AudioData Audio { get; set; }
-        private IConfiguration Configuration { get; set; }
+        private Configuration Configuration { get; set; }
         private ContainerType OutType { get; set; }
 
         public static bool ConvertFile(Options options)

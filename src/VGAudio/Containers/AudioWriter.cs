@@ -6,13 +6,13 @@ namespace VGAudio.Containers
 {
     public abstract class AudioWriter<TWriter, TConfig> : IAudioWriter
         where TWriter : AudioWriter<TWriter, TConfig>
-        where TConfig : class, IConfiguration, new()
+        where TConfig : Configuration, new()
     {
-        public byte[] GetFile(IAudioFormat audio, IConfiguration configuration = null) => GetByteArray(new AudioData(audio), configuration as TConfig);
-        public void WriteToStream(IAudioFormat audio, Stream stream, IConfiguration configuration = null) => WriteStream(new AudioData(audio), stream, configuration as TConfig);
+        public byte[] GetFile(IAudioFormat audio, Configuration configuration = null) => GetByteArray(new AudioData(audio), configuration as TConfig);
+        public void WriteToStream(IAudioFormat audio, Stream stream, Configuration configuration = null) => WriteStream(new AudioData(audio), stream, configuration as TConfig);
 
-        public byte[] GetFile(AudioData audio, IConfiguration configuration = null) => GetByteArray(audio, configuration as TConfig);
-        public void WriteToStream(AudioData audio, Stream stream, IConfiguration configuration = null) => WriteStream(audio, stream, configuration as TConfig);
+        public byte[] GetFile(AudioData audio, Configuration configuration = null) => GetByteArray(audio, configuration as TConfig);
+        public void WriteToStream(AudioData audio, Stream stream, Configuration configuration = null) => WriteStream(audio, stream, configuration as TConfig);
         
         protected AudioData AudioStream { get; set; }
         public TConfig Configuration { get; set; } = new TConfig();

@@ -8,7 +8,7 @@ namespace VGAudio.Containers.Bxstm
     /// <summary>
     /// Contains the options used to build BRSTM, BCSTM and BFSTM files.
     /// </summary>
-    public abstract class BxstmConfiguration
+    public abstract class BxstmConfiguration : Configuration
     {
         private const int Default = -1;
         private const int DefaultInterleave = 0x2000;

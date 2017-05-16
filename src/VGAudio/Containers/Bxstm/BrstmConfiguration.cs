@@ -3,7 +3,7 @@
     /// <summary>
     /// Contains the options used to build BRSTM files.
     /// </summary>
-    public class BrstmConfiguration : BxstmConfiguration, IConfiguration
+    public class BrstmConfiguration : BxstmConfiguration
     {
         /// <summary>
         /// The type of track description to be used when building the 

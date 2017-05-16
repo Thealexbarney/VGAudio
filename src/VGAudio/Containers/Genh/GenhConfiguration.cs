@@ -1,4 +1,4 @@
 ﻿namespace VGAudio.Containers.Genh
 {
-    public class GenhConfiguration : IConfiguration { }
+    public class GenhConfiguration : Configuration { }
 }

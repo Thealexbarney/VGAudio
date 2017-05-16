@@ -6,7 +6,7 @@ namespace VGAudio.Containers.Idsp
     /// <summary>
     /// Contains the options used to build the IDSP file.
     /// </summary>
-    public class IdspConfiguration : IConfiguration
+    public class IdspConfiguration : Configuration
     {
         private int _bytesPerInterleave = BytesPerFrame * 2;
 
@@ -17,15 +17,6 @@ namespace VGAudio.Containers.Idsp
         /// Default is <c>true</c>.
         /// </summary>
         public bool RecalculateLoopContext { get; set; } = true;
-
-        /// <summary>
-        /// If <c>true</c>, trims the output file length to the set end loop point.
-        /// If <c>false</c> or if the <see cref="Idsp"/> does not loop,
-        /// the output file is not trimmed.
-        /// if available.
-        /// Default is <c>true</c>.
-        /// </summary>
-        public bool TrimFile { get; set; } = true;
 
         /// <summary>
         /// When building the audio file, the loop points and audio will

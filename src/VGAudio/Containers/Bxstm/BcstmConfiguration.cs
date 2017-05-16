@@ -1,6 +1,6 @@
 ﻿namespace VGAudio.Containers.Bxstm
 {
-    public class BcstmConfiguration : BxstmConfiguration, IConfiguration
+    public class BcstmConfiguration : BxstmConfiguration
     {
         /// <summary>
         /// If <c>true</c>, include track information in the BCSTM
