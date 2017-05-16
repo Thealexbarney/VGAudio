@@ -64,38 +64,38 @@ namespace VGAudio.Containers
                 throw new InvalidDataException("Actual file length is less than stated length");
             }
 
-            structure.RstmHeaderSize = reader.ReadInt16();
-            structure.RstmHeaderSections = reader.ReadInt16();
+            structure.HeaderSize = reader.ReadInt16();
+            structure.HeaderSections = reader.ReadInt16();
 
-            structure.HeadChunkOffset = reader.ReadInt32();
-            structure.HeadChunkSizeRstm = reader.ReadInt32();
-            structure.AdpcChunkOffset = reader.ReadInt32();
-            structure.AdpcChunkSizeRstm = reader.ReadInt32();
+            structure.InfoChunkOffset = reader.ReadInt32();
+            structure.InfoChunkSizeHeader = reader.ReadInt32();
+            structure.SeekChunkOffset = reader.ReadInt32();
+            structure.SeekChunkSizeHeader = reader.ReadInt32();
             structure.DataChunkOffset = reader.ReadInt32();
-            structure.DataChunkSizeRstm = reader.ReadInt32();
+            structure.DataChunkSizeHeader = reader.ReadInt32();
         }
 
         private static void ReadHeadChunk(BinaryReader reader, BrstmStructure structure)
         {
-            reader.BaseStream.Position = structure.HeadChunkOffset;
+            reader.BaseStream.Position = structure.InfoChunkOffset;
 
             if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "HEAD")
             {
                 throw new InvalidDataException("Unknown or invalid HEAD chunk");
             }
 
-            structure.HeadChunkSize = reader.ReadInt32();
-            if (structure.HeadChunkSize != structure.HeadChunkSizeRstm)
+            structure.InfoChunkSize = reader.ReadInt32();
+            if (structure.InfoChunkSize != structure.InfoChunkSizeHeader)
             {
                 throw new InvalidDataException("HEAD chunk size in RSTM header doesn't match size in HEAD header");
             }
 
             reader.Expect(OffsetMarker);
-            structure.HeadChunk1Offset = reader.ReadInt32();
+            structure.InfoChunk1Offset = reader.ReadInt32();
             reader.Expect(OffsetMarker);
-            structure.HeadChunk2Offset = reader.ReadInt32();
+            structure.InfoChunk2Offset = reader.ReadInt32();
             reader.Expect(OffsetMarker);
-            structure.HeadChunk3Offset = reader.ReadInt32();
+            structure.InfoChunk3Offset = reader.ReadInt32();
 
             ReadHeadChunk1(reader, structure);
             ReadHeadChunk2(reader, structure);
@@ -104,7 +104,7 @@ namespace VGAudio.Containers
 
         private static void ReadHeadChunk1(BinaryReader reader, BrstmStructure structure)
         {
-            reader.BaseStream.Position = structure.HeadChunkOffset + 8 + structure.HeadChunk1Offset;
+            reader.BaseStream.Position = structure.InfoChunkOffset + 8 + structure.InfoChunk1Offset;
             structure.Codec = (BxstmCodec)reader.ReadByte();
 
             structure.Looping = reader.ReadBoolean();
@@ -129,8 +129,8 @@ namespace VGAudio.Containers
 
         private static void ReadHeadChunk2(BinaryReader reader, BrstmStructure structure)
         {
-            int baseOffset = structure.HeadChunkOffset + 8;
-            reader.BaseStream.Position = baseOffset + structure.HeadChunk2Offset;
+            int baseOffset = structure.InfoChunkOffset + 8;
+            reader.BaseStream.Position = baseOffset + structure.InfoChunk2Offset;
 
             int trackCount = reader.ReadByte();
             int[] trackOffsets = new int[trackCount];
@@ -167,8 +167,8 @@ namespace VGAudio.Containers
 
         private static void ReadHeadChunk3(BinaryReader reader, BrstmStructure structure)
         {
-            int baseOffset = structure.HeadChunkOffset + 8;
-            reader.BaseStream.Position = baseOffset + structure.HeadChunk3Offset;
+            int baseOffset = structure.InfoChunkOffset + 8;
+            reader.BaseStream.Position = baseOffset + structure.InfoChunk3Offset;
 
             reader.Expect((byte)structure.ChannelCount);
             reader.BaseStream.Position += 3;
@@ -203,16 +203,16 @@ namespace VGAudio.Containers
 
         private static void ReadAdpcChunk(BinaryReader reader, BrstmStructure structure)
         {
-            if (structure.AdpcChunkOffset == 0) return;
-            reader.BaseStream.Position = structure.AdpcChunkOffset;
+            if (structure.SeekChunkOffset == 0) return;
+            reader.BaseStream.Position = structure.SeekChunkOffset;
 
             if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "ADPC")
             {
                 throw new InvalidDataException("Unknown or invalid ADPC chunk");
             }
-            structure.AdpcChunkSize = reader.ReadInt32();
+            structure.SeekChunkSize = reader.ReadInt32();
 
-            if (structure.AdpcChunkSizeRstm != structure.AdpcChunkSize)
+            if (structure.SeekChunkSizeHeader != structure.SeekChunkSize)
             {
                 throw new InvalidDataException("ADPC chunk size in RSTM header doesn't match size in ADPC header");
             }
@@ -224,12 +224,12 @@ namespace VGAudio.Containers
             int expectedSizeShortened = GetNextMultiple(8 + seekTableEntriesCountShortened * bytesPerEntry, 0x20);
             int expectedSizeStandard = GetNextMultiple(8 + seekTableEntriesCountStandard * bytesPerEntry, 0x20);
 
-            if (structure.AdpcChunkSize == expectedSizeStandard)
+            if (structure.SeekChunkSize == expectedSizeStandard)
             {
                 structure.SeekTableSize = bytesPerEntry * seekTableEntriesCountStandard;
                 structure.SeekTableType = BrstmSeekTableType.Standard;
             }
-            else if (structure.AdpcChunkSize == expectedSizeShortened)
+            else if (structure.SeekChunkSize == expectedSizeShortened)
             {
                 structure.SeekTableSize = bytesPerEntry * seekTableEntriesCountShortened;
                 structure.SeekTableType = BrstmSeekTableType.Short;
@@ -255,7 +255,7 @@ namespace VGAudio.Containers
             }
             structure.DataChunkSize = reader.ReadInt32();
 
-            if (structure.DataChunkSizeRstm != structure.DataChunkSize)
+            if (structure.DataChunkSizeHeader != structure.DataChunkSize)
             {
                 throw new InvalidDataException("DATA chunk size in RSTM header doesn't match size in DATA header");
             }
