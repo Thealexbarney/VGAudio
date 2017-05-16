@@ -7,38 +7,6 @@
     public abstract class BCFstmStructure : BxstmStructure
     {
         /// <summary>
-        /// The size of the file header.
-        /// </summary>
-        public int HeaderSize { get; set; }
-        /// <summary>
-        /// The number of sections listed in the header.
-        /// </summary>
-        public int HeaderSections { get; set; }
-        /// <summary>
-        /// The offset of the INFO chunk.
-        /// </summary>
-        public int InfoChunkOffset { get; set; }
-        /// <summary>
-        /// The size of the INFO chunk as stated in the header.
-        /// </summary>
-        public int InfoChunkSizeHeader { get; set; }
-        /// <summary>
-        /// The offset of the SEEK chunk.
-        /// </summary>
-        public int SeekChunkOffset { get; set; }
-        /// <summary>
-        /// The size of the SEEK chunk as stated in the header.
-        /// </summary>
-        public int SeekChunkSizeHeader { get; set; }
-        /// <summary>
-        /// The offset of the DATA chunk.
-        /// </summary>
-        public int DataChunkOffset { get; set; }
-        /// <summary>
-        /// The size of the DATA chunk as stated in the header.
-        /// </summary>
-        public int DataChunkSizeHeader { get; set; }
-        /// <summary>
         /// The offset of the REGN chunk.
         /// </summary>
         public int RegnChunkOffset { get; set; }
@@ -56,40 +24,10 @@
         public int PdatChunkSizeHeader { get; set; }
 
         /// <summary>
-        /// The size of the INFO chunk as stated in the
-        /// INFO chunk header.
-        /// </summary>
-        public int InfoChunkSize { get; set; }
-        /// <summary>
-        /// The offset of part 1 of the INFO chunk.
-        /// </summary>
-        public int InfoChunk1Offset { get; set; }
-        /// <summary>
-        /// The offset of part 2 of the INFO chunk.
-        /// </summary>
-        public int InfoChunk2Offset { get; set; }
-        /// <summary>
-        /// The offset of part 3 of the INFO chunk.
-        /// </summary>
-        public int InfoChunk3Offset { get; set; }
-
-        /// <summary>
-        /// The size of the SEEK chunk as stated in the
-        /// SEEK chunk header.
-        /// </summary>
-        public int SeekChunkSize { get; set; }
-
-        /// <summary>
         /// The size of the REGN chunk as stated in the
         /// REGN chunk header.
         /// </summary>
         public int RegnChunkSize { get; set; }
-
-        /// <summary>
-        /// The size of the DATA chunk as stated in the
-        /// DATA chunk header.
-        /// </summary>
-        public int DataChunkSize { get; set; }
 
         /// <summary>
         /// The REGN chunk.

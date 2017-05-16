@@ -9,7 +9,7 @@ namespace VGAudio.Cli
 {
     internal static class CreateConfiguration
     {
-        public static IConfiguration Wave(Options options, IConfiguration inConfig = null)
+        public static Configuration Wave(Options options, Configuration inConfig = null)
         {
             var config = inConfig as WaveConfiguration ?? new WaveConfiguration();
 
@@ -28,7 +28,7 @@ namespace VGAudio.Cli
             return config;
         }
 
-        public static IConfiguration Dsp(Options options, IConfiguration inConfig = null)
+        public static Configuration Dsp(Options options, Configuration inConfig = null)
         {
             var config = inConfig as DspConfiguration ?? new DspConfiguration();
 
@@ -43,7 +43,7 @@ namespace VGAudio.Cli
             return config;
         }
 
-        public static IConfiguration Idsp(Options options, IConfiguration inConfig = null)
+        public static Configuration Idsp(Options options, Configuration inConfig = null)
         {
             var config = inConfig as IdspConfiguration ?? new IdspConfiguration();
 
@@ -58,7 +58,7 @@ namespace VGAudio.Cli
             return config;
         }
 
-        public static IConfiguration Brstm(Options options, IConfiguration inConfig = null)
+        public static Configuration Brstm(Options options, Configuration inConfig = null)
         {
             var config = inConfig as BrstmConfiguration ?? new BrstmConfiguration();
 
@@ -78,7 +78,7 @@ namespace VGAudio.Cli
             return config;
         }
 
-        public static IConfiguration Bcstm(Options options, IConfiguration inConfig = null)
+        public static Configuration Bcstm(Options options, Configuration inConfig = null)
         {
             var config = inConfig as BcstmConfiguration ?? new BcstmConfiguration();
 
@@ -98,7 +98,7 @@ namespace VGAudio.Cli
             return config;
         }
 
-        public static IConfiguration Bfstm(Options options, IConfiguration inConfig = null)
+        public static Configuration Bfstm(Options options, Configuration inConfig = null)
         {
             var config = inConfig as BfstmConfiguration ?? new BfstmConfiguration();
 

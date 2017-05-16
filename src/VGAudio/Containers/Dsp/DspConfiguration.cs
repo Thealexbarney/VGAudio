@@ -6,7 +6,7 @@ namespace VGAudio.Containers.Dsp
     /// <summary>
     /// Contains the options used to build the DSP file.
     /// </summary>
-    public class DspConfiguration : IConfiguration
+    public class DspConfiguration : Configuration
     {
         private int _samplesPerInterleave = 0x3800;
         /// <summary>
@@ -16,15 +16,6 @@ namespace VGAudio.Containers.Dsp
         /// Default is <c>true</c>.
         /// </summary>
         public bool RecalculateLoopContext { get; set; } = true;
-
-        /// <summary>
-        /// If <c>true</c>, trims the output file length to the set LoopEnd.
-        /// If <c>false</c> or if the <see cref="Dsp"/> does not loop,
-        /// the output file is not trimmed.
-        /// if available.
-        /// Default is <c>true</c>.
-        /// </summary>
-        public bool TrimFile { get; set; } = true;
 
         /// <summary>
         /// The number of samples in each block when interleaving

@@ -6,7 +6,7 @@ namespace VGAudio.Containers
 {
     public abstract class AudioReader<TReader, TStructure, TConfig> : IAudioReader 
         where TReader : AudioReader<TReader, TStructure, TConfig>
-        where TConfig : IConfiguration, new()
+        where TConfig : Configuration, new()
     {
         public IAudioFormat ReadFormat(Stream stream) => ReadStream(stream).AudioFormat;
         public IAudioFormat ReadFormat(byte[] file) => ReadByteArray(file).AudioFormat;

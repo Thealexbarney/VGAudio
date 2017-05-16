@@ -11,6 +11,71 @@ namespace VGAudio.Containers.Bxstm
         /// </summary>
         public int FileSize { get; set; }
         public Endianness Endianness { get; set; }
+
+        /// <summary>
+        /// The size of the file header.
+        /// </summary>
+        public int HeaderSize { get; set; }
+        /// <summary>
+        /// The number of sections listed in the header.
+        /// </summary>
+        public int HeaderSections { get; set; }
+
+        /// <summary>
+        /// The offset of the HEAD/INFO chunk.
+        /// </summary>
+        public int InfoChunkOffset { get; set; }
+        /// <summary>
+        /// The size of the HEAD/INFO chunk as stated in the header.
+        /// </summary>
+        public int InfoChunkSizeHeader { get; set; }
+        /// <summary>
+        /// The offset of the ADPC/SEEK chunk.
+        /// </summary>
+        public int SeekChunkOffset { get; set; }
+        /// <summary>
+        /// The size of the ADPC/SEEK chunk as stated in the header.
+        /// </summary>
+        public int SeekChunkSizeHeader { get; set; }
+        /// <summary>
+        /// The offset of the DATA chunk.
+        /// </summary>
+        public int DataChunkOffset { get; set; }
+        /// <summary>
+        /// The size of the DATA chunk as stated in the header.
+        /// </summary>
+        public int DataChunkSizeHeader { get; set; }
+
+        /// <summary>
+        /// The size of the HEAD/INFO chunk as stated in the
+        /// HEAD/INFO chunk header.
+        /// </summary>
+        public int InfoChunkSize { get; set; }
+        /// <summary>
+        /// The offset of part 1 of the HEAD/INFO chunk.
+        /// </summary>
+        public int InfoChunk1Offset { get; set; }
+        /// <summary>
+        /// The offset of part 2 of the HEAD/INFO chunk.
+        /// </summary>
+        public int InfoChunk2Offset { get; set; }
+        /// <summary>
+        /// The offset of part 3 of the HEAD/INFO chunk.
+        /// </summary>
+        public int InfoChunk3Offset { get; set; }
+
+        /// <summary>
+        /// The size of the ADPC/SEEK chunk as stated in the
+        /// ADPC/SEEK chunk header.
+        /// </summary>
+        public int SeekChunkSize { get; set; }
+
+        /// <summary>
+        /// The size of the DATA chunk as stated in the
+        /// DATA chunk header.
+        /// </summary>
+        public int DataChunkSize { get; set; }
+
         /// <summary>
         /// The version listed in the header.
         /// </summary>

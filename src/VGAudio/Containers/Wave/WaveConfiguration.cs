@@ -1,6 +1,6 @@
 ﻿namespace VGAudio.Containers.Wave
 {
-    public class WaveConfiguration : IConfiguration
+    public class WaveConfiguration : Configuration
     {
         public WaveCodec Codec { get; set; }
     }
