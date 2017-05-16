@@ -106,7 +106,7 @@ namespace VGAudio.Tests.Formats
         [InlineData(100, true, 30, 90, 50)]
         public void AdpcmLoopIsCorrectAfterAlignment(int sampleCount, bool looping, int loopStart, int loopEnd, int alignment)
         {
-            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+            IAudioFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
                 .WithAlignment(alignment)
                 .WithLoop(looping, loopStart, loopEnd);
 
@@ -120,7 +120,7 @@ namespace VGAudio.Tests.Formats
         [InlineData(100, true, 30, 90, 50)]
         public void AdpcmLoopIsCorrectAfterUnalignment(int sampleCount, bool looping, int loopStart, int loopEnd, int alignment)
         {
-            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+            IAudioFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
                 .WithAlignment(alignment)
                 .WithLoop(looping, loopStart, loopEnd)
                 .WithAlignment(0);
@@ -133,7 +133,7 @@ namespace VGAudio.Tests.Formats
         [InlineData(100, true, 30, 90)]
         public void AdpcmSampleCountIsCorrectAfterLooping(int sampleCount, bool looping, int loopStart, int loopEnd)
         {
-            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
+            IAudioFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
                 .WithLoop(looping, loopStart, loopEnd);
 
             Assert.Equal(sampleCount, adpcm.SampleCount);

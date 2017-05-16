@@ -95,15 +95,13 @@ namespace VGAudio.Containers.Bxstm
             if (Codec == BxstmCodec.Adpcm)
             {
                 Adpcm = audio.GetFormat<GcAdpcmFormat>();
-                AudioFormat = Adpcm;
-                Tracks = Adpcm.Tracks;
-
-                if (!LoopPointsAreAligned(LoopStart, Configuration.LoopPointAlignment))
+                
+                if (!LoopPointsAreAligned(Adpcm.LoopStart, Configuration.LoopPointAlignment))
                 {
                     Adpcm = Adpcm.GetCloneBuilder().WithAlignment(Configuration.LoopPointAlignment).Build();
                 }
 
-                Parallel.For(0, ChannelCount, i =>
+                Parallel.For(0, Adpcm.ChannelCount, i =>
                 {
                     GcAdpcmChannelBuilder builder = Adpcm.Channels[i].GetCloneBuilder()
                         .WithSamplesPerSeekTableEntry(SamplesPerSeekTableEntry)
@@ -114,6 +112,9 @@ namespace VGAudio.Containers.Bxstm
                     builder.EnsureSeekTableIsSelfCalculated = Configuration.RecalculateSeekTable;
                     Adpcm.Channels[i] = builder.Build();
                 });
+
+                AudioFormat = Adpcm;
+                Tracks = Adpcm.Tracks;
             }
             else if (Codec == BxstmCodec.Pcm16Bit)
             {

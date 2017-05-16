@@ -41,5 +41,19 @@ namespace VGAudio.Tests.Containers
 
             BuildParseTests.BuildParseCompareAudio(audio, writer, new BcstmReader());
         }
+
+        [Fact]
+        public void BcstmLoopAlignmentIsSet()
+        {
+            GcAdpcmFormat audio = GenerateAudio.GenerateAdpcmSineWave(BuildParseTestOptions.Samples, 1, BuildParseTestOptions.SampleRate);
+            audio = audio.WithLoop(true, 1288, 16288);
+            var writer = new BcstmWriter { Configuration = { LoopPointAlignment = 700 } };
+
+            byte[] builtFile = writer.GetFile(audio);
+            IAudioFormat parsedAudio = new BcstmReader().ReadFormat(builtFile);
+
+            Assert.Equal(1400, parsedAudio.LoopStart);
+            Assert.Equal(16400, parsedAudio.LoopEnd);
+        }
     }
 }

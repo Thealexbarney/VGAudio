@@ -9,11 +9,14 @@ namespace VGAudio.Formats
         where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>
     {
         private readonly List<AudioTrack> _tracks;
-        public int SampleCount { get; }
         public int SampleRate { get; }
         public int ChannelCount { get; }
-        public int LoopStart { get; }
-        public int LoopEnd { get; }
+        public int UnalignedSampleCount { get; }
+        public int UnalignedLoopStart { get; }
+        public int UnalignedLoopEnd { get; }
+        public virtual int SampleCount => UnalignedSampleCount;
+        public virtual int LoopStart => UnalignedLoopStart;
+        public virtual int LoopEnd => UnalignedLoopEnd;
         public bool Looping { get; }
         public List<AudioTrack> Tracks { get; }
 
@@ -28,12 +31,12 @@ namespace VGAudio.Formats
         protected AudioFormatBase() { }
         protected AudioFormatBase(TBuilder builder)
         {
-            SampleCount = builder.SampleCount;
+            UnalignedSampleCount = builder.SampleCount;
             SampleRate = builder.SampleRate;
             ChannelCount = builder.ChannelCount;
             Looping = builder.Looping;
-            LoopStart = builder.LoopStart;
-            LoopEnd = builder.LoopEnd;
+            UnalignedLoopStart = builder.LoopStart;
+            UnalignedLoopEnd = builder.LoopEnd;
             _tracks = builder.Tracks;
             Tracks = _tracks != null && _tracks.Count > 0 ? _tracks : AudioTrack.GetDefaultTrackList(ChannelCount).ToList();
         }
@@ -70,7 +73,7 @@ namespace VGAudio.Formats
 
         public virtual TFormat Add(TFormat format)
         {
-            if (format.SampleCount != SampleCount)
+            if (format.UnalignedSampleCount != UnalignedSampleCount)
             {
                 throw new ArgumentException("Only audio streams of the same length can be added to each other.");
             }
@@ -83,11 +86,11 @@ namespace VGAudio.Formats
 
         protected TBuilder GetCloneBuilderBase(TBuilder builder)
         {
-            builder.SampleCount = SampleCount;
+            builder.SampleCount = UnalignedSampleCount;
             builder.SampleRate = SampleRate;
             builder.Looping = Looping;
-            builder.LoopStart = LoopStart;
-            builder.LoopEnd = LoopEnd;
+            builder.LoopStart = UnalignedLoopStart;
+            builder.LoopEnd = UnalignedLoopEnd;
             builder.Tracks = _tracks;
             return builder;
         }

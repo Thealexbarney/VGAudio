@@ -16,14 +16,10 @@ namespace VGAudio.Formats
         public GcAdpcmChannel[] Channels { get; }
 
         public int AlignmentMultiple { get; }
-        private int AlignmentSamples => Helpers.GetNextMultiple(base.LoopStart, AlignmentMultiple) - base.LoopStart;
-        public new int LoopStart => base.LoopStart + AlignmentSamples;
-        public new int LoopEnd => base.LoopEnd + AlignmentSamples;
-        public new int SampleCount => AlignmentSamples == 0 ? base.SampleCount : LoopEnd;
-
-        public int UnalignedLoopStart => base.LoopStart;
-        public int UnalignedLoopEnd => base.LoopEnd;
-        public int UnalignedSampleCount => base.SampleCount;
+        private int AlignmentSamples => Helpers.GetNextMultiple(UnalignedLoopStart, AlignmentMultiple) - UnalignedLoopStart;
+        public override int LoopStart => UnalignedLoopStart + AlignmentSamples;
+        public override int LoopEnd => UnalignedLoopEnd + AlignmentSamples;
+        public override int SampleCount => AlignmentSamples == 0 ? UnalignedSampleCount : LoopEnd;
 
         public GcAdpcmFormat() => Channels = new GcAdpcmChannel[0];
         public GcAdpcmFormat(GcAdpcmChannel[] channels, int sampleRate) : this(new GcAdpcmFormatBuilder(channels, sampleRate)) { }

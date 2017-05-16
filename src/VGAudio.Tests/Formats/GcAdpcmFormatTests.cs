@@ -18,7 +18,7 @@ namespace VGAudio.Tests.Formats
             Pcm16Format pcm = GenerateAudio.GeneratePcmSineWave(sampleCount, 1, 48000)
                 .WithLoop(looping, loopStart, loopEnd);
 
-            GcAdpcmFormat adpcm = new GcAdpcmFormat().EncodeFromPcm16(pcm);
+            IAudioFormat adpcm = new GcAdpcmFormat().EncodeFromPcm16(pcm);
             Assert.Equal(looping, adpcm.Looping);
             Assert.Equal(loopStart, adpcm.LoopStart);
             Assert.Equal(loopEnd, adpcm.LoopEnd);
@@ -32,7 +32,7 @@ namespace VGAudio.Tests.Formats
             GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmEmpty(sampleCount, 1, 48000)
                 .WithLoop(looping, loopStart, loopEnd);
 
-            Pcm16Format pcm = adpcm.ToPcm16();
+            IAudioFormat pcm = adpcm.ToPcm16();
             Assert.Equal(looping, pcm.Looping);
             Assert.Equal(loopStart, pcm.LoopStart);
             Assert.Equal(loopEnd, pcm.LoopEnd);
