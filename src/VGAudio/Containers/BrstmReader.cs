@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using VGAudio.Containers.Bxstm;
 using VGAudio.Formats;
-using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
@@ -38,67 +37,7 @@ namespace VGAudio.Containers
             }
         }
 
-        protected override IAudioFormat ToAudioStream(BrstmStructure structure)
-        {
-            switch (structure.Codec)
-            {
-                case BxstmCodec.Adpcm:
-                    return ToAdpcmStream(structure);
-                case BxstmCodec.Pcm16Bit:
-                    return ToPcm16Stream(structure);
-                case BxstmCodec.Pcm8Bit:
-                    return ToPcm8Stream(structure);
-            }
-            return null;
-        }
-
-        private static GcAdpcmFormat ToAdpcmStream(BrstmStructure structure)
-        {
-            var channels = new GcAdpcmChannel[structure.ChannelCount];
-
-            for (int c = 0; c < channels.Length; c++)
-            {
-                var channelBuilder = new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, structure.SampleCount)
-                {
-                    Gain = structure.Channels[c].Gain,
-                    Hist1 = structure.Channels[c].Hist1,
-                    Hist2 = structure.Channels[c].Hist2
-                };
-
-                channelBuilder.WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
-                    .WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
-                        structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
-
-                if (structure.SeekTable != null)
-                {
-                    channelBuilder.WithSeekTable(structure.SeekTable[c], structure.SamplesPerSeekTableEntry);
-                }
-
-                channels[c] = channelBuilder.Build();
-            }
-
-            return new GcAdpcmFormatBuilder(channels, structure.SampleRate)
-                .WithTracks(structure.Tracks)
-                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
-                .Build();
-        }
-
-        private static Pcm16Format ToPcm16Stream(BrstmStructure structure)
-        {
-            short[][] channels = structure.AudioData.Select(x => x.ToShortArray(Endianness.BigEndian)).ToArray();
-            return new Pcm16Format.Builder(channels, structure.SampleRate)
-                .WithTracks(structure.Tracks)
-                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
-                .Build();
-        }
-
-        private static Pcm8SignedFormat ToPcm8Stream(BrstmStructure structure)
-        {
-            return new Pcm8Format.Builder(structure.AudioData, structure.SampleRate, true)
-                .WithTracks(structure.Tracks)
-                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
-                .Build() as Pcm8SignedFormat;
-        }
+        protected override IAudioFormat ToAudioStream(BrstmStructure structure) => Common.ToAudioStream(structure);
 
         protected override BrstmConfiguration GetConfiguration(BrstmStructure structure)
         {

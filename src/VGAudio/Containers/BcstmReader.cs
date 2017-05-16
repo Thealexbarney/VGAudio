@@ -11,10 +11,7 @@ namespace VGAudio.Containers
             return (BcstmStructure)new BCFstmReader().ReadFile(stream, readAudioData);
         }
 
-        protected override IAudioFormat ToAudioStream(BcstmStructure structure)
-        {
-            return BCFstmReader.ToAudioStream(structure);
-        }
+        protected override IAudioFormat ToAudioStream(BcstmStructure structure) => Common.ToAudioStream(structure);
 
         protected override BcstmConfiguration GetConfiguration(BcstmStructure structure)
         {
