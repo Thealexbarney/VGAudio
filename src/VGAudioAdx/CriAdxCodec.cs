@@ -16,24 +16,21 @@ namespace VGAudio.Codecs
 
             int hist1 = 0;
             int hist2 = 0;
-            int frameCount = sampleCount / samplesPerFrame;
+            int frameCount = sampleCount.DivideByRoundUp(samplesPerFrame);
 
-            int outIndex = 0;
+            int currentSample = 0;
             int inIndex = 0;
 
             for (int i = 0; i < frameCount; i++)
             {
                 int filterNum = GetHighNibble(adpcm[inIndex]) >> 1;
                 short scale = (short)((adpcm[inIndex] << 8 | adpcm[inIndex + 1]) & 0x1FFF);
+                scale = (short)(type == AdxType.Exponential ? 1 << (12 - scale) : scale + 1);
                 inIndex += 2;
 
-                if (type == AdxType.Exponential)
-                {
-                    scale = (short)(1 << (12 - scale));
-                }
-                scale++;
+                int samplesToRead = Math.Min(samplesPerFrame, sampleCount - currentSample);
 
-                for (int s = 0; s < samplesPerFrame; s++)
+                for (int s = 0; s < samplesToRead; s++)
                 {
                     int sample = s % 2 == 0 ? GetHighNibble(adpcm[inIndex]) : GetLowNibble(adpcm[inIndex++]);
                     sample = sample >= 8 ? sample - 16 : sample;
@@ -42,18 +39,18 @@ namespace VGAudio.Codecs
 
                     hist2 = hist1;
                     hist1 = finalSample;
-                    pcm[outIndex++] = finalSample;
+                    pcm[currentSample++] = finalSample;
                 }
             }
             return pcm;
         }
 
-        public static byte[] Encode(short[] pcm, int sampleRate, int frameSize)
+        public static byte[] Encode(short[] pcm, int sampleRate, int frameSize, AdxType type = AdxType.Standard, int filter = 2)
         {
             int sampleCount = pcm.Length;
             int samplesPerFrame = (frameSize - 2) * 2;
             int frameCount = sampleCount.DivideByRoundUp(samplesPerFrame);
-            short[] coefs = CalculateCoefficients(500, sampleRate);
+            short[] coefs = type == AdxType.Fixed ? Coefs[filter] : CalculateCoefficients(500, sampleRate);
 
             var pcmBuffer = new short[samplesPerFrame + 2];
             var adpcmBuffer = new byte[frameSize];
@@ -65,7 +62,9 @@ namespace VGAudio.Codecs
                 Array.Copy(pcm, i * samplesPerFrame, pcmBuffer, 2, samplesToCopy);
                 Array.Clear(pcmBuffer, 2 + samplesToCopy, samplesPerFrame - samplesToCopy);
 
-                EncodeFrame(pcmBuffer, adpcmBuffer, coefs, samplesPerFrame);
+                EncodeFrame(pcmBuffer, adpcmBuffer, coefs, samplesPerFrame, type);
+
+                if (type == AdxType.Fixed) { adpcmBuffer[0] |= (byte)(filter << 5); }
 
                 Array.Copy(adpcmBuffer, 0, adpcmOut, i * frameSize, frameSize);
                 pcmBuffer[0] = pcmBuffer[samplesPerFrame];
@@ -75,7 +74,7 @@ namespace VGAudio.Codecs
             return adpcmOut;
         }
 
-        public static void EncodeFrame(short[] pcm, byte[] adpcmOut, short[] coefs, int samplesPerFrame)
+        public static void EncodeFrame(short[] pcm, byte[] adpcmOut, short[] coefs, int samplesPerFrame, AdxType type)
         {
             int maxDistance = 0;
             int[] adpcm = new int[samplesPerFrame];
@@ -88,9 +87,7 @@ namespace VGAudio.Codecs
                 if (distance > maxDistance) maxDistance = distance;
             }
 
-            int scale = (maxDistance - 1) / 7 + 1;
-            if (scale > 0x1000) scale = 0x1000;
-            double gain = maxDistance == 0 ? 0 : (double)short.MaxValue / maxDistance;
+            int scale = CalculateScale(maxDistance, out double gain, out int scaleOut, type == AdxType.Exponential);
 
             for (int i = 0; i < samplesPerFrame; i++)
             {
@@ -106,14 +103,37 @@ namespace VGAudio.Codecs
                 pcm[i + 2] = Clamp16(decodedSample);
             }
 
-            scale = scale - 1;
-            adpcmOut[0] = (byte)(scale >> 8);
-            adpcmOut[1] = (byte)scale;
+            adpcmOut[0] = (byte)((scaleOut >> 8) & 0x1f);
+            adpcmOut[1] = (byte)scaleOut;
 
             for (int i = 0; i < samplesPerFrame / 2; i++)
             {
                 adpcmOut[i + 2] = (byte)((adpcm[i * 2] << 4) | (adpcm[i * 2 + 1] & 0xf));
             }
+        }
+
+        private static int CalculateScale(int maxDistance, out double gain, out int scaleToWrite, bool exponential = false)
+        {
+            int scale = (maxDistance - 1) / 7 + 1;
+            if (scale > 0x1000) scale = 0x1000;
+            scaleToWrite = scale - 1;
+            
+            if (exponential)
+            {
+                int power = 0;
+                while (scaleToWrite > 0)
+                {
+                    power++;
+                    scaleToWrite >>= 1;
+                }
+
+                scale = 1 << power;
+                scaleToWrite = 12 - power;
+                maxDistance = 8 * scale - 1;
+            }
+
+            gain = maxDistance == 0 ? 0 : (double)short.MaxValue / maxDistance;
+            return scale;
         }
 
         private static int ScaleShortToNibble(int sample)

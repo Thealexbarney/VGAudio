@@ -44,7 +44,7 @@ namespace VGAudio.Formats
 
             Parallel.For(0, pcm16.ChannelCount, i =>
             {
-                channels[i] = CriAdxCodec.Encode(pcm16.Channels[i], pcm16.SampleRate, frameSize);
+                channels[i] = CriAdxCodec.Encode(pcm16.Channels[i], pcm16.SampleRate, frameSize, Type);
             });
 
             return new Builder(channels, pcm16.SampleCount, pcm16.SampleRate, frameSize, 500)

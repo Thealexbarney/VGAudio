@@ -43,7 +43,7 @@ namespace VGAudio.Containers
         {
             writer.Write(AdxHeaderSignature);
             writer.Write((short)CopyrightOffset);
-            writer.Write((byte)3); //encoding type
+            writer.Write((byte)Adpcm.Type); //encoding type
             writer.Write((byte)FrameSize);
             writer.Write((byte)4); //bit-depth
             writer.Write((byte)ChannelCount);
