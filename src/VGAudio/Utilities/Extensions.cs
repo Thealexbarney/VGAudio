@@ -80,11 +80,7 @@ namespace VGAudio.Utilities
             writer.Write(text);
         }
 
-        public static bool EOF(this BinaryReader reader)
-        {
-            var bs = reader.BaseStream;
-            return (bs.Position == bs.Length);
-        }
+        public static bool Eof(this BinaryReader reader) => reader.BaseStream.Position >= reader.BaseStream.Length;
 
         public static void Expect(this BinaryReader reader, params int[] expected)
         {

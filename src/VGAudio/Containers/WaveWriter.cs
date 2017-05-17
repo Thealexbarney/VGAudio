@@ -20,10 +20,10 @@ namespace VGAudio.Containers
         private bool Looping => AudioFormat.Looping;
         private int LoopStart => AudioFormat.LoopStart;
         private int LoopEnd => AudioFormat.LoopEnd;
-        protected override int FileSize => RiffChunkSize;
+        protected override int FileSize => 8 + RiffChunkSize;
         private int RiffChunkSize => 4 + 8 + FmtChunkSize + 8 + DataChunkSize
-            + (Looping ? 8 + SmplChunkSize: 0);
-        private int FmtChunkSize => (ChannelCount > 2 ? 40 : 16);
+            + (Looping ? 8 + SmplChunkSize : 0);
+        private int FmtChunkSize => ChannelCount > 2 ? 40 : 16;
         private int DataChunkSize => ChannelCount * SampleCount * BytesPerSample;
         private int SmplChunkSize => 0x3c;
 
@@ -41,15 +41,16 @@ namespace VGAudio.Containers
 
         protected override void SetupWriter(AudioData audio)
         {
-            if (Codec == WaveCodec.Pcm16Bit)
+            switch (Codec)
             {
-                Pcm16 = audio.GetFormat<Pcm16Format>();
-                AudioFormat = Pcm16;
-            }
-            else if (Codec == WaveCodec.Pcm8Bit)
-            {
-                Pcm8 = audio.GetFormat<Pcm8Format>();
-                AudioFormat = Pcm8;
+                case WaveCodec.Pcm16Bit:
+                    Pcm16 = audio.GetFormat<Pcm16Format>();
+                    AudioFormat = Pcm16;
+                    break;
+                case WaveCodec.Pcm8Bit:
+                    Pcm8 = audio.GetFormat<Pcm8Format>();
+                    AudioFormat = Pcm8;
+                    break;
             }
         }
 
@@ -98,15 +99,16 @@ namespace VGAudio.Containers
             writer.WriteUTF8("data");
             writer.Write(DataChunkSize);
 
-            if (Codec == WaveCodec.Pcm16Bit)
+            switch (Codec)
             {
-                byte[] audioData = Pcm16.Channels.ShortToInterleavedByte();
-                writer.BaseStream.Write(audioData, 0, audioData.Length);
+                case WaveCodec.Pcm16Bit:
+                    byte[] audioData = Pcm16.Channels.ShortToInterleavedByte();
+                    writer.BaseStream.Write(audioData, 0, audioData.Length);
+                    break;
+                case WaveCodec.Pcm8Bit:
+                    Pcm8.Channels.Interleave(writer.BaseStream, BytesPerSample);
+                    break;
             }
-            else if (Codec == WaveCodec.Pcm8Bit)
-            {
-                Pcm8.Channels.Interleave(writer.BaseStream, BytesPerSample);
-            }           
         }
 
         private void WriteSmplChunk(BinaryWriter writer)

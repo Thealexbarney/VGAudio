@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using VGAudio.Containers.Wave;
 using VGAudio.Formats;
 using VGAudio.Utilities;
@@ -25,33 +24,33 @@ namespace VGAudio.Containers
                 bool dataChunkRead = false;
 
                 ReadRiffHeader(reader, structure);
-                
-                string chunkId;
-                int chunkDataSize;
-                while (!reader.EOF())
+
+                while (!reader.Eof())
                 {
-                    chunkId = reader.ReadUTF8(4);
-                    chunkDataSize = reader.ReadInt32();
-                    if (chunkId == "fmt ")
+                    string chunkId = reader.ReadUTF8(4);
+                    int chunkDataSize = reader.ReadInt32();
+                    long nextChunkOffset = reader.BaseStream.Position + chunkDataSize;
+
+                    switch (chunkId)
                     {
-                        ReadFmtChunk(reader, structure);
+                        case "fmt ":
+                            ReadFmtChunk(reader, structure);
+                            break;
+                        case "data":
+                            if (!readAudioData)
+                            {
+                                structure.SampleCount = chunkDataSize / structure.BytesPerSample / structure.ChannelCount;
+                                return structure;
+                            }
+                            ReadDataChunk(reader, chunkDataSize, structure);
+                            dataChunkRead = true;
+                            break;
+                        case "smpl":
+                            ReadSmplChunk(reader, structure);
+                            break;
                     }
-                    else if (chunkId == "data")
-                    {
-                        if (!readAudioData)
-                        {
-                            structure.SampleCount = chunkDataSize / structure.BytesPerSample / structure.ChannelCount;
-                            return structure;
-                        }
-                        ReadDataChunk(reader, chunkDataSize, structure);
-                        dataChunkRead = true;
-                    }
-                    else if (chunkId == "smpl")
-                    {
-                        ReadSmplChunk(reader, structure);
-                    }
-                    else
-                        reader.BaseStream.Seek(chunkDataSize, SeekOrigin.Current);
+
+                    reader.BaseStream.Position = nextChunkOffset;
                 }
 
                 if (!dataChunkRead)
@@ -113,7 +112,7 @@ namespace VGAudio.Containers
 
             if (structure.FormatTag != WAVE_FORMAT_PCM && structure.FormatTag != WAVE_FORMAT_EXTENSIBLE)
             {
-                throw new InvalidDataException($"Must contain PCM data. Has invalid format {structure.FormatTag}");
+                throw new InvalidDataException($"Must contain PCM data. Has unsupported format {structure.FormatTag}");
             }
 
             if (structure.BitsPerSample != 16 && structure.BitsPerSample != 8)
@@ -142,7 +141,7 @@ namespace VGAudio.Containers
             structure.SubFormat = new Guid(reader.ReadBytes(16));
             if (!structure.SubFormat.Equals(KSDATAFORMAT_SUBTYPE_PCM))
             {
-                throw new InvalidDataException($"Must contain PCM data. Has invalid format {structure.SubFormat}");
+                throw new InvalidDataException($"Must contain PCM data. Has unsupported format {structure.SubFormat}");
             }
         }
 
@@ -177,7 +176,8 @@ namespace VGAudio.Containers
         {
             reader.BaseStream.Position += 0x1c;
             int loopRegionCount = reader.ReadInt32();
-            int extraDataSize = reader.ReadInt32();
+            reader.BaseStream.Position += 4;
+
             if (loopRegionCount == 1)  // Supporting only 1 loop region for now
             {
                 reader.BaseStream.Position += 8;
