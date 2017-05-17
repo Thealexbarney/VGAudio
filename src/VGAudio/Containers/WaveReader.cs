@@ -68,9 +68,13 @@ namespace VGAudio.Containers
             switch (structure.BitsPerSample)
             {
                 case 16:
-                    return new Pcm16Format.Builder(structure.AudioData16, structure.SampleRate).Loop(structure.Looping, structure.LoopStart, structure.LoopEnd).Build();
+                    return new Pcm16Format.Builder(structure.AudioData16, structure.SampleRate)
+                        .Loop(structure.Looping, structure.LoopStart, structure.LoopEnd)
+                        .Build();
                 case 8:
-                    return new Pcm8Format.Builder(structure.AudioData8, structure.SampleRate).Loop(structure.Looping, structure.LoopStart, structure.LoopEnd).Build();
+                    return new Pcm8Format.Builder(structure.AudioData8, structure.SampleRate)
+                        .Loop(structure.Looping, structure.LoopStart, structure.LoopEnd)
+                        .Build();
                 default:
                     return null;
             }
@@ -171,16 +175,16 @@ namespace VGAudio.Containers
 
         private static void ReadSmplChunk(BinaryReader reader, WaveStructure structure)
         {
-            reader.BaseStream.Seek(0x1c, SeekOrigin.Current);
+            reader.BaseStream.Position += 0x1c;
             int loopRegionCount = reader.ReadInt32();
             int extraDataSize = reader.ReadInt32();
             if (loopRegionCount == 1)  // Supporting only 1 loop region for now
             {
-                reader.BaseStream.Seek(8, SeekOrigin.Current);
+                reader.BaseStream.Position += 8;
                 structure.LoopStart = reader.ReadInt32();
                 structure.LoopEnd = reader.ReadInt32();
                 structure.Looping = structure.LoopEnd > structure.LoopStart;
-                reader.BaseStream.Seek(8, SeekOrigin.Current);
+                reader.BaseStream.Position += 8;
             }
         }
     }
