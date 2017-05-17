@@ -64,6 +64,18 @@ namespace VGAudio.Containers.Wave
         /// The number of samples in the audio file.
         /// </summary>
         public int SampleCount { get; set; }
+        /// <summary>
+        /// This flag is set if the file loops.
+        /// </summary>
+        public bool Looping { get; set; }
+        /// <summary>
+        /// The loop start position in samples.
+        /// </summary>
+        public int LoopStart { get; set; }
+        /// <summary>
+        /// The loop end position in samples.
+        /// </summary>
+        public int LoopEnd { get; set; }
         internal short[][] AudioData16 { get; set; }
         internal byte[][] AudioData8 { get; set; }
     }

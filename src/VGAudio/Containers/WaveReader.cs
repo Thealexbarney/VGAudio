@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using VGAudio.Containers.Wave;
 using VGAudio.Formats;
 using VGAudio.Utilities;
@@ -22,31 +21,36 @@ namespace VGAudio.Containers
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 var structure = new WaveStructure();
-                var dataChunkRead = false;
+                bool dataChunkRead = false;
 
                 ReadRiffHeader(reader, structure);
 
-                byte[] chunkId = new byte[4];
-                while (reader.Read(chunkId, 0, 4) == 4)
+                while (!reader.Eof())
                 {
-                    int chunkSize = reader.ReadInt32();
-                    if (Encoding.UTF8.GetString(chunkId, 0, 4) == "fmt ")
+                    string chunkId = reader.ReadUTF8(4);
+                    int chunkDataSize = reader.ReadInt32();
+                    long nextChunkOffset = reader.BaseStream.Position + chunkDataSize;
+
+                    switch (chunkId)
                     {
-                        ReadFmtChunk(reader, structure);
+                        case "fmt ":
+                            ReadFmtChunk(reader, structure);
+                            break;
+                        case "data":
+                            if (!readAudioData)
+                            {
+                                structure.SampleCount = chunkDataSize / structure.BytesPerSample / structure.ChannelCount;
+                                return structure;
+                            }
+                            ReadDataChunk(reader, chunkDataSize, structure);
+                            dataChunkRead = true;
+                            break;
+                        case "smpl":
+                            ReadSmplChunk(reader, structure);
+                            break;
                     }
-                    else if (Encoding.UTF8.GetString(chunkId, 0, 4) == "data")
-                    {
-                        if (!readAudioData)
-                        {
-                            structure.SampleCount = chunkSize / structure.BytesPerSample / structure.ChannelCount;
-                            return structure;
-                        }
-                        ReadDataChunk(reader, chunkSize, structure);
-                        dataChunkRead = true;
-                        break;
-                    }
-                    else
-                        reader.BaseStream.Seek(chunkSize, SeekOrigin.Current);
+
+                    reader.BaseStream.Position = nextChunkOffset;
                 }
 
                 if (!dataChunkRead)
@@ -63,9 +67,13 @@ namespace VGAudio.Containers
             switch (structure.BitsPerSample)
             {
                 case 16:
-                    return new Pcm16Format.Builder(structure.AudioData16, structure.SampleRate).Build();
+                    return new Pcm16Format.Builder(structure.AudioData16, structure.SampleRate)
+                        .Loop(structure.Looping, structure.LoopStart, structure.LoopEnd)
+                        .Build();
                 case 8:
-                    return new Pcm8Format.Builder(structure.AudioData8, structure.SampleRate).Build();
+                    return new Pcm8Format.Builder(structure.AudioData8, structure.SampleRate)
+                        .Loop(structure.Looping, structure.LoopStart, structure.LoopEnd)
+                        .Build();
                 default:
                     return null;
             }
@@ -73,16 +81,16 @@ namespace VGAudio.Containers
 
         private static void ReadRiffHeader(BinaryReader reader, WaveStructure structure)
         {
-            byte[] riffChunkId = reader.ReadBytes(4);
+            string riffChunkId = reader.ReadUTF8(4);
             structure.RiffSize = reader.ReadInt32();
-            byte[] riffType = reader.ReadBytes(4);
+            string riffType = reader.ReadUTF8(4);
 
-            if (Encoding.UTF8.GetString(riffChunkId, 0, 4) != "RIFF")
+            if (riffChunkId != "RIFF")
             {
                 throw new InvalidDataException("Not a valid RIFF file");
             }
 
-            if (Encoding.UTF8.GetString(riffType, 0, 4) != "WAVE")
+            if (riffType != "WAVE")
             {
                 throw new InvalidDataException("Not a valid WAVE file");
             }
@@ -104,7 +112,7 @@ namespace VGAudio.Containers
 
             if (structure.FormatTag != WAVE_FORMAT_PCM && structure.FormatTag != WAVE_FORMAT_EXTENSIBLE)
             {
-                throw new InvalidDataException($"Must contain PCM data. Has invalid format {structure.FormatTag}");
+                throw new InvalidDataException($"Must contain PCM data. Has unsupported format {structure.FormatTag}");
             }
 
             if (structure.BitsPerSample != 16 && structure.BitsPerSample != 8)
@@ -133,7 +141,7 @@ namespace VGAudio.Containers
             structure.SubFormat = new Guid(reader.ReadBytes(16));
             if (!structure.SubFormat.Equals(KSDATAFORMAT_SUBTYPE_PCM))
             {
-                throw new InvalidDataException($"Must contain PCM data. Has invalid format {structure.SubFormat}");
+                throw new InvalidDataException($"Must contain PCM data. Has unsupported format {structure.SubFormat}");
             }
         }
 
@@ -161,6 +169,22 @@ namespace VGAudio.Containers
                 case 8:
                     structure.AudioData8 = interleavedAudio.DeInterleave(structure.BytesPerSample, structure.ChannelCount);
                     break;
+            }
+        }
+
+        private static void ReadSmplChunk(BinaryReader reader, WaveStructure structure)
+        {
+            reader.BaseStream.Position += 0x1c;
+            int loopRegionCount = reader.ReadInt32();
+            reader.BaseStream.Position += 4;
+
+            if (loopRegionCount == 1)  // Supporting only 1 loop region for now
+            {
+                reader.BaseStream.Position += 8;
+                structure.LoopStart = reader.ReadInt32();
+                structure.LoopEnd = reader.ReadInt32();
+                structure.Looping = structure.LoopEnd > structure.LoopStart;
+                reader.BaseStream.Position += 8;
             }
         }
     }

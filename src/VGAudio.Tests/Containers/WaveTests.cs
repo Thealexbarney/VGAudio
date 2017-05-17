@@ -29,5 +29,28 @@ namespace VGAudio.Tests.Containers
 
             BuildParseTests.BuildParseCompareAudio(audio, writer, new WaveReader());
         }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(8)]
+        public void WavePcm16LoopedBuildAndParseEqual(int numChannels)
+        {
+            Pcm16Format audio = GenerateAudio.GeneratePcmSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate).WithLoop(true);
+
+            BuildParseTests.BuildParseCompareAudio(audio, new WaveWriter(), new WaveReader());
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(8)]
+        public void WavePcm8LoopedBuildAndParseEqual(int numChannels)
+        {
+            Pcm8Format audio = GenerateAudio.GeneratePcm8SineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate).WithLoop(true);
+            var writer = new WaveWriter { Configuration = { Codec = WaveCodec.Pcm8Bit } };
+
+            BuildParseTests.BuildParseCompareAudio(audio, writer, new WaveReader());
+        }
     }
 }
