@@ -1,4 +1,5 @@
 ﻿using System;
+using VGAudio.Containers.Adx;
 using VGAudio.Utilities;
 using static VGAudio.Utilities.Helpers;
 
@@ -7,10 +8,10 @@ namespace VGAudio.Codecs
 {
     public class CriAdxCodec
     {
-        public static short[] Decode(byte[] adpcm, int sampleCount, int sampleRate, int frameSize, short highpassFrequency)
+        public static short[] Decode(byte[] adpcm, int sampleCount, int sampleRate, int frameSize, short highpassFrequency, AdxType type = AdxType.Standard)
         {
             int samplesPerFrame = (frameSize - 2) * 2;
-            var coefs = CalculateCoefficients(highpassFrequency, sampleRate);
+            short[][] coefs = type == AdxType.Fixed ? Coefs : new[] { CalculateCoefficients(highpassFrequency, sampleRate) };
             var pcm = new short[sampleCount];
 
             int hist1 = 0;
@@ -22,14 +23,21 @@ namespace VGAudio.Codecs
 
             for (int i = 0; i < frameCount; i++)
             {
-                short scale = (short)((adpcm[inIndex] << 8 | adpcm[inIndex + 1]) + 1);
+                int filterNum = GetHighNibble(adpcm[inIndex]) >> 1;
+                short scale = (short)((adpcm[inIndex] << 8 | adpcm[inIndex + 1]) & 0x1FFF);
                 inIndex += 2;
+
+                if (type == AdxType.Exponential)
+                {
+                    scale = (short)(1 << (12 - scale));
+                }
+                scale++;
 
                 for (int s = 0; s < samplesPerFrame; s++)
                 {
                     int sample = s % 2 == 0 ? GetHighNibble(adpcm[inIndex]) : GetLowNibble(adpcm[inIndex++]);
                     sample = sample >= 8 ? sample - 16 : sample;
-                    sample = scale * sample + (hist1 * coefs[0] >> 12) + (hist2 * coefs[1] >> 12);
+                    sample = scale * sample + (hist1 * coefs[filterNum][0] >> 12) + (hist2 * coefs[filterNum][1] >> 12);
                     short finalSample = Clamp16(sample);
 
                     hist2 = hist1;
@@ -126,6 +134,13 @@ namespace VGAudio.Codecs
 
             return new[] { coef1, coef2 };
         }
+
+        private static readonly short[][] Coefs = {
+            new short[] {0, 0},
+            new short[] {0x0F00, 0},
+            new short[] {0x1CC0, unchecked((short)0xF300)},
+            new short[] {0x1880, unchecked((short)0xF240)}
+        };
 
         public static sbyte Clamp4(int value)
         {

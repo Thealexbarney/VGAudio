@@ -36,13 +36,14 @@ namespace VGAudio.Containers
         {
             return new CriAdxFormat.Builder(structure.AudioData, structure.SampleCount, structure.SampleRate, structure.FrameSize, structure.HighpassFreq)
                 .WithLoop(structure.Looping, structure.LoopStartSample, structure.LoopEndSample)
+                .WithEncodingType(structure.EncodingType)
                 .Build();
         }
 
         private static void ReadHeader(BinaryReader reader, AdxStructure structure)
         {
             structure.CopyrightOffset = reader.ReadInt16();
-            structure.EncodingType = reader.ReadByte();
+            structure.EncodingType = (AdxType)reader.ReadByte();
             structure.FrameSize = reader.ReadByte();
             structure.BitDepth = reader.ReadByte();
             structure.ChannelCount = reader.ReadByte();
@@ -51,9 +52,26 @@ namespace VGAudio.Containers
             structure.HighpassFreq = reader.ReadInt16();
             structure.Version = reader.ReadByte();
             structure.Flags = reader.ReadByte();
+
+            if (structure.Version >= 4)
+            {
+                var history = new short[structure.ChannelCount][];
+                for (int i = 0; i < history.Length; i++)
+                {
+                    history[i] = new[] { reader.ReadInt16(), reader.ReadInt16() };
+                }
+                structure.HistorySamples = history;
+            }
+
+            if (reader.BaseStream.Position + 24 < structure.CopyrightOffset) { return; }
+
             structure.AlignmentSamples = reader.ReadInt16();
-            structure.Looping = reader.ReadInt16() == 1;
+            structure.LoopCount = reader.ReadInt16();
+
+            if (structure.LoopCount <= 0) { return; }
+
             reader.BaseStream.Position += 4;
+            structure.Looping = true;
             structure.LoopStartSample = reader.ReadInt32();
             structure.LoopStartByte = reader.ReadInt32();
             structure.LoopEndSample = reader.ReadInt32();

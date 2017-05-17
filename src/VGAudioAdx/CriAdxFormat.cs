@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using VGAudio.Codecs;
+using VGAudio.Containers.Adx;
 using VGAudio.Utilities;
 
 // ReSharper disable once CheckNamespace
@@ -11,6 +12,7 @@ namespace VGAudio.Formats
         public byte[][] Channels { get; }
         public short HighpassFrequency { get; }
         public int FrameSize { get; }
+        public AdxType Type { get; } = AdxType.Standard;
 
         public CriAdxFormat() => Channels = new byte[0][];
         private CriAdxFormat(Builder b) : base(b)
@@ -18,6 +20,7 @@ namespace VGAudio.Formats
             Channels = b.Channels;
             FrameSize = b.FrameSize;
             HighpassFrequency = b.HighpassFrequency;
+            Type = b.Type;
         }
 
         public override Pcm16Format ToPcm16()
@@ -25,7 +28,7 @@ namespace VGAudio.Formats
             var pcmChannels = new short[Channels.Length][];
             Parallel.For(0, Channels.Length, i =>
             {
-                pcmChannels[i] = CriAdxCodec.Decode(Channels[i], SampleCount, SampleRate, FrameSize, HighpassFrequency);
+                pcmChannels[i] = CriAdxCodec.Decode(Channels[i], SampleCount, SampleRate, FrameSize, HighpassFrequency, Type);
             });
 
             return new Pcm16Format.Builder(pcmChannels, SampleRate)
@@ -45,7 +48,7 @@ namespace VGAudio.Formats
             });
 
             return new Builder(channels, pcm16.SampleCount, pcm16.SampleRate, frameSize, 500)
-                .Loop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
+                .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
                 .Build();
         }
 
@@ -69,6 +72,7 @@ namespace VGAudio.Formats
             public byte[][] Channels { get; set; }
             public short HighpassFrequency { get; set; }
             public int FrameSize { get; set; }
+            public AdxType Type { get; set; } = AdxType.Standard;
             protected override int ChannelCount => Channels.Length;
 
             public Builder(byte[][] channels, int sampleCount, int sampleRate, int frameSize, short highpassFrequency)
@@ -91,6 +95,12 @@ namespace VGAudio.Formats
                     if (channel.Length != length)
                         throw new InvalidDataException("All channels must have the same length");
                 }
+            }
+
+            public Builder WithEncodingType(AdxType type)
+            {
+                Type = type;
+                return this;
             }
 
             public override CriAdxFormat Build() => new CriAdxFormat(this);
