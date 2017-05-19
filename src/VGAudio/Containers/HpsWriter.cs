@@ -25,7 +25,7 @@ namespace VGAudio.Containers
         protected override void SetupWriter(AudioData audio)
         {
             Adpcm = audio.GetFormat<GcAdpcmFormat>();
-            BlockMap = CreateBlockMap(Adpcm.SampleCount, Adpcm.LoopStart, Adpcm.ChannelCount, MaxBlockSize);
+            BlockMap = CreateBlockMap(Adpcm.SampleCount, Adpcm.Looping, Adpcm.LoopStart, Adpcm.ChannelCount, MaxBlockSize);
         }
 
         protected override void WriteStream(Stream stream)
@@ -76,6 +76,8 @@ namespace VGAudio.Containers
 
         private void WriteBlock(BinaryWriter writer, BlockInfo block, int baseOffset)
         {
+            // Remove base offset for last block
+            if (block.NextOffset < 0) baseOffset = 0;
             writer.Write(block.WrittenSize);
             writer.Write(block.ChannelSize * 2 - 1);
             writer.Write(baseOffset + block.NextOffset);
@@ -97,12 +99,12 @@ namespace VGAudio.Containers
             }
         }
 
-        private static BlockInfo[] CreateBlockMap(int sampleCount, int loopStart, int channelCount, int maxBlockSize)
+        private static BlockInfo[] CreateBlockMap(int sampleCount, bool loops, int loopStart, int channelCount, int maxBlockSize)
         {
             int byteCount = SampleCountToByteCount(sampleCount);
             int maxChannelBlockSize = maxBlockSize / channelCount;
             int blockCount = byteCount.DivideByRoundUp(maxChannelBlockSize);
-            int loopBlock = SampleCountToByteCount(loopStart) / maxChannelBlockSize;
+            int loopBlock = loops ? SampleCountToByteCount(loopStart) / maxChannelBlockSize : blockCount - 1;
 
             if (!LoopPointsAreAligned(loopStart, NibbleCountToSampleCount(maxChannelBlockSize * 2)))
             {
@@ -124,7 +126,7 @@ namespace VGAudio.Containers
             {
                 int blocksRemaining = blockCount - currentBlock;
                 int bytesRemaining = byteCount - currentByte;
-                int channelBlockSize = Math.Min(bytesRemaining, GetNextMultiple(bytesRemaining / blocksRemaining, 0x20));
+                int channelBlockSize = Math.Min(bytesRemaining, GetNextMultiple(bytesRemaining.DivideByRoundUp(blocksRemaining), 0x20));
 
                 blocks[currentBlock++] = new BlockInfo(currentByte, channelBlockSize, channelCount);
                 currentByte += channelBlockSize;
@@ -140,8 +142,7 @@ namespace VGAudio.Containers
                 blocks[i].NextOffset = blocks[i + 1].Offset;
             }
 
-            blocks[blockCount - 1].NextOffset = blocks[loopBlock].Offset;
-
+            blocks[blockCount - 1].NextOffset = loops ? blocks[loopBlock].Offset : -1;
             return blocks;
         }
 
