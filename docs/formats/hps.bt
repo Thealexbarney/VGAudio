@@ -26,7 +26,7 @@ struct ChannelMainHeader
 {
     int32 MaxBlock;
     int32 Unknown1; //Audio start offset?? Always 2
-    int32 NibbleCount;
+    int32 EndNibbleAddress;
     int32 Unknown2;
     uint16 Coefficients[16];
     int16 Gain;
@@ -58,12 +58,18 @@ struct HpsHeader
 struct Channel(int size)
 {
     byte Audio[size];
+
+    local int padding = GetNextMultiple(FTell(), 0x20) - FTell();
+    if(padding > 0)
+    {
+        byte Padding[padding];
+    }
 };
 
 struct Block(int channelCount)
 {
     int32 BlockSize;
-    int32 FinalNibble;
+    int32 EndNibbleAddress;
     int32 NextBlock;
 
     local int i = 0;
@@ -78,8 +84,8 @@ struct Block(int channelCount)
     for(i = 0; i < channelCount; i++)
     {
         FSeek(AudioStart + BlockSize / channelCount * i);
-        Channel channel(DivideBy2RoundUp(FinalNibble + 1));
-    }
+        Channel channel(DivideBy2RoundUp(EndNibbleAddress + 1));
+    }    
 };
 
 BigEndian();
@@ -88,7 +94,7 @@ HpsHeader Head;
 local int curAddr;
 local int blocksRemaining = 1;
 
-FSeek(GetNextMultiple(FTell(), 0x20));
+FSeek(GetNextMultiple(Max(0x80, FTell()), 0x20));
 
 while(blocksRemaining)
 {
