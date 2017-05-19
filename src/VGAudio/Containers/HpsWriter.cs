@@ -25,6 +25,21 @@ namespace VGAudio.Containers
         protected override void SetupWriter(AudioData audio)
         {
             Adpcm = audio.GetFormat<GcAdpcmFormat>();
+            int alignment = NibbleCountToSampleCount(MaxBlockSize / ChannelCount * 2);
+            if (!LoopPointsAreAligned(Adpcm.LoopStart, alignment))
+            {
+                Adpcm = Adpcm.GetCloneBuilder().WithAlignment(alignment).Build();
+            }
+
+            Parallel.For(0, ChannelCount, i =>
+            {
+                GcAdpcmChannelBuilder builder = Adpcm.Channels[i].GetCloneBuilder();
+
+                builder.LoopAlignmentMultiple = alignment;
+                builder.EnsureLoopContextIsSelfCalculated = true;
+                Adpcm.Channels[i] = builder.Build();
+            });
+
             BlockMap = CreateBlockMap(Adpcm.SampleCount, Adpcm.Looping, Adpcm.LoopStart, Adpcm.ChannelCount, MaxBlockSize);
         }
 
@@ -66,27 +81,23 @@ namespace VGAudio.Containers
 
         private void WriteBody(BinaryWriter writer)
         {
-            int baseOffset = (int)writer.BaseStream.Position;
-
             foreach (BlockInfo block in BlockMap)
             {
-                WriteBlock(writer, block, baseOffset);
+                WriteBlock(writer, block);
             }
         }
 
-        private void WriteBlock(BinaryWriter writer, BlockInfo block, int baseOffset)
+        private void WriteBlock(BinaryWriter writer, BlockInfo block)
         {
-            // Remove base offset for last block
-            if (block.NextOffset < 0) baseOffset = 0;
             writer.Write(block.WrittenSize);
             writer.Write(block.ChannelSize * 2 - 1);
-            writer.Write(baseOffset + block.NextOffset);
+            writer.Write(block.NextOffset);
 
             for (int i = 0; i < ChannelCount; i++)
             {
-                writer.Write((short)0);
-                writer.Write((short)0);
-                writer.Write((short)0);
+                writer.Write((short)Adpcm.Channels[i].GetPredScale(block.StartSample));
+                writer.Write(Adpcm.Channels[i].GetHist1(block.StartSample));
+                writer.Write(Adpcm.Channels[i].GetHist2(block.StartSample));
                 writer.Write((short)0);
             }
 
@@ -99,7 +110,7 @@ namespace VGAudio.Containers
             }
         }
 
-        private static BlockInfo[] CreateBlockMap(int sampleCount, bool loops, int loopStart, int channelCount, int maxBlockSize)
+        private BlockInfo[] CreateBlockMap(int sampleCount, bool loops, int loopStart, int channelCount, int maxBlockSize)
         {
             int byteCount = SampleCountToByteCount(sampleCount);
             int maxChannelBlockSize = maxBlockSize / channelCount;
@@ -132,6 +143,7 @@ namespace VGAudio.Containers
                 currentByte += channelBlockSize;
             }
 
+            blocks[0].Offset = HeaderSize;
             for (int i = 1; i < blockCount; i++)
             {
                 blocks[i].Offset = blocks[i - 1].Offset + blocks[i - 1].TotalSize;
@@ -150,6 +162,8 @@ namespace VGAudio.Containers
         {
             public BlockInfo(int currentByte, int channelSize, int channelCount)
             {
+                // Add 2 to account for the predictor and scale nibbles that don't count as samples;
+                StartSample = NibbleToSample(currentByte * 2 + 2);
                 ByteInIndex = currentByte;
                 ChannelSize = channelSize;
                 WrittenSize = GetNextMultiple(channelSize, 0x20) * channelCount;
@@ -158,6 +172,7 @@ namespace VGAudio.Containers
 
             public int Offset;
             public int NextOffset;
+            public int StartSample;
             public int ByteInIndex;
             public int TotalSize;
             public int WrittenSize;
