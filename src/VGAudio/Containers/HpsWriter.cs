@@ -70,7 +70,7 @@ namespace VGAudio.Containers
         {
             writer.Write(MaxBlockSize);
             writer.Write(2);
-            writer.Write(SampleCountToNibbleCount(SampleCount));
+            writer.Write(SampleToNibble(SampleCount - 1));
             writer.Write(2);
             writer.Write(channel.Coefs.ToByteArray(Endianness.BigEndian));
             writer.Write(channel.Gain);

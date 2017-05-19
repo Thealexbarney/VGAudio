@@ -5,7 +5,7 @@ namespace VGAudio.Containers.Hps
     public class HpsChannelInfo : GcAdpcmChannelInfo
     {
         public int MaxBlockSize { get; set; }
-        public int NibbleCount { get; set; }
-        public int SampleCount => GcAdpcmHelpers.NibbleCountToSampleCount(NibbleCount);
+        public int EndAddress { get; set; }
+        public int SampleCount => GcAdpcmHelpers.NibbleToSample(EndAddress) + 1;
     }
 }

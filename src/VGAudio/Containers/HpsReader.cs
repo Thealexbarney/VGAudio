@@ -78,7 +78,7 @@ namespace VGAudio.Containers
                 var channel = new HpsChannelInfo();
                 channel.MaxBlockSize = reader.ReadInt32();
                 reader.ReadInt32();
-                channel.NibbleCount = reader.ReadInt32();
+                channel.EndAddress = reader.ReadInt32();
                 reader.ReadInt32();
                 channel.Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray();
                 channel.Gain = reader.ReadInt16();
