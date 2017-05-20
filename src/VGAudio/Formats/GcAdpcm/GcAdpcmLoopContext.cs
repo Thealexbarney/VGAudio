@@ -21,11 +21,15 @@ namespace VGAudio.Formats.GcAdpcm
 
         public GcAdpcmLoopContext(byte[] adpcm, short[] pcm, int loopStart)
         {
-            PredScale = GcAdpcmDecoder.GetPredictorScale(adpcm, loopStart);
-            Hist1 = loopStart < 1 ? (short) 0 : pcm[loopStart - 1];
-            Hist2 = loopStart < 2 ? (short) 0 : pcm[loopStart - 2];
+            PredScale = GetPredScale(adpcm, loopStart);
+            Hist1 = GetHist1(pcm, loopStart);
+            Hist2 = GetHist2(pcm, loopStart);
             LoopStart = loopStart;
             IsSelfCalculated = true;
         }
+
+        public static byte GetPredScale(byte[] adpcm, int sampleNum) => GcAdpcmDecoder.GetPredictorScale(adpcm, sampleNum);
+        public static short GetHist1(short[] pcm, int sampleNum) => sampleNum < 1 ? (short)0 : pcm?[sampleNum - 1] ?? 0;
+        public static short GetHist2(short[] pcm, int sampleNum) => sampleNum < 2 ? (short)0 : pcm?[sampleNum - 2] ?? 0;
     }
 }

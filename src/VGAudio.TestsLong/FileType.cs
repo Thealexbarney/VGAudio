@@ -12,6 +12,7 @@ namespace VGAudio.TestsLong
         Brstm,
         Bcstm,
         Bfstm,
+        Hps,
         Genh
     }
 

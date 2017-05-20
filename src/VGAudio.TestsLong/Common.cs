@@ -14,6 +14,7 @@ namespace VGAudio.TestsLong
             new FileTypeInfo(FileType.Brstm, "*.brstm", () => new BrstmReader(), () => new BrstmWriter()),
             new FileTypeInfo(FileType.Bcstm, "*.bcstm", () => new BcstmReader(), () => new BcstmWriter()),
             new FileTypeInfo(FileType.Bfstm, "*.bfstm", () => new BfstmReader(), () => new BfstmWriter()),
+            new FileTypeInfo(FileType.Hps, "*.hps", () => new HpsReader(), () => new HpsWriter()),
             new FileTypeInfo(FileType.Genh, "*.genh", () => new GenhReader(), () => null)
         }.ToDictionary(x => x.Type, x => x);
     }

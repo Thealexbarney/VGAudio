@@ -64,6 +64,10 @@ namespace VGAudio.Formats.GcAdpcm
         public short[] GetSeekTable() => SeekTable?.SeekTable ?? new short[0];
         public byte[] GetAdpcmAudio() => AlignmentNeeded ? Alignment.AdpcmAligned : Adpcm;
 
+        public byte GetPredScale(int sampleNum) => GcAdpcmLoopContext.GetPredScale(GetAdpcmAudio(), sampleNum);
+        public short GetHist1(int sampleNum) => GcAdpcmLoopContext.GetHist1(Pcm, sampleNum);
+        public short GetHist2(int sampleNum) => GcAdpcmLoopContext.GetHist2(Pcm, sampleNum);
+
         public GcAdpcmChannelBuilder GetCloneBuilder()
         {
             var builder = new GcAdpcmChannelBuilder(Adpcm, Coefs, UnalignedSampleCount)
