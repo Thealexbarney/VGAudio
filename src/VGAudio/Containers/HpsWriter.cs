@@ -69,9 +69,9 @@ namespace VGAudio.Containers
         private void WriteChannelInfo(BinaryWriter writer, GcAdpcmChannel channel)
         {
             writer.Write(MaxBlockSize);
-            writer.Write(2);
+            writer.Write(SampleToNibble(0));
             writer.Write(SampleToNibble(SampleCount - 1));
-            writer.Write(2);
+            writer.Write(SampleToNibble(0));
             writer.Write(channel.Coefs.ToByteArray(Endianness.BigEndian));
             writer.Write(channel.Gain);
             writer.Write(channel.PredScale);

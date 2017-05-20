@@ -25,9 +25,9 @@ int DivideBy2RoundUp(int value)
 struct ChannelMainHeader
 {
     int32 MaxBlock;
-    int32 Unknown1; //Audio start offset?? Always 2
-    int32 EndNibbleAddress;
-    int32 Unknown2;
+    int32 StartAddress; //Audio start address?? Always 2
+    int32 EndAddress;
+    int32 CurrentAddress;
     uint16 Coefficients[16];
     int16 Gain;
     int16 PredScale;
