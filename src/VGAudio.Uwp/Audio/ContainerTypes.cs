@@ -16,6 +16,7 @@ namespace VGAudio.Uwp.Audio
             [FileType.Brstm] = new ContainerType("BRSTM", new[] { "brstm" }, "BRSTM Audio File", () => new BrstmReader(), () => new BrstmWriter()),
             [FileType.Bcstm] = new ContainerType("BCSTM", new[] { "bcstm" }, "BCSTM Audio File", () => new BcstmReader(), () => new BcstmWriter()),
             [FileType.Bfstm] = new ContainerType("BFSTM", new[] { "bfstm" }, "BFSTM Audio File", () => new BfstmReader(), () => new BfstmWriter()),
+            [FileType.Hps] = new ContainerType("HPS", new[] { "hps" }, "HPS Audio File", () => new HpsReader(), () => new HpsWriter()),
             [FileType.Genh] = new ContainerType("GENH", new[] { "genh" }, "GENH Audio File", () => new GenhReader(), null)
         };
 
@@ -40,6 +41,7 @@ namespace VGAudio.Uwp.Audio
         Bcstm,
         Bfstm,
         Idsp,
+        Hps,
         Genh
     }
 
