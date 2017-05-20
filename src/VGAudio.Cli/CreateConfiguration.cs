@@ -119,7 +119,7 @@ namespace VGAudio.Cli
             return config;
         }
 
-        public static IConfiguration Hps(Options options, IConfiguration inConfig = null)
+        public static Configuration Hps(Options options, Configuration inConfig = null)
         {
             var config = inConfig as HpsConfiguration ?? new HpsConfiguration();
 

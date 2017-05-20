@@ -1,6 +1,6 @@
 ﻿namespace VGAudio.Containers.Hps
 {
-    public class HpsConfiguration : IConfiguration
+    public class HpsConfiguration : Configuration
     {
     }
 }
