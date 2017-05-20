@@ -18,11 +18,11 @@ namespace VGAudio.Formats
 
         public abstract TFormat Build();
 
-        public virtual TBuilder Loop(bool loop, int loopStart, int loopEnd)
+        public virtual TBuilder WithLoop(bool loop, int loopStart, int loopEnd)
         {
             if (!loop)
             {
-                return Loop(false);
+                return WithLoop(false);
             }
 
             if (loopStart < 0 || loopStart > SampleCount)
@@ -47,7 +47,7 @@ namespace VGAudio.Formats
             return this as TBuilder;
         }
 
-        public virtual TBuilder Loop(bool loop)
+        public virtual TBuilder WithLoop(bool loop)
         {
             Looping = loop;
             LoopStart = 0;

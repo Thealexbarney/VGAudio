@@ -81,7 +81,7 @@ namespace VGAudio.Containers.Bxstm
 
             return new GcAdpcmFormatBuilder(channels, structure.SampleRate)
                 .WithTracks(structure.Tracks)
-                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
                 .Build();
         }
 
@@ -90,7 +90,7 @@ namespace VGAudio.Containers.Bxstm
             short[][] channels = structure.AudioData.Select(x => x.ToShortArray(structure.Endianness)).ToArray();
             return new Pcm16Format.Builder(channels, structure.SampleRate)
                 .WithTracks(structure.Tracks)
-                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
                 .Build();
         }
 
@@ -98,7 +98,7 @@ namespace VGAudio.Containers.Bxstm
         {
             return new Pcm8Format.Builder(structure.AudioData, structure.SampleRate, true)
                 .WithTracks(structure.Tracks)
-                .Loop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
                 .Build() as Pcm8SignedFormat;
         }
 

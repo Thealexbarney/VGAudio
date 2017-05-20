@@ -68,11 +68,11 @@ namespace VGAudio.Containers
             {
                 case 16:
                     return new Pcm16Format.Builder(structure.AudioData16, structure.SampleRate)
-                        .Loop(structure.Looping, structure.LoopStart, structure.LoopEnd)
+                        .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
                         .Build();
                 case 8:
                     return new Pcm8Format.Builder(structure.AudioData8, structure.SampleRate)
-                        .Loop(structure.Looping, structure.LoopStart, structure.LoopEnd)
+                        .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
                         .Build();
                 default:
                     return null;

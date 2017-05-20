@@ -25,7 +25,7 @@ namespace VGAudio.Formats
             }
 
             return new Pcm16Format.Builder(channels, SampleRate)
-                .Loop(Looping, LoopStart, LoopEnd)
+                .WithLoop(Looping, LoopStart, LoopEnd)
                 .WithTracks(Tracks)
                 .Build();
         }
@@ -40,7 +40,7 @@ namespace VGAudio.Formats
             }
 
             return new Builder(channels, pcm16.SampleRate, Signed)
-                .Loop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
+                .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
                 .WithTracks(pcm16.Tracks)
                 .Build();
         }

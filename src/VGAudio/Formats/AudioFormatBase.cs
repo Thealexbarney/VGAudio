@@ -51,9 +51,9 @@ namespace VGAudio.Formats
 
         protected abstract TFormat GetChannelsInternal(int[] channelRange);
 
-        public virtual TFormat WithLoop(bool loop) => GetCloneBuilder().Loop(loop).Build();
+        public virtual TFormat WithLoop(bool loop) => GetCloneBuilder().WithLoop(loop).Build();
         public virtual TFormat WithLoop(bool loop, int loopStart, int loopEnd) =>
-            GetCloneBuilder().Loop(loop, loopStart, loopEnd).Build();
+            GetCloneBuilder().WithLoop(loop, loopStart, loopEnd).Build();
 
         public bool TryAdd(IAudioFormat format, out IAudioFormat result)
         {

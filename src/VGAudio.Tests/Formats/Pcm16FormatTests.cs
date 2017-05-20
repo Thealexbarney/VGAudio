@@ -10,7 +10,7 @@ namespace VGAudio.Tests.Formats
         public void FormatCreationWorksProperly()
         {
             short[][] channels = GetChannels(100, 2);
-            Pcm16Format pcm = Pcm16Format.GetBuilder(channels, 32000).Loop(true, 10, 80).Build();
+            Pcm16Format pcm = Pcm16Format.GetBuilder(channels, 32000).WithLoop(true, 10, 80).Build();
             Assert.Equal(channels, pcm.Channels);
             Assert.True(pcm.Looping);
             Assert.Equal(10, pcm.LoopStart);

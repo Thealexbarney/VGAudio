@@ -52,7 +52,7 @@ namespace VGAudio.Containers
             }
 
             return new GcAdpcmFormatBuilder(channels, structure.SampleRate)
-                .Loop(structure.Looping, structure.LoopStart, structure.LoopEnd)
+                .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
                 .Build();
         }
 
