@@ -6,7 +6,7 @@
 
     <AssemblyName>VGAudioCli</AssemblyName>
     <AssemblyTitle>VGAudio.Cli</AssemblyTitle>
-    <VersionPrefix>2.0.0-beta2</VersionPrefix>
+    <VersionPrefix>2.0.0-beta3</VersionPrefix>
     <Copyright>Copyright © 2016 Alex Barney</Copyright>
   </PropertyGroup>
 
