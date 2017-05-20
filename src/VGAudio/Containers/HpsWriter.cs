@@ -90,7 +90,7 @@ namespace VGAudio.Containers
         private void WriteBlock(BinaryWriter writer, BlockInfo block)
         {
             writer.Write(block.WrittenSize);
-            writer.Write(block.ChannelSize * 2 - 1);
+            writer.Write(block.EndNibble);
             writer.Write(block.NextOffset);
 
             for (int i = 0; i < ChannelCount; i++)
@@ -110,37 +110,37 @@ namespace VGAudio.Containers
             }
         }
 
-        private BlockInfo[] CreateBlockMap(int sampleCount, bool loops, int loopStart, int channelCount, int maxBlockSize)
+        private BlockInfo[] CreateBlockMap(int sampleCount, bool loops, int loopStart, int channelCount, int maxBlockSizeBytes)
         {
-            int byteCount = SampleCountToByteCount(sampleCount);
-            int maxChannelBlockSize = maxBlockSize / channelCount;
-            int blockCount = byteCount.DivideByRoundUp(maxChannelBlockSize);
-            int loopBlock = loops ? SampleCountToByteCount(loopStart) / maxChannelBlockSize : blockCount - 1;
+            int nibbleCount = SampleCountToNibbleCount(sampleCount);
+            int maxChannelBlockSize = maxBlockSizeBytes / channelCount * 2;
+            int blockCount = nibbleCount.DivideByRoundUp(maxChannelBlockSize);
+            int loopBlock = loops ? SampleToNibble(loopStart) / maxChannelBlockSize : blockCount - 1;
 
-            if (!LoopPointsAreAligned(loopStart, NibbleCountToSampleCount(maxChannelBlockSize * 2)))
+            if (!LoopPointsAreAligned(loopStart, NibbleCountToSampleCount(maxChannelBlockSize)))
             {
                 return new BlockInfo[0];
             }
 
             var blocks = new BlockInfo[blockCount];
 
-            int currentByte = 0;
+            int currentNibble = 0;
             int currentBlock = 0;
 
             while (currentBlock < loopBlock)
             {
-                blocks[currentBlock++] = new BlockInfo(currentByte, maxChannelBlockSize, channelCount);
-                currentByte += maxChannelBlockSize;
+                blocks[currentBlock++] = new BlockInfo(currentNibble, maxChannelBlockSize, channelCount);
+                currentNibble += maxChannelBlockSize;
             }
 
-            while (currentByte < byteCount)
+            while (currentNibble < nibbleCount)
             {
                 int blocksRemaining = blockCount - currentBlock;
-                int bytesRemaining = byteCount - currentByte;
-                int channelBlockSize = Math.Min(bytesRemaining, GetNextMultiple(bytesRemaining.DivideByRoundUp(blocksRemaining), 0x20));
+                int nibblesRemaining = nibbleCount - currentNibble;
+                int channelBlockSize = Math.Min(nibblesRemaining, GetNextMultiple(nibblesRemaining.DivideByRoundUp(blocksRemaining), 0x40));
 
-                blocks[currentBlock++] = new BlockInfo(currentByte, channelBlockSize, channelCount);
-                currentByte += channelBlockSize;
+                blocks[currentBlock++] = new BlockInfo(currentNibble, channelBlockSize, channelCount);
+                currentNibble += channelBlockSize;
             }
 
             blocks[0].Offset = HeaderSize;
@@ -160,13 +160,14 @@ namespace VGAudio.Containers
 
         private class BlockInfo
         {
-            public BlockInfo(int currentByte, int channelSize, int channelCount)
+            public BlockInfo(int currentNibble, int channelSizeNibbles, int channelCount)
             {
                 // Add 2 to account for the predictor and scale nibbles that don't count as samples;
-                StartSample = NibbleToSample(currentByte * 2 + 2);
-                ByteInIndex = currentByte;
-                ChannelSize = channelSize;
-                WrittenSize = GetNextMultiple(channelSize, 0x20) * channelCount;
+                StartSample = NibbleToSample(currentNibble + 2);
+                ByteInIndex = currentNibble / 2;
+                EndNibble = channelSizeNibbles - 1;
+                ChannelSize = channelSizeNibbles.DivideBy2RoundUp();
+                WrittenSize = GetNextMultiple(ChannelSize, 0x20) * channelCount;
                 TotalSize = GetNextMultiple(4 + 8 * channelCount, 0x20) + WrittenSize;
             }
 
@@ -177,6 +178,7 @@ namespace VGAudio.Containers
             public int TotalSize;
             public int WrittenSize;
             public int ChannelSize;
+            public int EndNibble;
         }
     }
 }
