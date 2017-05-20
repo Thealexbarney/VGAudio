@@ -105,7 +105,7 @@ namespace VGAudio.Containers
 
             for (int i = 0; i < ChannelCount; i++)
             {
-                writer.Write(Adpcm.Channels[i].Adpcm, block.ByteInIndex, block.ChannelSize);
+                writer.Write(Adpcm.Channels[i].GetAdpcmAudio(), block.ByteInIndex, block.ChannelSize);
                 writer.BaseStream.Position = GetNextMultiple((int)writer.BaseStream.Position, 0x20);
             }
         }

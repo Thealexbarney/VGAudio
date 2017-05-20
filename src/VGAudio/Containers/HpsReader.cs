@@ -24,7 +24,7 @@ namespace VGAudio.Containers
                 var structure = new HpsStructure();
 
                 ReadHeader(reader, structure);
-                MoveToNextMultiple(reader, 0x20);
+                stream.Position = GetNextMultiple(Math.Max(0x80, (int)stream.Position), 0x20);
                 ReadData(reader, structure);
                 VerifyData(structure);
 
