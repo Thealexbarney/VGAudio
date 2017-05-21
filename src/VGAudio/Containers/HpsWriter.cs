@@ -17,6 +17,7 @@ namespace VGAudio.Containers
 
         protected override int FileSize => HeaderSize + BlockMap.Sum(x => x.TotalSize);
         private readonly int MaxBlockSize = 0x10000;
+        private int MaxBlockSizeActual { get; set; }
         private int HeaderSize => GetNextMultiple(Math.Max(0x80, 0x10 + 0x38 * ChannelCount), 0x20);
 
         private int ChannelCount => Adpcm.ChannelCount;
@@ -25,7 +26,9 @@ namespace VGAudio.Containers
         protected override void SetupWriter(AudioData audio)
         {
             Adpcm = audio.GetFormat<GcAdpcmFormat>();
-            int alignment = NibbleCountToSampleCount(MaxBlockSize / ChannelCount * 2);
+            int channelSize = GetNextMultiple(MaxBlockSize / ChannelCount - 0x20, 0x20);
+            MaxBlockSizeActual = channelSize * ChannelCount;
+            int alignment = NibbleCountToSampleCount(channelSize * 2);
             if (!LoopPointsAreAligned(Adpcm.LoopStart, alignment))
             {
                 Adpcm = Adpcm.GetCloneBuilder().WithAlignment(alignment).Build();
@@ -40,7 +43,7 @@ namespace VGAudio.Containers
                 Adpcm.Channels[i] = builder.Build();
             });
 
-            BlockMap = CreateBlockMap(Adpcm.SampleCount, Adpcm.Looping, Adpcm.LoopStart, Adpcm.ChannelCount, MaxBlockSize);
+            BlockMap = CreateBlockMap(Adpcm.SampleCount, Adpcm.Looping, Adpcm.LoopStart, Adpcm.ChannelCount, MaxBlockSizeActual);
         }
 
         protected override void WriteStream(Stream stream)
