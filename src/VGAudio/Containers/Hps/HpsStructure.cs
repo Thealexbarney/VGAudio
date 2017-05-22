@@ -9,7 +9,7 @@ namespace VGAudio.Containers.Hps
         public bool Looping { get; set; }
         public int LoopStart { get; set; }
         public int SampleCount { get; set; }
-        public List<HpsChannelInfo> ChannelInfo { get; } = new List<HpsChannelInfo>();
+        public List<HpsChannelInfo> Channels { get; } = new List<HpsChannelInfo>();
         public List<HpsBlock> Blocks { get; } = new List<HpsBlock>();
     }
 }

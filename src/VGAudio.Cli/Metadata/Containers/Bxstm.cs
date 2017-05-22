@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using VGAudio.Containers.Bxstm;
@@ -19,7 +20,7 @@ namespace VGAudio.Cli.Metadata.Containers
                 SampleCount = bxstm.SampleCount,
                 SampleRate = bxstm.SampleRate,
                 ChannelCount = bxstm.ChannelCount,
-                Format = Common.FromBxstm(bxstm.Codec),
+                Format = FromBxstm(bxstm.Codec),
                 Looping = bxstm.Looping,
                 LoopStart = bxstm.LoopStart,
                 LoopEnd = bxstm.SampleCount
@@ -46,7 +47,7 @@ namespace VGAudio.Cli.Metadata.Containers
             builder.AppendLine();
 
             builder.AppendLine($"Samples per seek table entry: {bxstm.SamplesPerSeekTableEntry}");
-            
+
             for (int i = 0; i < bxstm.Tracks.Count; i++)
             {
                 builder.AppendLine();
@@ -66,6 +67,21 @@ namespace VGAudio.Cli.Metadata.Containers
             builder.AppendLine($"Right channel ID: {track.ChannelRight}");
             builder.AppendLine($"Volume: 0x{track.Volume:X2}");
             builder.AppendLine($"Panning: 0x{track.Panning:X2}");
+        }
+
+        public static AudioFormat FromBxstm(BxstmCodec codec)
+        {
+            switch (codec)
+            {
+                case BxstmCodec.Pcm8Bit:
+                    return AudioFormat.Pcm8;
+                case BxstmCodec.Pcm16Bit:
+                    return AudioFormat.Pcm16;
+                case BxstmCodec.Adpcm:
+                    return AudioFormat.GcAdpcm;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(codec), codec, null);
+            }
         }
     }
 }

@@ -60,6 +60,7 @@ namespace VGAudio.Cli.Metadata
             [FileType.Brstm] = new Brstm(),
             [FileType.Bcstm] = new Bcstm(),
             [FileType.Bfstm] = new Bfstm(),
+            [FileType.Hps] = new Hps(),
             [FileType.Genh] = new Genh()
         };
 

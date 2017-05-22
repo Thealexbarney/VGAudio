@@ -49,16 +49,16 @@ namespace VGAudio.Containers
                     currentPosition += source.Length;
                 }
 
-                var channelBuilder = new GcAdpcmChannelBuilder(audio, structure.ChannelInfo[c].Coefs, structure.ChannelInfo[c].SampleCount)
+                var channelBuilder = new GcAdpcmChannelBuilder(audio, structure.Channels[c].Coefs, structure.Channels[c].SampleCount)
                 {
-                    Gain = structure.ChannelInfo[c].Gain,
-                    Hist1 = structure.ChannelInfo[c].Hist1,
-                    Hist2 = structure.ChannelInfo[c].Hist2
+                    Gain = structure.Channels[c].Gain,
+                    Hist1 = structure.Channels[c].Hist1,
+                    Hist2 = structure.Channels[c].Hist2
                 };
 
                 channelBuilder.WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
-                    .WithLoopContext(structure.LoopStart, structure.ChannelInfo[c].LoopPredScale,
-                        structure.ChannelInfo[c].LoopHist1, structure.ChannelInfo[c].LoopHist2);
+                    .WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
+                        structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
 
                 channels[c] = channelBuilder.Build();
             }
@@ -86,7 +86,7 @@ namespace VGAudio.Containers
                 channel.Hist1 = reader.ReadInt16();
                 channel.Hist2 = reader.ReadInt16();
 
-                structure.ChannelInfo.Add(channel);
+                structure.Channels.Add(channel);
             }
         }
 
@@ -135,8 +135,8 @@ namespace VGAudio.Containers
 
         private static void VerifyData(HpsStructure structure)
         {
-            structure.SampleCount = structure.ChannelInfo.First().SampleCount;
-            if (structure.ChannelInfo.Any(x => x.SampleCount != structure.SampleCount))
+            structure.SampleCount = structure.Channels.First().SampleCount;
+            if (structure.Channels.Any(x => x.SampleCount != structure.SampleCount))
             {
                 throw new InvalidDataException("Channels have differing sample counts");
             }
@@ -154,11 +154,11 @@ namespace VGAudio.Containers
                     structure.Looping = true;
                     structure.LoopStart = GcAdpcmHelpers.NibbleCountToSampleCount(currentNibble);
 
-                    for (int i = 0; i < structure.ChannelInfo.Count; i++)
+                    for (int i = 0; i < structure.Channels.Count; i++)
                     {
-                        structure.ChannelInfo[i].LoopPredScale = block.Channels[i].PredScale;
-                        structure.ChannelInfo[i].LoopHist1 = block.Channels[i].Hist1;
-                        structure.ChannelInfo[i].LoopHist2 = block.Channels[i].Hist2;
+                        structure.Channels[i].LoopPredScale = block.Channels[i].PredScale;
+                        structure.Channels[i].LoopHist1 = block.Channels[i].Hist1;
+                        structure.Channels[i].LoopHist2 = block.Channels[i].Hist2;
                     }
                 }
                 currentNibble += block.FinalNibble + 1;
