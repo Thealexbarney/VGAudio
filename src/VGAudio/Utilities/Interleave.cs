@@ -65,7 +65,10 @@ namespace VGAudio.Utilities
                 for (int i = 0; i < inputCount; i++)
                 {
                     output.Write(inputs[i], interleaveSize * b, bytesToCopy);
-                    output.Position += currentOutputInterleaveSize - bytesToCopy;
+                    if (bytesToCopy < currentOutputInterleaveSize)
+                    {
+                        output.Position += currentOutputInterleaveSize - bytesToCopy;
+                    }
                 }
             }
 
@@ -153,7 +156,10 @@ namespace VGAudio.Utilities
                 for (int o = 0; o < outputCount; o++)
                 {
                     input.Read(outputs[o], interleaveSize * b, bytesToCopy);
-                    input.Position += currentInputInterleaveSize - bytesToCopy;
+                    if (bytesToCopy < currentInputInterleaveSize)
+                    {
+                        input.Position += currentInputInterleaveSize - bytesToCopy;
+                    }
                 }
             }
 
