@@ -33,7 +33,7 @@ namespace VGAudio.Cli
 
         private void ReadFile(AudioFile file)
         {
-            using (var stream = new FileStream(file.Path, FileMode.Open))
+            using (var stream = new FileStream(file.Path, FileMode.Open, FileAccess.Read))
             {
                 ContainerTypes.Containers.TryGetValue(file.Type, out ContainerType type);
 
@@ -50,7 +50,7 @@ namespace VGAudio.Cli
 
         private void WriteFile(string fileName)
         {
-            using (var stream = new FileStream(fileName, FileMode.Create))
+            using (var stream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
             {
                 OutType.GetWriter().WriteToStream(Audio, stream, Configuration);
             }
