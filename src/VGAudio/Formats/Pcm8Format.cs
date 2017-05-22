@@ -75,7 +75,7 @@ namespace VGAudio.Formats
         {
             public byte[][] Channels { get; set; }
             public bool Signed { get; set; }
-            internal override int ChannelCount => Channels.Length;
+            protected internal override int ChannelCount => Channels.Length;
 
             public Builder(byte[][] channels, int sampleRate, bool signed = false)
             {

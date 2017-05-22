@@ -8,13 +8,13 @@ namespace VGAudio.Formats
         where TFormat : AudioFormatBase<TFormat, TBuilder>
         where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>
     {
-        internal abstract int ChannelCount { get; }
-        internal bool Looping { get; set; }
-        internal int LoopStart { get; set; }
-        internal int LoopEnd { get; set; }
-        internal int SampleCount { get; set; }
-        internal int SampleRate { get; set; }
-        internal List<AudioTrack> Tracks { get; set; }
+        protected internal abstract int ChannelCount { get; }
+        protected internal bool Looping { get; set; }
+        protected internal int LoopStart { get; set; }
+        protected internal int LoopEnd { get; set; }
+        protected internal int SampleCount { get; set; }
+        protected internal int SampleRate { get; set; }
+        protected internal List<AudioTrack> Tracks { get; set; }
 
         public abstract TFormat Build();
 

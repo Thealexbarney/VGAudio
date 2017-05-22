@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace VGAudio.Utilities
 {
-    internal static class InterleaveExtensions
+    public static class InterleaveExtensions
     {
         public static T[] Interleave<T>(this T[][] inputs, int interleaveSize, int outputSize = -1)
         {

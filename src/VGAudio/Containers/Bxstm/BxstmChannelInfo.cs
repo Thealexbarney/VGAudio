@@ -9,7 +9,6 @@ namespace VGAudio.Containers.Bxstm
     /// </summary>
     public class BxstmChannelInfo : GcAdpcmChannelInfo
     {
-        internal BxstmChannelInfo() { }
         /// <summary>
         /// The offset of the channel information. 
         /// Used in BRSTM, BCSTM, and BFSTM headers.

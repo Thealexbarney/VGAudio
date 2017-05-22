@@ -3,7 +3,7 @@ using System.Text;
 
 namespace VGAudio.Utilities
 {
-    internal class BinaryWriterBE : BinaryWriter
+    public class BinaryWriterBE : BinaryWriter
     {
         public BinaryWriterBE(Stream input) : base(input) { }
 

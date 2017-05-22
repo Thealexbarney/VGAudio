@@ -88,7 +88,7 @@ namespace VGAudio.Formats
 
             GcAdpcmFormatBuilder copy = GetCloneBuilder();
             copy.Channels = channels.ToArray();
-            copy.Tracks = null;
+            copy = copy.WithTracks(Tracks);
             return copy.Build();
         }
 
@@ -112,7 +112,7 @@ namespace VGAudio.Formats
         {
             var builder = new GcAdpcmFormatBuilder(Channels, SampleRate);
             builder = GetCloneBuilderBase(builder);
-            builder.Tracks = Tracks;
+            builder = builder.WithTracks(Tracks);
             builder.AlignmentMultiple = AlignmentMultiple;
             return builder;
         }

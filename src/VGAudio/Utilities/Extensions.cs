@@ -6,31 +6,8 @@ using System.Text;
 
 namespace VGAudio.Utilities
 {
-    internal static class Extensions
+    public static class Extensions
     {
-        public static IEnumerable<T[]> Batch<T>(this IEnumerable<T> source, int size, bool truncateLastBatch = false)
-        {
-            T[] bucket = new T[size];
-            var count = 0;
-
-            foreach (var item in source)
-            {
-                bucket[count++] = item;
-
-                if (count != size)
-                    continue;
-
-                yield return bucket;
-
-                bucket = new T[size];
-                count = 0;
-            }
-
-            // Return the last bucket with all remaining elements
-            if (count > 0)
-                yield return bucket.Take(truncateLastBatch ? count : size).ToArray();
-        }
-
         public static byte[] ToByteArray(this short[] array, Endianness endianness = Endianness.LittleEndian)
         {
             var output = new byte[array.Length * 2];

@@ -6,8 +6,6 @@
     /// </summary>
     public class GcAdpcmChannelInfo
     {
-        internal GcAdpcmChannelInfo() { }
-
         /// <summary>
         /// The ADPCM coefficients of the channel.
         /// </summary>

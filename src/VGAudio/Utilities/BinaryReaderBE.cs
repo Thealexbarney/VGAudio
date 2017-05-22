@@ -4,7 +4,7 @@ using System.Text;
 
 namespace VGAudio.Utilities
 {
-    internal class BinaryReaderBE : BinaryReader
+    public class BinaryReaderBE : BinaryReader
     {
         public BinaryReaderBE(Stream input) : base(input) { }
 
