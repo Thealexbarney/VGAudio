@@ -1,0 +1,91 @@
+//------------------------------------------------
+//--- 010 Editor v8.0 Binary Template
+//
+//      File: dsp.bt
+//   Authors: Alex Barney
+//   Version: 1.0
+//   Purpose: Parse standard Nintendo DSP audio files
+//  Category: Audio
+// File Mask: *.dsp
+//  ID Bytes: 
+//   History: 
+//   1.0   Initial Release
+//------------------------------------------------
+
+uint GetNextMultiple(uint value, uint multiple) 
+{
+    return ((value + multiple - 1) / multiple) * multiple;
+}
+
+uint DivideBy2RoundUp(uint value)
+{
+    return (value / 2) + (value & 1);
+}
+
+struct DspHeader
+{
+    uint32 SampleCount;
+    uint32 NibbleCount;
+    uint32 SampleRate;
+    uint16 LoopFlag;
+    uint16 AudioFormat;
+    uint32 StartAddress;
+    uint32 EndAddress;
+    uint32 CurrentAddress;
+    uint16 Coefficients[16];
+    uint16 Gain;
+    uint16 InitialPredictorScale <format=hex>;
+    uint16 History1;
+    uint16 History2;
+    uint16 LoopPredictorScale <format=hex>;
+    uint16 LoopHistory1;
+    uint16 LoopHistory2;
+    uint16 ChannelCount;
+    uint16 InterleaveSizeFrames;
+    byte Padding[18];
+};
+
+struct Channel(uint dataLength)
+{
+    byte AudioData[dataLength];
+
+    local uint padding = GetNextMultiple(FTell(), 0x10) - FTell();
+    if(padding > 0)
+    {
+        byte Padding[padding];
+    }
+};
+
+struct Block(uint channelCount, uint interleaveSize)
+{
+    local uint i;
+    for(i = 0; i < channelCount; i++)
+    {
+        Channel channel(interleaveSize);
+    }
+};
+
+BigEndian();
+DspHeader Header;
+
+local uint AudioDataLength = DivideBy2RoundUp(Header.NibbleCount);
+if(Header.ChannelCount <= 1)
+{
+    byte AudioData[AudioDataLength];
+    return;
+}
+
+local uint i;
+for(i = 1; i < Header.ChannelCount; i++)
+{
+    DspHeader Header;
+}
+
+local uint BlockSize;
+local uint InterleaveSize = Header.InterleaveSizeFrames * 8;
+while(AudioDataLength > 0)
+{
+    BlockSize = Min(InterleaveSize, AudioDataLength);
+    Block block(Header.ChannelCount, BlockSize);
+    AudioDataLength -= BlockSize;
+} 
