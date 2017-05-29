@@ -117,7 +117,7 @@ namespace VGAudio.Codecs
             int scale = (maxDistance - 1) / 7 + 1;
             if (scale > 0x1000) scale = 0x1000;
             scaleToWrite = scale - 1;
-            
+
             if (exponential)
             {
                 int power = 0;
@@ -134,6 +134,40 @@ namespace VGAudio.Codecs
 
             gain = maxDistance == 0 ? 0 : (double)short.MaxValue / maxDistance;
             return scale;
+        }
+
+        public static void Decrypt(byte[][] adpcm, AdxKey key, int frameSize)
+        {
+            for (int i = 0; i < adpcm.Length; i++)
+            {
+                DecryptChannel(adpcm[i], key, frameSize, i, adpcm.Length);
+            }
+        }
+
+        public static void DecryptChannel(byte[] adpcm, AdxKey key, int frameSize, int channelNum, int channelCount)
+        {
+            int xor = key.Seed;
+            int frameCount = adpcm.Length.DivideByRoundUp(frameSize);
+
+            for (int i = 0; i < channelNum; i++)
+            {
+                xor = (xor * key.Mult + key.Inc) & 0x7fff;
+            }
+
+            for (int i = 0; i < frameCount; i++)
+            {
+                int pos = i * frameSize;
+                if (adpcm[pos] != 0 || adpcm[pos + 1] != 0)
+                {
+                    adpcm[pos] ^= (byte)(xor >> 8);
+                    adpcm[pos + 1] ^= (byte)xor;
+                }
+
+                for (int c = 0; c < channelCount; c++)
+                {
+                    xor = (xor * key.Mult + key.Inc) & 0x7fff;
+                }
+            }
         }
 
         private static int ScaleShortToNibble(int sample)
@@ -169,6 +203,25 @@ namespace VGAudio.Codecs
             if (value < -8)
                 return -8;
             return (sbyte)value;
+        }
+    }
+
+    public class AdxKey
+    {
+        public AdxKey(int seed, int mult, int inc)
+        {
+            Seed = seed;
+            Mult = mult;
+            Inc = inc;
+        }
+
+        public int Seed { get; }
+        public int Mult { get; }
+        public int Inc { get; }
+
+        public override string ToString()
+        {
+            return $"Seed - {Seed:x4} Multiplier - {Mult:x4} Increment - {Inc:x4}";
         }
     }
 }

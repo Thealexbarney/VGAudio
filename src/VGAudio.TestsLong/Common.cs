@@ -18,6 +18,30 @@ namespace VGAudio.TestsLong
             new FileTypeInfo(FileType.Genh, "*.genh", () => new GenhReader(), () => null)
         }.ToDictionary(x => x.Type, x => x);
 
+        public static int[] GetPrimes(int maxPrime)
+        {
+            var sieve = new int[maxPrime];
+
+            for (int i = 2; i < maxPrime; i++)
+            {
+                for (int j = i * i; j < maxPrime; j += i)
+                {
+                    sieve[j] = 1;
+                }
+            }
+
+            var primes = new List<int>();
+            for (int i = 0; i < maxPrime; i++)
+            {
+                if (sieve[i] == 0)
+                {
+                    primes.Add(i);
+                }
+            }
+
+            return primes.ToArray();
+        }
+
         internal static int DiffArrays(byte[] a1, byte[] a2, int bytesToCompare = -1)
         {
             if (a1 == null || a2 == null) return -1;
