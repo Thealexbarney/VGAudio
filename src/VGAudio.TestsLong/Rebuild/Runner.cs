@@ -8,7 +8,7 @@ namespace VGAudio.TestsLong.Rebuild
     {
         public static string Run(FileType fileType, string path)
         {
-            var info = TestsLong.Common.FileTypes[fileType];
+            var info = Common.FileTypes[fileType];
             Result[] results = new Rebuilder(path, info.Extension, info.GetReader, info.GetWriter).Run();
 
             if (results.Length == 0)

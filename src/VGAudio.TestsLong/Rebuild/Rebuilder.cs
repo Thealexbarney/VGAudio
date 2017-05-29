@@ -40,7 +40,7 @@ namespace VGAudio.TestsLong.Rebuild
                         a.RecalculateSeekTable = false;
                     }
                     byte[] outFile = Writer().GetFile(audio.AudioFormat, audio.Configuration);
-                    int diff = Common.ArraysEqual(inFile, outFile);
+                    int diff = Common.DiffArrays(inFile, outFile);
                     Results[i] = new Result(Files[i], diff);
                 }
                 catch

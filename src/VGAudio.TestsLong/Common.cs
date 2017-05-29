@@ -17,5 +17,25 @@ namespace VGAudio.TestsLong
             new FileTypeInfo(FileType.Hps, "*.hps", () => new HpsReader(), () => new HpsWriter()),
             new FileTypeInfo(FileType.Genh, "*.genh", () => new GenhReader(), () => null)
         }.ToDictionary(x => x.Type, x => x);
+
+        internal static int DiffArrays(byte[] a1, byte[] a2, int bytesToCompare = -1)
+        {
+            if (a1 == null || a2 == null) return -1;
+            if (a1 == a2) return -1;
+            if (a1.Length != a2.Length) return -2;
+            if (bytesToCompare < 0 || bytesToCompare > a1.Length)
+                bytesToCompare = a1.Length;
+            int byteCount = 0;
+
+            for (int i = 0; i < bytesToCompare; i++)
+            {
+                if (a1[i] != a2[i])
+                {
+                    byteCount++;
+                }
+            }
+
+            return byteCount;
+        }
     }
 }

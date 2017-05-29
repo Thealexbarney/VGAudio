@@ -63,7 +63,7 @@ namespace VGAudio.Containers
                 structure.HistorySamples = history;
             }
 
-            if (reader.BaseStream.Position + 24 < structure.CopyrightOffset) { return; }
+            if (reader.BaseStream.Position + 24 > structure.CopyrightOffset) { return; }
 
             structure.AlignmentSamples = reader.ReadInt16();
             structure.LoopCount = reader.ReadInt16();
