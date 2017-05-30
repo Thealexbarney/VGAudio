@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VGAudio.TestsLong.CrackAdx
+namespace VGAudio.Tools.CrackAdx
 {
     internal static class Runner
     {

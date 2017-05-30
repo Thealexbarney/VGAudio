@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace VGAudio.TestsLong.Rebuild
+namespace VGAudio.Tools.Rebuild
 {
     [DebuggerDisplay("Diff: {ByteCount}, File: {System.IO.Path.GetFileName(Filename)}")]
     internal class Result

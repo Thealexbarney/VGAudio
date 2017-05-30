@@ -4,7 +4,7 @@ using VGAudio.Containers;
 using VGAudio.Containers.Bxstm;
 using VGAudio.Utilities;
 
-namespace VGAudio.TestsLong.Rebuild
+namespace VGAudio.Tools.Rebuild
 {
     internal class Rebuilder
     {

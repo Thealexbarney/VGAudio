@@ -12,7 +12,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VGAudio.Tests", "VGAudio.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VGAudio.Benchmark", "VGAudio.Benchmark\VGAudio.Benchmark.csproj", "{DFCAF2E7-1B33-4164-A4E1-3C095AB44E69}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.TestsLong", "VGAudio.TestsLong\VGAudio.TestsLong.csproj", "{B97DBEB5-1674-4ACE-A480-E734F86CC762}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudio.Tools", "VGAudio.Tools\VGAudio.Tools.csproj", "{B97DBEB5-1674-4ACE-A480-E734F86CC762}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VGAudioAdx", "VGAudioAdx\VGAudioAdx.csproj", "{A595C5E4-C24B-4F7A-84A5-938C6D4145AD}"
 EndProject

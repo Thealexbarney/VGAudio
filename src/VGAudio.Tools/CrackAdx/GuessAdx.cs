@@ -10,7 +10,7 @@ using VGAudio.Containers.Adx;
 using VGAudio.Formats;
 using VGAudio.Formats.Adx;
 
-namespace VGAudio.TestsLong.CrackAdx
+namespace VGAudio.Tools.CrackAdx
 {
     public class GuessAdx
     {

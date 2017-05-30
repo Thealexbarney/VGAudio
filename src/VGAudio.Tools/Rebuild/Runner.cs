@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 
-namespace VGAudio.TestsLong.Rebuild
+namespace VGAudio.Tools.Rebuild
 {
     internal static class Runner
     {

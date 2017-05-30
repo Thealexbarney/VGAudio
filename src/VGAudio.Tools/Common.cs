@@ -2,7 +2,7 @@
 using System.Linq;
 using VGAudio.Containers;
 
-namespace VGAudio.TestsLong
+namespace VGAudio.Tools
 {
     internal static class Common
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VGAudio.TestsLong
+namespace VGAudio.Tools
 {
     public static class Program
     {

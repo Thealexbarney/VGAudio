@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VGAudio.TestsLong
+namespace VGAudio.Tools
 {
     internal static class Parse
     {

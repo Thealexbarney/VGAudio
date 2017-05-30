@@ -1,7 +1,7 @@
 ﻿using VGAudio.Codecs;
 using VGAudio.Formats.GcAdpcm;
 
-namespace VGAudio.TestsLong.GcAdpcm
+namespace VGAudio.Tools.GcAdpcm
 {
     public class DspToolVGAudio : IDspTool
     {

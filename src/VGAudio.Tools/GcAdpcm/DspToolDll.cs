@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using VGAudio.Formats.GcAdpcm;
 
-namespace VGAudio.TestsLong.GcAdpcm
+namespace VGAudio.Tools.GcAdpcm
 {
     public class DspToolDll : IDspTool
     {
