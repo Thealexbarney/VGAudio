@@ -8,42 +8,61 @@ using VGAudio.Codecs;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
 using VGAudio.Formats;
-using VGAudio.Formats.Adx;
 
 namespace VGAudio.Tools.CrackAdx
 {
     public class GuessAdx
     {
         public List<AdxFile> Files { get; } = new List<AdxFile>();
-        public List<ushort> StartScales { get; } = new List<ushort>();
         public ConcurrentDictionary<AdxKey, int> TriedKeys { get; } = new ConcurrentDictionary<AdxKey, int>(new AdxKeyComparer());
         public List<AdxKey> Keys { get; } = new List<AdxKey>();
-        public int[] Primes { get; }
+        public int EncryptionType { get; }
+        public int[] PossibleValues { get; }
+        public int XorMask { get; } = 0x7fff;
+        public int ValidationMask { get; }
+        public int MaxSeed { get; }
+
 
         public GuessAdx(string directory)
         {
-            LoadFiles(directory);
-            Primes = Common.GetPrimes(0x8000);
+            EncryptionType = LoadFiles(directory);
+
+            switch (EncryptionType)
+            {
+                case 8:
+                    PossibleValues = Common.GetPrimes(0x8000);
+                    ValidationMask = 0xE000;
+                    MaxSeed = 0x8000;
+                    break;
+                case 9:
+                    PossibleValues = Enumerable.Range(0, 0x2000).ToArray();
+                    ValidationMask = 0x1000;
+                    MaxSeed = 0x2000;
+                    break;
+            }
         }
 
-        public void LoadFiles(string directory)
+        private int LoadFiles(string directory)
         {
             string[] files = Directory.GetFiles(directory, "*.adx");
 
+            int type = 0;
             foreach (string file in files)
             {
                 using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read))
                 {
                     var adx = new AdxReader().ReadMetadata(stream);
-                    var audioDataLength = adx.SampleCount / CriAdxHelpers.NibbleCountToSampleCount(adx.FrameSize * 2, adx.FrameSize) * adx.FrameSize * adx.ChannelCount;
-                    var audioData = new byte[audioDataLength];
+                    if (type == 0) type = adx.Flags;
+                    if (adx.Flags != type) continue;
+
+                    var audioData = new byte[adx.AudioDataLength];
                     stream.Position = adx.CopyrightOffset + 4;
-                    stream.Read(audioData, 0, audioDataLength);
+                    stream.Read(audioData, 0, adx.AudioDataLength);
                     Files.Add(new AdxFile(adx, audioData, file));
                 }
             }
 
-            StartScales.AddRange(Files.Where(x => x.StartFrame == 0).Select(x => x.Scales[0]).OrderBy(x => x));
+            return type;
         }
 
         public void Run()
@@ -78,33 +97,34 @@ namespace VGAudio.Tools.CrackAdx
             var confidenceFull = 1 - diffs.Average(x => x.Item2);
 
             Keys.Add(key);
-            Console.WriteLine($"{key} Confidence Short - {confidenceSmall:P3} Full - {confidenceFull:P5}");
+            Console.WriteLine($"{key} Confidence Short - {confidenceSmall:P3} Full - {confidenceFull:P3}");
         }
 
         public void TryIndex(AdxFile adx, int index)
         {
-            int seed = adx.Scales[adx.StartFrame] ^ index;
+            int seed = (adx.Scales[adx.StartFrame] ^ index) & MaxSeed - 1;
 
-            foreach (int mult in Primes)
+            foreach (int mult in PossibleValues)
             {
-                foreach (var inc in Primes)
+                foreach (var inc in PossibleValues)
                 {
                     int xor = seed;
                     bool match = true;
                     for (int i = adx.StartFrame; i < adx.Scales.Length; i++)
                     {
                         ushort scale = adx.Scales[i];
-                        if (((scale ^ xor) & 0xE000) != 0 && scale != 0)
+                        if (((scale ^ xor) & ValidationMask) != 0 && scale != 0)
                         {
                             match = false;
                             break;
                         }
-                        xor = (xor * mult + inc) & 0x7fff;
+                        xor = (xor * mult + inc) & XorMask;
                     }
 
                     if (match)
                     {
-                        AddKey(GetKey(seed, mult, inc, adx.StartFrame));
+                        var key = GetKey(seed, mult, inc, adx.StartFrame);
+                        if (key != null) AddKey(key);
                     }
                 }
             }
@@ -117,13 +137,13 @@ namespace VGAudio.Tools.CrackAdx
                 return new AdxKey(seed, mult, inc);
             }
 
-            for (int realSeed = 0; realSeed < 0x8000; realSeed++)
+            for (int realSeed = 0; realSeed < MaxSeed; realSeed++)
             {
                 int xor = realSeed;
 
                 for (int i = 0; i < startFrame; i++)
                 {
-                    xor = (xor * mult + inc) & 0x7fff;
+                    xor = (xor * mult + inc) & XorMask;
                 }
 
                 if (xor == seed)
@@ -133,7 +153,7 @@ namespace VGAudio.Tools.CrackAdx
             }
 
             // No key found
-            return new AdxKey(seed, mult, inc);
+            return null;
         }
 
         public bool TryKey(AdxKey key, ushort[] scales)
@@ -141,11 +161,11 @@ namespace VGAudio.Tools.CrackAdx
             int xor = key.Seed;
             foreach (ushort scale in scales)
             {
-                if (((scale ^ xor) & 0xe000) != 0 && scale != 0)
+                if (((scale ^ xor) & ValidationMask) != 0 && scale != 0)
                 {
                     return false;
                 }
-                xor = (xor * key.Mult + key.Inc) & 0x7fff;
+                xor = (xor * key.Mult + key.Inc) & XorMask;
             }
             return true;
         }
@@ -184,12 +204,10 @@ namespace VGAudio.Tools.CrackAdx
         public int FrameSize { get; }
         public int FrameCount { get; }
         public int StartFrame { get; }
-        public AdxStructure Metadata { get; }
         public string Filename { get; }
 
         public AdxFile(AdxStructure metadata, byte[] audio, string filename)
         {
-            Metadata = metadata;
             Filename = filename;
             FrameSize = metadata.FrameSize;
             FrameCount = audio.Length / FrameSize;
@@ -207,13 +225,6 @@ namespace VGAudio.Tools.CrackAdx
                     break;
             }
         }
-    }
-
-    public class AdxKeyConfidence
-    {
-        public double Small { get; set; }
-        public double Medium { get; set; }
-        public double All { get; set; }
     }
 
     public sealed class AdxKeyComparer : IEqualityComparer<AdxKey>

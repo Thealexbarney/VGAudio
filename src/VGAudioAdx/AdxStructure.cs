@@ -1,4 +1,7 @@
-﻿// ReSharper disable once CheckNamespace
+﻿using VGAudio.Formats.Adx;
+using VGAudio.Utilities;
+
+// ReSharper disable once CheckNamespace
 namespace VGAudio.Containers.Adx
 {
     public class AdxStructure
@@ -6,6 +9,7 @@ namespace VGAudio.Containers.Adx
         public short CopyrightOffset { get; set; }
         public AdxType EncodingType { get; set; }
         public byte FrameSize { get; set; }
+        public int SamplesPerFrame => CriAdxHelpers.NibbleCountToSampleCount(FrameSize * 2, FrameSize);
         public byte BitDepth { get; set; }
         public byte ChannelCount { get; set; }
         public int SampleRate { get; set; }
@@ -21,6 +25,7 @@ namespace VGAudio.Containers.Adx
         public int LoopEndSample { get; set; }
         public int LoopEndByte { get; set; }
         public short[][] HistorySamples { get; set; }
+        public int AudioDataLength => SampleCount.DivideByRoundUp(SamplesPerFrame) * FrameSize * ChannelCount;
         public byte[][] AudioData { get; set; }
     }
 }

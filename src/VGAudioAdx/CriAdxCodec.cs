@@ -160,6 +160,7 @@ namespace VGAudio.Codecs
                 if (adpcm[pos] != 0 || adpcm[pos + 1] != 0)
                 {
                     adpcm[pos] ^= (byte)(xor >> 8);
+                    adpcm[pos] &= 0x1f;
                     adpcm[pos + 1] ^= (byte)xor;
                 }
 
@@ -215,9 +216,28 @@ namespace VGAudio.Codecs
             Inc = inc;
         }
 
+        public AdxKey(ulong keyCode)
+        {
+            keyCode--;
+            Seed = (int)((keyCode >> 27) & 0x7fff);
+            Mult = (int)(4 * ((keyCode >> 14) & 0x1FFF) | 1);
+            Inc = (int)(2 * (keyCode & 0x3FFF) | 1);
+        }
+
         public int Seed { get; }
         public int Mult { get; }
         public int Inc { get; }
+
+        public ulong KeyCode
+        {
+            get
+            {
+                long seed = Seed << 27;
+                long mult = Mult / 4 << 14;
+                long inc = Inc / 2;
+                return (ulong)(seed | mult | inc) + 1;
+            }
+        }
 
         public override string ToString()
         {
