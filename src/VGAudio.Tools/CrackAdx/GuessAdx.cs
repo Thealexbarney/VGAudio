@@ -15,12 +15,12 @@ namespace VGAudio.Tools.CrackAdx
     {
         public List<AdxFile> Files { get; } = new List<AdxFile>();
         public ConcurrentDictionary<AdxKey, int> TriedKeys { get; } = new ConcurrentDictionary<AdxKey, int>(new AdxKeyComparer());
-        public List<AdxKey> Keys { get; } = new List<AdxKey>();
+        public ConcurrentBag<AdxKey> Keys { get; } = new ConcurrentBag<AdxKey>();
         public int EncryptionType { get; }
-        public int[] PossibleValues { get; }
-        public int XorMask { get; } = 0x7fff;
-        public int ValidationMask { get; }
-        public int MaxSeed { get; }
+        private int[] PossibleValues { get; }
+        private int XorMask { get; } = 0x7fff;
+        private int ValidationMask { get; }
+        private int MaxSeed { get; }
 
 
         public GuessAdx(string directory)
@@ -69,10 +69,10 @@ namespace VGAudio.Tools.CrackAdx
         {
             for (int i = 0; i < 0x1000; i++)
             {
-                int index = i;
+                int scale = i;
                 Parallel.ForEach(Files, adx =>
                 {
-                    TryIndex(adx, index);
+                    TryScale(adx, scale);
                 });
                 Console.WriteLine(i);
             }
@@ -82,25 +82,27 @@ namespace VGAudio.Tools.CrackAdx
         {
             if (!TriedKeys.TryAdd(key, 0)) return;
 
-            Console.WriteLine($"Trying key {key}");
+            Console.WriteLine($"Trying key {PrintKey(key)}");
 
-            if (Files.Any(stream => !TryKey(key, stream.Scales)))
+            if (Files.Any(stream => !KeyIsValid(key, stream.Scales)))
             {
-                Console.WriteLine($"Key {key} is invalid");
+                Console.WriteLine($"Key {PrintKey(key)} is invalid");
                 return;
             }
 
-            Console.WriteLine($"Key {key} is valid. Calculating confidence...");
-            var diffs = Files.AsParallel().SelectMany(file => Reencode(key, file.Filename));
+            Console.WriteLine($"Key {PrintKey(key)} is valid. Calculating confidence...");
+            var confidences = Files.AsParallel().Select(file => GetReencodeConfidence(key, file.Filename)).ToList();
 
-            var confidenceSmall = 1 - diffs.Average(x => x.Item1);
-            var confidenceFull = 1 - diffs.Average(x => x.Item2);
+            double confidenceSmall = 1 - (double)confidences.Sum(x => x.IdenticalBytesShort) / confidences.Sum(x => x.TotalBytesShort);
+            double confidenceFull = 1 - (double)confidences.Sum(x => x.IdenticalBytesFull) / confidences.Sum(x => x.TotalBytesFull);
 
             Keys.Add(key);
-            Console.WriteLine($"{key} Confidence Short - {confidenceSmall:P3} Full - {confidenceFull:P3}");
+            Console.WriteLine($"{PrintKey(key)} Confidence Short - {confidenceSmall:P3} Full - {confidenceFull:P3}");
+
+            string PrintKey(AdxKey k) => $"Seed - {k.Seed:x4} Multiplier - {k.Mult:x4} Increment - {k.Inc:x4}";
         }
 
-        public void TryIndex(AdxFile adx, int index)
+        public void TryScale(AdxFile adx, int index)
         {
             int seed = (adx.Scales[adx.StartFrame] ^ index) & MaxSeed - 1;
 
@@ -123,14 +125,14 @@ namespace VGAudio.Tools.CrackAdx
 
                     if (match)
                     {
-                        var key = GetKey(seed, mult, inc, adx.StartFrame);
+                        var key = FindStartingKey(seed, mult, inc, adx.StartFrame);
                         if (key != null) AddKey(key);
                     }
                 }
             }
         }
 
-        public AdxKey GetKey(int seed, int mult, int inc, int startFrame)
+        public AdxKey FindStartingKey(int seed, int mult, int inc, int startFrame)
         {
             if (startFrame == 0)
             {
@@ -156,7 +158,7 @@ namespace VGAudio.Tools.CrackAdx
             return null;
         }
 
-        public bool TryKey(AdxKey key, ushort[] scales)
+        public bool KeyIsValid(AdxKey key, ushort[] scales)
         {
             int xor = key.Seed;
             foreach (ushort scale in scales)
@@ -170,7 +172,7 @@ namespace VGAudio.Tools.CrackAdx
             return true;
         }
 
-        public List<Tuple<double, double>> Reencode(AdxKey key, string filename)
+        private AdxKeyConfidence GetReencodeConfidence(AdxKey key, string filename)
         {
             CriAdxFormat adx;
             using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
@@ -182,19 +184,28 @@ namespace VGAudio.Tools.CrackAdx
             Pcm16Format pcm = adx.ToPcm16();
             CriAdxFormat adx2 = new CriAdxFormat().EncodeFromPcm16(pcm);
 
-            var diffs = new List<Tuple<double, double>>();
+            var confidence = new AdxKeyConfidence();
 
             int toCompareFull = adx.Channels[0].Length;
-            int toCompareSmall = Math.Min(adx.FrameSize * 100, toCompareFull);
+            int toCompareShort = Math.Min(adx.FrameSize * 100, toCompareFull);
 
             for (int i = 0; i < adx.ChannelCount; i++)
             {
-                var smallDiff = (double)Common.DiffArrays(adx.Channels[i], adx2.Channels[i], toCompareSmall) / toCompareSmall;
-                var fullDiff = (double)Common.DiffArrays(adx.Channels[i], adx2.Channels[i], toCompareFull) / toCompareFull;
-                diffs.Add(new Tuple<double, double>(smallDiff, fullDiff));
+                confidence.TotalBytesFull += toCompareFull;
+                confidence.TotalBytesShort += toCompareShort;
+                confidence.IdenticalBytesFull += Common.DiffArrays(adx.Channels[i], adx2.Channels[i], toCompareFull);
+                confidence.IdenticalBytesShort += Common.DiffArrays(adx.Channels[i], adx2.Channels[i], toCompareShort);
             }
 
-            return diffs;
+            return confidence;
+        }
+
+        private class AdxKeyConfidence
+        {
+            public int TotalBytesFull { get; set; }
+            public int IdenticalBytesFull { get; set; }
+            public int TotalBytesShort { get; set; }
+            public int IdenticalBytesShort { get; set; }
         }
     }
 

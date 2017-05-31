@@ -238,10 +238,5 @@ namespace VGAudio.Codecs
                 return (ulong)(seed | mult | inc) + 1;
             }
         }
-
-        public override string ToString()
-        {
-            return $"Seed - {Seed:x4} Multiplier - {Mult:x4} Increment - {Inc:x4}";
-        }
     }
 }
