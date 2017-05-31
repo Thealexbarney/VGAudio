@@ -17,7 +17,8 @@ namespace VGAudio.Tools.CrackAdx
         public ConcurrentDictionary<AdxKey, int> TriedKeys { get; } = new ConcurrentDictionary<AdxKey, int>(new AdxKeyComparer());
         public ConcurrentBag<AdxKey> Keys { get; } = new ConcurrentBag<AdxKey>();
         public int EncryptionType { get; }
-        private int[] PossibleValues { get; }
+        private int[] PossibleMultipliers { get; }
+        private int[] PossibleIncrements { get; }
         private int XorMask { get; } = 0x7fff;
         private int ValidationMask { get; }
         private int MaxSeed { get; }
@@ -30,12 +31,14 @@ namespace VGAudio.Tools.CrackAdx
             switch (EncryptionType)
             {
                 case 8:
-                    PossibleValues = Common.GetPrimes(0x8000);
+                    PossibleMultipliers = Common.GetPrimes(0x8000);
+                    PossibleIncrements = PossibleMultipliers;
                     ValidationMask = 0xE000;
                     MaxSeed = 0x8000;
                     break;
                 case 9:
-                    PossibleValues = Enumerable.Range(0, 0x2000).ToArray();
+                    PossibleMultipliers = Enumerable.Range(0, 0x2000).Where(x => (x & 3) == 1).ToArray();
+                    PossibleIncrements = Enumerable.Range(0, 0x2000).Where(x => (x & 1) == 1).ToArray();
                     ValidationMask = 0x1000;
                     MaxSeed = 0x2000;
                     break;
@@ -90,7 +93,7 @@ namespace VGAudio.Tools.CrackAdx
                 return;
             }
 
-            Console.WriteLine($"Key {PrintKey(key)} is valid. Calculating confidence...");
+            Console.WriteLine($"Key {PrintKey(key)} could be valid. Calculating confidence...");
             var confidences = Files.AsParallel().Select(file => GetReencodeConfidence(key, file.Filename)).ToList();
 
             double confidenceSmall = 1 - (double)confidences.Sum(x => x.IdenticalBytesShort) / confidences.Sum(x => x.TotalBytesShort);
@@ -106,9 +109,9 @@ namespace VGAudio.Tools.CrackAdx
         {
             int seed = (adx.Scales[adx.StartFrame] ^ index) & MaxSeed - 1;
 
-            foreach (int mult in PossibleValues)
+            foreach (int mult in PossibleMultipliers)
             {
-                foreach (var inc in PossibleValues)
+                foreach (var inc in PossibleIncrements)
                 {
                     int xor = seed;
                     bool match = true;
@@ -230,10 +233,13 @@ namespace VGAudio.Tools.CrackAdx
                 Scales[i] = (ushort)(audio[pos] << 8 | audio[pos + 1]);
             }
 
-            for (StartFrame = 0; StartFrame < FrameCount; StartFrame++)
+            for (int i = 0; i < audio.Length; i++)
             {
-                if (Scales[StartFrame] != 0)
+                if (audio[i] != 0)
+                {
+                    StartFrame = i / FrameSize;
                     break;
+                }
             }
         }
     }

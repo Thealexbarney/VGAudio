@@ -219,9 +219,9 @@ namespace VGAudio.Codecs
         public AdxKey(ulong keyCode)
         {
             keyCode--;
-            Seed = (int)((keyCode >> 27) & 0x7fff);
-            Mult = (int)(4 * ((keyCode >> 14) & 0x1FFF) | 1);
-            Inc = (int)(2 * (keyCode & 0x3FFF) | 1);
+            Seed = (int)(keyCode >> 27 & 0x7fff);
+            Mult = (int)(keyCode >> 12 & 0x7ffc | 1);
+            Inc = (int)(keyCode << 1 & 0x7fff | 1);
         }
 
         public int Seed { get; }
@@ -233,8 +233,8 @@ namespace VGAudio.Codecs
             get
             {
                 long seed = Seed << 27;
-                long mult = Mult / 4 << 14;
-                long inc = Inc / 2;
+                long mult = (Mult & 0xfffc) << 12;
+                long inc = Inc >> 1;
                 return (ulong)(seed | mult | inc) + 1;
             }
         }
