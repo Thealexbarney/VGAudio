@@ -190,7 +190,7 @@ namespace VGAudio.Tools.CrackAdx
                 adx = (CriAdxFormat)new AdxReader().ReadFormat(stream);
             }
 
-            CriAdxCodec.Decrypt(adx.Channels, key, adx.FrameSize);
+            CriAdxEncryption.Decrypt(adx.Channels, key, adx.FrameSize);
             Pcm16Format pcm = adx.ToPcm16();
             CriAdxFormat adx2 = new CriAdxFormat().EncodeFromPcm16(pcm);
 

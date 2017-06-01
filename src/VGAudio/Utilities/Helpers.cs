@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -43,5 +44,29 @@ namespace VGAudio.Utilities
             endianness == Endianness.LittleEndian
                 ? new BinaryWriter(stream, Encoding.UTF8, true)
                 : new BinaryWriterBE(stream, Encoding.UTF8, true);
+
+        public static int[] GetPrimes(int maxPrime)
+        {
+            var sieve = new int[maxPrime];
+
+            for (int i = 2; i < maxPrime; i++)
+            {
+                for (int j = i * i; j < maxPrime; j += i)
+                {
+                    sieve[j] = 1;
+                }
+            }
+
+            var primes = new List<int>();
+            for (int i = 0; i < maxPrime; i++)
+            {
+                if (sieve[i] == 0)
+                {
+                    primes.Add(i);
+                }
+            }
+
+            return primes.ToArray();
+        }
     }
 }
