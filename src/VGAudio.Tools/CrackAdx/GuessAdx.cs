@@ -17,12 +17,12 @@ namespace VGAudio.Tools.CrackAdx
         public ConcurrentDictionary<AdxKey, int> TriedKeys { get; } = new ConcurrentDictionary<AdxKey, int>(new AdxKeyComparer());
         public ConcurrentBag<AdxKey> Keys { get; } = new ConcurrentBag<AdxKey>();
         public int EncryptionType { get; }
+        private HashSet<int> PossibleSeeds { get; }
         private int[] PossibleMultipliers { get; }
         private int[] PossibleIncrements { get; }
         private int XorMask { get; } = 0x7fff;
         private int ValidationMask { get; }
         private int MaxSeed { get; }
-
 
         public GuessAdx(string directory)
         {
@@ -31,12 +31,18 @@ namespace VGAudio.Tools.CrackAdx
             switch (EncryptionType)
             {
                 case 8:
-                    PossibleMultipliers = Common.GetPrimes(0x8000);
+                    int[] primes = Common.GetPrimes(0x8000);
+                    int start = ~Array.BinarySearch(primes, 0x4000);
+                    PossibleMultipliers = new int[0x400];
+                    Array.Copy(primes, start, PossibleMultipliers, 0, 0x400);
+
                     PossibleIncrements = PossibleMultipliers;
+                    PossibleSeeds = new HashSet<int>(PossibleMultipliers);
                     ValidationMask = 0xE000;
                     MaxSeed = 0x8000;
                     break;
                 case 9:
+                    PossibleSeeds = new HashSet<int>(Enumerable.Range(0, 0x2000));
                     PossibleMultipliers = Enumerable.Range(0, 0x2000).Where(x => (x & 3) == 1).ToArray();
                     PossibleIncrements = Enumerable.Range(0, 0x2000).Where(x => (x & 1) == 1).ToArray();
                     ValidationMask = 0x1000;
@@ -77,7 +83,7 @@ namespace VGAudio.Tools.CrackAdx
                 {
                     TryScale(adx, scale);
                 });
-                Console.WriteLine(i);
+                Console.Write($"\r{i}");
             }
         }
 
@@ -108,6 +114,7 @@ namespace VGAudio.Tools.CrackAdx
         public void TryScale(AdxFile adx, int index)
         {
             int seed = (adx.Scales[adx.StartFrame] ^ index) & MaxSeed - 1;
+            if (adx.StartFrame == 0 && !PossibleSeeds.Contains(seed)) return;
 
             foreach (int mult in PossibleMultipliers)
             {
@@ -142,7 +149,7 @@ namespace VGAudio.Tools.CrackAdx
                 return new AdxKey(seed, mult, inc);
             }
 
-            for (int realSeed = 0; realSeed < MaxSeed; realSeed++)
+            foreach (var realSeed in PossibleSeeds)
             {
                 int xor = realSeed;
 
@@ -151,7 +158,7 @@ namespace VGAudio.Tools.CrackAdx
                     xor = (xor * mult + inc) & XorMask;
                 }
 
-                if (xor == seed)
+                if ((xor & MaxSeed - 1) == seed)
                 {
                     return new AdxKey(realSeed, mult, inc);
                 }
