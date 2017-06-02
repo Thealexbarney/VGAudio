@@ -1,4 +1,6 @@
-﻿// ReSharper disable once CheckNamespace
+﻿using VGAudio.Utilities;
+
+// ReSharper disable once CheckNamespace
 namespace VGAudio.Formats.Adx
 {
     public static class CriAdxHelpers
@@ -26,5 +28,8 @@ namespace VGAudio.Formats.Adx
 
             return nibblesPerFrame * frames + extraNibbles;
         }
+
+        public static int SampleCountToByteCount(int sampleCount, int frameSize) =>
+            SampleCountToNibbleCount(sampleCount, frameSize).DivideBy2RoundUp();
     }
 }

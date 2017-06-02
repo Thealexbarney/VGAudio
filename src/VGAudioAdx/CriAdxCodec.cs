@@ -45,11 +45,12 @@ namespace VGAudio.Codecs
             return pcm;
         }
 
-        public static byte[] Encode(short[] pcm, int sampleRate, int frameSize, AdxType type = AdxType.Standard, int filter = 2)
+        public static byte[] Encode(short[] pcm, int sampleRate, int frameSize, int padding = 0, AdxType type = AdxType.Standard, int filter = 2)
         {
-            int sampleCount = pcm.Length;
+            int sampleCount = pcm.Length + padding;
             int samplesPerFrame = (frameSize - 2) * 2;
             int frameCount = sampleCount.DivideByRoundUp(samplesPerFrame);
+            int paddingRemaining = padding;
             short[] coefs = type == AdxType.Fixed ? Coefs[filter] : CalculateCoefficients(500, sampleRate);
 
             var pcmBuffer = new short[samplesPerFrame + 2];
@@ -59,8 +60,19 @@ namespace VGAudio.Codecs
             for (int i = 0; i < frameCount; i++)
             {
                 int samplesToCopy = Math.Min(sampleCount - i * samplesPerFrame, samplesPerFrame);
-                Array.Copy(pcm, i * samplesPerFrame, pcmBuffer, 2, samplesToCopy);
-                Array.Clear(pcmBuffer, 2 + samplesToCopy, samplesPerFrame - samplesToCopy);
+                int pcmBufferStart = 2;
+                if (paddingRemaining != 0)
+                {
+                    while (paddingRemaining > 0 && samplesToCopy > 0)
+                    {
+                        paddingRemaining--;
+                        samplesToCopy--;
+                        pcmBufferStart++;
+                    }
+                    if (samplesToCopy == 0) continue;
+                }
+                Array.Copy(pcm, Math.Max(i * samplesPerFrame - padding, 0), pcmBuffer, pcmBufferStart, samplesToCopy);
+                Array.Clear(pcmBuffer, pcmBufferStart + samplesToCopy, samplesPerFrame - samplesToCopy - pcmBufferStart + 2);
 
                 EncodeFrame(pcmBuffer, adpcmBuffer, coefs, samplesPerFrame, type);
 

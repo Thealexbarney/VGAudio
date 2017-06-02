@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq.Expressions;
 using VGAudio.Utilities;
 
 // ReSharper disable once CheckNamespace

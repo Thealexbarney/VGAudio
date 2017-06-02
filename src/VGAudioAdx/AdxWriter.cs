@@ -2,6 +2,7 @@
 using VGAudio.Containers.Adx;
 using VGAudio.Formats;
 using VGAudio.Utilities;
+using static VGAudio.Formats.Adx.CriAdxHelpers;
 using static VGAudio.Utilities.Helpers;
 
 // ReSharper disable once CheckNamespace
@@ -11,7 +12,6 @@ namespace VGAudio.Containers
     {
         private CriAdxFormat Adpcm { get; set; }
 
-        private const int CopyrightOffset = 0x40;
         private const ushort AdxHeaderSignature = 0x8000;
         private const ushort AdxFooterSignature = 0x8001;
         protected override int FileSize => CopyrightOffset + 4 + FrameSize * FrameCount * ChannelCount + FooterSize;
@@ -20,12 +20,25 @@ namespace VGAudio.Containers
         private int ChannelCount => Adpcm.ChannelCount;
         private int SamplesPerFrame => (FrameSize - 2) * 2;
         private int FrameSize => Adpcm.FrameSize;
-        private int FooterSize => Adpcm.FrameSize;
         private int FrameCount => SampleCount.DivideByRoundUp(SamplesPerFrame);
+        private int HeaderSize => Adpcm.Looping ? 60 : 36;
+        private int FooterSize => Adpcm.FrameSize;
+        private int AlignmentBytes { get; set; }
+        private int CopyrightOffset => AlignmentBytes + HeaderSize;
+        private int LoopStartOffset => SampleCountToByteCount(Adpcm.LoopStart, FrameSize) * ChannelCount + CopyrightOffset + 4;
+        private int LoopEndOffset => GetNextMultiple(SampleCountToByteCount(Adpcm.LoopEnd, FrameSize), FrameSize) * ChannelCount + CopyrightOffset + 4;
+        private int Version => Configuration.Version;
 
         protected override void SetupWriter(AudioData audio)
         {
             Adpcm = audio.GetFormat<CriAdxFormat>();
+            CalculateAlignmentBytes();
+        }
+
+        private void CalculateAlignmentBytes()
+        {
+            int startLoopOffset = SampleCountToByteCount(Adpcm.LoopStart, FrameSize) * ChannelCount + HeaderSize + 4;
+            AlignmentBytes = GetNextMultiple(startLoopOffset, 0x800) - startLoopOffset;
         }
 
         protected override void WriteStream(Stream stream)
@@ -50,15 +63,26 @@ namespace VGAudio.Containers
             writer.Write(Adpcm.SampleRate);
             writer.Write(SampleCount);
             writer.Write(Adpcm.HighpassFrequency);
-            writer.Write((byte)3); //version
+            writer.Write((byte)Version);
             writer.Write((byte)0); //flags
-            writer.Write((short)0); //loop alignment samples
+
+            if (Version == 4)
+            {
+                writer.Write(0);
+                for (int i = 0; i < ChannelCount; i++)
+                {
+                    writer.Write((short)0);
+                    writer.Write((short)0);
+                }
+            }
+
+            writer.Write((short)Adpcm.AlignmentSamples);
             writer.Write((short)(Adpcm.Looping ? 1 : 0));
             writer.Write(Adpcm.Looping ? 1 : 0);
             writer.Write(Adpcm.LoopStart);
-            writer.Write(0);//loop start byte
+            writer.Write(LoopStartOffset);
             writer.Write(Adpcm.LoopEnd);
-            writer.Write(0); //loop end byte
+            writer.Write(LoopEndOffset);
 
             writer.BaseStream.Position = CopyrightOffset - 2;
             writer.WriteUTF8("(c)CRI");

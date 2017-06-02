@@ -12,6 +12,7 @@ namespace VGAudio.Formats
         public byte[][] Channels { get; }
         public short HighpassFrequency { get; }
         public int FrameSize { get; }
+        public int AlignmentSamples { get; }
         public AdxType Type { get; } = AdxType.Standard;
 
         public CriAdxFormat() => Channels = new byte[0][];
@@ -21,6 +22,7 @@ namespace VGAudio.Formats
             FrameSize = b.FrameSize;
             HighpassFrequency = b.HighpassFrequency;
             Type = b.Type;
+            AlignmentSamples = b.AlignmentSamples;
         }
 
         public override Pcm16Format ToPcm16()
@@ -41,14 +43,18 @@ namespace VGAudio.Formats
         {
             var channels = new byte[pcm16.ChannelCount][];
             int frameSize = 18;
+            int samplesPerFrame = (frameSize - 2) * 2;
+            int alignmentMultiple = pcm16.ChannelCount == 1 ? samplesPerFrame * 2 : samplesPerFrame;
+            int alignmentSamples = Helpers.GetNextMultiple(pcm16.LoopStart, alignmentMultiple) - pcm16.LoopStart;
 
             Parallel.For(0, pcm16.ChannelCount, i =>
             {
-                channels[i] = CriAdxCodec.Encode(pcm16.Channels[i], pcm16.SampleRate, frameSize, Type);
+                channels[i] = CriAdxCodec.Encode(pcm16.Channels[i], pcm16.SampleRate, frameSize, alignmentSamples, Type);
             });
 
-            return new Builder(channels, pcm16.SampleCount, pcm16.SampleRate, frameSize, 500)
-                .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
+            return new Builder(channels, pcm16.SampleCount + alignmentSamples, pcm16.SampleRate, frameSize, 500)
+                .WithLoop(pcm16.Looping, pcm16.LoopStart + alignmentSamples, pcm16.LoopEnd + alignmentSamples)
+                .WithAlignmentSamples(alignmentSamples)
                 .Build();
         }
 
@@ -72,6 +78,7 @@ namespace VGAudio.Formats
             public byte[][] Channels { get; set; }
             public short HighpassFrequency { get; set; }
             public int FrameSize { get; set; }
+            public int AlignmentSamples { get; set; }
             public AdxType Type { get; set; } = AdxType.Standard;
             protected override int ChannelCount => Channels.Length;
 
@@ -100,6 +107,12 @@ namespace VGAudio.Formats
             public Builder WithEncodingType(AdxType type)
             {
                 Type = type;
+                return this;
+            }
+
+            public Builder WithAlignmentSamples(int alignmentSamplesCount)
+            {
+                AlignmentSamples = alignmentSamplesCount;
                 return this;
             }
 
