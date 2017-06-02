@@ -8,6 +8,7 @@ namespace VGAudio.Codecs
 {
     public class CriAdxCodec
     {
+        private static readonly int Version = 4;
         public static short[] Decode(byte[] adpcm, int sampleCount, int sampleRate, int frameSize, short highpassFrequency, AdxType type = AdxType.Standard)
         {
             int samplesPerFrame = (frameSize - 2) * 2;
@@ -34,7 +35,15 @@ namespace VGAudio.Codecs
                 {
                     int sample = s % 2 == 0 ? GetHighNibble(adpcm[inIndex]) : GetLowNibble(adpcm[inIndex++]);
                     sample = sample >= 8 ? sample - 16 : sample;
-                    sample = scale * sample + (hist1 * coefs[filterNum][0] >> 12) + (hist2 * coefs[filterNum][1] >> 12);
+                    if (Version == 4)
+                    {
+                        sample = scale * sample + ((hist1 * coefs[filterNum][0] + hist2 * coefs[filterNum][1]) >> 12);
+                    }
+                    else
+                    {
+                        sample = scale * sample + (hist1 * coefs[filterNum][0] >> 12) + (hist2 * coefs[filterNum][1] >> 12);
+                    }
+
                     short finalSample = Clamp16(sample);
 
                     hist2 = hist1;
@@ -56,6 +65,12 @@ namespace VGAudio.Codecs
             var pcmBuffer = new short[samplesPerFrame + 2];
             var adpcmBuffer = new byte[frameSize];
             var adpcmOut = new byte[frameCount * frameSize];
+
+            if (Version == 4)
+            {
+                pcmBuffer[0] = pcm[0];
+                pcmBuffer[1] = pcm[0];
+            }
 
             for (int i = 0; i < frameCount; i++)
             {
@@ -111,6 +126,10 @@ namespace VGAudio.Codecs
                 adpcm[i] = adpcmSample;
 
                 short decodedDistance = Clamp16(scale * adpcmSample);
+                if (Version == 4)
+                {
+                    predictedSample = (pcm[i + 1] * coefs[0] + pcm[i] * coefs[1]) >> 12;
+                }
                 int decodedSample = decodedDistance + predictedSample;
                 pcm[i + 2] = Clamp16(decodedSample);
             }

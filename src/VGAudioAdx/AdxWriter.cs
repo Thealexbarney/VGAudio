@@ -21,10 +21,10 @@ namespace VGAudio.Containers
         private int SamplesPerFrame => (FrameSize - 2) * 2;
         private int FrameSize => Adpcm.FrameSize;
         private int FrameCount => SampleCount.DivideByRoundUp(SamplesPerFrame);
-        private int HeaderSize => Adpcm.Looping ? 60 : 36;
+        private int HeaderSize => Adpcm.Looping ? 60 : Version == 4 ? 36 : 32;
         private int FooterSize => Adpcm.FrameSize;
         private int AlignmentBytes { get; set; }
-        private int CopyrightOffset => AlignmentBytes + HeaderSize;
+        private int CopyrightOffset => AlignmentBytes + HeaderSize + (Version == 4 && ChannelCount > 2 ? 4 * ChannelCount - 8 : 0);
         private int LoopStartOffset => SampleCountToByteCount(Adpcm.LoopStart, FrameSize) * ChannelCount + CopyrightOffset + 4;
         private int LoopEndOffset => GetNextMultiple(SampleCountToByteCount(Adpcm.LoopEnd, FrameSize), FrameSize) * ChannelCount + CopyrightOffset + 4;
         private int Version => Configuration.Version;
@@ -32,7 +32,10 @@ namespace VGAudio.Containers
         protected override void SetupWriter(AudioData audio)
         {
             Adpcm = audio.GetFormat<CriAdxFormat>();
-            CalculateAlignmentBytes();
+            if (Adpcm.Looping)
+            {
+                CalculateAlignmentBytes();
+            }
         }
 
         private void CalculateAlignmentBytes()
@@ -73,6 +76,10 @@ namespace VGAudio.Containers
                 {
                     writer.Write((short)0);
                     writer.Write((short)0);
+                }
+                if (ChannelCount == 1)
+                {
+                    writer.Write(0);
                 }
             }
 
