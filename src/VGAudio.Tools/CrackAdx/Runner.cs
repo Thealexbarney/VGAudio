@@ -6,8 +6,11 @@ namespace VGAudio.Tools.CrackAdx
     {
         public static void Run(string path)
         {
-            var guess = new GuessAdx(path);
-            guess.Run();
+            using (var progress = new ProgressBar())
+            {
+                var guess = new GuessAdx(path, progress);
+                guess.Run();
+            }
         }
 
         public static void Run(string[] args)

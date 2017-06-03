@@ -23,9 +23,12 @@ namespace VGAudio.Tools.CrackAdx
         private int XorMask { get; } = 0x7fff;
         private int ValidationMask { get; }
         private int MaxSeed { get; }
+        private IProgressReport Progress { get; }
 
-        public GuessAdx(string directory)
+        public GuessAdx(string directory, IProgressReport progress = null)
         {
+            Progress = progress;
+            Progress?.ReportTotal(0x1000);
             EncryptionType = LoadFiles(directory);
 
             switch (EncryptionType)
@@ -83,7 +86,7 @@ namespace VGAudio.Tools.CrackAdx
                 {
                     TryScale(adx, scale);
                 });
-                Console.Write($"\r{i}");
+                Progress?.Report(i);
             }
         }
 
@@ -91,22 +94,22 @@ namespace VGAudio.Tools.CrackAdx
         {
             if (!TriedKeys.TryAdd(key, 0)) return;
 
-            Console.WriteLine($"Trying key {PrintKey(key)}");
+            Progress?.ReportMessage($"Trying key {PrintKey(key)}");
 
             if (Files.Any(stream => !KeyIsValid(key, stream.Scales)))
             {
-                Console.WriteLine($"Key {PrintKey(key)} is invalid");
+                Progress?.ReportMessage($"Key {PrintKey(key)} is invalid");
                 return;
             }
 
-            Console.WriteLine($"Key {PrintKey(key)} could be valid. Calculating confidence...");
+            Progress?.ReportMessage($"Key {PrintKey(key)} could be valid. Calculating confidence...");
             var confidences = Files.AsParallel().Select(file => GetReencodeConfidence(key, file.Filename)).ToList();
 
             double confidenceSmall = 1 - (double)confidences.Sum(x => x.IdenticalBytesShort) / confidences.Sum(x => x.TotalBytesShort);
             double confidenceFull = 1 - (double)confidences.Sum(x => x.IdenticalBytesFull) / confidences.Sum(x => x.TotalBytesFull);
 
             Keys.Add(key);
-            Console.WriteLine($"{PrintKey(key)} Confidence Short - {confidenceSmall:P3} Full - {confidenceFull:P3}");
+            Progress?.ReportMessage($"{PrintKey(key)} Confidence Short - {confidenceSmall:P3} Full - {confidenceFull:P3}");
 
             string PrintKey(AdxKey k) => $"Seed - {k.Seed:x4} Multiplier - {k.Mult:x4} Increment - {k.Inc:x4}";
         }
