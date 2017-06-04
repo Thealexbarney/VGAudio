@@ -193,21 +193,21 @@ namespace VGAudio.Tools.CrackAdx
                 adx = (CriAdxFormat)new AdxReader().ReadFormat(stream);
             }
 
-            CriAdxEncryption.Decrypt(adx.Channels, key, adx.FrameSize);
+            CriAdxEncryption.Decrypt(adx.Channels.Select(x => x.Audio).ToArray(), key, adx.FrameSize);
             Pcm16Format pcm = adx.ToPcm16();
             CriAdxFormat adx2 = new CriAdxFormat().EncodeFromPcm16(pcm);
 
             var confidence = new AdxKeyConfidence();
 
-            int toCompareFull = adx.Channels[0].Length;
+            int toCompareFull = adx.Channels[0].Audio.Length;
             int toCompareShort = Math.Min(adx.FrameSize * 100, toCompareFull);
 
             for (int i = 0; i < adx.ChannelCount; i++)
             {
                 confidence.TotalBytesFull += toCompareFull;
                 confidence.TotalBytesShort += toCompareShort;
-                confidence.IdenticalBytesFull += Common.DiffArrays(adx.Channels[i], adx2.Channels[i], toCompareFull);
-                confidence.IdenticalBytesShort += Common.DiffArrays(adx.Channels[i], adx2.Channels[i], toCompareShort);
+                confidence.IdenticalBytesFull += Common.DiffArrays(adx.Channels[i].Audio, adx2.Channels[i].Audio, toCompareFull);
+                confidence.IdenticalBytesShort += Common.DiffArrays(adx.Channels[i].Audio, adx2.Channels[i].Audio, toCompareShort);
             }
 
             return confidence;

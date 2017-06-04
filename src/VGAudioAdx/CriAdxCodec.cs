@@ -6,17 +6,17 @@ using static VGAudio.Utilities.Helpers;
 // ReSharper disable once CheckNamespace
 namespace VGAudio.Codecs
 {
-    public class CriAdxCodec
+    public static class CriAdxCodec
     {
-        private static readonly int Version = 4;
-        public static short[] Decode(byte[] adpcm, int sampleCount, int sampleRate, int frameSize, short highpassFrequency, AdxType type = AdxType.Standard)
+        public static short[] Decode(byte[] adpcm, int sampleCount, CriAdxOptions options = null)
         {
-            int samplesPerFrame = (frameSize - 2) * 2;
-            short[][] coefs = type == AdxType.Fixed ? Coefs : new[] { CalculateCoefficients(highpassFrequency, sampleRate) };
+            CriAdxOptions o = options ?? new CriAdxOptions();
+            int samplesPerFrame = (o.FrameSize - 2) * 2;
+            short[][] coefs = o.Type == AdxType.Fixed ? Coefs : new[] { CalculateCoefficients(o.HighpassFrequency, o.SampleRate) };
             var pcm = new short[sampleCount];
 
-            int hist1 = 0;
-            int hist2 = 0;
+            int hist1 = o.History;
+            int hist2 = o.History;
             int frameCount = sampleCount.DivideByRoundUp(samplesPerFrame);
 
             int currentSample = 0;
@@ -26,7 +26,7 @@ namespace VGAudio.Codecs
             {
                 int filterNum = GetHighNibble(adpcm[inIndex]) >> 1;
                 short scale = (short)((adpcm[inIndex] << 8 | adpcm[inIndex + 1]) & 0x1FFF);
-                scale = (short)(type == AdxType.Exponential ? 1 << (12 - scale) : scale + 1);
+                scale = (short)(o.Type == AdxType.Exponential ? 1 << (12 - scale) : scale + 1);
                 inIndex += 2;
 
                 int samplesToRead = Math.Min(samplesPerFrame, sampleCount - currentSample);
@@ -35,7 +35,7 @@ namespace VGAudio.Codecs
                 {
                     int sample = s % 2 == 0 ? GetHighNibble(adpcm[inIndex]) : GetLowNibble(adpcm[inIndex++]);
                     sample = sample >= 8 ? sample - 16 : sample;
-                    if (Version == 4)
+                    if (o.Version == 4)
                     {
                         sample = scale * sample + ((hist1 * coefs[filterNum][0] + hist2 * coefs[filterNum][1]) >> 12);
                     }
@@ -54,22 +54,24 @@ namespace VGAudio.Codecs
             return pcm;
         }
 
-        public static byte[] Encode(short[] pcm, int sampleRate, int frameSize, int padding = 0, AdxType type = AdxType.Standard, int filter = 2)
+        public static byte[] Encode(short[] pcm, CriAdxOptions options)
         {
-            int sampleCount = pcm.Length + padding;
-            int samplesPerFrame = (frameSize - 2) * 2;
+            var o = options;
+            int sampleCount = pcm.Length + o.Padding;
+            int samplesPerFrame = (o.FrameSize - 2) * 2;
             int frameCount = sampleCount.DivideByRoundUp(samplesPerFrame);
-            int paddingRemaining = padding;
-            short[] coefs = type == AdxType.Fixed ? Coefs[filter] : CalculateCoefficients(500, sampleRate);
+            int paddingRemaining = o.Padding;
+            short[] coefs = o.Type == AdxType.Fixed ? Coefs[o.Filter] : CalculateCoefficients(500, o.SampleRate);
 
             var pcmBuffer = new short[samplesPerFrame + 2];
-            var adpcmBuffer = new byte[frameSize];
-            var adpcmOut = new byte[frameCount * frameSize];
+            var adpcmBuffer = new byte[o.FrameSize];
+            var adpcmOut = new byte[frameCount * o.FrameSize];
 
-            if (Version == 4)
+            if (o.Version == 4)
             {
                 pcmBuffer[0] = pcm[0];
                 pcmBuffer[1] = pcm[0];
+                o.History = pcm[0];
             }
 
             for (int i = 0; i < frameCount; i++)
@@ -86,14 +88,14 @@ namespace VGAudio.Codecs
                     }
                     if (samplesToCopy == 0) continue;
                 }
-                Array.Copy(pcm, Math.Max(i * samplesPerFrame - padding, 0), pcmBuffer, pcmBufferStart, samplesToCopy);
+                Array.Copy(pcm, Math.Max(i * samplesPerFrame - o.Padding, 0), pcmBuffer, pcmBufferStart, samplesToCopy);
                 Array.Clear(pcmBuffer, pcmBufferStart + samplesToCopy, samplesPerFrame - samplesToCopy - pcmBufferStart + 2);
 
-                EncodeFrame(pcmBuffer, adpcmBuffer, coefs, samplesPerFrame, type);
+                EncodeFrame(pcmBuffer, adpcmBuffer, coefs, samplesPerFrame, o.Type, o.Version);
 
-                if (type == AdxType.Fixed) { adpcmBuffer[0] |= (byte)(filter << 5); }
+                if (o.Type == AdxType.Fixed) { adpcmBuffer[0] |= (byte)(o.Filter << 5); }
 
-                Array.Copy(adpcmBuffer, 0, adpcmOut, i * frameSize, frameSize);
+                Array.Copy(adpcmBuffer, 0, adpcmOut, i * o.FrameSize, o.FrameSize);
                 pcmBuffer[0] = pcmBuffer[samplesPerFrame];
                 pcmBuffer[1] = pcmBuffer[samplesPerFrame + 1];
             }
@@ -101,7 +103,7 @@ namespace VGAudio.Codecs
             return adpcmOut;
         }
 
-        public static void EncodeFrame(short[] pcm, byte[] adpcmOut, short[] coefs, int samplesPerFrame, AdxType type)
+        public static void EncodeFrame(short[] pcm, byte[] adpcmOut, short[] coefs, int samplesPerFrame, AdxType type, int version)
         {
             int maxDistance = 0;
             int[] adpcm = new int[samplesPerFrame];
@@ -126,7 +128,7 @@ namespace VGAudio.Codecs
                 adpcm[i] = adpcmSample;
 
                 short decodedDistance = Clamp16(scale * adpcmSample);
-                if (Version == 4)
+                if (version == 4)
                 {
                     predictedSample = (pcm[i + 1] * coefs[0] + pcm[i] * coefs[1]) >> 12;
                 }

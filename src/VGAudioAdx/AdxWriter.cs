@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using VGAudio.Containers.Adx;
 using VGAudio.Formats;
 using VGAudio.Utilities;
@@ -74,8 +75,8 @@ namespace VGAudio.Containers
                 writer.Write(0);
                 for (int i = 0; i < ChannelCount; i++)
                 {
-                    writer.Write((short)0);
-                    writer.Write((short)0);
+                    writer.Write(Adpcm.Channels[i].History);
+                    writer.Write(Adpcm.Channels[i].History);
                 }
                 if (ChannelCount == 1)
                 {
@@ -97,7 +98,8 @@ namespace VGAudio.Containers
 
         private void WriteData(BinaryWriter writer)
         {
-            Adpcm.Channels.Interleave(writer.BaseStream, FrameSize);
+            byte[][] audio = Adpcm.Channels.Select(x => x.Audio).ToArray();
+            audio.Interleave(writer.BaseStream, FrameSize);
         }
 
         private void WriteFooter(BinaryWriter writer)

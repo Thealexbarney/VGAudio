@@ -34,7 +34,14 @@ namespace VGAudio.Containers
 
         protected override IAudioFormat ToAudioStream(AdxStructure structure)
         {
-            return new CriAdxFormat.Builder(structure.AudioData, structure.SampleCount, structure.SampleRate, structure.FrameSize, structure.HighpassFreq)
+            var channels = new CriAdxChannel[structure.ChannelCount];
+
+            for (int i = 0; i < structure.ChannelCount; i++)
+            {
+                channels[i] = new CriAdxChannel(structure.AudioData[i], structure.HistorySamples[i][0], structure.Version);
+            }
+
+            return new CriAdxFormat.Builder(channels, structure.SampleCount, structure.SampleRate, structure.FrameSize, structure.HighpassFreq)
                 .WithLoop(structure.Looping, structure.LoopStartSample, structure.LoopEndSample)
                 .WithEncodingType(structure.EncodingType)
                 .Build();
@@ -53,15 +60,12 @@ namespace VGAudio.Containers
             structure.Version = reader.ReadByte();
             structure.Flags = reader.ReadByte();
 
-            if (structure.Version >= 4)
+            var history = new short[structure.ChannelCount][];
+            for (int i = 0; i < history.Length; i++)
             {
-                var history = new short[structure.ChannelCount][];
-                for (int i = 0; i < history.Length; i++)
-                {
-                    history[i] = new[] { reader.ReadInt16(), reader.ReadInt16() };
-                }
-                structure.HistorySamples = history;
+                history[i] = structure.Version >= 4 ? new[] { reader.ReadInt16(), reader.ReadInt16() } : new short[2];
             }
+            structure.HistorySamples = history;
 
             if (reader.BaseStream.Position + 24 > structure.CopyrightOffset) { return; }
 
