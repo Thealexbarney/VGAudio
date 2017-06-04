@@ -22,7 +22,7 @@ namespace VGAudio.Containers
         private int FrameSize => Adpcm.FrameSize;
         private int FrameCount => SampleCount.DivideByRoundUp(SamplesPerFrame);
         private int HeaderSize => Adpcm.Looping ? 60 : Version == 4 ? 36 : 32;
-        private int FooterSize => Adpcm.FrameSize;
+        private int FooterSize => Adpcm.Looping ? GetNextMultiple(CopyrightOffset + 4 + FrameSize * FrameCount * ChannelCount, 0x800) - (CopyrightOffset + 4 + FrameSize * FrameCount * ChannelCount) : Adpcm.FrameSize;
         private int AlignmentBytes { get; set; }
         private int CopyrightOffset => AlignmentBytes + HeaderSize + (Version == 4 && ChannelCount > 2 ? 4 * ChannelCount - 8 : 0);
         private int LoopStartOffset => SampleCountToByteCount(Adpcm.LoopStart, FrameSize) * ChannelCount + CopyrightOffset + 4;
@@ -102,7 +102,7 @@ namespace VGAudio.Containers
 
         private void WriteFooter(BinaryWriter writer)
         {
-            int padding = Adpcm.FrameSize - 4;
+            int padding = FooterSize - 4;
             writer.Write(AdxFooterSignature);
             writer.Write((short)padding);
         }
