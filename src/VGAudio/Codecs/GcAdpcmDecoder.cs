@@ -9,8 +9,8 @@ namespace VGAudio.Codecs
     {
         public static short[] Decode(byte[] adpcm, short[] coefficients, short hist1 = 0, short hist2 = 0)
         {
-            int nibbles = adpcm.Length * 2;
-            int sampleCount = NibbleCountToSampleCount(nibbles);
+            int nibbleCount = adpcm.Length * 2;
+            int sampleCount = NibbleCountToSampleCount(nibbleCount);
             return Decode(adpcm, coefficients, sampleCount, hist1, hist2);
         }
 
@@ -23,39 +23,35 @@ namespace VGAudio.Codecs
                 return pcm;
             }
 
+            int frameCount = length.DivideByRoundUp(SamplesPerFrame);
             int currentSample = 0;
-            const int startSample = 0;
-
             int outIndex = 0;
             int inIndex = 0;
 
-            int endSample = startSample + length;
-            int frameCount = (endSample - currentSample).DivideByRoundUp(SamplesPerFrame);
-
             for (int i = 0; i < frameCount; i++)
             {
-                byte ps = adpcm[inIndex++];
-                int scale = 1 << GetLowNibble(ps);
-                int predictor = GetHighNibble(ps);
+                byte predictorScale = adpcm[inIndex++];
+                int scale = (1 << GetLowNibble(predictorScale)) * 2048;
+                int predictor = GetHighNibble(predictorScale);
                 short coef1 = coefficients[predictor * 2];
                 short coef2 = coefficients[predictor * 2 + 1];
 
-                int samplesToRead = Math.Min(SamplesPerFrame, endSample - currentSample);
+                int samplesToRead = Math.Min(SamplesPerFrame, length - currentSample);
 
                 for (int s = 0; s < samplesToRead; s++)
                 {
-                    int sample = s % 2 == 0 ? GetHighNibble(adpcm[inIndex]) : GetLowNibble(adpcm[inIndex++]);
-                    sample = sample >= 8 ? sample - 16 : sample;
-                    sample = (((scale * sample) << 11) + 1024 + (coef1 * hist1 + coef2 * hist2)) >> 11;
-                    short finalSample = Clamp16(sample);
+                    int adpcmSample = s % 2 == 0 ? GetHighNibbleSigned(adpcm[inIndex]) : GetLowNibbleSigned(adpcm[inIndex++]);
+                    int distance = scale * adpcmSample;
+                    int predictedSample = coef1 * hist1 + coef2 * hist2;
+                    int correctedSample = predictedSample + distance;
+                    int scaledSample = (correctedSample + 1024) >> 11;
+                    short clampedSample = Clamp16(scaledSample);
 
                     hist2 = hist1;
-                    hist1 = finalSample;
+                    hist1 = clampedSample;
 
-                    if (currentSample++ >= startSample)
-                    {
-                        pcm[outIndex++] = finalSample;
-                    }
+                    pcm[outIndex++] = clampedSample;
+                    currentSample++;
                 }
             }
             return pcm;
