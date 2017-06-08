@@ -415,7 +415,7 @@ namespace VGAudio.Codecs
             for (int i = 0; i < 8; i++)
             {
                 DspEncodeCoef(pcmInOut, sampleCount, b.Coefs[i], b.InSamples[i], b.OutSamples[i], out b.Scale[i],
-                    out b.DistAccum[i]);
+                    out b.TotalDistance[i]);
             }
 
             int bestIndex = 0;
@@ -423,9 +423,9 @@ namespace VGAudio.Codecs
             double min = double.MaxValue;
             for (int i = 0; i < 8; i++)
             {
-                if (b.DistAccum[i] < min)
+                if (b.TotalDistance[i] < min)
                 {
-                    min = b.DistAccum[i];
+                    min = b.TotalDistance[i];
                     bestIndex = i;
                 }
             }
@@ -448,85 +448,81 @@ namespace VGAudio.Codecs
             }
         }
 
-        private static void DspEncodeCoef(short[] pcmInOut, int sampleCount, short[] coefs, int[] inSamples,
-            int[] outSamples, out int scale, out double distAccum)
+        private static void DspEncodeCoef(short[] pcmIn, int sampleCount, short[] coefs, int[] pcmOut,
+            int[] adpcmOut, out int scalePower, out double totalDistance)
         {
-            int v1, v2, v3;
-            int index;
-            int distance = 0;
+            int maxOverflow;
+            int maxDistance = 0;
 
-            /* Set yn values */
-            inSamples[0] = pcmInOut[0];
-            inSamples[1] = pcmInOut[1];
+            // Set history values
+            pcmOut[0] = pcmIn[0];
+            pcmOut[1] = pcmIn[1];
 
-            /* Round and clamp samples for this coef set */
+            // Encode the frame with a scale of 1
             for (int s = 0; s < sampleCount; s++)
             {
-                /* Multiply previous samples by coefs */
-                inSamples[s + 2] = v1 = ((pcmInOut[s] * coefs[1]) + (pcmInOut[s + 1] * coefs[0])) / 2048;
-                /* Subtract from current sample */
-                v2 = pcmInOut[s + 2] - v1;
-                /* Clamp */
-                v3 = Clamp16(v2);
-                /* Compare distance */
-                if (Math.Abs(v3) > Math.Abs(distance))
-                    distance = v3;
+                int inputSample = pcmIn[s + 2];
+                int predictedSample = (pcmIn[s] * coefs[1] + pcmIn[s + 1] * coefs[0]) / 2048;
+                int distance = inputSample - predictedSample;
+                distance = Clamp16(distance);
+                if (Math.Abs(distance) > Math.Abs(maxDistance))
+                    maxDistance = distance;
             }
 
-            /* Set initial scale */
-            for (scale = 0; (scale <= 12) && ((distance > 7) || (distance < -8)); scale++, distance /= 2)
+            // Use the maximum distance of the encoded frame to find a scale that will fit the current frame
+            scalePower = 0;
+            while (scalePower <= 12 && (maxDistance > 7 || maxDistance < -8))
             {
+                maxDistance /= 2;
+                scalePower++;
             }
-            scale = (scale <= 1) ? -1 : scale - 2;
+            scalePower = scalePower <= 1 ? -1 : scalePower - 2;
 
+            // Try increasing scales until the encoded frame is in the range of a 4-bit value
             do
             {
-                scale++;
-                distAccum = 0;
-                index = 0;
+                scalePower++;
+                int scale = (1 << scalePower) * 2048;
+                totalDistance = 0;
+                maxOverflow = 0;
 
                 for (int s = 0; s < sampleCount; s++)
                 {
-                    /* Multiply previous */
-                    v1 = ((inSamples[s] * coefs[1]) + (inSamples[s + 1] * coefs[0]));
-                    /* Evaluate from real sample */
-                    v2 = (pcmInOut[s + 2] << 11) - v1;
-                    /* Round to nearest sample */
+                    // Calculate the difference between the actual and predicted samples
+                    int inputSample = pcmIn[s + 2] * 2048;
+                    int predictedSample = pcmOut[s] * coefs[1] + pcmOut[s + 1] * coefs[0];
+                    int distance = inputSample - predictedSample;
+                    // Scale to 4-bits, and round to the nearest sample
                     // The official encoder does the casting this way, so match that behavior
-                    v3 = (v2 > 0)
-                        ? (int)((double)((float)v2 / (1 << scale) / 2048) + 0.4999999f)
-                        : (int)((double)((float)v2 / (1 << scale) / 2048) - 0.4999999f);
+                    int unclampedAdpcmSample = (distance > 0)
+                        ? (int)((double)((float)distance / scale) + 0.4999999f)
+                        : (int)((double)((float)distance / scale) - 0.4999999f);
 
-                    /* Clamp sample and set index */
-                    if (v3 < -8)
+                    int adpcmSample = Clamp4(unclampedAdpcmSample);
+                    if (adpcmSample != unclampedAdpcmSample)
                     {
-                        if (index < (v3 = -8 - v3))
-                            index = v3;
-                        v3 = -8;
+                        int overflow = Math.Abs(unclampedAdpcmSample - adpcmSample);
+                        if (overflow > maxOverflow) maxOverflow = overflow;
                     }
-                    else if (v3 > 7)
-                    {
-                        if (index < (v3 -= 7))
-                            index = v3;
-                        v3 = 7;
-                    }
+                    
+                    adpcmOut[s] = adpcmSample;
 
-                    /* Store result */
-                    outSamples[s] = v3;
-
-                    /* Round and expand */
-                    v1 = (v1 + ((v3 * (1 << scale)) << 11) + 1024) >> 11;
-                    /* Clamp and store */
-                    inSamples[s + 2] = v2 = Clamp16(v1);
-                    /* Accumulate distance */
-                    v3 = pcmInOut[s + 2] - v2;
-                    distAccum += v3 * (double)v3;
+                    // Decode sample to use as history
+                    int decodedDistance = adpcmSample * scale;
+                    int correctedSample = predictedSample + decodedDistance;
+                    int scaledSample = (correctedSample + 1024) >> 11;
+                    // Clamp and store
+                    pcmOut[s + 2] = Clamp16(scaledSample);
+                    // Accumulate distance
+                    int actualDistance = pcmIn[s + 2] - pcmOut[s + 2];
+                    totalDistance += actualDistance * actualDistance;
                 }
 
-                for (int x = index + 8; x > 256; x >>= 1)
-                    if (++scale >= 12)
-                        scale = 11;
-            } while ((scale < 12) && (index > 1));
+                for (int x = maxOverflow + 8; x > 256; x >>= 1)
+                    if (++scalePower >= 12)
+                        scalePower = 11;
+
+            } while (scalePower < 12 && maxOverflow > 1);
         }
 
         public static byte[] EncodeAdpcm(short[] pcm, short[] coefs, int samples = -1, short hist1 = 0,
@@ -568,7 +564,7 @@ namespace VGAudio.Codecs
             public int[][] InSamples { get; } = new int[8][];
             public int[][] OutSamples { get; } = new int[8][];
             public int[] Scale { get; } = new int[8];
-            public double[] DistAccum { get; } = new double[8];
+            public double[] TotalDistance { get; } = new double[8];
 
             public AdpcmEncodeBuffers()
             {

@@ -16,6 +16,15 @@ namespace VGAudio.Utilities
             return (short)value;
         }
 
+        public static sbyte Clamp4(int value)
+        {
+            if (value > 7)
+                return 7;
+            if (value < -8)
+                return -8;
+            return (sbyte)value;
+        }
+
         private static sbyte[] _signedNibbles = { 0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1 };
 
         public static byte GetHighNibble(byte value) => (byte)((value >> 4) & 0xF);
