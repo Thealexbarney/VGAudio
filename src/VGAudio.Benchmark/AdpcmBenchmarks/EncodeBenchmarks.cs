@@ -15,11 +15,11 @@ namespace VGAudio.Benchmark.AdpcmBenchmarks
         public void Setup()
         {
             _pcm = GenerateAudio.GenerateSineWave((int)(_sampleRate * LengthSeconds), 440, _sampleRate);
-            _coefs = GcAdpcmEncoder.DspCorrelateCoefs(_pcm);
+            _coefs = GcAdpcmCoefficient.CalculateCoefficients(_pcm);
         }
 
-        [Benchmark] public short[] GenerateCoefs() => GcAdpcmEncoder.DspCorrelateCoefs(_pcm);
+        [Benchmark] public short[] GenerateCoefs() => GcAdpcmCoefficient.CalculateCoefficients(_pcm);
         [Benchmark] public byte[] EncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(_pcm, _coefs);
-        [Benchmark] public byte[] GenerateCoefsAndEncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(_pcm, GcAdpcmEncoder.DspCorrelateCoefs(_pcm));
+        [Benchmark] public byte[] GenerateCoefsAndEncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(_pcm, GcAdpcmCoefficient.CalculateCoefficients(_pcm));
     }
 }
