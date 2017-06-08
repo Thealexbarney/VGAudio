@@ -58,11 +58,11 @@ namespace VGAudio.Codecs
             /* Iterate through each coef set, finding the set with the smallest error */
             for (int i = 0; i < 8; i++)
             {
-                DspEncodeCoef(pcmInOut, sampleCount, b.Coefs[i], b.InSamples[i], b.OutSamples[i], out b.Scale[i],
+                DspEncodeCoef(pcmInOut, sampleCount, b.Coefs[i], b.PcmOut[i], b.AdpcmOut[i], out b.Scale[i],
                     out b.TotalDistance[i]);
             }
 
-            int bestIndex = 0;
+            int bestCoef = 0;
 
             double min = double.MaxValue;
             for (int i = 0; i < 8; i++)
@@ -70,25 +70,25 @@ namespace VGAudio.Codecs
                 if (b.TotalDistance[i] < min)
                 {
                     min = b.TotalDistance[i];
-                    bestIndex = i;
+                    bestCoef = i;
                 }
             }
 
             /* Write converted samples */
             for (int s = 0; s < sampleCount; s++)
-                pcmInOut[s + 2] = (short)b.InSamples[bestIndex][s + 2];
+                pcmInOut[s + 2] = (short)b.PcmOut[bestCoef][s + 2];
 
             /* Write predictor and scale */
-            adpcmOut[0] = (byte)((bestIndex << 4) | (b.Scale[bestIndex] & 0xF));
+            adpcmOut[0] = CombineNibbles(bestCoef, b.Scale[bestCoef]);
 
             /* Zero remaining samples */
             for (int s = sampleCount; s < 14; s++)
-                b.OutSamples[bestIndex][s] = 0;
+                b.AdpcmOut[bestCoef][s] = 0;
 
             /* Write output samples */
-            for (int y = 0; y < 7; y++)
+            for (int i = 0; i < 7; i++)
             {
-                adpcmOut[y + 1] = (byte)((b.OutSamples[bestIndex][y * 2] << 4) | (b.OutSamples[bestIndex][y * 2 + 1] & 0xF));
+                adpcmOut[i + 1] = CombineNibbles(b.AdpcmOut[bestCoef][i * 2], b.AdpcmOut[bestCoef][i * 2 + 1]);
             }
         }
 
@@ -172,8 +172,8 @@ namespace VGAudio.Codecs
         public class AdpcmEncodeBuffers
         {
             public short[][] Coefs { get; } = new short[8][];
-            public int[][] InSamples { get; } = new int[8][];
-            public int[][] OutSamples { get; } = new int[8][];
+            public int[][] PcmOut { get; } = new int[8][];
+            public int[][] AdpcmOut { get; } = new int[8][];
             public int[] Scale { get; } = new int[8];
             public double[] TotalDistance { get; } = new double[8];
 
@@ -181,8 +181,8 @@ namespace VGAudio.Codecs
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    InSamples[i] = new int[16];
-                    OutSamples[i] = new int[14];
+                    PcmOut[i] = new int[16];
+                    AdpcmOut[i] = new int[14];
                     Coefs[i] = new short[2];
                 }
             }

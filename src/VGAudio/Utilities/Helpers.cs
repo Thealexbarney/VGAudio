@@ -25,13 +25,15 @@ namespace VGAudio.Utilities
             return (sbyte)value;
         }
 
-        private static sbyte[] _signedNibbles = { 0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1 };
+        private static readonly sbyte[] SignedNibbles = { 0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1 };
 
         public static byte GetHighNibble(byte value) => (byte)((value >> 4) & 0xF);
         public static byte GetLowNibble(byte value) => (byte)(value & 0xF);
 
-        public static sbyte GetHighNibbleSigned(byte value) => _signedNibbles[(value >> 4) & 0xF];
-        public static sbyte GetLowNibbleSigned(byte value) => _signedNibbles[value & 0xF];
+        public static sbyte GetHighNibbleSigned(byte value) => SignedNibbles[(value >> 4) & 0xF];
+        public static sbyte GetLowNibbleSigned(byte value) => SignedNibbles[value & 0xF];
+
+        public static byte CombineNibbles(int high, int low) => (byte)((high << 4) | (low & 0xF));
 
         public static int GetNextMultiple(int value, int multiple)
         {
@@ -43,7 +45,6 @@ namespace VGAudio.Utilities
 
             return value + multiple - value % multiple;
         }
-
 
         public static bool LoopPointsAreAligned(int loopStart, int alignmentMultiple)
             => !(alignmentMultiple != 0 && loopStart % alignmentMultiple != 0);
