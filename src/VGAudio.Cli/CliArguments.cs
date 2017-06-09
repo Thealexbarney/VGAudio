@@ -70,8 +70,7 @@ namespace VGAudio.Cli
                                 return null;
                             }
 
-                            int loopStart, loopEnd;
-                            if (!(int.TryParse(loopPoints[0], out loopStart) && int.TryParse(loopPoints[1], out loopEnd)))
+                            if (!(int.TryParse(loopPoints[0], out int loopStart) && int.TryParse(loopPoints[1], out int loopEnd)))
                             {
                                 PrintWithUsage("Error parsing loop points.");
                                 return null;
@@ -116,9 +115,24 @@ namespace VGAudio.Cli
                         case "H":
                             PrintUsage();
                             return null;
-                        case "-VERSION":
+                        case "-VERSION" when args.Length == 1:
                             Console.WriteLine($"VGAudio v{GetProgramVersion()}");
                             return null;
+                        case "-VERSION":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --version.");
+                                return null;
+                            }
+                            if (!int.TryParse(args[i + 1], out int version))
+                            {
+                                PrintWithUsage("Error parsing version.");
+                                return null;
+                            }
+
+                            options.Version = version;
+                            i++;
+                            continue;
                     }
                 }
 

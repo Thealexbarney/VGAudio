@@ -137,7 +137,10 @@ namespace VGAudio.Cli
 
         public static Configuration Adx(Options options, Configuration inConfig = null)
         {
-            return inConfig as AdxConfiguration ?? new AdxConfiguration();
+            var config = inConfig as AdxConfiguration ?? new AdxConfiguration();
+
+            if (options.Version != 0) config.Version = options.Version;
+            return config;
         }
     }
 }

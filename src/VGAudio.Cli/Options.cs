@@ -17,6 +17,7 @@ namespace VGAudio.Cli
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
         public AudioFormat OutFormat { get; set; }
+        public int Version { get; set; } // ADX
     }
 
     internal class AudioFile
