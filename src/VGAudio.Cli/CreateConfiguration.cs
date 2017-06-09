@@ -140,6 +140,7 @@ namespace VGAudio.Cli
             var config = inConfig as AdxConfiguration ?? new AdxConfiguration();
 
             if (options.Version != 0) config.Version = options.Version;
+            if (options.FrameSize != 0) config.FrameSize = options.FrameSize;
             return config;
         }
     }

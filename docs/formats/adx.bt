@@ -56,7 +56,7 @@ struct Header
     int16 Magic <format=hex>;
     int16 CopyrightOffset;
     byte EncodingType;
-    byte FrameSize;
+    ubyte FrameSize;
     byte BitDepth;
     byte ChannelCount;
     int32 SampleRate;

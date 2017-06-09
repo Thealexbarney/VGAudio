@@ -35,7 +35,8 @@ namespace VGAudio.Containers
         {
             var encodingConfig = new CriAdxConfiguration
             {
-                Version = Configuration.Version
+                Version = Configuration.Version,
+                FrameSize = Configuration.FrameSize
             };
             Adpcm = audio.GetFormat<CriAdxFormat>(encodingConfig);
             if (Adpcm.Looping)

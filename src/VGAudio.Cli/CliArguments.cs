@@ -19,6 +19,9 @@ namespace VGAudio.Cli
                 {
                     switch (args[i].Split(':')[0].Substring(1).ToUpper())
                     {
+                        case "-VERSION" when args.Length == 1:
+                            Console.WriteLine($"VGAudio v{GetProgramVersion()}");
+                            return null;
                         case "M":
                             options.Job = JobType.Metadata;
                             continue;
@@ -115,9 +118,6 @@ namespace VGAudio.Cli
                         case "H":
                             PrintUsage();
                             return null;
-                        case "-VERSION" when args.Length == 1:
-                            Console.WriteLine($"VGAudio v{GetProgramVersion()}");
-                            return null;
                         case "-VERSION":
                             if (i + 1 >= args.Length)
                             {
@@ -131,6 +131,21 @@ namespace VGAudio.Cli
                             }
 
                             options.Version = version;
+                            i++;
+                            continue;
+                        case "-FRAMESIZE":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --FrameSize.");
+                                return null;
+                            }
+                            if (!int.TryParse(args[i + 1], out int framesize))
+                            {
+                                PrintWithUsage("Error parsing frame size.");
+                                return null;
+                            }
+
+                            options.FrameSize = framesize;
                             i++;
                             continue;
                     }
