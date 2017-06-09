@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using VGAudio.Codecs;
 using VGAudio.Containers.Adx;
 using VGAudio.Formats;
 using VGAudio.Utilities;
@@ -28,11 +29,15 @@ namespace VGAudio.Containers
         private int CopyrightOffset => AlignmentBytes + HeaderSize + (Version == 4 && ChannelCount > 2 ? 4 * ChannelCount - 8 : 0);
         private int LoopStartOffset => SampleCountToByteCount(Adpcm.LoopStart, FrameSize) * ChannelCount + CopyrightOffset + 4;
         private int LoopEndOffset => GetNextMultiple(SampleCountToByteCount(Adpcm.LoopEnd, FrameSize), FrameSize) * ChannelCount + CopyrightOffset + 4;
-        private int Version => Configuration.Version;
+        private int Version => Adpcm.Version;
 
         protected override void SetupWriter(AudioData audio)
         {
-            Adpcm = audio.GetFormat<CriAdxFormat>();
+            var encodingConfig = new CriAdxConfiguration
+            {
+                Version = Configuration.Version
+            };
+            Adpcm = audio.GetFormat<CriAdxFormat>(encodingConfig);
             if (Adpcm.Looping)
             {
                 CalculateAlignmentBytes();

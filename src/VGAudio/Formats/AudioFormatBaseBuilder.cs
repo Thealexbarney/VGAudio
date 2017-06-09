@@ -4,9 +4,10 @@ using System.Linq;
 
 namespace VGAudio.Formats
 {
-    public abstract class AudioFormatBaseBuilder<TFormat, TBuilder>
-        where TFormat : AudioFormatBase<TFormat, TBuilder>
-        where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder>
+    public abstract class AudioFormatBaseBuilder<TFormat, TBuilder, TConfig>
+        where TFormat : AudioFormatBase<TFormat, TBuilder, TConfig>
+        where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder, TConfig>
+        where TConfig : class
     {
         protected internal abstract int ChannelCount { get; }
         protected internal bool Looping { get; set; }

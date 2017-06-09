@@ -5,7 +5,7 @@ using VGAudio.Formats.GcAdpcm;
 
 namespace VGAudio.Formats
 {
-    public class GcAdpcmFormatBuilder : AudioFormatBaseBuilder<GcAdpcmFormat, GcAdpcmFormatBuilder>
+    public class GcAdpcmFormatBuilder : AudioFormatBaseBuilder<GcAdpcmFormat, GcAdpcmFormatBuilder, object>
     {
         public GcAdpcmChannel[] Channels { get; set; }
         public int AlignmentMultiple { get; set; }

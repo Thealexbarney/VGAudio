@@ -3,7 +3,7 @@
 // ReSharper disable once CheckNamespace
 namespace VGAudio.Codecs
 {
-    public class CriAdxOptions
+    public class CriAdxConfiguration
     {
         public int SampleRate { get; set; } = 48000;
         public int HighpassFrequency { get; set; } = 500;

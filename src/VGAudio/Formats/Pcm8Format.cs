@@ -6,7 +6,7 @@ using VGAudio.Codecs;
 
 namespace VGAudio.Formats
 {
-    public class Pcm8Format : AudioFormatBase<Pcm8Format, Pcm8Format.Builder>
+    public class Pcm8Format : AudioFormatBase<Pcm8Format, Pcm8Format.Builder, object>
     {
         public byte[][] Channels { get; }
         public virtual bool Signed { get; } = false;
@@ -71,7 +71,7 @@ namespace VGAudio.Formats
         public static Builder GetBuilder(byte[][] channels, int sampleRate) => new Builder(channels, sampleRate);
         public override Builder GetCloneBuilder() => GetCloneBuilderBase(new Builder(Channels, SampleRate));
 
-        public class Builder : AudioFormatBaseBuilder<Pcm8Format, Builder>
+        public class Builder : AudioFormatBaseBuilder<Pcm8Format, Builder, object>
         {
             public byte[][] Channels { get; set; }
             public bool Signed { get; set; }

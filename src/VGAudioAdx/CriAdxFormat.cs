@@ -7,7 +7,7 @@ using VGAudio.Utilities;
 // ReSharper disable once CheckNamespace
 namespace VGAudio.Formats
 {
-    public class CriAdxFormat : AudioFormatBase<CriAdxFormat, CriAdxFormat.Builder>
+    public class CriAdxFormat : AudioFormatBase<CriAdxFormat, CriAdxFormat.Builder, CriAdxConfiguration>
     {
         public CriAdxChannel[] Channels { get; }
         public short HighpassFrequency { get; }
@@ -32,7 +32,7 @@ namespace VGAudio.Formats
             var pcmChannels = new short[Channels.Length][];
             Parallel.For(0, Channels.Length, i =>
             {
-                var options = new CriAdxOptions
+                var options = new CriAdxConfiguration
                 {
                     SampleRate = SampleRate,
                     FrameSize = FrameSize,
@@ -50,32 +50,34 @@ namespace VGAudio.Formats
                 .Build();
         }
 
-        public override CriAdxFormat EncodeFromPcm16(Pcm16Format pcm16)
+        public override CriAdxFormat EncodeFromPcm16(Pcm16Format pcm16, CriAdxConfiguration config)
         {
             var channels = new CriAdxChannel[pcm16.ChannelCount];
-            int frameSize = 18;
-            int samplesPerFrame = (frameSize - 2) * 2;
+            int samplesPerFrame = (config.FrameSize - 2) * 2;
             int alignmentMultiple = pcm16.ChannelCount == 1 ? samplesPerFrame * 2 : samplesPerFrame;
             int alignmentSamples = Helpers.GetNextMultiple(pcm16.LoopStart, alignmentMultiple) - pcm16.LoopStart;
 
             Parallel.For(0, pcm16.ChannelCount, i =>
             {
-                var options = new CriAdxOptions
+                var channelConfig = new CriAdxConfiguration
                 {
                     SampleRate = pcm16.SampleRate,
-                    FrameSize = frameSize,
+                    FrameSize = config.FrameSize,
                     Padding = alignmentSamples,
-                    Type = Type
+                    Type = Type,
+                    Version = config.Version
                 };
-                byte[] adpcm = CriAdxCodec.Encode(pcm16.Channels[i], options);
-                channels[i] = new CriAdxChannel(adpcm, options.History);
+                byte[] adpcm = CriAdxCodec.Encode(pcm16.Channels[i], channelConfig);
+                channels[i] = new CriAdxChannel(adpcm, channelConfig.History, channelConfig.Version);
             });
 
-            return new Builder(channels, pcm16.SampleCount + alignmentSamples, pcm16.SampleRate, frameSize, 500)
+            return new Builder(channels, pcm16.SampleCount + alignmentSamples, pcm16.SampleRate, config.FrameSize, 500)
                 .WithLoop(pcm16.Looping, pcm16.LoopStart + alignmentSamples, pcm16.LoopEnd + alignmentSamples)
                 .WithAlignmentSamples(alignmentSamples)
                 .Build();
         }
+
+        public override CriAdxFormat EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16, new CriAdxConfiguration());
 
         protected override CriAdxFormat GetChannelsInternal(int[] channelRange)
         {
@@ -92,7 +94,7 @@ namespace VGAudio.Formats
             throw new NotImplementedException();
         }
 
-        public class Builder : AudioFormatBaseBuilder<CriAdxFormat, Builder>
+        public class Builder : AudioFormatBaseBuilder<CriAdxFormat, Builder, CriAdxConfiguration>
         {
             public CriAdxChannel[] Channels { get; set; }
             public short HighpassFrequency { get; set; }
