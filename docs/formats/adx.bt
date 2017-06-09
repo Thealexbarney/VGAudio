@@ -12,6 +12,11 @@
 //   1.0   Initial Release
 //------------------------------------------------
 
+int DivideByRoundUp(int value, int divisor)
+{
+    return (value + divisor - 1) / divisor;
+}
+
 struct History
 {
     int16 hist1;
@@ -51,14 +56,14 @@ struct Header
     int16 Magic <format=hex>;
     int16 CopyrightOffset;
     byte EncodingType;
-    byte BlockSize;
+    byte FrameSize;
     byte BitDepth;
     byte ChannelCount;
     int32 SampleRate;
     int32 SampleCount;
     int16 HighpassFreq;
     byte Version;
-    byte Flags;
+    byte VersionMinor;
 
     if(Version == 4) 
     {
@@ -80,21 +85,26 @@ struct Header
     }
 };
 
-struct FrameChannel(int blockSize)
-{
-    int16 FilterNum : 3;
-    int16 Scale : 13;
-    byte Samples[blockSize - 2];
-};
-
-struct Frame(int blockSize, int channelCount)
+struct FrameChannel
 {
     local int i;
-    for(i = 0; i < channelCount; i++)
+    local int samplesPerFrame = (head.FrameSize - 2) * 2;
+    int16 FilterNum : 3;
+    int16 Scale : 13;    
+    for (i = 0; i < samplesPerFrame; i++)
     {
-        FrameChannel Channels(blockSize);
+        byte Sample : 4;
     }
 };
+
+typedef struct
+{
+    local int i;
+    for(i = 0; i < head.ChannelCount; i++)
+    {
+        FrameChannel Channels;
+    }
+} Frame <size=SizeFrame>;
 
 struct Footer
 {
@@ -103,14 +113,30 @@ struct Footer
     byte Padding[PaddingCount];
 };
 
-struct Data (Header &head)
+typedef struct (Header &head)
 {
+    local int i;
+    local int samplesPerFrame = (head.FrameSize - 2) * 2;
+    local int frameCount = DivideByRoundUp(head.SampleCount, samplesPerFrame);
+
     char CopyrightMarker[6];
-    while (!FEof() && ReadUShort() != 0x8001)
+    for(i = 0; i < frameCount; i++)
     {
-        Frame Frames(head.BlockSize, head.ChannelCount);
+        Frame Frames(head.FrameSize, head.ChannelCount);
     }    
-};
+} Data <size=SizeData>;
+
+int SizeData( Data &d )
+{
+    local int samplesPerFrame = (head.FrameSize - 2) * 2;
+    local int frameCount = DivideByRoundUp(head.SampleCount, samplesPerFrame);
+    return 6 + frameCount * head.FrameSize * head.ChannelCount;
+}
+
+int SizeFrame( Frame &f )
+{
+    return head.FrameSize * head.ChannelCount;
+}
 
 BigEndian();
 Header head;
