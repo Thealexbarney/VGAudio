@@ -4,7 +4,7 @@ namespace VGAudio.Containers.Adx
     public enum AdxType
     {
         Fixed = 2,
-        Standard = 3,
+        Linear = 3,
         Exponential = 4
     }
 }

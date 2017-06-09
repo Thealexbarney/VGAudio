@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using VGAudio.Containers.Adx;
 
 namespace VGAudio.Cli
 {
@@ -146,6 +147,50 @@ namespace VGAudio.Cli
                             }
 
                             options.FrameSize = framesize;
+                            i++;
+                            continue;
+                        case "-FILTER":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --filter.");
+                                return null;
+                            }
+                            if (!int.TryParse(args[i + 1], out int filter))
+                            {
+                                PrintWithUsage("Error parsing frame size.");
+                                return null;
+                            }
+
+                            options.Filter = filter;
+                            i++;
+                            continue;
+                        case "-ADXTYPE":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --AdxType.");
+                                return null;
+                            }
+                            string type = args[i + 1];
+                            AdxType adxType;
+
+                            switch (type.ToUpper())
+                            {
+                                case "LINEAR":
+                                    adxType = AdxType.Linear;
+                                    break;
+                                case "FIXED":
+                                    adxType = AdxType.Fixed;
+                                    break;
+                                case "EXP":
+                                case "EXPONENTIAL":
+                                    adxType = AdxType.Exponential;
+                                    break;
+                                default:
+                                    Console.WriteLine("Valid ADX types are Linear, Fixed, or Exp(onential)");
+                                    return null;
+                            }
+
+                            options.AdxType = adxType;
                             i++;
                             continue;
                     }

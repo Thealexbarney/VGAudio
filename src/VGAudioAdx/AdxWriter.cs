@@ -36,7 +36,9 @@ namespace VGAudio.Containers
             var encodingConfig = new CriAdxConfiguration
             {
                 Version = Configuration.Version,
-                FrameSize = Configuration.FrameSize
+                FrameSize = Configuration.FrameSize,
+                Filter = Configuration.Filter,
+                Type = Configuration.Type
             };
             Adpcm = audio.GetFormat<CriAdxFormat>(encodingConfig);
             if (Adpcm.Looping)
@@ -72,7 +74,7 @@ namespace VGAudio.Containers
             writer.Write((byte)ChannelCount);
             writer.Write(Adpcm.SampleRate);
             writer.Write(SampleCount);
-            writer.Write(Adpcm.HighpassFrequency);
+            writer.Write(Adpcm.Type != AdxType.Fixed ? Adpcm.HighpassFrequency : (short)0);
             writer.Write((byte)Version);
             writer.Write((byte)0); //flags
 

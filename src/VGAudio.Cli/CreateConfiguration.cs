@@ -141,6 +141,8 @@ namespace VGAudio.Cli
 
             if (options.Version != 0) config.Version = options.Version;
             if (options.FrameSize != 0) config.FrameSize = options.FrameSize;
+            if (options.Filter >= 0 && options.Filter <= 3) config.Filter = options.Filter;
+            if (options.AdxType != default(AdxType)) config.Type = options.AdxType;
             return config;
         }
     }

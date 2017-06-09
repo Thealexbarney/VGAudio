@@ -11,7 +11,7 @@ namespace VGAudio.Codecs
         public int Version { get; set; } = 4;
         public short History { get; set; }
         public int Padding { get; set; }
-        public AdxType Type { get; set; } = AdxType.Standard;
+        public AdxType Type { get; set; } = AdxType.Linear;
         public int Filter { get; set; }
     }
 }
