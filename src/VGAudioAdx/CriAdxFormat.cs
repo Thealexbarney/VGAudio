@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using VGAudio.Codecs;
 using VGAudio.Containers.Adx;
 using VGAudio.Utilities;
@@ -7,7 +6,7 @@ using VGAudio.Utilities;
 // ReSharper disable once CheckNamespace
 namespace VGAudio.Formats
 {
-    public class CriAdxFormat : AudioFormatBase<CriAdxFormat, CriAdxFormat.Builder, CriAdxConfiguration>
+    public class CriAdxFormat : AudioFormatBase<CriAdxFormat, CriAdxFormatBuilder, CriAdxConfiguration>
     {
         public CriAdxChannel[] Channels { get; }
         public short HighpassFrequency { get; }
@@ -19,7 +18,7 @@ namespace VGAudio.Formats
         public AdxType Type { get; } = AdxType.Linear;
 
         public CriAdxFormat() => Channels = new CriAdxChannel[0];
-        private CriAdxFormat(Builder b) : base(b)
+        internal CriAdxFormat(CriAdxFormatBuilder b) : base(b)
         {
             Channels = b.Channels;
             FrameSize = b.FrameSize;
@@ -74,7 +73,7 @@ namespace VGAudio.Formats
                 channels[i] = new CriAdxChannel(adpcm, channelConfig.History, channelConfig.Version);
             });
 
-            return new Builder(channels, pcm16.SampleCount, pcm16.SampleRate, config.FrameSize, 500)
+            return new CriAdxFormatBuilder(channels, pcm16.SampleCount, pcm16.SampleRate, config.FrameSize, 500)
                 .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
                 .WithAlignmentSamples(alignmentSamples)
                 .WithEncodingType(config.Type)
@@ -93,56 +92,9 @@ namespace VGAudio.Formats
             throw new NotImplementedException();
         }
 
-        public override Builder GetCloneBuilder()
+        public override CriAdxFormatBuilder GetCloneBuilder()
         {
             throw new NotImplementedException();
-        }
-
-        public class Builder : AudioFormatBaseBuilder<CriAdxFormat, Builder, CriAdxConfiguration>
-        {
-            public CriAdxChannel[] Channels { get; set; }
-            public short HighpassFrequency { get; set; }
-            public int FrameSize { get; set; }
-            public int AlignmentSamples { get; set; }
-            public AdxType Type { get; set; } = AdxType.Linear;
-            public int Version => Channels?[0]?.Version ?? 0;
-            protected override int ChannelCount => Channels.Length;
-
-            public Builder(CriAdxChannel[] channels, int sampleCount, int sampleRate, int frameSize, short highpassFrequency)
-            {
-                if (channels == null || channels.Length < 1)
-                    throw new InvalidDataException("Channels parameter cannot be empty or null");
-
-                Channels = channels;
-                SampleCount = sampleCount;
-                SampleRate = sampleRate;
-                FrameSize = frameSize;
-                HighpassFrequency = highpassFrequency;
-
-                int length = Channels[0]?.Audio?.Length ?? 0;
-                foreach (CriAdxChannel channel in Channels)
-                {
-                    if (channel == null)
-                        throw new InvalidDataException("All provided channels must be non-null");
-
-                    if (channel.Audio?.Length != length)
-                        throw new InvalidDataException("All channels must have the same length");
-                }
-            }
-
-            public Builder WithEncodingType(AdxType type)
-            {
-                Type = type;
-                return this;
-            }
-
-            public Builder WithAlignmentSamples(int alignmentSamplesCount)
-            {
-                AlignmentSamples = alignmentSamplesCount;
-                return this;
-            }
-
-            public override CriAdxFormat Build() => new CriAdxFormat(this);
         }
     }
 }
