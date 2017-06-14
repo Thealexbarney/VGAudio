@@ -1,7 +1,6 @@
-﻿using VGAudio.Containers.Adx;
+﻿using VGAudio.Formats.CriAdx;
 
-// ReSharper disable once CheckNamespace
-namespace VGAudio.Codecs
+namespace VGAudio.Codecs.CriAdx
 {
     public class CriAdxConfiguration
     {
@@ -11,7 +10,7 @@ namespace VGAudio.Codecs
         public int Version { get; set; } = 4;
         public short History { get; set; }
         public int Padding { get; set; }
-        public AdxType Type { get; set; } = AdxType.Linear;
+        public CriAdxType Type { get; set; } = CriAdxType.Linear;
         public int Filter { get; set; }
     }
 }

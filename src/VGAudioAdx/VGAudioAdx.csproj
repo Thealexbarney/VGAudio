@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.1;net45</TargetFrameworks>
     <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <RootNamespace>VGAudio</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

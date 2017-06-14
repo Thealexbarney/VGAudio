@@ -1,7 +1,6 @@
 ﻿using VGAudio.Utilities;
 
-// ReSharper disable once CheckNamespace
-namespace VGAudio.Formats.Adx
+namespace VGAudio.Formats.CriAdx
 {
     public static class CriAdxHelpers
     {

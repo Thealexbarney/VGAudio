@@ -1,14 +1,13 @@
 ﻿using System.IO;
 using System.Linq;
-using VGAudio.Codecs;
-using VGAudio.Containers.Adx;
+using VGAudio.Codecs.CriAdx;
 using VGAudio.Formats;
+using VGAudio.Formats.CriAdx;
 using VGAudio.Utilities;
-using static VGAudio.Formats.Adx.CriAdxHelpers;
+using static VGAudio.Formats.CriAdx.CriAdxHelpers;
 using static VGAudio.Utilities.Helpers;
 
-// ReSharper disable once CheckNamespace
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Adx
 {
     public class AdxWriter : AudioWriter<AdxWriter, AdxConfiguration>
     {
@@ -81,7 +80,7 @@ namespace VGAudio.Containers
             writer.Write((byte)ChannelCount);
             writer.Write(Adpcm.SampleRate);
             writer.Write(SampleCount);
-            writer.Write(Adpcm.Type != AdxType.Fixed ? Adpcm.HighpassFrequency : (short)0);
+            writer.Write(Adpcm.Type != CriAdxType.Fixed ? Adpcm.HighpassFrequency : (short)0);
             writer.Write((byte)Version);
             writer.Write((byte)0); //flags
 

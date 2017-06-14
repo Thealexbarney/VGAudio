@@ -1,57 +1,18 @@
 ﻿using System;
 using VGAudio.Utilities;
 
-// ReSharper disable once CheckNamespace
-namespace VGAudio.Codecs
+namespace VGAudio.Codecs.CriAdx
 {
-    public static class CriAdxEncryption
+    public class CriAdxKey
     {
-        public static void Decrypt(byte[][] adpcm, AdxKey key, int frameSize)
-        {
-            for (int i = 0; i < adpcm.Length; i++)
-            {
-                DecryptChannel(adpcm[i], key, frameSize, i, adpcm.Length);
-            }
-        }
-
-        public static void DecryptChannel(byte[] adpcm, AdxKey key, int frameSize, int channelNum, int channelCount)
-        {
-            int xor = key.Seed;
-            int frameCount = adpcm.Length.DivideByRoundUp(frameSize);
-
-            for (int i = 0; i < channelNum; i++)
-            {
-                xor = (xor * key.Mult + key.Inc) & 0x7fff;
-            }
-
-            for (int i = 0; i < frameCount; i++)
-            {
-                int pos = i * frameSize;
-                if (adpcm[pos] != 0 || adpcm[pos + 1] != 0)
-                {
-                    adpcm[pos] ^= (byte)(xor >> 8);
-                    adpcm[pos] &= 0x1f;
-                    adpcm[pos + 1] ^= (byte)xor;
-                }
-
-                for (int c = 0; c < channelCount; c++)
-                {
-                    xor = (xor * key.Mult + key.Inc) & 0x7fff;
-                }
-            }
-        }
-    }
-
-    public class AdxKey
-    {
-        public AdxKey(int seed, int mult, int inc)
+        public CriAdxKey(int seed, int mult, int inc)
         {
             Seed = seed;
             Mult = mult;
             Inc = inc;
         }
 
-        public AdxKey(ulong keyCode)
+        public CriAdxKey(ulong keyCode)
         {
             keyCode--;
             Seed = (int)(keyCode >> 27 & 0x7fff);
@@ -59,7 +20,7 @@ namespace VGAudio.Codecs
             Inc = (int)(keyCode << 1 & 0x7fff | 1);
         }
 
-        public AdxKey(string keyString)
+        public CriAdxKey(string keyString)
         {
             if (string.IsNullOrEmpty(keyString)) return;
 

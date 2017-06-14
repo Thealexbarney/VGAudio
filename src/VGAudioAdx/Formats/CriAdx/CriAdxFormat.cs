@@ -1,10 +1,8 @@
 ﻿using System;
-using VGAudio.Codecs;
-using VGAudio.Containers.Adx;
+using VGAudio.Codecs.CriAdx;
 using VGAudio.Utilities;
 
-// ReSharper disable once CheckNamespace
-namespace VGAudio.Formats
+namespace VGAudio.Formats.CriAdx
 {
     public class CriAdxFormat : AudioFormatBase<CriAdxFormat, CriAdxFormatBuilder, CriAdxConfiguration>
     {
@@ -15,7 +13,7 @@ namespace VGAudio.Formats
         public override int LoopStart => UnalignedLoopStart + AlignmentSamples;
         public override int LoopEnd => UnalignedLoopEnd + AlignmentSamples;
         public int Version { get; }
-        public AdxType Type { get; } = AdxType.Linear;
+        public CriAdxType Type { get; } = CriAdxType.Linear;
 
         public CriAdxFormat() => Channels = new CriAdxChannel[0];
         internal CriAdxFormat(CriAdxFormatBuilder b) : base(b)

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using VGAudio.Containers.Adx;
+using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Cli
 {
@@ -171,19 +171,19 @@ namespace VGAudio.Cli
                                 return null;
                             }
                             string type = args[i + 1];
-                            AdxType adxType;
+                            CriAdxType adxType;
 
                             switch (type.ToUpper())
                             {
                                 case "LINEAR":
-                                    adxType = AdxType.Linear;
+                                    adxType = CriAdxType.Linear;
                                     break;
                                 case "FIXED":
-                                    adxType = AdxType.Fixed;
+                                    adxType = CriAdxType.Fixed;
                                     break;
                                 case "EXP":
                                 case "EXPONENTIAL":
-                                    adxType = AdxType.Exponential;
+                                    adxType = CriAdxType.Exponential;
                                     break;
                                 default:
                                     Console.WriteLine("Valid ADX types are Linear, Fixed, or Exp(onential)");

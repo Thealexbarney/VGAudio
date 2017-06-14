@@ -1,11 +1,10 @@
 ﻿using System.IO;
-using VGAudio.Containers.Adx;
 using VGAudio.Formats;
+using VGAudio.Formats.CriAdx;
 using VGAudio.Utilities;
 using static VGAudio.Utilities.Helpers;
 
-// ReSharper disable once CheckNamespace
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Adx
 {
     public class AdxReader : AudioReader<AdxReader, AdxStructure, AdxConfiguration>
     {
@@ -50,7 +49,7 @@ namespace VGAudio.Containers
         private static void ReadHeader(BinaryReader reader, AdxStructure structure)
         {
             structure.CopyrightOffset = reader.ReadInt16();
-            structure.EncodingType = (AdxType)reader.ReadByte();
+            structure.EncodingType = (CriAdxType)reader.ReadByte();
             structure.FrameSize = reader.ReadByte();
             structure.BitDepth = reader.ReadByte();
             structure.ChannelCount = reader.ReadByte();

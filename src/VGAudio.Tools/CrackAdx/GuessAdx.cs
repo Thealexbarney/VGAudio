@@ -4,18 +4,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using VGAudio.Codecs;
-using VGAudio.Containers;
+using VGAudio.Codecs.CriAdx;
 using VGAudio.Containers.Adx;
 using VGAudio.Formats;
+using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Tools.CrackAdx
 {
     public class GuessAdx
     {
         public List<AdxFile> Files { get; } = new List<AdxFile>();
-        public ConcurrentDictionary<AdxKey, int> TriedKeys { get; } = new ConcurrentDictionary<AdxKey, int>(new AdxKeyComparer());
-        public ConcurrentBag<AdxKey> Keys { get; } = new ConcurrentBag<AdxKey>();
+        public ConcurrentDictionary<CriAdxKey, int> TriedKeys { get; } = new ConcurrentDictionary<CriAdxKey, int>(new AdxKeyComparer());
+        public ConcurrentBag<CriAdxKey> Keys { get; } = new ConcurrentBag<CriAdxKey>();
         public int EncryptionType { get; }
         private HashSet<int> PossibleSeeds { get; }
         private int[] PossibleMultipliers { get; }
@@ -90,7 +90,7 @@ namespace VGAudio.Tools.CrackAdx
             }
         }
 
-        public void AddKey(AdxKey key)
+        public void AddKey(CriAdxKey key)
         {
             if (!TriedKeys.TryAdd(key, 0)) return;
 
@@ -111,7 +111,7 @@ namespace VGAudio.Tools.CrackAdx
             Keys.Add(key);
             Progress?.ReportMessage($"{PrintKey(key)} Confidence Short - {confidenceSmall:P3} Full - {confidenceFull:P3}");
 
-            string PrintKey(AdxKey k) => $"Seed - {k.Seed:x4} Multiplier - {k.Mult:x4} Increment - {k.Inc:x4}";
+            string PrintKey(CriAdxKey k) => $"Seed - {k.Seed:x4} Multiplier - {k.Mult:x4} Increment - {k.Inc:x4}";
         }
 
         public void TryScale(AdxFile adx, int index)
@@ -145,11 +145,11 @@ namespace VGAudio.Tools.CrackAdx
             }
         }
 
-        public AdxKey FindStartingKey(int seed, int mult, int inc, int startFrame)
+        public CriAdxKey FindStartingKey(int seed, int mult, int inc, int startFrame)
         {
             if (startFrame == 0)
             {
-                return new AdxKey(seed, mult, inc);
+                return new CriAdxKey(seed, mult, inc);
             }
 
             foreach (var realSeed in PossibleSeeds)
@@ -163,7 +163,7 @@ namespace VGAudio.Tools.CrackAdx
 
                 if ((xor & MaxSeed - 1) == seed)
                 {
-                    return new AdxKey(realSeed, mult, inc);
+                    return new CriAdxKey(realSeed, mult, inc);
                 }
             }
 
@@ -171,7 +171,7 @@ namespace VGAudio.Tools.CrackAdx
             return null;
         }
 
-        public bool KeyIsValid(AdxKey key, ushort[] scales)
+        public bool KeyIsValid(CriAdxKey key, ushort[] scales)
         {
             int xor = key.Seed;
             foreach (ushort scale in scales)
@@ -185,7 +185,7 @@ namespace VGAudio.Tools.CrackAdx
             return true;
         }
 
-        private AdxKeyConfidence GetReencodeConfidence(AdxKey key, string filename)
+        private AdxKeyConfidence GetReencodeConfidence(CriAdxKey key, string filename)
         {
             CriAdxFormat adx;
             using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
@@ -254,9 +254,9 @@ namespace VGAudio.Tools.CrackAdx
         }
     }
 
-    public sealed class AdxKeyComparer : IEqualityComparer<AdxKey>
+    public sealed class AdxKeyComparer : IEqualityComparer<CriAdxKey>
     {
-        public bool Equals(AdxKey x, AdxKey y)
+        public bool Equals(CriAdxKey x, CriAdxKey y)
         {
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;
@@ -265,7 +265,7 @@ namespace VGAudio.Tools.CrackAdx
             return x.Seed == y.Seed && x.Mult == y.Mult && x.Inc == y.Inc;
         }
 
-        public int GetHashCode(AdxKey obj)
+        public int GetHashCode(CriAdxKey obj)
         {
             unchecked
             {

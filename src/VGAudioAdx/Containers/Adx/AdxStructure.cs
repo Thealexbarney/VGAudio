@@ -1,13 +1,12 @@
-﻿using VGAudio.Formats.Adx;
+﻿using VGAudio.Formats.CriAdx;
 using VGAudio.Utilities;
 
-// ReSharper disable once CheckNamespace
 namespace VGAudio.Containers.Adx
 {
     public class AdxStructure
     {
         public short CopyrightOffset { get; set; }
-        public AdxType EncodingType { get; set; }
+        public CriAdxType EncodingType { get; set; }
         public byte FrameSize { get; set; }
         public int SamplesPerFrame => CriAdxHelpers.NibbleCountToSampleCount(FrameSize * 2, FrameSize);
         public byte BitDepth { get; set; }

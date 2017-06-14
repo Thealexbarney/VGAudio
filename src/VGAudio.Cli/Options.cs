@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using VGAudio.Containers.Adx;
 using VGAudio.Formats;
+using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Cli
 {
@@ -21,7 +21,7 @@ namespace VGAudio.Cli
         public int Version { get; set; } // ADX
         public int FrameSize { get; set; } // ADX
         public int Filter { get; set; } = 2; // ADX
-        public AdxType AdxType { get; set; } // ADX
+        public CriAdxType AdxType { get; set; } // ADX
     }
 
     internal class AudioFile

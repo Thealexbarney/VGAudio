@@ -1,5 +1,4 @@
-﻿// ReSharper disable once CheckNamespace
-namespace VGAudio.Formats
+﻿namespace VGAudio.Formats.CriAdx
 {
     public class CriAdxChannel
     {
