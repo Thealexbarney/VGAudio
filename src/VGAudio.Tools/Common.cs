@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using VGAudio.Containers;
+using VGAudio.Containers.Adx;
 
 namespace VGAudio.Tools
 {
@@ -15,6 +16,7 @@ namespace VGAudio.Tools
             new FileTypeInfo(FileType.Bcstm, "*.bcstm", () => new BcstmReader(), () => new BcstmWriter()),
             new FileTypeInfo(FileType.Bfstm, "*.bfstm", () => new BfstmReader(), () => new BfstmWriter()),
             new FileTypeInfo(FileType.Hps, "*.hps", () => new HpsReader(), () => new HpsWriter()),
+            new FileTypeInfo(FileType.Adx, "*.adx", () => new AdxReader(), () => new AdxWriter()),
             new FileTypeInfo(FileType.Genh, "*.genh", () => new GenhReader(), () => null)
         }.ToDictionary(x => x.Type, x => x);
 

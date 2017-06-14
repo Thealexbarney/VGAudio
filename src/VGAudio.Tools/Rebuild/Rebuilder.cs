@@ -34,6 +34,7 @@ namespace VGAudio.Tools.Rebuild
                     byte[] inFile = File.ReadAllBytes(Files[i]);
                     AudioWithConfig audio = Reader().ReadWithConfig(inFile);
 
+                    audio.Configuration.TrimFile = false;
                     if (audio.Configuration is BxstmConfiguration a)
                     {
                         a.RecalculateLoopContext = false;
