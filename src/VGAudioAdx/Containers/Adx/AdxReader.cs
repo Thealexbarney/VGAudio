@@ -57,14 +57,24 @@ namespace VGAudio.Containers.Adx
             structure.SampleCount = reader.ReadInt32();
             structure.HighpassFreq = reader.ReadInt16();
             structure.Version = reader.ReadByte();
-            structure.Flags = reader.ReadByte();
+            structure.VersionMinor = reader.ReadByte();
+            structure.HistorySamples = CreateJaggedArray<short[][]>(structure.ChannelCount, 2);
 
-            var history = new short[structure.ChannelCount][];
-            for (int i = 0; i < history.Length; i++)
+            if (structure.Version >= 4)
             {
-                history[i] = structure.Version >= 4 ? new[] { reader.ReadInt16(), reader.ReadInt16() } : new short[2];
+                reader.BaseStream.Position += 4;
+                foreach (short[] history in structure.HistorySamples)
+                {
+                    history[0] = reader.ReadInt16();
+                    history[1] = reader.ReadInt16();
+                }
+
+                //Header contains, at minimum, space for 2 channels' history samples, so skip if mono
+                if (structure.ChannelCount == 1)
+                {
+                    reader.BaseStream.Position += 4;
+                }
             }
-            structure.HistorySamples = history;
 
             if (reader.BaseStream.Position + 24 > structure.CopyrightOffset) { return; }
 

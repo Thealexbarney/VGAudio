@@ -15,7 +15,7 @@ namespace VGAudio.Containers.Adx
         public int SampleCount { get; set; }
         public short HighpassFreq { get; set; }
         public byte Version { get; set; }
-        public byte Flags { get; set; }
+        public byte VersionMinor { get; set; }
         public short AlignmentSamples { get; set; }
         public int LoopCount { get; set; }
         public bool Looping { get; set; }
