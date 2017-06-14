@@ -67,7 +67,7 @@ namespace VGAudio.Codecs
             var adpcmBuffer = new byte[c.FrameSize];
             var adpcmOut = new byte[frameCount * c.FrameSize];
 
-            if (c.Version == 4)
+            if (c.Version == 4 && c.Padding == 0)
             {
                 pcmBuffer[0] = pcm[0];
                 pcmBuffer[1] = pcm[0];

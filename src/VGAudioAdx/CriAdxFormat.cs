@@ -13,6 +13,8 @@ namespace VGAudio.Formats
         public short HighpassFrequency { get; }
         public int FrameSize { get; }
         public int AlignmentSamples { get; }
+        public override int LoopStart => UnalignedLoopStart + AlignmentSamples;
+        public override int LoopEnd => UnalignedLoopEnd + AlignmentSamples;
         public int Version { get; }
         public AdxType Type { get; } = AdxType.Linear;
 
@@ -72,8 +74,8 @@ namespace VGAudio.Formats
                 channels[i] = new CriAdxChannel(adpcm, channelConfig.History, channelConfig.Version);
             });
 
-            return new Builder(channels, pcm16.SampleCount + alignmentSamples, pcm16.SampleRate, config.FrameSize, 500)
-                .WithLoop(pcm16.Looping, pcm16.LoopStart + alignmentSamples, pcm16.LoopEnd + alignmentSamples)
+            return new Builder(channels, pcm16.SampleCount, pcm16.SampleRate, config.FrameSize, 500)
+                .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
                 .WithAlignmentSamples(alignmentSamples)
                 .WithEncodingType(config.Type)
                 .Build();
