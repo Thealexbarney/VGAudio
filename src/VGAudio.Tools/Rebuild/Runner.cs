@@ -20,9 +20,9 @@ namespace VGAudio.Tools.Rebuild
             builder.AppendLine($"Different size: {results.Count(x => x.ByteCount == -2)}");
             builder.AppendLine($"Error: {results.Count(x => x.ByteCount == -4)}");
 
-            foreach (Result result in results.OrderByDescending(x => x.ByteCount))
+            foreach (Result result in results.OrderByDescending(x => x.ByteCount == 0).ThenByDescending(x => x.ByteCount))
             {
-                builder.AppendLine($"{result.ByteCount}, {result.Filename}");
+                builder.AppendLine($"{result.ByteCount}, {result.Filename} {result.Error}");
             }
 
             builder.AppendLine($"Same: {results.Count(x => x.ByteCount == 0)}");

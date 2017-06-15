@@ -10,6 +10,7 @@ namespace VGAudio.Formats.CriAdx
         public short HighpassFrequency { get; }
         public int FrameSize { get; }
         public int AlignmentSamples { get; }
+        public override int SampleCount => UnalignedSampleCount + AlignmentSamples;
         public override int LoopStart => UnalignedLoopStart + AlignmentSamples;
         public override int LoopEnd => UnalignedLoopEnd + AlignmentSamples;
         public int Version { get; }
@@ -40,11 +41,11 @@ namespace VGAudio.Formats.CriAdx
                     Type = Type,
                     Version = Version
                 };
-                pcmChannels[i] = CriAdxCodec.Decode(Channels[i].Audio, SampleCount, options);
+                pcmChannels[i] = CriAdxCodec.Decode(Channels[i].Audio, UnalignedSampleCount, options);
             });
 
             return new Pcm16Format.Builder(pcmChannels, SampleRate)
-                .WithLoop(Looping, LoopStart, LoopEnd)
+                .WithLoop(Looping, UnalignedLoopStart, UnalignedLoopEnd)
                 .WithTracks(Tracks)
                 .Build();
         }

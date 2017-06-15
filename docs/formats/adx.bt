@@ -81,7 +81,7 @@ struct Header
     int16 LoopCount;
     for(i = 0; i < LoopCount; i++)
     {
-        Loop loop;
+        Loop loop <open=true>;
     }
 };
 
@@ -139,7 +139,7 @@ int SizeFrame( Frame &f )
 }
 
 BigEndian();
-Header head;
+Header head <open=true>;
 
 FSeek(head.CopyrightOffset - 2);
 Data data(head);

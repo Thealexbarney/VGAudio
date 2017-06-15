@@ -7,11 +7,13 @@ namespace VGAudio.Tools.Rebuild
     {
         public string Filename { get; }
         public int ByteCount { get; }
+        public string Error { get; }
 
-        public Result(string filename, int byteCount)
+        public Result(string filename, int byteCount, string error = null)
         {
             Filename = filename;
             ByteCount = byteCount;
+            Error = error;
         }
     }
 }

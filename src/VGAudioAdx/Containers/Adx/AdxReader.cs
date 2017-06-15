@@ -40,8 +40,9 @@ namespace VGAudio.Containers.Adx
                 channels[i] = new CriAdxChannel(structure.AudioData[i], structure.HistorySamples[i][0], structure.Version);
             }
 
-            return new CriAdxFormatBuilder(channels, structure.SampleCount, structure.SampleRate, structure.FrameSize, structure.HighpassFreq)
-                .WithLoop(structure.Looping, structure.LoopStartSample, structure.LoopEndSample)
+            return new CriAdxFormatBuilder(channels, structure.SampleCount - structure.AlignmentSamples, structure.SampleRate, structure.FrameSize, structure.HighpassFreq)
+                .WithLoop(structure.Looping, structure.LoopStartSample - structure.AlignmentSamples, structure.LoopEndSample - structure.AlignmentSamples)
+                .WithAlignmentSamples(structure.AlignmentSamples)
                 .WithEncodingType(structure.EncodingType)
                 .Build();
         }

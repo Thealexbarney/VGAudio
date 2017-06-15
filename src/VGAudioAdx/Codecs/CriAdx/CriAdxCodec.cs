@@ -19,18 +19,19 @@ namespace VGAudio.Codecs.CriAdx
             int frameCount = sampleCount.DivideByRoundUp(samplesPerFrame);
 
             int currentSample = 0;
-            int inIndex = 0;
+            int startSample = c.Padding > 0 ? c.Padding % samplesPerFrame : 0;
+            int inIndex = c.Padding / samplesPerFrame * c.FrameSize;
 
             for (int i = 0; i < frameCount; i++)
             {
                 int filterNum = GetHighNibble(adpcm[inIndex]) >> 1;
                 short scale = (short)((adpcm[inIndex] << 8 | adpcm[inIndex + 1]) & 0x1FFF);
                 scale = (short)(c.Type == CriAdxType.Exponential ? 1 << (12 - scale) : scale + 1);
-                inIndex += 2;
+                inIndex += 2 + startSample / 2;
 
                 int samplesToRead = Math.Min(samplesPerFrame, sampleCount - currentSample);
 
-                for (int s = 0; s < samplesToRead; s++)
+                for (int s = startSample; s < samplesToRead; s++)
                 {
                     int sample = s % 2 == 0 ? GetHighNibble(adpcm[inIndex]) : GetLowNibble(adpcm[inIndex++]);
                     sample = sample >= 8 ? sample - 16 : sample;
@@ -49,6 +50,7 @@ namespace VGAudio.Codecs.CriAdx
                     hist1 = finalSample;
                     pcm[currentSample++] = finalSample;
                 }
+                startSample = 0;
             }
             return pcm;
         }

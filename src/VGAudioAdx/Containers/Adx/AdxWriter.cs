@@ -27,7 +27,7 @@ namespace VGAudio.Containers.Adx
         private int SamplesPerFrame => (FrameSize - 2) * 2;
         private int FrameCount => SampleCount.DivideByRoundUp(SamplesPerFrame);
 
-        private int HeaderSize => Adpcm.Looping ? 60 : Version == 4 ? 36 : 32;
+        private int HeaderSize => Adpcm.Looping ? Version == 4 ? 60 : 52 : Version == 4 ? 36 : 32;
         private int CopyrightOffset => HeaderSize + AlignmentBytes;
         private int AudioOffset => CopyrightOffset + 4;
         private int AudioSize => FrameSize * FrameCount * ChannelCount;
@@ -57,6 +57,12 @@ namespace VGAudio.Containers.Adx
             //Start loop frame offset should be a multiple of 0x800
             int startLoopOffset = SampleCountToByteCount(Adpcm.LoopStart, FrameSize) * ChannelCount + HeaderSize + 4;
             AlignmentBytes = GetNextMultiple(startLoopOffset, 0x800) - startLoopOffset;
+
+            //Version 3 pushes the loop start one block back for every full frame of alignment samples 
+            if (Adpcm.Version == 3)
+            {
+                AlignmentBytes += Adpcm.AlignmentSamples / SamplesPerFrame * 0x800;
+            }
         }
 
         protected override void WriteStream(Stream stream)

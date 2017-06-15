@@ -44,9 +44,9 @@ namespace VGAudio.Tools.Rebuild
                     int diff = Common.DiffArrays(inFile, outFile);
                     Results[i] = new Result(Files[i], diff);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Results[i] = new Result(Files[i], -4);
+                    Results[i] = new Result(Files[i], -4, ex.Message);
                 }
             });
             return Results;
