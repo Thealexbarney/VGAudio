@@ -33,8 +33,7 @@ namespace VGAudio.Codecs.CriAdx
 
                 for (int s = startSample; s < samplesToRead; s++)
                 {
-                    int sample = s % 2 == 0 ? GetHighNibble(adpcm[inIndex]) : GetLowNibble(adpcm[inIndex++]);
-                    sample = sample >= 8 ? sample - 16 : sample;
+                    int sample = s % 2 == 0 ? GetHighNibbleSigned(adpcm[inIndex]) : GetLowNibbleSigned(adpcm[inIndex++]);
                     if (c.Version == 4)
                     {
                         sample = scale * sample + ((hist1 * coefs[filterNum][0] + hist2 * coefs[filterNum][1]) >> 12);
@@ -142,7 +141,7 @@ namespace VGAudio.Codecs.CriAdx
 
             for (int i = 0; i < samplesPerFrame / 2; i++)
             {
-                adpcmOut[i + 2] = (byte)((adpcm[i * 2] << 4) | (adpcm[i * 2 + 1] & 0xf));
+                adpcmOut[i + 2] = CombineNibbles(adpcm[i * 2], adpcm[i * 2 + 1]);
             }
         }
 
@@ -195,14 +194,5 @@ namespace VGAudio.Codecs.CriAdx
             new short[] {0x1CC0, unchecked((short)0xF300)},
             new short[] {0x1880, unchecked((short)0xF240)}
         };
-
-        public static sbyte Clamp4(int value)
-        {
-            if (value > 7)
-                return 7;
-            if (value < -8)
-                return -8;
-            return (sbyte)value;
-        }
     }
 }
