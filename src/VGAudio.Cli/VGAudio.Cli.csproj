@@ -11,7 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VGAudioAdx\VGAudioAdx.csproj" />
     <ProjectReference Include="..\VGAudio\VGAudio.csproj" />
   </ItemGroup>
 

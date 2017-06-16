@@ -11,7 +11,7 @@ namespace VGAudio.Formats.CriAdx
         public int AlignmentSamples { get; set; }
         public CriAdxType Type { get; set; } = CriAdxType.Linear;
         public int Version => Channels?[0]?.Version ?? 0;
-        protected override int ChannelCount => Channels.Length;
+        protected internal override int ChannelCount => Channels.Length;
 
         public CriAdxFormatBuilder(CriAdxChannel[] channels, int sampleCount, int sampleRate, int frameSize, short highpassFrequency)
         {

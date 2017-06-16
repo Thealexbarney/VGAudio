@@ -88,7 +88,7 @@ namespace VGAudio.Containers.Adx
             writer.Write(SampleCount);
             writer.Write(Adpcm.Type != CriAdxType.Fixed ? Adpcm.HighpassFrequency : (short)0);
             writer.Write((byte)Version);
-            writer.Write((byte)0); //flags
+            writer.Write((byte)0); //Minor version
 
             if (Version == 4)
             {
