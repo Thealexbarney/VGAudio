@@ -1,6 +1,5 @@
 ﻿using System;
 using VGAudio.Containers.Bxstm;
-using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Cli.Metadata
 {
@@ -24,21 +23,6 @@ namespace VGAudio.Cli.Metadata
                     return AudioFormat.Pcm16;
                 case BxstmCodec.Adpcm:
                     return AudioFormat.GcAdpcm;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(codec), codec, null);
-            }
-        }
-
-        public static AudioFormat FromAdx(CriAdxType codec)
-        {
-            switch (codec)
-            {
-                case CriAdxType.Fixed:
-                    return AudioFormat.CriAdxFixed;
-                case CriAdxType.Linear:
-                    return AudioFormat.CriAdx;
-                case CriAdxType.Exponential:
-                    return AudioFormat.CriAdxExp;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(codec), codec, null);
             }

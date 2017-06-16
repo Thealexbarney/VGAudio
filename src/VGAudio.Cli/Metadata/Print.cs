@@ -63,8 +63,8 @@ namespace VGAudio.Cli.Metadata
             [FileType.Brstm] = new Brstm(),
             [FileType.Bcstm] = new Bcstm(),
             [FileType.Bfstm] = new Bfstm(),
-            [FileType.Genh] = new Genh(),
-            [FileType.Adx] = new Adx()
+            [FileType.Adx] = new Adx(),
+            [FileType.Genh] = new Genh()
         };
 
         private static string GetSecondsString(int sampleCount, int sampleRate)

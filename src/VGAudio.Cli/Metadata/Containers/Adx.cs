@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using VGAudio.Containers.Adx;
+using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Cli.Metadata.Containers
 {
@@ -21,7 +23,7 @@ namespace VGAudio.Cli.Metadata.Containers
                 SampleCount = adx.SampleCount,
                 SampleRate = adx.SampleRate,
                 ChannelCount = adx.ChannelCount,
-                Format = Common.FromAdx(adx.EncodingType),
+                Format = FromAdx(adx.EncodingType),
                 Looping = adx.Looping,
                 LoopStart = adx.LoopStartSample,
                 LoopEnd = adx.LoopEndSample
@@ -39,6 +41,21 @@ namespace VGAudio.Cli.Metadata.Containers
             builder.AppendLine($"ADPCM frame size: {adx.FrameSize} bytes");
             builder.AppendLine($"File version: {adx.Version}");
             builder.AppendLine($"File version minor: {adx.VersionMinor}");
+        }
+
+        private static AudioFormat FromAdx(CriAdxType codec)
+        {
+            switch (codec)
+            {
+                case CriAdxType.Fixed:
+                    return AudioFormat.CriAdxFixed;
+                case CriAdxType.Linear:
+                    return AudioFormat.CriAdx;
+                case CriAdxType.Exponential:
+                    return AudioFormat.CriAdxExp;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(codec), codec, null);
+            }
         }
     }
 }
