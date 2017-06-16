@@ -32,7 +32,7 @@ namespace VGAudio.Containers.Adx
         private int AudioOffset => CopyrightOffset + 4;
         private int AudioSize => FrameSize * FrameCount * ChannelCount;
         private int FooterOffset => AudioOffset + AudioSize;
-        private int FooterSize => Adpcm.Looping ? GetNextMultiple(FooterOffset, 0x800) - FooterOffset : Adpcm.FrameSize;
+        private int FooterSize => Adpcm.Looping ? GetNextMultiple(FooterOffset + FrameSize, 0x800) - FooterOffset : FrameSize;
         private int LoopStartOffset => AudioOffset + SampleCountToByteCount(Adpcm.LoopStart, FrameSize) * ChannelCount;
         private int LoopEndOffset => AudioOffset + GetNextMultiple(SampleCountToByteCount(Adpcm.LoopEnd, FrameSize), FrameSize) * ChannelCount;
 
