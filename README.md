@@ -8,6 +8,7 @@ Supports reading and writing:
 * BFSTM
 * IDSP
 * HPS
+* ADX
 * WAVE
 
 Supports reading:
