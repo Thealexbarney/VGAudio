@@ -1,10 +1,12 @@
 ﻿using System.IO;
 using VGAudio.Containers;
+using VGAudio.Containers.Adx;
 using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
 using VGAudio.Containers.Wave;
+using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Cli
 {
@@ -131,6 +133,17 @@ namespace VGAudio.Cli
                     throw new InvalidDataException("Can't use format PCM8 with HPS files");
             }
 
+            return config;
+        }
+
+        public static Configuration Adx(Options options, Configuration inConfig = null)
+        {
+            var config = inConfig as AdxConfiguration ?? new AdxConfiguration();
+
+            if (options.Version != 0) config.Version = options.Version;
+            if (options.FrameSize != 0) config.FrameSize = options.FrameSize;
+            if (options.Filter >= 0 && options.Filter <= 3) config.Filter = options.Filter;
+            if (options.AdxType != default(CriAdxType)) config.Type = options.AdxType;
             return config;
         }
     }

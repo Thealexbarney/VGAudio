@@ -1,7 +1,7 @@
 ﻿using System;
 using VGAudio.Containers;
 
-namespace VGAudio.TestsLong
+namespace VGAudio.Tools
 {
     internal enum FileType
     {
@@ -13,7 +13,8 @@ namespace VGAudio.TestsLong
         Bcstm,
         Bfstm,
         Hps,
-        Genh
+        Genh,
+        Adx
     }
 
     internal class FileTypeInfo

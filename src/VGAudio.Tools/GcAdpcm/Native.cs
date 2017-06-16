@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace VGAudio.TestsLong.GcAdpcm
+namespace VGAudio.Tools.GcAdpcm
 {
     public static class Native
     {

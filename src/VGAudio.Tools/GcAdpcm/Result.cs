@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VGAudio.TestsLong.GcAdpcm
+namespace VGAudio.Tools.GcAdpcm
 {
     public class Result
     {

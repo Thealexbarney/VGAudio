@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace VGAudio.TestsLong.GcAdpcm
+namespace VGAudio.Tools.GcAdpcm
 {
     internal static class Runner
     {

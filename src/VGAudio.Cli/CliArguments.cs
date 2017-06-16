@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Cli
 {
@@ -19,6 +20,9 @@ namespace VGAudio.Cli
                 {
                     switch (args[i].Split(':')[0].Substring(1).ToUpper())
                     {
+                        case "-VERSION" when args.Length == 1:
+                            Console.WriteLine($"VGAudio v{GetProgramVersion()}");
+                            return null;
                         case "M":
                             options.Job = JobType.Metadata;
                             continue;
@@ -70,8 +74,7 @@ namespace VGAudio.Cli
                                 return null;
                             }
 
-                            int loopStart, loopEnd;
-                            if (!(int.TryParse(loopPoints[0], out loopStart) && int.TryParse(loopPoints[1], out loopEnd)))
+                            if (!(int.TryParse(loopPoints[0], out int loopStart) && int.TryParse(loopPoints[1], out int loopEnd)))
                             {
                                 PrintWithUsage("Error parsing loop points.");
                                 return null;
@@ -117,8 +120,79 @@ namespace VGAudio.Cli
                             PrintUsage();
                             return null;
                         case "-VERSION":
-                            Console.WriteLine($"VGAudio v{GetProgramVersion()}");
-                            return null;
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --version.");
+                                return null;
+                            }
+                            if (!int.TryParse(args[i + 1], out int version))
+                            {
+                                PrintWithUsage("Error parsing version.");
+                                return null;
+                            }
+
+                            options.Version = version;
+                            i++;
+                            continue;
+                        case "-FRAMESIZE":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --FrameSize.");
+                                return null;
+                            }
+                            if (!int.TryParse(args[i + 1], out int framesize))
+                            {
+                                PrintWithUsage("Error parsing frame size.");
+                                return null;
+                            }
+
+                            options.FrameSize = framesize;
+                            i++;
+                            continue;
+                        case "-FILTER":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --filter.");
+                                return null;
+                            }
+                            if (!int.TryParse(args[i + 1], out int filter))
+                            {
+                                PrintWithUsage("Error parsing frame size.");
+                                return null;
+                            }
+
+                            options.Filter = filter;
+                            i++;
+                            continue;
+                        case "-ADXTYPE":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --AdxType.");
+                                return null;
+                            }
+                            string type = args[i + 1];
+                            CriAdxType adxType;
+
+                            switch (type.ToUpper())
+                            {
+                                case "LINEAR":
+                                    adxType = CriAdxType.Linear;
+                                    break;
+                                case "FIXED":
+                                    adxType = CriAdxType.Fixed;
+                                    break;
+                                case "EXP":
+                                case "EXPONENTIAL":
+                                    adxType = CriAdxType.Exponential;
+                                    break;
+                                default:
+                                    Console.WriteLine("Valid ADX types are Linear, Fixed, or Exp(onential)");
+                                    return null;
+                            }
+
+                            options.AdxType = adxType;
+                            i++;
+                            continue;
                     }
                 }
 

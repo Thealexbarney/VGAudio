@@ -5,6 +5,9 @@
         None,
         Pcm16,
         Pcm8,
-        GcAdpcm
+        GcAdpcm,
+        CriAdx,
+        CriAdxFixed,
+        CriAdxExp
     }
 }

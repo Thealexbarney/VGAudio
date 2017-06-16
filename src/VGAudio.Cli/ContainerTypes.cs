@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using VGAudio.Containers;
+using VGAudio.Containers.Adx;
 
 namespace VGAudio.Cli
 {
@@ -16,6 +17,7 @@ namespace VGAudio.Cli
             [FileType.Bcstm] = new ContainerType(new[] { "bcstm" }, () => new BcstmReader(), () => new BcstmWriter(), CreateConfiguration.Bcstm),
             [FileType.Bfstm] = new ContainerType(new[] { "bfstm" }, () => new BfstmReader(), () => new BfstmWriter(), CreateConfiguration.Bfstm),
             [FileType.Hps] = new ContainerType(new[] { "hps" }, () => new HpsReader(), () => new HpsWriter(), CreateConfiguration.Hps),
+            [FileType.Adx] = new ContainerType(new[] { "adx" }, () => new AdxReader(), () => new AdxWriter(), CreateConfiguration.Adx),
             [FileType.Genh] = new ContainerType(new[] { "genh" }, () => new GenhReader(), null, null)
         };
 

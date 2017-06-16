@@ -2,13 +2,13 @@
 using System.Linq;
 using System.Text;
 
-namespace VGAudio.TestsLong.Rebuild
+namespace VGAudio.Tools.Rebuild
 {
     internal static class Runner
     {
         public static string Run(FileType fileType, string path)
         {
-            var info = TestsLong.Common.FileTypes[fileType];
+            var info = Common.FileTypes[fileType];
             Result[] results = new Rebuilder(path, info.Extension, info.GetReader, info.GetWriter).Run();
 
             if (results.Length == 0)
@@ -20,9 +20,9 @@ namespace VGAudio.TestsLong.Rebuild
             builder.AppendLine($"Different size: {results.Count(x => x.ByteCount == -2)}");
             builder.AppendLine($"Error: {results.Count(x => x.ByteCount == -4)}");
 
-            foreach (Result result in results.OrderByDescending(x => x.ByteCount))
+            foreach (Result result in results.OrderByDescending(x => x.ByteCount == 0).ThenByDescending(x => x.ByteCount))
             {
-                builder.AppendLine($"{result.ByteCount}, {result.Filename}");
+                builder.AppendLine($"{result.ByteCount}, {result.Filename} {result.Error}");
             }
 
             builder.AppendLine($"Same: {results.Count(x => x.ByteCount == 0)}");

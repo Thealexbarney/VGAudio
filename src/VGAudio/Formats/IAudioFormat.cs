@@ -13,6 +13,7 @@
         IAudioFormat WithLoop(bool loop);
         Pcm16Format ToPcm16();
         IAudioFormat EncodeFromPcm16(Pcm16Format pcm16);
+        IAudioFormat EncodeFromPcm16(Pcm16Format pcm16, object config);
         IAudioFormat GetChannels(params int[] channelRange);
         bool TryAdd(IAudioFormat format, out IAudioFormat result);
     }

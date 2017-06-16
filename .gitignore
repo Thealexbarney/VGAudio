@@ -271,8 +271,7 @@ tools/cake
 BDN.Auto/
 BenchmarkDotNet.Artifacts/
 
-/src/VGAudio.Cli/Properties/launchSettings.json
-/build/Properties/launchSettings.json
+**/launchSettings.json
 !*_TemporaryKey.pfx
 
 #Build script tools

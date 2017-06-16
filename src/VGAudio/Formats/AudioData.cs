@@ -15,7 +15,7 @@ namespace VGAudio.Formats
             AddFormat(audioFormat);
         }
 
-        public T GetFormat<T>() where T : class, IAudioFormat, new()
+        public T GetFormat<T>(object configuration = null) where T : class, IAudioFormat, new()
         {
             T format = GetAudioFormat<T>();
 
@@ -25,7 +25,7 @@ namespace VGAudio.Formats
             }
 
             CreatePcm16();
-            CreateFormat<T>();
+            CreateFormat<T>(configuration);
 
             return GetAudioFormat<T>();
         }
@@ -94,10 +94,10 @@ namespace VGAudio.Formats
             return (T)format;
         }
 
-        private void CreateFormat<T>() where T : class, IAudioFormat, new()
+        private void CreateFormat<T>(object configuration = null) where T : class, IAudioFormat, new()
         {
             Pcm16Format pcm = GetAudioFormat<Pcm16Format>();
-            AddFormat(new T().EncodeFromPcm16(pcm));
+            AddFormat(new T().EncodeFromPcm16(pcm, configuration));
         }
 
         private void CreatePcm16()

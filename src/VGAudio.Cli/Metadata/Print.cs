@@ -49,7 +49,10 @@ namespace VGAudio.Cli.Metadata
         {
             [AudioFormat.Pcm16] = "16-bit PCM",
             [AudioFormat.Pcm8] = "8-bit PCM",
-            [AudioFormat.GcAdpcm] = "GameCube \"DSP\" 4-bit ADPCM"
+            [AudioFormat.GcAdpcm] = "GameCube \"DSP\" 4-bit ADPCM",
+            [AudioFormat.CriAdx] = "CRI ADX 4-bit ADPCM",
+            [AudioFormat.CriAdxFixed] = "CRI ADX 4-bit ADPCM with fixed coefficients",
+            [AudioFormat.CriAdxExp] = "CRI ADX 4-bit ADPCM with exponential scale"
         };
 
         public static readonly Dictionary<FileType, MetadataReader> MetadataReaders = new Dictionary<FileType, MetadataReader>
@@ -61,6 +64,7 @@ namespace VGAudio.Cli.Metadata
             [FileType.Bcstm] = new Bcstm(),
             [FileType.Bfstm] = new Bfstm(),
             [FileType.Hps] = new Hps(),
+            [FileType.Adx] = new Adx(),
             [FileType.Genh] = new Genh()
         };
 

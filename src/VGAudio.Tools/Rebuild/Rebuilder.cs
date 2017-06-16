@@ -4,7 +4,7 @@ using VGAudio.Containers;
 using VGAudio.Containers.Bxstm;
 using VGAudio.Utilities;
 
-namespace VGAudio.TestsLong.Rebuild
+namespace VGAudio.Tools.Rebuild
 {
     internal class Rebuilder
     {
@@ -34,18 +34,19 @@ namespace VGAudio.TestsLong.Rebuild
                     byte[] inFile = File.ReadAllBytes(Files[i]);
                     AudioWithConfig audio = Reader().ReadWithConfig(inFile);
 
+                    audio.Configuration.TrimFile = false;
                     if (audio.Configuration is BxstmConfiguration a)
                     {
                         a.RecalculateLoopContext = false;
                         a.RecalculateSeekTable = false;
                     }
                     byte[] outFile = Writer().GetFile(audio.AudioFormat, audio.Configuration);
-                    int diff = Common.ArraysEqual(inFile, outFile);
+                    int diff = Common.DiffArrays(inFile, outFile);
                     Results[i] = new Result(Files[i], diff);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Results[i] = new Result(Files[i], -4);
+                    Results[i] = new Result(Files[i], -4, ex.Message);
                 }
             });
             return Results;

@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using VGAudio.Formats.GcAdpcm;
 
-namespace VGAudio.TestsLong.GcAdpcm
+namespace VGAudio.Tools.GcAdpcm
 {
     public class DspToolDll : IDspTool
     {
@@ -127,7 +127,7 @@ namespace VGAudio.TestsLong.GcAdpcm
             [DspToolType.Cafe32] = new DspToolInfo("dsptoolcafe32.dll", 0x1970, 0x3400),
             [DspToolType.Cafe64] = new DspToolInfo("dsptoolcafe64.dll", 0x1b90, 0x3900),
             [DspToolType.Cafe64Debug] = new DspToolInfo("dsptoolcafe64debug.dll", 0x2490, 0x53c0),
-            [DspToolType.OpenSource] = new DspToolInfo("dsptoolopen.dll", 0, 0),
+            [DspToolType.OpenSource] = new DspToolInfo("dsptoolopen.dll", 0, 0)
         };
     }
 
