@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using VGAudio.Formats;
+using VGAudio.Formats.Pcm16;
 
 namespace VGAudio.Tests.Equality
 {

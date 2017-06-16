@@ -1,10 +1,9 @@
 ﻿using System.IO;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Formats;
 
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Bxstm
 {
-    public class BcstmWriter : AudioWriter<BcstmWriter, BcstmConfiguration>
+    public class BfstmWriter : AudioWriter<BfstmWriter, BfstmConfiguration>
     {
         private BCFstmWriter Writer { get; set; }
 

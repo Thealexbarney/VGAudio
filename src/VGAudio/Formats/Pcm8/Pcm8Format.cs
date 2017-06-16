@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VGAudio.Codecs;
+using VGAudio.Codecs.Pcm8;
+using VGAudio.Formats.Pcm16;
 
-namespace VGAudio.Formats
+namespace VGAudio.Formats.Pcm8
 {
     public class Pcm8Format : AudioFormatBase<Pcm8Format, Pcm8Format.Builder, object>
     {

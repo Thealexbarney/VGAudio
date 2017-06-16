@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
+using VGAudio.Formats.Pcm16;
+using VGAudio.Formats.Pcm8;
 using VGAudio.Utilities;
 using static VGAudio.Containers.Bxstm.Common;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Bxstm
 {
     public class BrstmWriter : AudioWriter<BrstmWriter, BrstmConfiguration>
     {

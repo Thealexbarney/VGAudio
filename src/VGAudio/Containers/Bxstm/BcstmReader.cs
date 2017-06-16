@@ -1,8 +1,7 @@
 ﻿using System.IO;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Formats;
 
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Bxstm
 {
     public class BcstmReader : AudioReader<BcstmReader, BcstmStructure, BcstmConfiguration>
     {

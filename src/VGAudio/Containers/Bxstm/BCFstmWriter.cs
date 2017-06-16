@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
+using VGAudio.Formats.Pcm16;
+using VGAudio.Formats.Pcm8;
 using VGAudio.Utilities;
 using static VGAudio.Containers.Bxstm.Common;
 using static VGAudio.Utilities.Helpers;

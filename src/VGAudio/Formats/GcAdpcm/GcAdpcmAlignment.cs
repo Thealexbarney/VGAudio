@@ -1,5 +1,5 @@
 ﻿using System;
-using VGAudio.Codecs;
+using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 

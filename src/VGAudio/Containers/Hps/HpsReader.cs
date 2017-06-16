@@ -2,13 +2,12 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using VGAudio.Containers.Hps;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Hps
 {
     public class HpsReader : AudioReader<HpsReader, HpsStructure, HpsConfiguration>
     {

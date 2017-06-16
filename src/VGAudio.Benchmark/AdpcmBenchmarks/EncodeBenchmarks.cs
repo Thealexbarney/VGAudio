@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using VGAudio.Codecs;
+using VGAudio.Codecs.GcAdpcm;
 
 namespace VGAudio.Benchmark.AdpcmBenchmarks
 {

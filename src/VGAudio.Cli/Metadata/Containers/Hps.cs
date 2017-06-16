@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
-using VGAudio.Containers;
 using VGAudio.Containers.Hps;
 using VGAudio.Formats.GcAdpcm;
 

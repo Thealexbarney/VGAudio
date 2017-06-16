@@ -1,14 +1,13 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
-using VGAudio.Containers.Genh;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Genh
 {
     public class GenhReader : AudioReader<GenhReader, GenhStructure, GenhConfiguration>
     {

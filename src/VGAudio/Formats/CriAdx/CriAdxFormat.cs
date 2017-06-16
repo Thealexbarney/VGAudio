@@ -1,5 +1,6 @@
 ﻿using System;
 using VGAudio.Codecs.CriAdx;
+using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
 
 namespace VGAudio.Formats.CriAdx

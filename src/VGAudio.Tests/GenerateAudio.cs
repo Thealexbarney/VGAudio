@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
-using VGAudio.Codecs;
-using VGAudio.Formats;
+using VGAudio.Codecs.Pcm8;
 using VGAudio.Formats.GcAdpcm;
+using VGAudio.Formats.Pcm16;
+using VGAudio.Formats.Pcm8;
 using VGAudio.Utilities;
 
 namespace VGAudio.Tests

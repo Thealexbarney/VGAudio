@@ -1,6 +1,8 @@
-﻿using VGAudio.Containers;
-using VGAudio.Containers.Bxstm;
+﻿using VGAudio.Containers.Bxstm;
 using VGAudio.Formats;
+using VGAudio.Formats.GcAdpcm;
+using VGAudio.Formats.Pcm16;
+using VGAudio.Formats.Pcm8;
 using Xunit;
 
 namespace VGAudio.Tests.Containers

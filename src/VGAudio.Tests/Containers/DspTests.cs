@@ -1,5 +1,5 @@
-﻿using VGAudio.Containers;
-using VGAudio.Formats;
+﻿using VGAudio.Containers.Dsp;
+using VGAudio.Formats.GcAdpcm;
 using Xunit;
 
 namespace VGAudio.Tests.Containers

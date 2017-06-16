@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
+using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
 
 namespace VGAudio.Benchmark

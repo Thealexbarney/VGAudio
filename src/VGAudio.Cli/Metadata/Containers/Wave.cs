@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using VGAudio.Containers;
 using VGAudio.Containers.Wave;
 
 namespace VGAudio.Cli.Metadata.Containers

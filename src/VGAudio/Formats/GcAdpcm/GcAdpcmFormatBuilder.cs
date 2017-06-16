@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VGAudio.Formats.GcAdpcm;
 
-namespace VGAudio.Formats
+namespace VGAudio.Formats.GcAdpcm
 {
     public class GcAdpcmFormatBuilder : AudioFormatBaseBuilder<GcAdpcmFormat, GcAdpcmFormatBuilder, object>
     {

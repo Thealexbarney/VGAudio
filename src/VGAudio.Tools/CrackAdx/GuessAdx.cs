@@ -6,8 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Containers.Adx;
-using VGAudio.Formats;
 using VGAudio.Formats.CriAdx;
+using VGAudio.Formats.Pcm16;
 
 namespace VGAudio.Tools.CrackAdx
 {

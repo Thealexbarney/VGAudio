@@ -1,6 +1,9 @@
 ﻿using BenchmarkDotNet.Attributes;
-using VGAudio.Containers;
+using VGAudio.Containers.Bxstm;
+using VGAudio.Containers.Dsp;
+using VGAudio.Containers.Idsp;
 using VGAudio.Formats;
+using VGAudio.Formats.GcAdpcm;
 
 namespace VGAudio.Benchmark.AdpcmBenchmarks
 {

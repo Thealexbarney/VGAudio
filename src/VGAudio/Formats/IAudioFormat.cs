@@ -1,4 +1,6 @@
-﻿namespace VGAudio.Formats
+﻿using VGAudio.Formats.Pcm16;
+
+namespace VGAudio.Formats
 {
     public interface IAudioFormat
     {

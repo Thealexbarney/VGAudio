@@ -3,7 +3,7 @@ using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Codecs
+namespace VGAudio.Codecs.GcAdpcm
 {
     /// <summary>
     /// This class contains functions used for encoding

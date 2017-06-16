@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Text;
-using VGAudio.Containers;
 using VGAudio.Containers.Dsp;
 
 namespace VGAudio.Cli.Metadata.Containers

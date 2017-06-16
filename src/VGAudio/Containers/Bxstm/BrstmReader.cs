@@ -1,13 +1,12 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Formats;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Bxstm
 {
     public class BrstmReader : AudioReader<BrstmReader, BrstmStructure, BrstmConfiguration>
     {

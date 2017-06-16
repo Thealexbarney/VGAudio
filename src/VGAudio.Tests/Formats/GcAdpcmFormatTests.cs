@@ -2,6 +2,7 @@
 using System.Linq;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
+using VGAudio.Formats.Pcm16;
 using VGAudio.Tests.Equality;
 using VGAudio.Utilities;
 using Xunit;

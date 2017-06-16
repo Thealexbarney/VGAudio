@@ -1,14 +1,13 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
-using VGAudio.Containers.Idsp;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Idsp
 {
     public class IdspReader : AudioReader<IdspReader, IdspStructure, IdspConfiguration>
     {

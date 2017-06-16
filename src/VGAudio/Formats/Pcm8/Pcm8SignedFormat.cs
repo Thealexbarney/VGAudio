@@ -1,4 +1,4 @@
-﻿namespace VGAudio.Formats
+﻿namespace VGAudio.Formats.Pcm8
 {
     public class Pcm8SignedFormat : Pcm8Format
     {

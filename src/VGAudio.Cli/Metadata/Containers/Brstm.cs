@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Text;
-using VGAudio.Containers;
+using VGAudio.Containers.Bxstm;
 
 namespace VGAudio.Cli.Metadata.Containers
 {

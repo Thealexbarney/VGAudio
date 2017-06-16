@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using VGAudio.Codecs;
-using VGAudio.Formats.GcAdpcm;
+using VGAudio.Codecs.GcAdpcm;
+using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
 
-namespace VGAudio.Formats
+namespace VGAudio.Formats.GcAdpcm
 {
     /// <summary>
     /// A 4-bit Nintendo ADPCM audio stream.

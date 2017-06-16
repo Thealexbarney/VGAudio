@@ -1,13 +1,12 @@
 ﻿using System.IO;
 using System.Linq;
-using VGAudio.Containers.Dsp;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Dsp
 {
     public class DspReader : AudioReader<DspReader, DspStructure, DspConfiguration>
     {

@@ -1,4 +1,4 @@
-﻿using VGAudio.Codecs;
+﻿using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats.GcAdpcm;
 
 namespace VGAudio.Tools.GcAdpcm

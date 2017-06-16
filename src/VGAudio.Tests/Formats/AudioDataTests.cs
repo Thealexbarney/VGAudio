@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using VGAudio.Formats;
+using VGAudio.Formats.GcAdpcm;
+using VGAudio.Formats.Pcm16;
 using Xunit;
 
 namespace VGAudio.Tests.Formats

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
-using VGAudio.Containers.Wave;
 using VGAudio.Formats;
+using VGAudio.Formats.Pcm16;
+using VGAudio.Formats.Pcm8;
 using VGAudio.Utilities;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers
+namespace VGAudio.Containers.Wave
 {
     public class WaveWriter : AudioWriter<WaveWriter, WaveConfiguration>
     {

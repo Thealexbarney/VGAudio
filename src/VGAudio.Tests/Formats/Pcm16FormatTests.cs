@@ -1,5 +1,5 @@
 ﻿using System;
-using VGAudio.Formats;
+using VGAudio.Formats.Pcm16;
 using Xunit;
 
 namespace VGAudio.Tests.Formats

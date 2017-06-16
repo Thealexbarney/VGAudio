@@ -1,4 +1,4 @@
-﻿namespace VGAudio.Codecs
+﻿namespace VGAudio.Codecs.Pcm8
 {
     public static class Pcm8Codec
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace VGAudio.Formats
+namespace VGAudio.Formats.Pcm16
 {
     /// <summary>
     /// A 16-bit PCM audio stream.

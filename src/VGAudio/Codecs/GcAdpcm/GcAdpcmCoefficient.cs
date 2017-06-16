@@ -2,7 +2,7 @@
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
-namespace VGAudio.Codecs
+namespace VGAudio.Codecs.GcAdpcm
 {
     public static class GcAdpcmCoefficient
     {
