@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Containers.Adx;
@@ -14,6 +15,7 @@ namespace VGAudio.Tools.CrackAdx
     public class GuessAdx
     {
         public List<AdxFile> Files { get; } = new List<AdxFile>();
+        public ILookup<CriAdxKey, string> KeyStrings { get; }
         public ConcurrentDictionary<CriAdxKey, int> TriedKeys { get; } = new ConcurrentDictionary<CriAdxKey, int>(new AdxKeyComparer());
         public ConcurrentBag<CriAdxKey> Keys { get; } = new ConcurrentBag<CriAdxKey>();
         public int EncryptionType { get; }
@@ -25,7 +27,7 @@ namespace VGAudio.Tools.CrackAdx
         private int MaxSeed { get; }
         private IProgressReport Progress { get; }
 
-        public GuessAdx(string directory, IProgressReport progress = null)
+        public GuessAdx(string directory, string executable, IProgressReport progress = null)
         {
             Progress = progress;
             Progress?.ReportTotal(0x1000);
@@ -52,6 +54,11 @@ namespace VGAudio.Tools.CrackAdx
                     MaxSeed = 0x2000;
                     break;
             }
+
+            if (EncryptionType == 8 && executable != null)
+            {
+                KeyStrings = LoadStrings(executable, directory);
+            }
         }
 
         private int LoadFiles(string directory)
@@ -75,6 +82,19 @@ namespace VGAudio.Tools.CrackAdx
             }
 
             return type;
+        }
+
+        private static ILookup<CriAdxKey, string> LoadStrings(string file, string directory = "")
+        {
+            string path = file;
+            if (!Path.IsPathRooted(file) && File.Exists(Path.Combine(directory, file)))
+            {
+                path = Path.Combine(directory, file);
+            }
+
+            return Strings.Search(File.ReadAllBytes(path))
+                .Distinct()
+                .ToLookup(x => new CriAdxKey(x), x => x, new AdxKeyComparer());
         }
 
         public void Run()
@@ -102,14 +122,24 @@ namespace VGAudio.Tools.CrackAdx
                 return;
             }
 
+            string[] keyStrings = KeyStrings?[key].ToArray();
+
             Progress?.ReportMessage($"Key {PrintKey(key)} could be valid. Calculating confidence...");
             var confidences = Files.AsParallel().Select(file => GetReencodeConfidence(key, file.Filename)).ToList();
 
             double confidenceSmall = 1 - (double)confidences.Sum(x => x.IdenticalBytesShort) / confidences.Sum(x => x.TotalBytesShort);
             double confidenceFull = 1 - (double)confidences.Sum(x => x.IdenticalBytesFull) / confidences.Sum(x => x.TotalBytesFull);
 
+            var sb = new StringBuilder();
+            sb.Append('-', 40).AppendLine();
+            sb.AppendLine(PrintKey(key));
+            sb.AppendLine($"Confidence Short - {confidenceSmall:P3} Full - {confidenceFull:P3}");
+            if (EncryptionType == 9) sb.AppendLine($"Key code: {key.KeyCode}");
+            if (keyStrings != null && keyStrings.Any()) sb.AppendLine($"Possible key strings: {string.Join(", ", keyStrings)}");
+            sb.Append('-', 40);
+
             Keys.Add(key);
-            Progress?.ReportMessage($"{PrintKey(key)} Confidence Short - {confidenceSmall:P3} Full - {confidenceFull:P3}");
+            Progress?.ReportMessage(sb.ToString());
 
             string PrintKey(CriAdxKey k) => $"Seed - {k.Seed:x4} Multiplier - {k.Mult:x4} Increment - {k.Inc:x4}";
         }

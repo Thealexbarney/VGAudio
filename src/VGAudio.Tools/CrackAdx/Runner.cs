@@ -4,24 +4,32 @@ namespace VGAudio.Tools.CrackAdx
 {
     internal static class Runner
     {
-        public static void Run(string path)
+        public static void Run(string path) => Run(path, null);
+
+        public static void Run(string path, string executable)
         {
             using (var progress = new ProgressBar())
             {
-                var guess = new GuessAdx(path, progress);
+                var guess = new GuessAdx(path, executable, progress);
                 guess.Run();
             }
         }
 
         public static void Run(string[] args)
         {
-            if (args.Length < 2)
+            if (args.Length == 2)
             {
-                Console.WriteLine("Usage: AdxCrack <path>");
+                Run(args[1]);
                 return;
             }
 
-            Run(args[1]);
+            if (args.Length == 3)
+            {
+                Run(args[1], args[2]);
+                return;
+            }
+
+            Console.WriteLine("Usage: AdxCrack <path> [game executable (for encryption type 8)]");
         }
     }
 }
