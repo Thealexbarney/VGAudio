@@ -49,7 +49,7 @@ struct Channel(uint dataLength)
 {
     byte AudioData[dataLength];
 
-    local uint padding = GetNextMultiple(FTell(), 0x10) - FTell();
+    local uint padding = GetNextMultiple(FTell(), 8) - FTell();
     if(padding > 0)
     {
         byte Padding[padding];
