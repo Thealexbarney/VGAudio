@@ -29,7 +29,7 @@ namespace VGAudio.Tools.CrackAdx
                 return;
             }
 
-            Console.WriteLine("Usage: AdxCrack <path> [game executable (for encryption type 8)]");
+            Console.WriteLine("Usage: AdxCrack <adx file or directory of files> [game executable (for encryption type 8)]");
         }
     }
 }

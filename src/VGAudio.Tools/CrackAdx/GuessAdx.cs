@@ -27,16 +27,31 @@ namespace VGAudio.Tools.CrackAdx
         private int MaxSeed { get; }
         private IProgressReport Progress { get; }
 
-        public GuessAdx(string directory, string executable, IProgressReport progress = null)
+        public GuessAdx(string path, string executable, IProgressReport progress = null)
         {
             Progress = progress;
             Progress?.ReportTotal(0x1000);
-            EncryptionType = LoadFiles(directory);
+
+            if (Directory.Exists(path))
+            {
+                EncryptionType = LoadFiles(Directory.GetFiles(path, "*.adx"));
+            }
+            else if (File.Exists(path))
+            {
+                EncryptionType = LoadFiles(path);
+            }
+            else
+            {
+                Progress?.ReportMessage($"{path} does not exist.");
+            }
 
             switch (EncryptionType)
             {
                 case 8:
                     int[] primes = Common.GetPrimes(0x8000);
+
+                    // .NET returns the bitwise complement of the index of the first element
+                    // smaller than the search value if it is not found in the array
                     int start = ~Array.BinarySearch(primes, 0x4000);
                     PossibleMultipliers = new int[0x400];
                     Array.Copy(primes, start, PossibleMultipliers, 0, 0x400);
@@ -57,14 +72,12 @@ namespace VGAudio.Tools.CrackAdx
 
             if (EncryptionType == 8 && executable != null)
             {
-                KeyStrings = LoadStrings(executable, directory);
+                KeyStrings = LoadStrings(executable, path);
             }
         }
 
-        private int LoadFiles(string directory)
+        private int LoadFiles(params string[] files)
         {
-            string[] files = Directory.GetFiles(directory, "*.adx");
-
             int type = 0;
             foreach (string file in files)
             {
