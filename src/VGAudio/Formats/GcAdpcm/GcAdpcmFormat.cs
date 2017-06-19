@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using VGAudio.Codecs;
 using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
@@ -11,7 +12,7 @@ namespace VGAudio.Formats.GcAdpcm
     /// A 4-bit Nintendo ADPCM audio stream.
     /// The stream can contain any number of individual channels.
     /// </summary>
-    public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat, GcAdpcmFormatBuilder, object>
+    public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat, GcAdpcmFormatBuilder, CodecParameters>
     {
         public GcAdpcmChannel[] Channels { get; }
 
@@ -53,13 +54,18 @@ namespace VGAudio.Formats.GcAdpcm
                 .Build();
         }
 
-        public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16)
+        public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16, null);
+
+        public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16, CodecParameters config)
         {
             var channels = new GcAdpcmChannel[pcm16.ChannelCount];
 
+            int frameCount = pcm16.SampleCount.DivideByRoundUp(14) * pcm16.ChannelCount;
+            config?.Progress?.ReportTotal(frameCount);
+
             Parallel.For(0, pcm16.ChannelCount, i =>
             {
-                channels[i] = EncodeChannel(pcm16.SampleCount, pcm16.Channels[i]);
+                channels[i] = EncodeChannel(pcm16.Channels[i], pcm16.SampleCount, config);
             });
 
             return new GcAdpcmFormatBuilder(channels, pcm16.SampleRate)
@@ -121,10 +127,10 @@ namespace VGAudio.Formats.GcAdpcm
             .WithAlignment(loopStartAlignment)
             .Build();
 
-        private static GcAdpcmChannel EncodeChannel(int sampleCount, short[] pcm)
+        private static GcAdpcmChannel EncodeChannel(short[] pcm, int sampleCount, CodecParameters config)
         {
             short[] coefs = GcAdpcmCoefficient.CalculateCoefficients(pcm);
-            byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
+            byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs, config: config);
 
             return new GcAdpcmChannel(adpcm, coefs, sampleCount);
         }

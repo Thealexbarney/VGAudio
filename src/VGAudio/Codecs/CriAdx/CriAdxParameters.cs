@@ -2,7 +2,7 @@
 
 namespace VGAudio.Codecs.CriAdx
 {
-    public class CriAdxConfiguration
+    public class CriAdxParameters : CodecParameters
     {
         public int SampleRate { get; set; } = 48000;
         public int HighpassFrequency { get; set; } = 500;

@@ -38,8 +38,9 @@ namespace VGAudio.Containers.Adx
 
         protected override void SetupWriter(AudioData audio)
         {
-            var encodingConfig = new CriAdxConfiguration
+            var encodingConfig = new CriAdxParameters
             {
+                Progress = Configuration.Progress,
                 Version = Configuration.Version,
                 FrameSize = Configuration.FrameSize,
                 Filter = Configuration.Filter,

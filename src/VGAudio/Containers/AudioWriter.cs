@@ -13,7 +13,7 @@ namespace VGAudio.Containers
 
         public byte[] GetFile(AudioData audio, Configuration configuration = null) => GetByteArray(audio, configuration as TConfig);
         public void WriteToStream(AudioData audio, Stream stream, Configuration configuration = null) => WriteStream(audio, stream, configuration as TConfig);
-        
+
         protected AudioData AudioStream { get; set; }
         public TConfig Configuration { get; set; } = new TConfig();
         protected abstract int FileSize { get; }

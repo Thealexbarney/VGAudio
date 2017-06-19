@@ -2,10 +2,11 @@
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
+using static VGAudio.Formats.CriAdx.CriAdxHelpers;
 
 namespace VGAudio.Formats.CriAdx
 {
-    public class CriAdxFormat : AudioFormatBase<CriAdxFormat, CriAdxFormatBuilder, CriAdxConfiguration>
+    public class CriAdxFormat : AudioFormatBase<CriAdxFormat, CriAdxFormatBuilder, CriAdxParameters>
     {
         public CriAdxChannel[] Channels { get; }
         public short HighpassFrequency { get; }
@@ -33,7 +34,7 @@ namespace VGAudio.Formats.CriAdx
             var pcmChannels = new short[Channels.Length][];
             Parallel.For(0, Channels.Length, i =>
             {
-                var options = new CriAdxConfiguration
+                var options = new CriAdxParameters
                 {
                     SampleRate = SampleRate,
                     FrameSize = FrameSize,
@@ -51,17 +52,21 @@ namespace VGAudio.Formats.CriAdx
                 .Build();
         }
 
-        public override CriAdxFormat EncodeFromPcm16(Pcm16Format pcm16, CriAdxConfiguration config)
+        public override CriAdxFormat EncodeFromPcm16(Pcm16Format pcm16, CriAdxParameters config)
         {
             var channels = new CriAdxChannel[pcm16.ChannelCount];
             int samplesPerFrame = (config.FrameSize - 2) * 2;
             int alignmentMultiple = pcm16.ChannelCount == 1 ? samplesPerFrame * 2 : samplesPerFrame;
             int alignmentSamples = Helpers.GetNextMultiple(pcm16.LoopStart, alignmentMultiple) - pcm16.LoopStart;
 
+            int frameCount = SampleCountToByteCount(pcm16.SampleCount, config.FrameSize).DivideByRoundUp(config.FrameSize) * pcm16.ChannelCount;
+            config.Progress?.ReportTotal(frameCount);
+
             Parallel.For(0, pcm16.ChannelCount, i =>
             {
-                var channelConfig = new CriAdxConfiguration
+                var channelConfig = new CriAdxParameters
                 {
+                    Progress = config.Progress,
                     SampleRate = pcm16.SampleRate,
                     FrameSize = config.FrameSize,
                     Padding = alignmentSamples,
@@ -80,7 +85,7 @@ namespace VGAudio.Formats.CriAdx
                 .Build();
         }
 
-        public override CriAdxFormat EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16, new CriAdxConfiguration());
+        public override CriAdxFormat EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16, new CriAdxParameters());
 
         protected override CriAdxFormat GetChannelsInternal(int[] channelRange)
         {

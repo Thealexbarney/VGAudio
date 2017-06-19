@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using VGAudio.Codecs;
 using VGAudio.Codecs.Pcm8;
 using VGAudio.Formats.Pcm16;
 
 namespace VGAudio.Formats.Pcm8
 {
-    public class Pcm8Format : AudioFormatBase<Pcm8Format, Pcm8Format.Builder, object>
+    public class Pcm8Format : AudioFormatBase<Pcm8Format, Pcm8Format.Builder, CodecParameters>
     {
         public byte[][] Channels { get; }
         public virtual bool Signed { get; } = false;
@@ -72,7 +73,7 @@ namespace VGAudio.Formats.Pcm8
         public static Builder GetBuilder(byte[][] channels, int sampleRate) => new Builder(channels, sampleRate);
         public override Builder GetCloneBuilder() => GetCloneBuilderBase(new Builder(Channels, SampleRate));
 
-        public class Builder : AudioFormatBaseBuilder<Pcm8Format, Builder, object>
+        public class Builder : AudioFormatBaseBuilder<Pcm8Format, Builder, CodecParameters>
         {
             public byte[][] Channels { get; set; }
             public bool Signed { get; set; }

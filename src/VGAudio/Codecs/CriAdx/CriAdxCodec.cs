@@ -7,9 +7,9 @@ namespace VGAudio.Codecs.CriAdx
 {
     public static class CriAdxCodec
     {
-        public static short[] Decode(byte[] adpcm, int sampleCount, CriAdxConfiguration config = null)
+        public static short[] Decode(byte[] adpcm, int sampleCount, CriAdxParameters config = null)
         {
-            CriAdxConfiguration c = config ?? new CriAdxConfiguration();
+            CriAdxParameters c = config ?? new CriAdxParameters();
             int samplesPerFrame = (c.FrameSize - 2) * 2;
             short[][] coefs = c.Type == CriAdxType.Fixed ? Coefs : new[] { CalculateCoefficients(c.HighpassFrequency, c.SampleRate) };
             var pcm = new short[sampleCount];
@@ -54,7 +54,7 @@ namespace VGAudio.Codecs.CriAdx
             return pcm;
         }
 
-        public static byte[] Encode(short[] pcm, CriAdxConfiguration config)
+        public static byte[] Encode(short[] pcm, CriAdxParameters config)
         {
             var c = config;
             int sampleCount = pcm.Length + c.Padding;
@@ -98,6 +98,8 @@ namespace VGAudio.Codecs.CriAdx
                 Array.Copy(adpcmBuffer, 0, adpcmOut, i * c.FrameSize, c.FrameSize);
                 pcmBuffer[0] = pcmBuffer[samplesPerFrame];
                 pcmBuffer[1] = pcmBuffer[samplesPerFrame + 1];
+
+                config.Progress?.ReportAdd(1);
             }
 
             return adpcmOut;

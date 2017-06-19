@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using VGAudio.Codecs;
 using VGAudio.Formats.Pcm16;
 
 namespace VGAudio.Formats
@@ -8,7 +9,7 @@ namespace VGAudio.Formats
     public abstract class AudioFormatBase<TFormat, TBuilder, TConfig> : IAudioFormat
         where TFormat : AudioFormatBase<TFormat, TBuilder, TConfig>
         where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder, TConfig>
-        where TConfig : class
+        where TConfig : CodecParameters
     {
         private readonly List<AudioTrack> _tracks;
         public int SampleRate { get; }
@@ -23,7 +24,7 @@ namespace VGAudio.Formats
         public List<AudioTrack> Tracks { get; }
 
         IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16);
-        IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16, object config) => EncodeFromPcm16(pcm16, config as TConfig);
+        IAudioFormat IAudioFormat.EncodeFromPcm16(Pcm16Format pcm16, CodecParameters config) => EncodeFromPcm16(pcm16, config as TConfig);
         IAudioFormat IAudioFormat.GetChannels(params int[] channelRange) => GetChannels(channelRange);
         IAudioFormat IAudioFormat.WithLoop(bool loop, int loopStart, int loopEnd) => WithLoop(loop, loopStart, loopEnd);
         IAudioFormat IAudioFormat.WithLoop(bool loop) => WithLoop(loop);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using VGAudio.Codecs;
 using VGAudio.Formats;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Formats.Pcm8;
@@ -42,14 +43,16 @@ namespace VGAudio.Containers.Wave
 
         protected override void SetupWriter(AudioData audio)
         {
+            var parameters = new CodecParameters { Progress = Configuration.Progress };
+
             switch (Codec)
             {
                 case WaveCodec.Pcm16Bit:
-                    Pcm16 = audio.GetFormat<Pcm16Format>();
+                    Pcm16 = audio.GetFormat<Pcm16Format>(parameters);
                     AudioFormat = Pcm16;
                     break;
                 case WaveCodec.Pcm8Bit:
-                    Pcm8 = audio.GetFormat<Pcm8Format>();
+                    Pcm8 = audio.GetFormat<Pcm8Format>(parameters);
                     AudioFormat = Pcm8;
                     break;
             }

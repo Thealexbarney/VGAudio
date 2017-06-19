@@ -12,7 +12,7 @@ namespace VGAudio.Codecs.GcAdpcm
     public static class GcAdpcmEncoder
     {
         public static byte[] EncodeAdpcm(short[] pcm, short[] coefs, int samples = -1, short hist1 = 0,
-            short hist2 = 0)
+            short hist2 = 0, CodecParameters config = null)
         {
             int sampleCount = samples == -1 ? pcm.Length : samples;
             var adpcm = new byte[SampleCountToByteCount(sampleCount)];
@@ -39,6 +39,7 @@ namespace VGAudio.Codecs.GcAdpcm
 
                 pcmBuffer[0] = pcmBuffer[14];
                 pcmBuffer[1] = pcmBuffer[15];
+                config?.Progress?.ReportAdd(1);
             }
 
             return adpcm;

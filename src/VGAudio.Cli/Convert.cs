@@ -51,7 +51,9 @@ namespace VGAudio.Cli
         private void WriteFile(string fileName)
         {
             using (var stream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
+            using (var progress = new ProgressBar())
             {
+                Configuration.Progress = progress;
                 OutType.GetWriter().WriteToStream(Audio, stream, Configuration);
             }
         }
