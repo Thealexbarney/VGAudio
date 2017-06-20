@@ -18,6 +18,7 @@ namespace Build
             context.LibraryDir = context.SourceDir.Combine("VGAudio");
             context.CliDir = context.SourceDir.Combine("VGAudio.Cli");
             context.TestsDir = context.SourceDir.Combine("VGAudio.Tests");
+            context.ToolsDir = context.SourceDir.Combine("VGAudio.Tools");
             context.SourceDir.Combine("VGAudio.Benchmark");
             context.UwpDir = context.SourceDir.Combine("VGAudio.Uwp");
 

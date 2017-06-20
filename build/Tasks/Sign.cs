@@ -14,7 +14,7 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            var possibleNames = new[] { "VGAudio.dll", "VGAudioCli.exe", "VGAudioCli.dll" };
+            var possibleNames = new[] { "VGAudio.dll", "VGAudioCli.exe", "VGAudioCli.dll", "VGAudioTools.exe", "VGAudioCli.dll" };
 
             List<FilePath> toSign = context.LibBuilds.Values
                 .SelectMany(build => possibleNames
@@ -25,6 +25,7 @@ namespace Build.Tasks
 
             //Add merged assembly
             toSign.Add(context.CliBinDir.CombineWithFilePath("VGAudioCli.exe"));
+            toSign.Add(context.CliBinDir.CombineWithFilePath("VGAudioTools.exe"));
 
             SignFiles(context, toSign.Where(context.FileExists), context.ReleaseCertThumbprint);
         }

@@ -101,10 +101,10 @@ namespace VGAudio.Tools.GcAdpcm
                 pDspEncodeFrame = Native.GetProcAddress(_pDll, "encodeFrame");
             }
 
-            Decode = (DecodeDelegate)Marshal.GetDelegateForFunctionPointer(pDecode, typeof(DecodeDelegate));
-            Encode = (EncodeDelegate)Marshal.GetDelegateForFunctionPointer(pEncode, typeof(EncodeDelegate));
-            DspCorrelateCoefsDll = (DspCorrelateCoefsDelegate)Marshal.GetDelegateForFunctionPointer(pDspCorrelateCoefs, typeof(DspCorrelateCoefsDelegate));
-            DspEncodeFrameDll = (DspEncodeFrameDelegate)Marshal.GetDelegateForFunctionPointer(pDspEncodeFrame, typeof(DspEncodeFrameDelegate));
+            Decode = Marshal.GetDelegateForFunctionPointer<DecodeDelegate>(pDecode);
+            Encode = Marshal.GetDelegateForFunctionPointer<EncodeDelegate>(pEncode);
+            DspCorrelateCoefsDll = Marshal.GetDelegateForFunctionPointer<DspCorrelateCoefsDelegate>(pDspCorrelateCoefs);
+            DspEncodeFrameDll = Marshal.GetDelegateForFunctionPointer<DspEncodeFrameDelegate>(pDspEncodeFrame);
         }
 
         private struct DspToolInfo
