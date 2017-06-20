@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using VGAudio.Containers;
+using VGAudio.Containers.Adx;
 using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Genh;
@@ -23,6 +24,7 @@ namespace VGAudio.Uwp.Audio
             [FileType.Bcstm] = new ContainerType("BCSTM", new[] { "bcstm" }, "BCSTM Audio File", () => new BcstmReader(), () => new BcstmWriter()),
             [FileType.Bfstm] = new ContainerType("BFSTM", new[] { "bfstm" }, "BFSTM Audio File", () => new BfstmReader(), () => new BfstmWriter()),
             [FileType.Hps] = new ContainerType("HPS", new[] { "hps" }, "HPS Audio File", () => new HpsReader(), () => new HpsWriter()),
+            [FileType.Adx] = new ContainerType("ADX", new[] { "adx" }, "CRI ADX Audio File", () => new AdxReader(), () => new AdxWriter()),
             [FileType.Genh] = new ContainerType("GENH", new[] { "genh" }, "GENH Audio File", () => new GenhReader(), null)
         };
 
@@ -48,6 +50,7 @@ namespace VGAudio.Uwp.Audio
         Bfstm,
         Idsp,
         Hps,
+        Adx,
         Genh
     }
 

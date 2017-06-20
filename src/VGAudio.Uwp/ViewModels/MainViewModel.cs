@@ -16,6 +16,7 @@ using VGAudio.Uwp.Audio;
 using GalaSoft.MvvmLight.Command;
 using PropertyChanged;
 using VGAudio.Containers;
+using VGAudio.Containers.Adx;
 using VGAudio.Containers.Idsp;
 
 namespace VGAudio.Uwp.ViewModels
@@ -56,6 +57,7 @@ namespace VGAudio.Uwp.ViewModels
         public BcstmConfiguration BcstmConfiguration { get; set; } = new BcstmConfiguration();
         public BfstmConfiguration BfstmConfiguration { get; set; } = new BfstmConfiguration();
         public IdspConfiguration IdspConfiguration { get; set; } = new IdspConfiguration();
+        public AdxConfiguration AdxConfiguration { get; set; } = new AdxConfiguration();
 
         public string InPath { get; set; }
         private IAudioFormat InFormat { get; set; }
@@ -182,6 +184,8 @@ namespace VGAudio.Uwp.ViewModels
                     return BcstmConfiguration;
                 case FileType.Bfstm:
                     return BfstmConfiguration;
+                case FileType.Adx:
+                    return AdxConfiguration;
                 default:
                     return null;
             }
