@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
@@ -89,17 +91,33 @@ namespace VGAudio.Formats.CriAdx
 
         protected override CriAdxFormat GetChannelsInternal(int[] channelRange)
         {
-            throw new NotImplementedException();
+            var channels = new List<CriAdxChannel>();
+
+            foreach (int i in channelRange)
+            {
+                if (i < 0 || i >= Channels.Length)
+                    throw new ArgumentException($"Channel {i} does not exist.", nameof(channelRange));
+                channels.Add(Channels[i]);
+            }
+
+            CriAdxFormatBuilder copy = GetCloneBuilder();
+            copy.Channels = channels.ToArray();
+            return copy.Build();
         }
 
         protected override CriAdxFormat AddInternal(CriAdxFormat format)
         {
-            throw new NotImplementedException();
+            CriAdxFormatBuilder copy = GetCloneBuilder();
+            copy.Channels = Channels.Concat(format.Channels).ToArray();
+            return copy.Build();
         }
 
         public override CriAdxFormatBuilder GetCloneBuilder()
         {
-            throw new NotImplementedException();
+            var builder = new CriAdxFormatBuilder(Channels, SampleCount, SampleRate, FrameSize, HighpassFrequency);
+            builder = GetCloneBuilderBase(builder);
+            builder.WithAlignmentSamples(AlignmentSamples);
+            return builder;
         }
     }
 }
