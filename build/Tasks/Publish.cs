@@ -83,7 +83,7 @@ namespace Build.Tasks
                     OutputDirectory = context.CliBinDir.Combine(build.ToolsFramework)
                 });
             }
-            DeleteFile(context, context.CliBinDir.Combine("net45").CombineWithFilePath("VGAudioTools.runtimeconfig.json"), false);
+            DeleteFile(context, context.CliBinDir.Combine("net451").CombineWithFilePath("VGAudioTools.runtimeconfig.json"), false);
         }
 
         public override bool ShouldRun(Context context) =>
@@ -112,8 +112,8 @@ namespace Build.Tasks
     {
         public override void Run(Context context) => context.ILRepack(
             context.CliBinDir.CombineWithFilePath("VGAudioTools.exe"),
-            context.CliBinDir.CombineWithFilePath("net45/VGAudioTools.exe"),
-            new[] { context.CliBinDir.CombineWithFilePath("net45/VGAudio.dll") });
+            context.CliBinDir.CombineWithFilePath("net451/VGAudioTools.exe"),
+            new[] { context.CliBinDir.CombineWithFilePath("net451/VGAudio.dll") });
 
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["net45"].ToolsSuccess == true;

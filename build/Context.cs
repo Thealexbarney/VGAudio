@@ -45,7 +45,7 @@ namespace Build
         public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>
         {
             ["netstandard"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.0", "netcoreapp1.0", "netcoreapp1.0"),
-            ["net45"] = new LibraryBuildStatus("net45", "net45", "net45", "net46")
+            ["net45"] = new LibraryBuildStatus("net45", "net45", "net451", "net46")
         };
 
         public Dictionary<string, bool?> OtherBuilds { get; } = new Dictionary<string, bool?>

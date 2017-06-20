@@ -116,7 +116,7 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            BuildNetCli(context, context.ToolsDir.FullPath, "net45");
+            BuildNetCli(context, context.ToolsDir.FullPath, "net451");
             context.LibBuilds["net45"].ToolsSuccess = true;
         }
 
