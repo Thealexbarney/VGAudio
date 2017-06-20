@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using VGAudio.Codecs;
+using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
@@ -25,7 +25,7 @@ namespace VGAudio.Containers.Hps
 
         protected override void SetupWriter(AudioData audio)
         {
-            Adpcm = audio.GetFormat<GcAdpcmFormat>(new CodecParameters { Progress = Configuration.Progress });
+            Adpcm = audio.GetFormat<GcAdpcmFormat>(new GcAdpcmParameters { Progress = Configuration.Progress });
             int channelSize = GetNextMultiple(MaxBlockSize / ChannelCount - 0x20, 0x20);
             MaxBlockSizeActual = channelSize * ChannelCount;
             int alignment = NibbleCountToSampleCount(channelSize * 2);

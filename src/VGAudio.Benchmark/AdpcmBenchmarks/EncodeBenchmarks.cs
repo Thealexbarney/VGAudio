@@ -19,7 +19,7 @@ namespace VGAudio.Benchmark.AdpcmBenchmarks
         }
 
         [Benchmark] public short[] GenerateCoefs() => GcAdpcmCoefficient.CalculateCoefficients(_pcm);
-        [Benchmark] public byte[] EncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(_pcm, _coefs);
-        [Benchmark] public byte[] GenerateCoefsAndEncodeAdpcm() => GcAdpcmEncoder.EncodeAdpcm(_pcm, GcAdpcmCoefficient.CalculateCoefficients(_pcm));
+        [Benchmark] public byte[] EncodeAdpcm() => GcAdpcmEncoder.Encode(_pcm, _coefs);
+        [Benchmark] public byte[] GenerateCoefsAndEncodeAdpcm() => GcAdpcmEncoder.Encode(_pcm, GcAdpcmCoefficient.CalculateCoefficients(_pcm));
     }
 }

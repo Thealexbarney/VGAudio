@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VGAudio.Codecs;
+using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
@@ -95,7 +95,7 @@ namespace VGAudio.Containers.Bxstm
 
         internal void SetupWriter(AudioData audio)
         {
-            var parameters = new CodecParameters { Progress = Configuration.Progress };
+            var parameters = new GcAdpcmParameters { Progress = Configuration.Progress };
 
             if (Codec == BxstmCodec.Adpcm)
             {

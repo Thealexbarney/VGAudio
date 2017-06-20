@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using VGAudio.Codecs;
 using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
@@ -12,7 +11,7 @@ namespace VGAudio.Formats.GcAdpcm
     /// A 4-bit Nintendo ADPCM audio stream.
     /// The stream can contain any number of individual channels.
     /// </summary>
-    public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat, GcAdpcmFormatBuilder, CodecParameters>
+    public class GcAdpcmFormat : AudioFormatBase<GcAdpcmFormat, GcAdpcmFormatBuilder, GcAdpcmParameters>
     {
         public GcAdpcmChannel[] Channels { get; }
 
@@ -56,7 +55,7 @@ namespace VGAudio.Formats.GcAdpcm
 
         public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16, null);
 
-        public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16, CodecParameters config)
+        public override GcAdpcmFormat EncodeFromPcm16(Pcm16Format pcm16, GcAdpcmParameters config)
         {
             var channels = new GcAdpcmChannel[pcm16.ChannelCount];
 
@@ -127,10 +126,10 @@ namespace VGAudio.Formats.GcAdpcm
             .WithAlignment(loopStartAlignment)
             .Build();
 
-        private static GcAdpcmChannel EncodeChannel(short[] pcm, int sampleCount, CodecParameters config)
+        private static GcAdpcmChannel EncodeChannel(short[] pcm, int sampleCount, GcAdpcmParameters config)
         {
             short[] coefs = GcAdpcmCoefficient.CalculateCoefficients(pcm);
-            byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs, config: config);
+            byte[] adpcm = GcAdpcmEncoder.Encode(pcm, coefs, config);
 
             return new GcAdpcmChannel(adpcm, coefs, sampleCount);
         }

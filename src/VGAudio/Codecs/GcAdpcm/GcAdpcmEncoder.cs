@@ -11,18 +11,18 @@ namespace VGAudio.Codecs.GcAdpcm
     /// </summary>
     public static class GcAdpcmEncoder
     {
-        public static byte[] EncodeAdpcm(short[] pcm, short[] coefs, int samples = -1, short hist1 = 0,
-            short hist2 = 0, CodecParameters config = null)
+        public static byte[] Encode(short[] pcm, short[] coefs, GcAdpcmParameters config = null)
         {
-            int sampleCount = samples == -1 ? pcm.Length : samples;
+            config = config ?? new GcAdpcmParameters();
+            int sampleCount = config.SampleCount == -1 ? pcm.Length : config.SampleCount;
             var adpcm = new byte[SampleCountToByteCount(sampleCount)];
 
             /* Execute encoding-predictor for each frame */
             var pcmBuffer = new short[2 + SamplesPerFrame];
             var adpcmBuffer = new byte[BytesPerFrame];
 
-            pcmBuffer[0] = hist2;
-            pcmBuffer[1] = hist1;
+            pcmBuffer[0] = config.History2;
+            pcmBuffer[1] = config.History1;
 
             int frameCount = sampleCount.DivideByRoundUp(SamplesPerFrame);
             var buffers = new AdpcmEncodeBuffers();
@@ -39,7 +39,7 @@ namespace VGAudio.Codecs.GcAdpcm
 
                 pcmBuffer[0] = pcmBuffer[14];
                 pcmBuffer[1] = pcmBuffer[15];
-                config?.Progress?.ReportAdd(1);
+                config.Progress?.ReportAdd(1);
             }
 
             return adpcm;
@@ -149,7 +149,7 @@ namespace VGAudio.Codecs.GcAdpcm
                         int overflow = Math.Abs(unclampedAdpcmSample - adpcmSample);
                         if (overflow > maxOverflow) maxOverflow = overflow;
                     }
-                    
+
                     adpcmOut[s] = adpcmSample;
 
                     // Decode sample to use as history

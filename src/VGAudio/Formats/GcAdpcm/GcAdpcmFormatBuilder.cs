@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VGAudio.Codecs;
+using VGAudio.Codecs.GcAdpcm;
 
 namespace VGAudio.Formats.GcAdpcm
 {
-    public class GcAdpcmFormatBuilder : AudioFormatBaseBuilder<GcAdpcmFormat, GcAdpcmFormatBuilder, CodecParameters>
+    public class GcAdpcmFormatBuilder : AudioFormatBaseBuilder<GcAdpcmFormat, GcAdpcmFormatBuilder, GcAdpcmParameters>
     {
         public GcAdpcmChannel[] Channels { get; set; }
         public int AlignmentMultiple { get; set; }
