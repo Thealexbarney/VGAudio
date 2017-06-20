@@ -47,7 +47,7 @@ namespace VGAudio.Formats.GcAdpcm
                 pcmChannels[i] = Channels[i].GetPcmAudio();
             });
 
-            return new Pcm16Format.Builder(pcmChannels, SampleRate)
+            return new Pcm16FormatBuilder(pcmChannels, SampleRate)
                 .WithLoop(Looping, LoopStart, LoopEnd)
                 .WithTracks(Tracks)
                 .Build();

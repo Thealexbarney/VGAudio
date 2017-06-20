@@ -46,7 +46,7 @@ namespace VGAudio.Formats.CriAdx
                 pcmChannels[i] = CriAdxCodec.Decode(Channels[i].Audio, UnalignedSampleCount, options);
             });
 
-            return new Pcm16Format.Builder(pcmChannels, SampleRate)
+            return new Pcm16FormatBuilder(pcmChannels, SampleRate)
                 .WithLoop(Looping, UnalignedLoopStart, UnalignedLoopEnd)
                 .WithTracks(Tracks)
                 .Build();

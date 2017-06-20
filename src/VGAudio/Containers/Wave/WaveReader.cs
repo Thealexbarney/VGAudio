@@ -68,11 +68,11 @@ namespace VGAudio.Containers.Wave
             switch (structure.BitsPerSample)
             {
                 case 16:
-                    return new Pcm16Format.Builder(structure.AudioData16, structure.SampleRate)
+                    return new Pcm16FormatBuilder(structure.AudioData16, structure.SampleRate)
                         .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
                         .Build();
                 case 8:
-                    return new Pcm8Format.Builder(structure.AudioData8, structure.SampleRate)
+                    return new Pcm8FormatBuilder(structure.AudioData8, structure.SampleRate)
                         .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
                         .Build();
                 default:

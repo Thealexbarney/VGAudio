@@ -90,7 +90,7 @@ namespace VGAudio.Containers.Bxstm
         private static Pcm16Format ToPcm16Stream(BxstmStructure structure)
         {
             short[][] channels = structure.AudioData.Select(x => x.ToShortArray(structure.Endianness)).ToArray();
-            return new Pcm16Format.Builder(channels, structure.SampleRate)
+            return new Pcm16FormatBuilder(channels, structure.SampleRate)
                 .WithTracks(structure.Tracks)
                 .WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
                 .Build();
@@ -98,7 +98,7 @@ namespace VGAudio.Containers.Bxstm
 
         private static Pcm8SignedFormat ToPcm8Stream(BxstmStructure structure)
         {
-            return new Pcm8Format.Builder(structure.AudioData, structure.SampleRate, true)
+            return new Pcm8FormatBuilder(structure.AudioData, structure.SampleRate, true)
                 .WithTracks(structure.Tracks)
                 .WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
                 .Build() as Pcm8SignedFormat;

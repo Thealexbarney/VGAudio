@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using VGAudio.Codecs;
 using VGAudio.Codecs.Pcm8;
@@ -8,14 +7,14 @@ using VGAudio.Formats.Pcm16;
 
 namespace VGAudio.Formats.Pcm8
 {
-    public class Pcm8Format : AudioFormatBase<Pcm8Format, Pcm8Format.Builder, CodecParameters>
+    public class Pcm8Format : AudioFormatBase<Pcm8Format, Pcm8FormatBuilder, CodecParameters>
     {
         public byte[][] Channels { get; }
         public virtual bool Signed { get; } = false;
 
         public Pcm8Format() => Channels = new byte[0][];
-        public Pcm8Format(byte[][] channels, int sampleRate) : this(new Builder(channels, sampleRate)) { }
-        protected Pcm8Format(Builder b) : base(b) => Channels = b.Channels;
+        public Pcm8Format(byte[][] channels, int sampleRate) : this(new Pcm8FormatBuilder(channels, sampleRate)) { }
+        internal Pcm8Format(Pcm8FormatBuilder b) : base(b) => Channels = b.Channels;
 
         public override Pcm16Format ToPcm16()
         {
@@ -26,7 +25,7 @@ namespace VGAudio.Formats.Pcm8
                 channels[i] = Signed ? Pcm8Codec.DecodeSigned(Channels[i]) : Pcm8Codec.Decode(Channels[i]);
             }
 
-            return new Pcm16Format.Builder(channels, SampleRate)
+            return new Pcm16FormatBuilder(channels, SampleRate)
                 .WithLoop(Looping, LoopStart, LoopEnd)
                 .WithTracks(Tracks)
                 .Build();
@@ -41,7 +40,7 @@ namespace VGAudio.Formats.Pcm8
                 channels[i] = Signed ? Pcm8Codec.EncodeSigned(pcm16.Channels[i]) : Pcm8Codec.Encode(pcm16.Channels[i]);
             }
 
-            return new Builder(channels, pcm16.SampleRate, Signed)
+            return new Pcm8FormatBuilder(channels, pcm16.SampleRate, Signed)
                 .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
                 .WithTracks(pcm16.Tracks)
                 .Build();
@@ -49,7 +48,7 @@ namespace VGAudio.Formats.Pcm8
 
         protected override Pcm8Format AddInternal(Pcm8Format pcm8)
         {
-            Builder copy = GetCloneBuilder();
+            Pcm8FormatBuilder copy = GetCloneBuilder();
             copy.Channels = Channels.Concat(pcm8.Channels).ToArray();
             return copy.Build();
         }
@@ -65,41 +64,12 @@ namespace VGAudio.Formats.Pcm8
                 channels.Add(Channels[i]);
             }
 
-            Builder copy = GetCloneBuilder();
+            Pcm8FormatBuilder copy = GetCloneBuilder();
             copy.Channels = channels.ToArray();
             return copy.Build();
         }
 
-        public static Builder GetBuilder(byte[][] channels, int sampleRate) => new Builder(channels, sampleRate);
-        public override Builder GetCloneBuilder() => GetCloneBuilderBase(new Builder(Channels, SampleRate));
-
-        public class Builder : AudioFormatBaseBuilder<Pcm8Format, Builder, CodecParameters>
-        {
-            public byte[][] Channels { get; set; }
-            public bool Signed { get; set; }
-            protected internal override int ChannelCount => Channels.Length;
-
-            public Builder(byte[][] channels, int sampleRate, bool signed = false)
-            {
-                if (channels == null || channels.Length < 1)
-                    throw new InvalidDataException("Channels parameter cannot be empty or null");
-
-                Channels = channels.ToArray();
-                SampleCount = Channels[0]?.Length ?? 0;
-                SampleRate = sampleRate;
-                Signed = signed;
-
-                foreach (var channel in Channels)
-                {
-                    if (channel == null)
-                        throw new InvalidDataException("All provided channels must be non-null");
-
-                    if (channel.Length != SampleCount)
-                        throw new InvalidDataException("All channels must have the same sample count");
-                }
-            }
-
-            public override Pcm8Format Build() => Signed ? new Pcm8SignedFormat(this) : new Pcm8Format(this);
-        }
+        public static Pcm8FormatBuilder GetBuilder(byte[][] channels, int sampleRate) => new Pcm8FormatBuilder(channels, sampleRate);
+        public override Pcm8FormatBuilder GetCloneBuilder() => GetCloneBuilderBase(new Pcm8FormatBuilder(Channels, SampleRate));
     }
 }
