@@ -15,6 +15,10 @@ namespace Build.Tasks
     [Dependency(typeof(BuildCliNet45))]
     public sealed class BuildCli : FrostingTask<Context> { }
 
+    [Dependency(typeof(BuildToolsNetCore))]
+    [Dependency(typeof(BuildToolsNet45))]
+    public sealed class BuildTools : FrostingTask<Context> { }
+
     [Dependency(typeof(Restore))]
     public sealed class BuildLibraryNetStandard : FrostingTask<Context>
     {
@@ -88,6 +92,45 @@ namespace Build.Tasks
         }
     }
 
+    [Dependency(typeof(BuildLibraryNetStandard))]
+    public sealed class BuildToolsNetCore : FrostingTask<Context>
+    {
+        public override void Run(Context context)
+        {
+            BuildNetCli(context, context.ToolsDir.FullPath, "netcoreapp1.0");
+            context.LibBuilds["netstandard"].ToolsSuccess = true;
+        }
+
+        public override bool ShouldRun(Context context) =>
+            context.LibBuilds["netstandard"].LibSuccess == true;
+
+        public override void OnError(Exception exception, Context context)
+        {
+            DisplayError(context, exception.Message);
+            context.LibBuilds["netstandard"].ToolsSuccess = false;
+        }
+    }
+
+    [Dependency(typeof(BuildLibraryNet45))]
+    public sealed class BuildToolsNet45 : FrostingTask<Context>
+    {
+        public override void Run(Context context)
+        {
+            BuildNetCli(context, context.ToolsDir.FullPath, "net45");
+            context.LibBuilds["net45"].ToolsSuccess = true;
+        }
+
+        public override bool ShouldRun(Context context) =>
+            context.LibBuilds["net45"].LibSuccess == true &&
+            context.IsRunningOnWindows();
+
+        public override void OnError(Exception exception, Context context)
+        {
+            DisplayError(context, exception.Message);
+            context.LibBuilds["net45"].ToolsSuccess = false;
+        }
+    }
+
     [Dependency(typeof(RestoreUwp))]
     public sealed class BuildUwp : FrostingTask<Context>
     {
@@ -106,7 +149,7 @@ namespace Build.Tasks
 
             context.MSBuild(context.UwpCsproj, settings.WithProperty("AppxBuildType", "Store"));
 
-            //The second manifext MUST be written after the first build, otherwise incremental builds will mess stuff up
+            //The second manifest MUST be written after the first build, otherwise incremental builds will mess stuff up
             CreateSideloadAppxmanifest(context);
             context.MSBuild(context.UwpCsproj, settings.WithProperty("AppxBuildType", "Sideload"));
 

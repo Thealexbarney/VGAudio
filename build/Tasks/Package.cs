@@ -18,6 +18,7 @@ namespace Build.Tasks
         {
             context.EnsureDirectoryExists(context.PackageDir);
             context.Zip(context.CliBinDir, context.PackageDir.CombineWithFilePath("VGAudioCli.zip"));
+            context.CopyFiles(context.GetFiles($"{context.CliBinDir}/*.exe"), context.PackageDir);
         }
 
         public override bool ShouldRun(Context context) => context.CliBuildsSucceeded;

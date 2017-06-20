@@ -66,8 +66,32 @@ namespace Build.Tasks
             context.LibBuilds.Values.Any(x => x.CliSuccess == true);
     }
 
+    [Dependency(typeof(BuildTools))]
+    public sealed class PublishTools : FrostingTask<Context>
+    {
+        public override void Run(Context context)
+        {
+            IEnumerable<LibraryBuildStatus> builds = context.LibBuilds.Values
+                .Where(x => x.ToolsSuccess == true);
+
+            foreach (LibraryBuildStatus build in builds)
+            {
+                context.DotNetCorePublish(context.ToolsDir.FullPath, new DotNetCorePublishSettings
+                {
+                    Framework = build.ToolsFramework,
+                    Configuration = context.Configuration,
+                    OutputDirectory = context.CliBinDir.Combine(build.ToolsFramework)
+                });
+            }
+            DeleteFile(context, context.CliBinDir.Combine("net45").CombineWithFilePath("VGAudioTools.runtimeconfig.json"), false);
+        }
+
+        public override bool ShouldRun(Context context) =>
+            context.LibBuilds.Values.Any(x => x.ToolsSuccess == true);
+    }
+
     [Dependency(typeof(PublishCli))]
-    [Dependency(typeof(RestoreTools))]
+    [Dependency(typeof(RestoreCakeTools))]
     public sealed class IlRepackCli : FrostingTask<Context>
     {
         public override void Run(Context context) => context.ILRepack(
@@ -77,6 +101,22 @@ namespace Build.Tasks
 
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["net45"].CliSuccess == true;
+
+        public override void OnError(Exception exception, Context context) =>
+            DisplayError(context, "Error creating merged assembly:\n" + exception.Message);
+    }
+
+    [Dependency(typeof(PublishTools))]
+    [Dependency(typeof(RestoreCakeTools))]
+    public sealed class IlRepackTools : FrostingTask<Context>
+    {
+        public override void Run(Context context) => context.ILRepack(
+            context.CliBinDir.CombineWithFilePath("VGAudioTools.exe"),
+            context.CliBinDir.CombineWithFilePath("net45/VGAudioTools.exe"),
+            new[] { context.CliBinDir.CombineWithFilePath("net45/VGAudio.dll") });
+
+        public override bool ShouldRun(Context context) =>
+            context.LibBuilds["net45"].ToolsSuccess == true;
 
         public override void OnError(Exception exception, Context context) =>
             DisplayError(context, "Error creating merged assembly:\n" + exception.Message);

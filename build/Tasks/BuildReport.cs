@@ -38,6 +38,15 @@ namespace Build.Tasks
             }
             builder.AppendLine(cliTable.ToMarkDownString());
 
+            builder.AppendLine("Tools Builds");
+            builder.Append('-', 35).AppendLine();
+            var toolsTable = new ConsoleTable("Name", "Status");
+            foreach (LibraryBuildStatus build in context.LibBuilds.Values)
+            {
+                toolsTable.AddRow(build.ToolsFramework, GetStatusString(build.ToolsSuccess));
+            }
+            builder.AppendLine(toolsTable.ToMarkDownString());
+
             builder.AppendLine("Other Builds");
             builder.Append('-', 35).AppendLine();
             var otherTable = new ConsoleTable("Name", "Status");
@@ -85,6 +94,11 @@ namespace Build.Tasks
             if (!context.CliBuildsSucceeded)
             {
                 throw new Exception("CLI build failed");
+            }
+
+            if (!context.ToolsBuildsSucceeded)
+            {
+                throw new Exception("Tools build failed");
             }
 
             if (!context.TestsSucceeded)

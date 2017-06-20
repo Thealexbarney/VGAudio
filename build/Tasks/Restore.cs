@@ -29,7 +29,7 @@ namespace Build.Tasks
         public override void OnError(Exception exception, Context context) => DisplayError(context, exception.Message);
     }
 
-    public sealed class RestoreTools : FrostingTask<Context>
+    public sealed class RestoreCakeTools : FrostingTask<Context>
     {
         public override void Run(Context context) =>
             context.DotNetCoreRestore(context.BuildDir.CombineWithFilePath("Tools.xml").FullPath, new DotNetCoreRestoreSettings

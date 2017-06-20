@@ -2,8 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp1.1;net45</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.0;net45</TargetFrameworks>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	
+	<AssemblyName>VGAudioTools</AssemblyName>
+    <AssemblyTitle>VGAudio.Tools</AssemblyTitle>
+    <VersionPrefix>2.0.0-beta3</VersionPrefix>
+    <Copyright>Copyright © 2016 Alex Barney</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

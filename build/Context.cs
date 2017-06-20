@@ -23,6 +23,7 @@ namespace Build
         public DirectoryPath LibraryDir { get; set; }
         public DirectoryPath CliDir { get; set; }
         public DirectoryPath TestsDir { get; set; }
+        public DirectoryPath ToolsDir { get; set; }
         public DirectoryPath UwpDir { get; set; }
 
         public FilePath TestsCsproj { get; set; }
@@ -43,8 +44,8 @@ namespace Build
 
         public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>
         {
-            ["netstandard"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.0", "netcoreapp1.0"),
-            ["net45"] = new LibraryBuildStatus("net45", "net45", "net46")
+            ["netstandard"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.0", "netcoreapp1.0", "netcoreapp1.0"),
+            ["net45"] = new LibraryBuildStatus("net45", "net45", "net45", "net46")
         };
 
         public Dictionary<string, bool?> OtherBuilds { get; } = new Dictionary<string, bool?>
@@ -54,6 +55,7 @@ namespace Build
 
         public bool LibraryBuildsSucceeded => LibBuilds.Values.All(x => x.LibSuccess == true);
         public bool CliBuildsSucceeded => LibBuilds.Values.All(x => x.CliSuccess == true);
+        public bool ToolsBuildsSucceeded => LibBuilds.Values.All(x => x.ToolsSuccess == true);
         public bool TestsSucceeded => LibBuilds.Values.All(x => x.TestSuccess == true);
     }
 }

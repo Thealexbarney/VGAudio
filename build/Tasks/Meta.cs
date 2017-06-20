@@ -20,13 +20,16 @@ namespace Build.Tasks
 
     [Dependency(typeof(BuildLibrary))]
     [Dependency(typeof(BuildCli))]
+    [Dependency(typeof(BuildTools))]
     [Dependency(typeof(BuildUwp))]
     [Dependency(typeof(Publish))]
     public sealed class Build : FrostingTask<Context> { }
 
     [Dependency(typeof(PublishLibrary))]
     [Dependency(typeof(PublishCli))]
+    [Dependency(typeof(PublishTools))]
     [Dependency(typeof(IlRepackCli))]
+    [Dependency(typeof(IlRepackTools))]
     [Dependency(typeof(PublishUwp))]
     public sealed class Publish : FrostingTask<Context> { }
 
