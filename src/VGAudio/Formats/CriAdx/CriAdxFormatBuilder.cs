@@ -3,7 +3,7 @@ using VGAudio.Codecs.CriAdx;
 
 namespace VGAudio.Formats.CriAdx
 {
-    public class CriAdxFormatBuilder : AudioFormatBaseBuilder<CriAdxFormat, CriAdxFormatBuilder, CriAdxConfiguration>
+    public class CriAdxFormatBuilder : AudioFormatBaseBuilder<CriAdxFormat, CriAdxFormatBuilder, CriAdxParameters>
     {
         public CriAdxChannel[] Channels { get; set; }
         public short HighpassFrequency { get; set; }

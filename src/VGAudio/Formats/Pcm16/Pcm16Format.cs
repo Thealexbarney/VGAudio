@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using VGAudio.Codecs;
 
 namespace VGAudio.Formats.Pcm16
 {
@@ -9,7 +10,7 @@ namespace VGAudio.Formats.Pcm16
     /// A 16-bit PCM audio stream.
     /// The stream can contain any number of individual channels.
     /// </summary>
-    public class Pcm16Format : AudioFormatBase<Pcm16Format, Pcm16Format.Builder, object>
+    public class Pcm16Format : AudioFormatBase<Pcm16Format, Pcm16Format.Builder, CodecParameters>
     {
         public short[][] Channels { get; }
 
@@ -46,7 +47,7 @@ namespace VGAudio.Formats.Pcm16
         public static Builder GetBuilder(short[][] channels, int sampleRate) => new Builder(channels, sampleRate);
         public override Builder GetCloneBuilder() => GetCloneBuilderBase(new Builder(Channels, SampleRate));
 
-        public class Builder : AudioFormatBaseBuilder<Pcm16Format, Builder, object>
+        public class Builder : AudioFormatBaseBuilder<Pcm16Format, Builder, CodecParameters>
         {
             public short[][] Channels { get; set; }
             protected internal override int ChannelCount => Channels.Length;

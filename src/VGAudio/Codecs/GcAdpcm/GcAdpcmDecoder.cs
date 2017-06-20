@@ -7,26 +7,22 @@ namespace VGAudio.Codecs.GcAdpcm
 {
     public static class GcAdpcmDecoder
     {
-        public static short[] Decode(byte[] adpcm, short[] coefficients, short hist1 = 0, short hist2 = 0)
+        public static short[] Decode(byte[] adpcm, short[] coefficients, GcAdpcmParameters config = null)
         {
-            int nibbleCount = adpcm.Length * 2;
-            int sampleCount = NibbleCountToSampleCount(nibbleCount);
-            return Decode(adpcm, coefficients, sampleCount, hist1, hist2);
-        }
+            config = config ?? new GcAdpcmParameters { SampleCount = NibbleCountToSampleCount(adpcm.Length * 2) };
+            var pcm = new short[config.SampleCount];
 
-        public static short[] Decode(byte[] adpcm, short[] coefficients, int length, short hist1 = 0, short hist2 = 0)
-        {
-            var pcm = new short[length];
-
-            if (length == 0)
+            if (config.SampleCount == 0)
             {
                 return pcm;
             }
 
-            int frameCount = length.DivideByRoundUp(SamplesPerFrame);
+            int frameCount = config.SampleCount.DivideByRoundUp(SamplesPerFrame);
             int currentSample = 0;
             int outIndex = 0;
             int inIndex = 0;
+            short hist1 = config.History1;
+            short hist2 = config.History2;
 
             for (int i = 0; i < frameCount; i++)
             {
@@ -36,7 +32,7 @@ namespace VGAudio.Codecs.GcAdpcm
                 short coef1 = coefficients[predictor * 2];
                 short coef2 = coefficients[predictor * 2 + 1];
 
-                int samplesToRead = Math.Min(SamplesPerFrame, length - currentSample);
+                int samplesToRead = Math.Min(SamplesPerFrame, config.SampleCount - currentSample);
 
                 for (int s = 0; s < samplesToRead; s++)
                 {

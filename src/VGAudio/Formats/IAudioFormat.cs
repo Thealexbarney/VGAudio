@@ -1,4 +1,5 @@
-﻿using VGAudio.Formats.Pcm16;
+﻿using VGAudio.Codecs;
+using VGAudio.Formats.Pcm16;
 
 namespace VGAudio.Formats
 {
@@ -15,7 +16,7 @@ namespace VGAudio.Formats
         IAudioFormat WithLoop(bool loop);
         Pcm16Format ToPcm16();
         IAudioFormat EncodeFromPcm16(Pcm16Format pcm16);
-        IAudioFormat EncodeFromPcm16(Pcm16Format pcm16, object config);
+        IAudioFormat EncodeFromPcm16(Pcm16Format pcm16, CodecParameters config);
         IAudioFormat GetChannels(params int[] channelRange);
         bool TryAdd(IAudioFormat format, out IAudioFormat result);
     }

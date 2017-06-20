@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
@@ -42,7 +43,7 @@ namespace VGAudio.Containers.Idsp
 
         protected override void SetupWriter(AudioData audio)
         {
-            Adpcm = audio.GetFormat<GcAdpcmFormat>();
+            Adpcm = audio.GetFormat<GcAdpcmFormat>(new GcAdpcmParameters { Progress = Configuration.Progress });
         }
 
         protected override void WriteStream(Stream stream)

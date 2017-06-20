@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using VGAudio.Codecs;
 using VGAudio.Formats.Pcm16;
 
 namespace VGAudio.Formats
@@ -16,7 +17,7 @@ namespace VGAudio.Formats
             AddFormat(audioFormat);
         }
 
-        public T GetFormat<T>(object configuration = null) where T : class, IAudioFormat, new()
+        public T GetFormat<T>(CodecParameters configuration = null) where T : class, IAudioFormat, new()
         {
             T format = GetAudioFormat<T>();
 
@@ -95,7 +96,7 @@ namespace VGAudio.Formats
             return (T)format;
         }
 
-        private void CreateFormat<T>(object configuration = null) where T : class, IAudioFormat, new()
+        private void CreateFormat<T>(CodecParameters configuration = null) where T : class, IAudioFormat, new()
         {
             Pcm16Format pcm = GetAudioFormat<Pcm16Format>();
             AddFormat(new T().EncodeFromPcm16(pcm, configuration));

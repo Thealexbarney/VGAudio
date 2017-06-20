@@ -201,6 +201,6 @@ namespace VGAudio.Formats.GcAdpcm
             return new GcAdpcmSeekTable(AlignedPcm, SamplesPerSeekTableEntry);
         }
 
-        private void EnsurePcmDecoded() => AlignedPcm = AlignedPcm ?? GcAdpcmDecoder.Decode(AlignedAdpcm, Coefs, AlignedSampleCount);
+        private void EnsurePcmDecoded() => AlignedPcm = AlignedPcm ?? GcAdpcmDecoder.Decode(AlignedAdpcm, Coefs, new GcAdpcmParameters { SampleCount = AlignedSampleCount });
     }
 }

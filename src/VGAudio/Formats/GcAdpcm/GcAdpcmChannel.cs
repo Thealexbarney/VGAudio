@@ -60,7 +60,10 @@ namespace VGAudio.Formats.GcAdpcm
             }
         }
 
-        public short[] GetPcmAudio() => AlignmentNeeded ? Alignment.PcmAligned : Pcm ?? GcAdpcmDecoder.Decode(GetAdpcmAudio(), Coefs, SampleCount, Hist1, Hist2);
+        public short[] GetPcmAudio() => AlignmentNeeded
+            ? Alignment.PcmAligned
+            : Pcm ?? GcAdpcmDecoder.Decode(GetAdpcmAudio(), Coefs,
+                  new GcAdpcmParameters {SampleCount = SampleCount, History1 = Hist1, History2 = Hist2});
         public short[] GetSeekTable() => SeekTable?.SeekTable ?? new short[0];
         public byte[] GetAdpcmAudio() => AlignmentNeeded ? Alignment.AdpcmAligned : Adpcm;
 

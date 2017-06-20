@@ -9,7 +9,7 @@ namespace VGAudio.Tools.GcAdpcm
         {
             int sampleCount = pcm.Length;
             short[] coefs = GcAdpcmCoefficient.CalculateCoefficients(pcm);
-            byte[] adpcm = GcAdpcmEncoder.EncodeAdpcm(pcm, coefs);
+            byte[] adpcm = GcAdpcmEncoder.Encode(pcm, coefs);
 
             return new GcAdpcmChannel(adpcm, coefs, sampleCount);
         }
@@ -31,7 +31,7 @@ namespace VGAudio.Tools.GcAdpcm
 
         public short[] DecodeAdpcm(byte[] adpcm, short[] coefs, int sampleCount)
         {
-            return GcAdpcmDecoder.Decode(adpcm, coefs, sampleCount);
+            return GcAdpcmDecoder.Decode(adpcm, coefs, new GcAdpcmParameters { SampleCount = sampleCount });
         }
     }
 }

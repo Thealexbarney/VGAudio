@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using VGAudio.Codecs;
 
 namespace VGAudio.Formats
 {
     public abstract class AudioFormatBaseBuilder<TFormat, TBuilder, TConfig>
         where TFormat : AudioFormatBase<TFormat, TBuilder, TConfig>
         where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder, TConfig>
-        where TConfig : class
+        where TConfig : CodecParameters, new()
     {
         protected internal abstract int ChannelCount { get; }
         protected internal bool Looping { get; set; }

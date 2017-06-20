@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
@@ -94,10 +95,12 @@ namespace VGAudio.Containers.Bxstm
 
         internal void SetupWriter(AudioData audio)
         {
+            var parameters = new GcAdpcmParameters { Progress = Configuration.Progress };
+
             if (Codec == BxstmCodec.Adpcm)
             {
-                Adpcm = audio.GetFormat<GcAdpcmFormat>();
-                
+                Adpcm = audio.GetFormat<GcAdpcmFormat>(parameters);
+
                 if (!LoopPointsAreAligned(Adpcm.LoopStart, Configuration.LoopPointAlignment))
                 {
                     Adpcm = Adpcm.GetCloneBuilder().WithAlignment(Configuration.LoopPointAlignment).Build();
@@ -120,13 +123,13 @@ namespace VGAudio.Containers.Bxstm
             }
             else if (Codec == BxstmCodec.Pcm16Bit)
             {
-                Pcm16 = audio.GetFormat<Pcm16Format>();
+                Pcm16 = audio.GetFormat<Pcm16Format>(parameters);
                 AudioFormat = Pcm16;
                 Tracks = Pcm16.Tracks;
             }
             else if (Codec == BxstmCodec.Pcm8Bit)
             {
-                Pcm8 = audio.GetFormat<Pcm8SignedFormat>();
+                Pcm8 = audio.GetFormat<Pcm8SignedFormat>(parameters);
                 AudioFormat = Pcm8;
                 Tracks = Pcm8.Tracks;
             }
