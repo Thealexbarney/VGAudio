@@ -83,22 +83,24 @@ namespace VGAudio.Utilities
 
         public static int[] GetPrimes(int maxPrime)
         {
-            var sieve = new int[maxPrime];
+            int max = maxPrime / 2;
+            var sieve = new byte[max];
 
-            for (int i = 2; i < maxPrime; i++)
+            for (int i = 3; i * i < maxPrime; i += 2)
             {
-                for (int j = i * i; j < maxPrime; j += i)
+                if (sieve[i >> 1] != 0) continue;
+                for (int j = i * i; j < maxPrime; j += i * 2)
                 {
-                    sieve[j] = 1;
+                    sieve[j >> 1] = 1;
                 }
             }
 
-            var primes = new List<int>();
-            for (int i = 0; i < maxPrime; i++)
+            var primes = new List<int> { 2 };
+            for (int i = 1; i < max; i++)
             {
                 if (sieve[i] == 0)
                 {
-                    primes.Add(i);
+                    primes.Add(i * 2 + 1);
                 }
             }
 
