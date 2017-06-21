@@ -2,7 +2,7 @@
 
 namespace VGAudio.Codecs.CriAdx
 {
-    public static class CriAdxEncryption
+    public static partial class CriAdxEncryption
     {
         public static void Decrypt(byte[][] adpcm, CriAdxKey key, int frameSize)
         {
