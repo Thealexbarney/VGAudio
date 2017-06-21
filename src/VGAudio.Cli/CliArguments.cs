@@ -193,6 +193,31 @@ namespace VGAudio.Cli
                             options.AdxType = adxType;
                             i++;
                             continue;
+                        case "-KEYSTRING":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --keystring.");
+                                return null;
+                            }
+
+                            options.KeyString = args[i + 1];
+                            i++;
+                            continue;
+                        case "-KEYCODE":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --keycode.");
+                                return null;
+                            }
+                            if (!ulong.TryParse(args[i + 1], out ulong keycode))
+                            {
+                                PrintWithUsage("Error parsing key code.");
+                                return null;
+                            }
+
+                            options.KeyCode = keycode;
+                            i++;
+                            continue;
                     }
                 }
 

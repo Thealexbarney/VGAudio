@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using VGAudio.Codecs.CriAdx;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
 using VGAudio.Containers.Bxstm;
@@ -144,6 +145,16 @@ namespace VGAudio.Cli
             if (options.FrameSize != 0) config.FrameSize = options.FrameSize;
             if (options.Filter >= 0 && options.Filter <= 3) config.Filter = options.Filter;
             if (options.AdxType != default(CriAdxType)) config.Type = options.AdxType;
+            if (options.KeyString != null)
+            {
+                config.EncryptionKey = new CriAdxKey(options.KeyString);
+                config.EncryptionType = 8;
+            }
+            if (options.KeyCode != 0)
+            {
+                config.EncryptionKey = new CriAdxKey(options.KeyCode);
+                config.EncryptionType = 9;
+            }
             return config;
         }
     }

@@ -22,6 +22,8 @@ namespace VGAudio.Cli
         public int FrameSize { get; set; } // ADX
         public int Filter { get; set; } = 2; // ADX
         public CriAdxType AdxType { get; set; } // ADX
+        public string KeyString { get; set; } //ADX
+        public ulong KeyCode { get; set; } //ADX
     }
 
     internal class AudioFile
