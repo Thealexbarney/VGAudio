@@ -1,4 +1,5 @@
-﻿using VGAudio.Formats.CriAdx;
+﻿using VGAudio.Codecs.CriAdx;
+using VGAudio.Formats.CriAdx;
 using VGAudio.Utilities;
 
 namespace VGAudio.Containers.Adx
@@ -7,6 +8,7 @@ namespace VGAudio.Containers.Adx
     {
         public short CopyrightOffset { get; set; }
         public CriAdxType EncodingType { get; set; }
+        public CriAdxKey EncryptionKey { get; set; }
         public byte FrameSize { get; set; }
         public int SamplesPerFrame => CriAdxHelpers.NibbleCountToSampleCount(FrameSize * 2, FrameSize);
         public byte BitDepth { get; set; }

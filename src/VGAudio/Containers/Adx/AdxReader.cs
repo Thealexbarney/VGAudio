@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using VGAudio.Codecs.CriAdx;
 using VGAudio.Formats;
 using VGAudio.Formats.CriAdx;
 using VGAudio.Utilities;
@@ -25,6 +26,7 @@ namespace VGAudio.Containers.Adx
                 {
                     reader.BaseStream.Position = structure.CopyrightOffset + 4;
                     ReadData(reader, structure);
+                    FindKey(structure);
                 }
 
                 return structure;
@@ -33,6 +35,11 @@ namespace VGAudio.Containers.Adx
 
         protected override IAudioFormat ToAudioStream(AdxStructure structure)
         {
+            if (structure.EncryptionKey != null)
+            {
+                CriAdxEncryption.EncryptDecrypt(structure.AudioData, structure.EncryptionKey, structure.VersionMinor, structure.FrameSize);
+            }
+
             var channels = new CriAdxChannel[structure.ChannelCount];
 
             for (int i = 0; i < structure.ChannelCount; i++)
@@ -45,6 +52,18 @@ namespace VGAudio.Containers.Adx
                 .WithAlignmentSamples(structure.AlignmentSamples)
                 .WithEncodingType(structure.EncodingType)
                 .Build();
+        }
+
+        protected override AdxConfiguration GetConfiguration(AdxStructure structure)
+        {
+            var configuration = new AdxConfiguration
+            {
+                FrameSize = structure.FrameSize,
+                Type = structure.EncodingType,
+                EncryptionType = structure.VersionMinor,
+                EncryptionKey = structure.EncryptionKey
+            };
+            return configuration;
         }
 
         private static void ReadHeader(BinaryReader reader, AdxStructure structure)
@@ -95,33 +114,18 @@ namespace VGAudio.Containers.Adx
         private static void ReadData(BinaryReader reader, AdxStructure structure)
         {
             int audioOffset = structure.CopyrightOffset + 4;
-            int footerOffset = FindFooter(reader, structure);
-            int blockSize = structure.FrameSize * structure.ChannelCount;
-            int blockCount = (footerOffset - audioOffset) / blockSize;
+            int frameCount = structure.SampleCount.DivideByRoundUp(structure.SamplesPerFrame);
+            int audioSize = structure.FrameSize * frameCount * structure.ChannelCount;
 
             reader.BaseStream.Position = audioOffset;
-            int dataLength = blockCount * blockSize;
-            structure.AudioData = reader.BaseStream.DeInterleave(dataLength, structure.FrameSize, structure.ChannelCount);
+            structure.AudioData = reader.BaseStream.DeInterleave(audioSize, structure.FrameSize, structure.ChannelCount);
         }
 
-        public static int FindFooter(BinaryReader reader, AdxStructure structure)
+        private static void FindKey(AdxStructure structure)
         {
-            const ushort footerSignature = 0x8001;
-            int fileSize = (int)reader.BaseStream.Length;
-            int audioStart = structure.CopyrightOffset + 4;
-            int frameSize = structure.FrameSize;
+            if (structure.VersionMinor == 0) return;
 
-            int position = GetNextMultiple(fileSize - audioStart, frameSize) + audioStart;
-
-            ushort peek;
-            do
-            {
-                position -= frameSize;
-                reader.BaseStream.Position = position;
-                peek = reader.ReadUInt16();
-            } while (peek != footerSignature && position > 0);
-
-            return position;
+            structure.EncryptionKey = CriAdxEncryption.FindKey(structure.AudioData, structure.VersionMinor, structure.FrameSize);
         }
     }
 }

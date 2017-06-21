@@ -89,7 +89,7 @@ namespace VGAudio.Containers.Adx
             writer.Write(SampleCount);
             writer.Write(Adpcm.Type != CriAdxType.Fixed ? Adpcm.HighpassFrequency : (short)0);
             writer.Write((byte)Version);
-            writer.Write((byte)0); //Minor version
+            writer.Write((byte)Configuration.EncryptionType);
 
             if (Version == 4)
             {
@@ -120,6 +120,14 @@ namespace VGAudio.Containers.Adx
         private void WriteData(BinaryWriter writer)
         {
             byte[][] audio = Adpcm.Channels.Select(x => x.Audio).ToArray();
+
+            if (Configuration.EncryptionKey != null)
+            {
+                // Don't encrypt the original audio
+                audio = audio.Select(x => x.ToArray()).ToArray();
+                CriAdxEncryption.EncryptDecrypt(audio, Configuration.EncryptionKey, Configuration.EncryptionType, FrameSize);
+            }
+
             audio.Interleave(writer.BaseStream, FrameSize, FrameCount * FrameSize);
         }
 

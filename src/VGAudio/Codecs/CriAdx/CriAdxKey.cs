@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using VGAudio.Utilities;
 
 namespace VGAudio.Codecs.CriAdx
 {
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ", nq}")]
     public class CriAdxKey
     {
         public CriAdxKey(int seed, int mult, int inc)
@@ -23,6 +25,7 @@ namespace VGAudio.Codecs.CriAdx
         public CriAdxKey(string keyString)
         {
             if (string.IsNullOrEmpty(keyString)) return;
+            KeyString = keyString;
 
             Seed = Primes[0x100];
             Mult = Primes[0x200];
@@ -39,6 +42,7 @@ namespace VGAudio.Codecs.CriAdx
         public int Seed { get; }
         public int Mult { get; }
         public int Inc { get; }
+        public string KeyString { get; }
         private static int[] Primes { get; } = BuildPrimesTable();
 
         public ulong KeyCode
@@ -60,5 +64,7 @@ namespace VGAudio.Codecs.CriAdx
             Array.Copy(primes, start, trimmedPrimes, 0, 0x400);
             return trimmedPrimes;
         }
+
+        private string DebuggerDisplay => KeyString == null ? $"KeyCode = {KeyCode}" : $"KeyString = \"{KeyString}\"";
     }
 }

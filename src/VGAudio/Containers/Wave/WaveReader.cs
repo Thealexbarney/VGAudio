@@ -51,7 +51,7 @@ namespace VGAudio.Containers.Wave
                             break;
                     }
 
-                    reader.BaseStream.Position = nextChunkOffset;
+                    reader.BaseStream.Position = nextChunkOffset + (nextChunkOffset & 1); // Wave chunks are 2-byte aligned
                 }
 
                 if (!dataChunkRead)
