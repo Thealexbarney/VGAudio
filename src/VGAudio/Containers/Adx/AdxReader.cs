@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using VGAudio.Codecs.CriAdx;
 using VGAudio.Formats;
 using VGAudio.Formats.CriAdx;
 using VGAudio.Utilities;
@@ -25,6 +26,7 @@ namespace VGAudio.Containers.Adx
                 {
                     reader.BaseStream.Position = structure.CopyrightOffset + 4;
                     ReadData(reader, structure);
+                    FindKey(structure);
                 }
 
                 return structure;
@@ -33,6 +35,11 @@ namespace VGAudio.Containers.Adx
 
         protected override IAudioFormat ToAudioStream(AdxStructure structure)
         {
+            if (structure.EncryptionKey != null)
+            {
+                CriAdxEncryption.EncryptDecrypt(structure.AudioData, structure.EncryptionKey, structure.VersionMinor, structure.FrameSize);
+            }
+
             var channels = new CriAdxChannel[structure.ChannelCount];
 
             for (int i = 0; i < structure.ChannelCount; i++)
@@ -45,6 +52,18 @@ namespace VGAudio.Containers.Adx
                 .WithAlignmentSamples(structure.AlignmentSamples)
                 .WithEncodingType(structure.EncodingType)
                 .Build();
+        }
+
+        protected override AdxConfiguration GetConfiguration(AdxStructure structure)
+        {
+            var configuration = new AdxConfiguration
+            {
+                FrameSize = structure.FrameSize,
+                Type = structure.EncodingType,
+                EncryptionType = structure.VersionMinor,
+                EncryptionKey = structure.EncryptionKey
+            };
+            return configuration;
         }
 
         private static void ReadHeader(BinaryReader reader, AdxStructure structure)
@@ -100,6 +119,13 @@ namespace VGAudio.Containers.Adx
 
             reader.BaseStream.Position = audioOffset;
             structure.AudioData = reader.BaseStream.DeInterleave(audioSize, structure.FrameSize, structure.ChannelCount);
+        }
+
+        private static void FindKey(AdxStructure structure)
+        {
+            if (structure.VersionMinor == 0) return;
+
+            structure.EncryptionKey = CriAdxEncryption.FindKey(structure.AudioData, structure.VersionMinor, structure.FrameSize);
         }
     }
 }
