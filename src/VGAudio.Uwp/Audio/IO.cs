@@ -11,7 +11,7 @@ namespace VGAudio.Uwp.Audio
             FileType type = AudioInfo.GetFileTypeFromName(path);
             IAudioReader reader = AudioInfo.Containers[type].GetReader();
 
-            using (var stream = new FileStream(path, FileMode.Open))
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
                 return reader.ReadFormat(stream);
             }
