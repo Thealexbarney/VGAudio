@@ -80,6 +80,8 @@ namespace VGAudio.Containers.Wave
 
         private void WriteFmtChunk(BinaryWriter writer)
         {
+            // Every chunk should be 2-byte aligned
+            writer.BaseStream.Position += writer.BaseStream.Position & 1;
             writer.WriteUTF8("fmt ");
             writer.Write(FmtChunkSize);
             writer.Write((short)(ChannelCount > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
@@ -100,6 +102,7 @@ namespace VGAudio.Containers.Wave
 
         private void WriteDataChunk(BinaryWriter writer)
         {
+            writer.BaseStream.Position += writer.BaseStream.Position & 1;
             writer.WriteUTF8("data");
             writer.Write(DataChunkSize);
 
@@ -117,6 +120,7 @@ namespace VGAudio.Containers.Wave
 
         private void WriteSmplChunk(BinaryWriter writer)
         {
+            writer.BaseStream.Position += writer.BaseStream.Position & 1;
             writer.WriteUTF8("smpl");
             writer.Write(SmplChunkSize);
             for (int i = 0; i < 7; i++)
