@@ -343,16 +343,24 @@ namespace VGAudio.Cli
         private static void PrintUsage()
         {
             Console.WriteLine($"Usage: {GetProgramName()} [options] infile [-i infile2...] [outfile]\n");
-            Console.WriteLine("  -i             Specify an input file");
-            Console.WriteLine("  -i:#,#-#...    Specify an input file and the channels to use");
-            Console.WriteLine("                 The index for channels is zero-based");
-            Console.WriteLine("  -o             Specify the output file");
-            Console.WriteLine("  -l <start-end> Set the start and end loop points");
-            Console.WriteLine("                 Loop points are given in zero-based samples");
-            Console.WriteLine("      --no-loop  Sets the audio to not loop");
-            Console.WriteLine("  -f             Specify the audio format to use in the output file");
-            Console.WriteLine("  -h, --help     Display this help and exit");
-            Console.WriteLine("      --version  Display version information and exit");
+            Console.WriteLine("  -i               Specify an input file");
+            Console.WriteLine("  -i:#,#-#...      Specify an input file and the channels to use");
+            Console.WriteLine("                   The index for channels is zero-based");
+            Console.WriteLine("  -o               Specify the output file");
+            Console.WriteLine("  -m               Print file metadata");
+            Console.WriteLine("  -l <start-end>   Set the start and end loop points");
+            Console.WriteLine("                   Loop points are given in zero-based samples");
+            Console.WriteLine("      --no-loop    Sets the audio to not loop");
+            Console.WriteLine("  -f               Specify the audio format to use in the output file");
+            Console.WriteLine("  -h, --help       Display this help and exit");
+            Console.WriteLine("      --adxtype    The ADX encoding type to use");
+            Console.WriteLine("      --framesize  ADPCM frame size to use for ADX files");
+            Console.WriteLine("      --keystring  String to use for ADX type 8 encryption");
+            Console.WriteLine("      --keycode    Number to use for ADX type 9 encryption");
+            Console.WriteLine("                   Between 1-18446744073709551615");
+            Console.WriteLine("      --filter     Filter to use for fixed coefficient ADX encoding [0-3]");
+            Console.WriteLine("      --version #  ADX header version to write [3,4]");
+            Console.WriteLine("      --version    Display version information and exit");
         }
 
         private static string GetProgramName() => Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly()?.Location ?? "");
