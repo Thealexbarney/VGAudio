@@ -9,6 +9,8 @@ namespace VGAudio.Containers.Adx
 {
     public class AdxReader : AudioReader<AdxReader, AdxStructure, AdxConfiguration>
     {
+        public CriAdxKey EncryptionKey { get; set; }
+
         protected override AdxStructure ReadFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
@@ -26,7 +28,7 @@ namespace VGAudio.Containers.Adx
                 {
                     reader.BaseStream.Position = structure.CopyrightOffset + 4;
                     ReadData(reader, structure);
-                    FindKey(structure);
+                    structure.EncryptionKey = EncryptionKey ?? FindKey(structure);
                 }
 
                 return structure;
@@ -121,11 +123,11 @@ namespace VGAudio.Containers.Adx
             structure.AudioData = reader.BaseStream.DeInterleave(audioSize, structure.FrameSize, structure.ChannelCount);
         }
 
-        private static void FindKey(AdxStructure structure)
+        private static CriAdxKey FindKey(AdxStructure structure)
         {
-            if (structure.VersionMinor == 0) return;
-
-            structure.EncryptionKey = CriAdxEncryption.FindKey(structure.AudioData, structure.VersionMinor, structure.FrameSize);
+            return structure.VersionMinor == 0
+                ? null
+                : CriAdxEncryption.FindKey(structure.AudioData, structure.VersionMinor, structure.FrameSize);
         }
     }
 }

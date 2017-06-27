@@ -5,9 +5,7 @@ namespace VGAudio.Tools
 {
     internal static class Strings
     {
-        private const int MinLength = 4;
-
-        public static string[] Search(byte[] text)
+        public static string[] Search(byte[] text, int minLength = 4)
         {
             var strings = new List<string>();
             int length = 0;
@@ -20,7 +18,7 @@ namespace VGAudio.Tools
                 }
                 else
                 {
-                    if (length >= MinLength)
+                    if (length >= minLength)
                     {
                         strings.Add(Encoding.ASCII.GetString(text, i - length, length));
                     }

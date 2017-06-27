@@ -105,7 +105,7 @@ namespace VGAudio.Tools.CrackAdx
                 path = Path.Combine(directory, file);
             }
 
-            return Strings.Search(File.ReadAllBytes(path))
+            return Strings.Search(File.ReadAllBytes(path), 2)
                 .Distinct()
                 .ToLookup(x => new CriAdxKey(x), x => x, new AdxKeyComparer());
         }
@@ -233,10 +233,10 @@ namespace VGAudio.Tools.CrackAdx
             CriAdxFormat adx;
             using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
-                adx = (CriAdxFormat)new AdxReader().ReadFormat(stream);
+                var reader = new AdxReader { EncryptionKey = key };
+                adx = (CriAdxFormat)reader.ReadFormat(stream);
             }
 
-            CriAdxEncryption.EncryptDecrypt(adx.Channels.Select(x => x.Audio).ToArray(), key, EncryptionType, adx.FrameSize);
             Pcm16Format pcm = adx.ToPcm16();
             CriAdxFormat adx2 = new CriAdxFormat().EncodeFromPcm16(pcm);
 
