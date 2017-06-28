@@ -20,7 +20,10 @@ namespace VGAudio.Tools
                 {
                     if (length >= minLength)
                     {
-                        strings.Add(Encoding.ASCII.GetString(text, i - length, length));
+                        for (int subLength = length; subLength > minLength; subLength--)
+                        {
+                            strings.Add(Encoding.ASCII.GetString(text, i - subLength, subLength));
+                        }
                     }
                     length = 0;
                 }
