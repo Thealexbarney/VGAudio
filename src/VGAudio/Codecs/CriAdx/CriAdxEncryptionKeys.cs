@@ -15,28 +15,28 @@ namespace VGAudio.Codecs.CriAdx
             new CriAdxKey(0x5f5d, 0x58bd, 0x55ed),
 
             // Grasshopper Manufacture 1 (Killer7)
-            // This is estimated
-            new CriAdxKey(0x50fb, 0x5803, 0x5701),
+            // Found in the game's executable
+            new CriAdxKey("GHM"),
 
             // Grasshopper Manufacture 2 (Samurai Champloo)
-            // Confirmed unique with guessadx
-            new CriAdxKey(0x4f3f, 0x472f, 0x562f),
+            // Found in the game's executable
+            new CriAdxKey("GHMSC"),
 
             // Moss Ltd (Raiden III)
-            // This is estimated
-            new CriAdxKey(0x66f5, 0x58bd, 0x4459),
+            // Found in the game's executable
+            new CriAdxKey("(C)2005 MOSS LTD. BMW Z4"),
 
             // Sonic Team 0 (Phantasy Star Universe)
             // Found in the game's executable
             new CriAdxKey("3x5k62bg9ptbwy"),
 
             // G.rev 0 (Senko no Ronde)
-            // This is estimated
-            new CriAdxKey(0x46d3, 0x5ced, 0x474d),
+            // Found in the game's executable
+            new CriAdxKey("ranatus"),
 
             // Sonic Team 1 (NiGHTS: Journey of Dreams)
-            // This seems to be dead on, but still estimated
-            new CriAdxKey(0x440b, 0x6539, 0x5723),
+            // Found in the game's executable
+            new CriAdxKey("sakakit4649"),
 
             // From guessadx (unique?), unknown source
             new CriAdxKey(0x586d, 0x5d65, 0x63eb),
@@ -86,8 +86,8 @@ namespace VGAudio.Codecs.CriAdx
             new CriAdxKey(0x5563, 0x5047, 0x43ed),
 
             // Capcom (Mobile Suit Gundam: Gundam vs. Gundam NEXT PLUS)
-            // Confirmed unique with guessadx
-            new CriAdxKey(0x4f7b, 0x4fdb, 0x5cbf),
+            // Found in the game's executable
+            new CriAdxKey("CS-GGNX+"),
 
             // Developer: Bridge NetShop
             // Publisher: Kadokawa Shoten (Shoukan Shoujo: Elemental Girl Calling)
