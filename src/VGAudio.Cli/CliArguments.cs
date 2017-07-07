@@ -343,8 +343,8 @@ namespace VGAudio.Cli
         private static void PrintUsage()
         {
             Console.WriteLine($"Usage: {GetProgramName()} [options] infile [-i infile2...] [outfile]\n");
-            Console.WriteLine("  -i               Specify an input file");
-            Console.WriteLine("  -i:#,#-#...      Specify an input file and the channels to use");
+            Console.WriteLine("  -i <file>        Specify an input file");
+            Console.WriteLine("  -i:#,#-# <file>  Specify an input file and the channels to use");
             Console.WriteLine("                   The index for channels is zero-based");
             Console.WriteLine("  -o               Specify the output file");
             Console.WriteLine("  -m               Print file metadata");
