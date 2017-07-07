@@ -28,6 +28,7 @@
         /// REGN chunk header.
         /// </summary>
         public int RegnChunkSize { get; set; }
+        public int RegnEntrySize { get; set; }
 
         /// <summary>
         /// The REGN chunk.
@@ -44,7 +45,7 @@
         /// after the stream info and before the track offset table.
         /// The purpose of this chunk is unknown.
         /// </summary>
-        public bool InfoPart1Extra { get; set; }
+        public bool IncludeRegnPointer { get; set; }
 
         /// <summary>
         /// Specifies whether the file lists the tracks
@@ -59,5 +60,7 @@
         /// The end loop point before alignment.
         /// </summary>
         public int LoopEndUnaligned { get; set; }
+
+        public int Unknown5 { get; set; }
     }
 }

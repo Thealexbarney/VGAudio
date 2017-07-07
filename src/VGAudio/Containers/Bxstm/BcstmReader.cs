@@ -23,7 +23,7 @@ namespace VGAudio.Containers.Bxstm
             configuration.Endianness = structure.Endianness;
             configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
             configuration.IncludeTrackInformation = structure.IncludeTracks;
-            configuration.InfoPart1Extra = structure.InfoPart1Extra;
+            configuration.InfoPart1Extra = structure.IncludeRegnPointer;
             return configuration;
         }
     }

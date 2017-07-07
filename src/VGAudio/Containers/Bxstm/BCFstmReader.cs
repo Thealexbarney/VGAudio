@@ -57,7 +57,7 @@ namespace VGAudio.Containers.Bxstm
                 return structure;
             }
         }
-        
+
         private static void ReadHeader(BinaryReader reader, BCFstmStructure structure)
         {
             reader.Expect((ushort)0xfeff);
@@ -160,15 +160,21 @@ namespace VGAudio.Containers.Bxstm
             reader.Expect((short)0x1f00);
             reader.BaseStream.Position += 2;
             structure.AudioDataOffset = reader.ReadInt32() + structure.DataChunkOffset + 8;
-            structure.InfoPart1Extra = reader.ReadInt16() == 0x100;
-            if (structure.InfoPart1Extra)
+            short regnEntrySize = reader.ReadInt16();
+            structure.IncludeRegnPointer = regnEntrySize == 0x100;
+            if (structure.IncludeRegnPointer)
             {
+                structure.RegnEntrySize = regnEntrySize;
                 reader.BaseStream.Position += 10;
             }
-            if (structure.Version == 4)
+            if (structure.Version >= 4)
             {
                 structure.LoopStartUnaligned = reader.ReadInt32();
                 structure.LoopEndUnaligned = reader.ReadInt32();
+            }
+            if (structure.Version >= 5)
+            {
+                structure.Unknown5 = reader.ReadInt32();
             }
         }
 
