@@ -26,7 +26,7 @@ namespace VGAudio.Containers.Adx
 
                 if (readAudioData)
                 {
-                    reader.BaseStream.Position = structure.CopyrightOffset + 4;
+                    reader.BaseStream.Position = structure.HeaderSize + 4;
                     ReadData(reader, structure);
                     structure.EncryptionKey = EncryptionKey ?? FindKey(structure);
                 }
@@ -39,7 +39,7 @@ namespace VGAudio.Containers.Adx
         {
             if (structure.EncryptionKey != null)
             {
-                CriAdxEncryption.EncryptDecrypt(structure.AudioData, structure.EncryptionKey, structure.VersionMinor, structure.FrameSize);
+                CriAdxEncryption.EncryptDecrypt(structure.AudioData, structure.EncryptionKey, structure.Revision, structure.FrameSize);
             }
 
             var channels = new CriAdxChannel[structure.ChannelCount];
@@ -49,9 +49,9 @@ namespace VGAudio.Containers.Adx
                 channels[i] = new CriAdxChannel(structure.AudioData[i], structure.HistorySamples[i][0], structure.Version);
             }
 
-            return new CriAdxFormatBuilder(channels, structure.SampleCount - structure.AlignmentSamples, structure.SampleRate, structure.FrameSize, structure.HighpassFreq)
-                .WithLoop(structure.Looping, structure.LoopStartSample - structure.AlignmentSamples, structure.LoopEndSample - structure.AlignmentSamples)
-                .WithAlignmentSamples(structure.AlignmentSamples)
+            return new CriAdxFormatBuilder(channels, structure.SampleCount - structure.InsertedSamples, structure.SampleRate, structure.FrameSize, structure.HighpassFreq)
+                .WithLoop(structure.Looping, structure.LoopStartSample - structure.InsertedSamples, structure.LoopEndSample - structure.InsertedSamples)
+                .WithAlignmentSamples(structure.InsertedSamples)
                 .WithEncodingType(structure.EncodingType)
                 .Build();
         }
@@ -62,7 +62,7 @@ namespace VGAudio.Containers.Adx
             {
                 FrameSize = structure.FrameSize,
                 Type = structure.EncodingType,
-                EncryptionType = structure.VersionMinor,
+                EncryptionType = structure.Revision,
                 EncryptionKey = structure.EncryptionKey
             };
             return configuration;
@@ -70,7 +70,7 @@ namespace VGAudio.Containers.Adx
 
         private static void ReadHeader(BinaryReader reader, AdxStructure structure)
         {
-            structure.CopyrightOffset = reader.ReadInt16();
+            structure.HeaderSize = reader.ReadInt16();
             structure.EncodingType = (CriAdxType)reader.ReadByte();
             structure.FrameSize = reader.ReadByte();
             structure.BitDepth = reader.ReadByte();
@@ -79,7 +79,7 @@ namespace VGAudio.Containers.Adx
             structure.SampleCount = reader.ReadInt32();
             structure.HighpassFreq = reader.ReadInt16();
             structure.Version = reader.ReadByte();
-            structure.VersionMinor = reader.ReadByte();
+            structure.Revision = reader.ReadByte();
             structure.HistorySamples = CreateJaggedArray<short[][]>(structure.ChannelCount, 2);
 
             if (structure.Version >= 4)
@@ -98,15 +98,15 @@ namespace VGAudio.Containers.Adx
                 }
             }
 
-            if (reader.BaseStream.Position + 24 > structure.CopyrightOffset) { return; }
+            if (reader.BaseStream.Position + 24 > structure.HeaderSize) { return; }
 
-            structure.AlignmentSamples = reader.ReadInt16();
+            structure.InsertedSamples = reader.ReadInt16();
             structure.LoopCount = reader.ReadInt16();
 
             if (structure.LoopCount <= 0) { return; }
 
-            reader.BaseStream.Position += 4;
             structure.Looping = true;
+            structure.LoopType = reader.ReadInt32();
             structure.LoopStartSample = reader.ReadInt32();
             structure.LoopStartByte = reader.ReadInt32();
             structure.LoopEndSample = reader.ReadInt32();
@@ -115,7 +115,7 @@ namespace VGAudio.Containers.Adx
 
         private static void ReadData(BinaryReader reader, AdxStructure structure)
         {
-            int audioOffset = structure.CopyrightOffset + 4;
+            int audioOffset = structure.HeaderSize + 4;
             int frameCount = structure.SampleCount.DivideByRoundUp(structure.SamplesPerFrame);
             int audioSize = structure.FrameSize * frameCount * structure.ChannelCount;
 
@@ -125,9 +125,9 @@ namespace VGAudio.Containers.Adx
 
         private static CriAdxKey FindKey(AdxStructure structure)
         {
-            return structure.VersionMinor == 0
+            return structure.Revision == 0
                 ? null
-                : CriAdxEncryption.FindKey(structure.AudioData, structure.VersionMinor, structure.FrameSize);
+                : CriAdxEncryption.FindKey(structure.AudioData, structure.Revision, structure.FrameSize);
         }
     }
 }

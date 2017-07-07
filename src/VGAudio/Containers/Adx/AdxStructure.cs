@@ -6,7 +6,7 @@ namespace VGAudio.Containers.Adx
 {
     public class AdxStructure
     {
-        public short CopyrightOffset { get; set; }
+        public short HeaderSize { get; set; }
         public CriAdxType EncodingType { get; set; }
         public CriAdxKey EncryptionKey { get; set; }
         public byte FrameSize { get; set; }
@@ -17,10 +17,11 @@ namespace VGAudio.Containers.Adx
         public int SampleCount { get; set; }
         public short HighpassFreq { get; set; }
         public byte Version { get; set; }
-        public byte VersionMinor { get; set; }
-        public short AlignmentSamples { get; set; }
+        public byte Revision { get; set; }
+        public short InsertedSamples { get; set; }
         public int LoopCount { get; set; }
         public bool Looping { get; set; }
+        public int LoopType { get; set; }
         public int LoopStartSample { get; set; }
         public int LoopStartByte { get; set; }
         public int LoopEndSample { get; set; }

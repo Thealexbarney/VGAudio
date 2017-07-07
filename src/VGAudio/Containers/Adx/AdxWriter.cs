@@ -27,9 +27,9 @@ namespace VGAudio.Containers.Adx
         private int SamplesPerFrame => (FrameSize - 2) * 2;
         private int FrameCount => SampleCount.DivideByRoundUp(SamplesPerFrame);
 
-        private int HeaderSize => Adpcm.Looping ? Version == 4 ? 60 : 52 : Version == 4 ? 36 : 32;
-        private int CopyrightOffset => HeaderSize + AlignmentBytes;
-        private int AudioOffset => CopyrightOffset + 4;
+        private int BaseHeaderSize => Adpcm.Looping ? Version == 4 ? 60 : 52 : Version == 4 ? 36 : 32;
+        private int HeaderSize => BaseHeaderSize + AlignmentBytes;
+        private int AudioOffset => HeaderSize + 4;
         private int AudioSize => FrameSize * FrameCount * ChannelCount;
         private int FooterOffset => AudioOffset + AudioSize;
         private int FooterSize => Adpcm.Looping ? GetNextMultiple(FooterOffset + FrameSize, 0x800) - FooterOffset : FrameSize;
@@ -56,7 +56,7 @@ namespace VGAudio.Containers.Adx
         private void CalculateAlignmentBytes()
         {
             //Start loop frame offset should be a multiple of 0x800
-            int startLoopOffset = SampleCountToByteCount(Adpcm.LoopStart, FrameSize) * ChannelCount + HeaderSize + 4;
+            int startLoopOffset = SampleCountToByteCount(Adpcm.LoopStart, FrameSize) * ChannelCount + BaseHeaderSize + 4;
             AlignmentBytes = GetNextMultiple(startLoopOffset, 0x800) - startLoopOffset;
 
             //Version 3 pushes the loop start one block back for every full frame of alignment samples 
@@ -80,7 +80,7 @@ namespace VGAudio.Containers.Adx
         private void WriteHeader(BinaryWriter writer)
         {
             writer.Write(AdxHeaderSignature);
-            writer.Write((short)CopyrightOffset);
+            writer.Write((short)HeaderSize);
             writer.Write((byte)Adpcm.Type);
             writer.Write((byte)FrameSize);
             writer.Write((byte)4); //bit-depth
@@ -113,7 +113,7 @@ namespace VGAudio.Containers.Adx
             writer.Write(Adpcm.LoopEnd);
             writer.Write(LoopEndOffset);
 
-            writer.BaseStream.Position = CopyrightOffset - 2;
+            writer.BaseStream.Position = HeaderSize - 2;
             writer.WriteUTF8("(c)CRI");
         }
 

@@ -84,11 +84,11 @@ namespace VGAudio.Tools.CrackAdx
                 using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read))
                 {
                     var adx = new AdxReader().ReadMetadata(stream);
-                    if (type == 0) type = adx.VersionMinor;
-                    if (adx.VersionMinor != type) continue;
+                    if (type == 0) type = adx.Revision;
+                    if (adx.Revision != type) continue;
 
                     var audioData = new byte[adx.AudioDataLength];
-                    stream.Position = adx.CopyrightOffset + 4;
+                    stream.Position = adx.HeaderSize + 4;
                     stream.Read(audioData, 0, adx.AudioDataLength);
                     Files.Add(new AdxFile(adx, audioData, file));
                 }

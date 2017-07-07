@@ -26,7 +26,7 @@ struct History
 struct Loop
 {
     int16 LoopNum;
-    int16 IsLooping;
+    int16 LoopType;
     int32 LoopStartSample;
     int32 LoopStartByte;
     int32 LoopEndSample;
@@ -54,7 +54,7 @@ struct Header
 {
     local int i;
     int16 Magic <format=hex>;
-    int16 CopyrightOffset;
+    int16 HeaderSize;
     byte EncodingType;
     ubyte FrameSize;
     byte BitDepth;
@@ -63,7 +63,7 @@ struct Header
     int32 SampleCount;
     int16 HighpassFreq;
     byte Version;
-    byte VersionMinor;
+    byte Revision;
 
     if(Version == 4) 
     {
@@ -74,7 +74,7 @@ struct Header
         }
     }
 
-    if(FTell() + 24 > CopyrightOffset)
+    if(FTell() + 24 > HeaderSize)
         break;
 
     int16 AlignmentSamples;
@@ -109,8 +109,8 @@ typedef struct
 struct Footer
 {
     int16 Magic <format=hex>;
-    int16 PaddingCount;
-    byte Padding[PaddingCount];
+    int16 PaddingLength;
+    byte Padding[PaddingLength];
 };
 
 typedef struct (Header &head)
@@ -141,6 +141,6 @@ int SizeFrame( Frame &f )
 BigEndian();
 Header head <open=true>;
 
-FSeek(head.CopyrightOffset - 2);
+FSeek(head.HeaderSize - 2);
 Data data(head);
 Footer footer;

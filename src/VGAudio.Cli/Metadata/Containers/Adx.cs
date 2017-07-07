@@ -37,10 +37,10 @@ namespace VGAudio.Cli.Metadata.Containers
 
             builder.AppendLine();
 
-            builder.AppendLine($"Alignment samples: {adx.AlignmentSamples}");
+            builder.AppendLine($"Inserted samples: {adx.InsertedSamples}");
             builder.AppendLine($"ADPCM frame size: {adx.FrameSize} bytes");
-            builder.AppendLine($"File version: {adx.Version}");
-            builder.AppendLine($"File version minor: {adx.VersionMinor}");
+            builder.AppendLine($"ADX version: {adx.Version}");
+            builder.AppendLine($"ADX revision: {adx.Revision}");
         }
 
         private static AudioFormat FromAdx(CriAdxType codec)
