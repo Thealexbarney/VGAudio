@@ -9,6 +9,16 @@ namespace VGAudio.Utilities
     public static class Helpers
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Clamp(int value, int min, int max)
+        {
+            if (value < min)
+                return min;
+            if (value > max)
+                return max;
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short Clamp16(int value)
         {
             if (value > short.MaxValue)
@@ -36,6 +46,17 @@ namespace VGAudio.Utilities
         public static sbyte GetLowNibbleSigned(byte value) => SignedNibbles[value & 0xF];
 
         public static byte CombineNibbles(int high, int low) => (byte)((high << 4) | (low & 0xF));
+
+        public static int BitCount(int v) => BitCount(unchecked((uint)v));
+        public static int BitCount(uint v)
+        {
+            unchecked
+            {
+                v = v - ((v >> 1) & 0x55555555);
+                v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+                return (int)((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24;
+            }
+        }
 
         public static int GetNextMultiple(int value, int multiple)
         {
