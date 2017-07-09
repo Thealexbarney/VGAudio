@@ -18,8 +18,8 @@ namespace VGAudio.Formats.CriHca
             if (hca.Looping)
             {
                 Looping = true;
-                LoopStart = hca.LoopStartFrame * 1024 + hca.PreLoopSamples - hca.InsertedSamples;
-                LoopEnd = (hca.LoopEndFrame + 1) * 1024 - hca.PostLoopSamples - hca.InsertedSamples;
+                LoopStart = hca.LoopStartSample;
+                LoopEnd = hca.LoopEndSample;
             }
         }
 

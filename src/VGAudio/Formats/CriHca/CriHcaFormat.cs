@@ -18,8 +18,7 @@ namespace VGAudio.Formats.CriHca
 
             if (Hca.BandsPerHfrGroup > 0)
             {
-                int remainingBands = Hca.TotalBandCount - Hca.BaseBandCount - Hca.StereoBandCount;
-                Hca.HfrGroupCount = remainingBands.DivideByRoundUp(Hca.BandsPerHfrGroup);
+                Hca.HfrGroupCount = Hca.HfrBandCount.DivideByRoundUp(Hca.BandsPerHfrGroup);
             }
         }
 

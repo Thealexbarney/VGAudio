@@ -72,6 +72,11 @@ namespace VGAudio.Containers.Hca
             }
 
             if (structure.Hca.TrackCount < 1) structure.Hca.TrackCount = 1;
+
+            if (structure.Hca.BandsPerHfrGroup > 0)
+            {
+                structure.Hca.HfrBandCount = structure.Hca.TotalBandCount - structure.Hca.BaseBandCount - structure.Hca.StereoBandCount;
+            }
         }
 
         private static void ReadHcaData(BinaryReader reader, HcaStructure structure)

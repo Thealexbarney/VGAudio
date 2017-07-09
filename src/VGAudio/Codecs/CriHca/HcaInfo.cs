@@ -17,6 +17,7 @@
         public int TotalBandCount { get; set; }
         public int BaseBandCount { get; set; }
         public int StereoBandCount { get; set; }
+        public int HfrBandCount { get; set; }
         public int BandsPerHfrGroup { get; set; }
         public int HfrGroupCount { get; set; }
 
@@ -27,6 +28,9 @@
         public int LoopEndFrame { get; set; }
         public int PreLoopSamples { get; set; }
         public int PostLoopSamples { get; set; }
+
+        public int LoopStartSample => LoopStartFrame * 1024 + PreLoopSamples - InsertedSamples;
+        public int LoopEndSample => (LoopEndFrame + 1) * 1024 - PostLoopSamples - InsertedSamples;
 
         public int AthTableType { get; set; }
 
