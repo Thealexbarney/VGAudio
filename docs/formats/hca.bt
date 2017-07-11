@@ -82,6 +82,12 @@ struct CiphHeader
     int16 CipherType;
 };
 
+struct RvaHeader
+{
+    ID Signature;
+    float Volume;
+};
+
 struct Frame(int frameSize)
 {
     local int start = FTell();
@@ -125,6 +131,9 @@ while( !headerFinished )
             break;
         case "ath":
             AthHeader Ath <open=true>;
+            break;
+        case "rva":
+            RvaHeader Rva <open=true>;
             break;
         default:
             headerFinished = 1;

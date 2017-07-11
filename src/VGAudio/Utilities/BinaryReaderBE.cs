@@ -32,5 +32,12 @@ namespace VGAudio.Utilities
             byte[] buffer = BitConverter.GetBytes(base.ReadUInt32());
             return (uint)(buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3]);
         }
+
+        public override float ReadSingle()
+        {
+            byte[] buffer = BitConverter.GetBytes(base.ReadSingle());
+            Array.Reverse(buffer);
+            return BitConverter.ToSingle(buffer, 0);
+        }
     }
 }

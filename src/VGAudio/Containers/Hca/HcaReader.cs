@@ -63,6 +63,9 @@ namespace VGAudio.Containers.Hca
                     case "ciph":
                         ReadCiphChunk(reader, structure);
                         break;
+                    case "rva\0":
+                        ReadRvaChunk(reader, structure);
+                        break;
                     case "pad\0":
                         reader.BaseStream.Position = structure.HeaderSize;
                         break;
@@ -153,6 +156,11 @@ namespace VGAudio.Containers.Hca
         private static void ReadCiphChunk(BinaryReader reader, HcaStructure structure)
         {
             structure.Hca.EncryptionType = reader.ReadInt16();
+        }
+
+        private static void ReadRvaChunk(BinaryReader reader, HcaStructure structure)
+        {
+            structure.Hca.Volume = reader.ReadSingle();
         }
     }
 }

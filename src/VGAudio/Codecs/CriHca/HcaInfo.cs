@@ -35,5 +35,7 @@
         public int AthTableType { get; set; }
 
         public int EncryptionType { get; set; }
+
+        public float Volume { get; set; }
     }
 }
