@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Text;
+using VGAudio.Codecs.CriHca;
 using VGAudio.Formats;
 using VGAudio.Formats.CriHca;
 using VGAudio.Utilities;
@@ -7,8 +9,10 @@ using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.Hca
 {
-    public class HcaReader : AudioReader<HcaReader, HcaStructure, Configuration>
+    public class HcaReader : AudioReader<HcaReader, HcaStructure, HcaConfiguration>
     {
+        public CriHcaKey EncryptionKey { get; set; }
+
         protected override HcaStructure ReadFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
@@ -18,19 +22,36 @@ namespace VGAudio.Containers.Hca
 
                 reader.BaseStream.Position = structure.HeaderSize;
 
-                ReadHcaData(reader, structure);
+                if (readAudioData)
+                {
+                    ReadHcaData(reader, structure);
+                    structure.EncryptionKey = EncryptionKey ?? FindKey((structure));
+                }
+                
                 return structure;
             }
         }
 
         protected override IAudioFormat ToAudioStream(HcaStructure structure)
         {
+            if (structure.EncryptionKey != null){
+                CriHcaEncryption.Decrypt(structure.Hca, structure.AudioData, structure.EncryptionKey);
+            }
+
             return new CriHcaFormatBuilder(structure.AudioData, structure.Hca).Build();
+        }
+
+        protected override HcaConfiguration GetConfiguration(HcaStructure structure)
+        {
+            return new HcaConfiguration
+            {
+                EncryptionKey = structure.EncryptionKey
+            };
         }
 
         private static void ReadHcaHeader(BinaryReader reader, HcaStructure structure)
         {
-            string signature = reader.ReadUTF8(4);
+            string signature = ReadChunkId(reader);
             structure.Version = reader.ReadInt16();
             structure.HeaderSize = reader.ReadInt16();
 
@@ -41,7 +62,7 @@ namespace VGAudio.Containers.Hca
 
             while (reader.BaseStream.Position < structure.HeaderSize)
             {
-                string chunkId = reader.ReadUTF8(4);
+                string chunkId = ReadChunkId(reader);
 
                 switch (chunkId)
                 {
@@ -161,6 +182,25 @@ namespace VGAudio.Containers.Hca
         private static void ReadRvaChunk(BinaryReader reader, HcaStructure structure)
         {
             structure.Hca.Volume = reader.ReadSingle();
+        }
+
+        private static string ReadChunkId(BinaryReader reader)
+        {
+            byte[] bytes = reader.ReadBytes(4);
+
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] &= 0x7f;
+            }
+
+            return Encoding.UTF8.GetString(bytes, 0, 4);
+        }
+
+        private static CriHcaKey FindKey(HcaStructure structure)
+        {
+            return structure.Hca.EncryptionType != 56
+                ? null
+                : new CriHcaKey(24002584467202475);
         }
     }
 }

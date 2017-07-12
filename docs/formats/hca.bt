@@ -110,6 +110,10 @@ local int headerFinished = 0;
 while( !headerFinished )
 {    
     ReadBytes( signature, FTell(), 4 );
+    signature[0] &= 0x7f;
+    signature[1] &= 0x7f;
+    signature[2] &= 0x7f;
+    signature[3] &= 0x7f;
     signature[4] = 0;
 
     switch( signature )

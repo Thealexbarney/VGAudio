@@ -9,6 +9,8 @@ namespace VGAudio.Containers.Hca
 
         public HcaInfo Hca { get; set; } = new HcaInfo();
 
+        public CriHcaKey EncryptionKey { get; set; }
+
         public int Reserved1 { get; set; }
         public int Reserved2 { get; set; }
 

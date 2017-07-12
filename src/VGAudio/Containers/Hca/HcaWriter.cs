@@ -4,7 +4,7 @@ using VGAudio.Formats;
 
 namespace VGAudio.Containers.Hca
 {
-    public class HcaWriter : AudioWriter<HcaWriter, Configuration>
+    public class HcaWriter : AudioWriter<HcaWriter, HcaConfiguration>
     {
         protected override int FileSize => 0;
         protected override void SetupWriter(AudioData audio)
