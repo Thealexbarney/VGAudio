@@ -5,17 +5,24 @@ namespace VGAudio.Codecs.CriHca
 {
     public static class Mdct
     {
-        public static void RunImdct(Channel channel, int index)
+        public static void RunImdct(CriHcaFrame frame)
         {
-            Dct4(channel.Spectra, channel.DctTempBuffer);
-            Array.Copy(channel.Spectra, channel.DctOutput, 0x80);
-
-            for (int i = 0; i < 0x40; i++)
+            for (int sf = 0; sf < 8; sf++)
             {
-                channel.PcmFloat[index][i] = MdctWindow[i] * channel.DctOutput[i + 0x40] + channel.ImdctPrevious[i];
-                channel.PcmFloat[index][i + 0x40] = MdctWindow[i + 0x40] * -channel.DctOutput[0x7f - i] - channel.ImdctPrevious[i + 0x40];
-                channel.ImdctPrevious[i] = MdctWindow[0x7f - i] * -channel.DctOutput[0x3f - i];
-                channel.ImdctPrevious[i + 0x40] = MdctWindow[0x3f - i] * channel.DctOutput[i];
+                for (int c = 0; c < frame.ChannelCount; c++)
+                {
+                    Dct4(frame.Spectra[sf][c], frame.DctTempBuffer);
+                    Array.Copy(frame.Spectra[sf][c], frame.DctOutput[c], 0x80);
+
+                    for (int i = 0; i < 0x40; i++)
+                    {
+                        frame.PcmFloat[sf][c][i] = MdctWindow[i] * frame.DctOutput[c][i + 0x40] + frame.ImdctPrevious[c][i];
+                        frame.PcmFloat[sf][c][i + 0x40] =
+                            MdctWindow[i + 0x40] * -frame.DctOutput[c][0x7f - i] - frame.ImdctPrevious[c][i + 0x40];
+                        frame.ImdctPrevious[c][i] = MdctWindow[0x7f - i] * -frame.DctOutput[c][0x3f - i];
+                        frame.ImdctPrevious[c][i + 0x40] = MdctWindow[0x3f - i] * frame.DctOutput[c][i];
+                    }
+                }
             }
         }
 
