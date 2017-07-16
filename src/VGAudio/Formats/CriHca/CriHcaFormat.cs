@@ -1,7 +1,6 @@
 ﻿using System;
 using VGAudio.Codecs.CriHca;
 using VGAudio.Formats.Pcm16;
-using VGAudio.Utilities;
 
 namespace VGAudio.Formats.CriHca
 {
@@ -15,11 +14,6 @@ namespace VGAudio.Formats.CriHca
         {
             AudioData = b.AudioData;
             Hca = b.Hca;
-
-            if (Hca.BandsPerHfrGroup > 0)
-            {
-                Hca.HfrGroupCount = Hca.HfrBandCount.DivideByRoundUp(Hca.BandsPerHfrGroup);
-            }
         }
 
         public override Pcm16Format ToPcm16()

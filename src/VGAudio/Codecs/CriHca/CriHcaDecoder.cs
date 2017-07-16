@@ -10,6 +10,7 @@ namespace VGAudio.Codecs.CriHca
         private const int SubframesPerFrame = 8;
         private const int SubframeLength = 128;
         private const int FrameLength = SubframesPerFrame * SubframeLength;
+
         public static short[][] Decode(HcaInfo hca, byte[][] audio)
         {
             var pcmOut = Helpers.CreateJaggedArray<short[][]>(hca.ChannelCount, hca.SampleCount);
@@ -41,10 +42,12 @@ namespace VGAudio.Codecs.CriHca
             PcmFloatToShort(frame, pcmOut);
         }
 
-        private static void UnpackFrame(CriHcaFrame frame, BitReader reader)
+        public static bool UnpackFrame(CriHcaFrame frame, BitReader reader)
         {
-            UnpackFrameHeader(frame, reader);
+            if (!UnpackFrameHeader(frame, reader)) return false;
             ReadSpectralCoefficients(frame, reader);
+            return reader.Remaining >= 16 && reader.Remaining <= 40 ||
+                   FrameEmpty(reader.Buffer, 2, reader.Buffer.Length - 4);
         }
 
         private static void DequantizeFrame(CriHcaFrame frame)
@@ -72,7 +75,7 @@ namespace VGAudio.Codecs.CriHca
             ApplyIntensityStereo(frame);
         }
 
-        private static void UnpackFrameHeader(CriHcaFrame frame, BitReader reader)
+        private static bool UnpackFrameHeader(CriHcaFrame frame, BitReader reader)
         {
             int syncWord = reader.ReadInt(16);
             if (syncWord != 0xffff)
@@ -86,7 +89,7 @@ namespace VGAudio.Codecs.CriHca
             int r = acceptableNoiseLevel * 256 - evaluationBoundary;
             for (int i = 0; i < frame.ChannelCount; i++)
             {
-                ReadScaleFactors(reader, frame.Scale[i], frame.ScaleLength[i]);
+                if (!ReadScaleFactors(reader, frame.Scale[i], frame.ScaleLength[i])) return false;
                 CalculateResolution(frame.Scale[i], frame.Resolution[i], r, frame.ScaleLength[i]);
 
                 if (frame.ChannelType[i] == ChannelType.IntensityStereoSecondary)
@@ -98,15 +101,16 @@ namespace VGAudio.Codecs.CriHca
                     ReadHfrScaleFactors(reader, frame.Hca.HfrGroupCount, frame.HfrScale[i]);
                 }
             }
+            return true;
         }
 
-        private static void ReadScaleFactors(BitReader reader, int[] scale, int scaleCount)
+        private static bool ReadScaleFactors(BitReader reader, int[] scale, int scaleCount)
         {
             int deltaBits = reader.ReadInt(3);
             if (deltaBits == 0)
             {
                 Array.Clear(scale, 0, scale.Length);
-                return;
+                return true;
             }
 
             if (deltaBits >= 6)
@@ -115,10 +119,10 @@ namespace VGAudio.Codecs.CriHca
                 {
                     scale[i] = reader.ReadInt(6);
                 }
-                return;
+                return true;
             }
 
-            DeltaDecode(reader, deltaBits, 6, scaleCount, scale);
+            return DeltaDecode(reader, deltaBits, 6, scaleCount, scale);
         }
 
         private static void CalculateResolution(int[] scales, int[] resolutions, int r, int scaleCount)
@@ -247,10 +251,11 @@ namespace VGAudio.Codecs.CriHca
             }
         }
 
-        private static void DeltaDecode(BitReader reader, int deltaBits, int dataBits, int count, int[] output)
+        private static bool DeltaDecode(BitReader reader, int deltaBits, int dataBits, int count, int[] output)
         {
             output[0] = reader.ReadInt(dataBits);
             int maxDelta = 1 << (deltaBits - 1);
+            int maxValue = (1 << dataBits) - 1;
 
             for (int i = 1; i < count; i++)
             {
@@ -258,13 +263,19 @@ namespace VGAudio.Codecs.CriHca
 
                 if (delta < maxDelta)
                 {
-                    output[i] = output[i - 1] + delta;
+                    int value = output[i - 1] + delta;
+                    if (value < 0 || value > maxValue)
+                    {
+                        return false;
+                    }
+                    output[i] = value;
                 }
                 else
                 {
                     output[i] = reader.ReadInt(dataBits);
                 }
             }
+            return true;
         }
 
         private static void PcmFloatToShort(CriHcaFrame frame, short[][] pcm)
@@ -280,6 +291,19 @@ namespace VGAudio.Codecs.CriHca
                     }
                 }
             }
+        }
+
+        private static bool FrameEmpty(byte[] bytes, int start, int length)
+        {
+            int end = start + length;
+            for (int i = start; i < end; i++)
+            {
+                if (bytes[i] != 0)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

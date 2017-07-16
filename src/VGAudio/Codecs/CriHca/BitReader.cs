@@ -7,6 +7,7 @@ namespace VGAudio.Codecs.CriHca
     {
         public byte[] Buffer { get; }
         public int Position { get; set; }
+        public int Remaining => Buffer.Length * 8 - Position;
 
         public BitReader(byte[] buffer) => Buffer = buffer;
 
@@ -28,6 +29,7 @@ namespace VGAudio.Codecs.CriHca
         public int PeekInt(int bitCount)
         {
             Debug.Assert(bitCount >= 0 && bitCount <= 32);
+            if (bitCount > Remaining) return 0;
             int value = 0;
             int byteIndex = Position / 8;
             int bitIndex = Position % 8;

@@ -16,6 +16,8 @@ namespace VGAudio.Codecs.CriHca
         public byte[] DecryptionTable { get; }
         public byte[] EncryptionTable { get; }
 
+        private static  byte[][] Rows { get; } = GenerateAllRows();
+
         public static byte[] CreateDecryptionTable(ulong keyCode)
         {
             byte[] kc = BitConverter.GetBytes(keyCode - 1);
@@ -26,16 +28,16 @@ namespace VGAudio.Codecs.CriHca
             seed[2] = (byte)(kc[2] ^ kc[3]);
             seed[3] = kc[2];
             seed[4] = (byte)(kc[1] ^ kc[2]);
-            seed[5] = (byte)(kc[4] ^ kc[3]);
+            seed[5] = (byte)(kc[3] ^ kc[4]);
             seed[6] = kc[3];
             seed[7] = (byte)(kc[2] ^ kc[3]);
-            seed[8] = (byte)(kc[5] ^ kc[4]);
+            seed[8] = (byte)(kc[4] ^ kc[5]);
             seed[9] = kc[4];
             seed[10] = (byte)(kc[3] ^ kc[4]);
-            seed[11] = (byte)(kc[6] ^ kc[5]);
+            seed[11] = (byte)(kc[5] ^ kc[6]);
             seed[12] = kc[5];
             seed[13] = (byte)(kc[4] ^ kc[5]);
-            seed[14] = (byte)(kc[1] ^ kc[6]);
+            seed[14] = (byte)(kc[6] ^ kc[1]);
             seed[15] = kc[6];
 
             return CreateTable(kc[0], seed);
@@ -44,11 +46,11 @@ namespace VGAudio.Codecs.CriHca
         public static byte[] CreateTable(byte rowSeed, byte[] columnSeeds)
         {
             byte[] table = new byte[256];
-            byte[] row = CreateRandomRow(rowSeed);
+            byte[] row = Rows[rowSeed];
 
             for (int r = 0; r < 16; r++)
             {
-                byte[] column = CreateRandomRow(columnSeeds[r]);
+                byte[] column = Rows[columnSeeds[r]];
                 for (int c = 0; c < 16; c++)
                 {
                     table[16 * r + c] = Helpers.CombineNibbles(row[r], column[c]);
@@ -72,6 +74,18 @@ namespace VGAudio.Codecs.CriHca
             }
 
             return row;
+        }
+
+        public static byte[][] GenerateAllRows()
+        {
+            var rows = new byte[0x100][];
+
+            for (int i = 0; i < 0x100; i++)
+            {
+                rows[i] = CreateRandomRow((byte)i);
+            }
+
+            return rows;
         }
 
         public static byte[] ShuffleTable(byte[] tableIn)

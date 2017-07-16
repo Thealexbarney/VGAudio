@@ -100,6 +100,7 @@ namespace VGAudio.Containers.Hca
             if (structure.Hca.BandsPerHfrGroup > 0)
             {
                 structure.Hca.HfrBandCount = structure.Hca.TotalBandCount - structure.Hca.BaseBandCount - structure.Hca.StereoBandCount;
+                structure.Hca.HfrGroupCount = structure.Hca.HfrBandCount.DivideByRoundUp(structure.Hca.BandsPerHfrGroup);
             }
         }
 
@@ -200,7 +201,7 @@ namespace VGAudio.Containers.Hca
         {
             return structure.Hca.EncryptionType != 56
                 ? null
-                : new CriHcaKey(24002584467202475);
+                : CriHcaEncryption.FindKey(structure.Hca, structure.AudioData);
         }
     }
 }
