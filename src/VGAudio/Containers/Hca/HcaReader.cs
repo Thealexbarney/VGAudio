@@ -27,14 +27,15 @@ namespace VGAudio.Containers.Hca
                     ReadHcaData(reader, structure);
                     structure.EncryptionKey = EncryptionKey ?? FindKey((structure));
                 }
-                
+
                 return structure;
             }
         }
 
         protected override IAudioFormat ToAudioStream(HcaStructure structure)
         {
-            if (structure.EncryptionKey != null){
+            if (structure.EncryptionKey != null)
+            {
                 CriHcaEncryption.Decrypt(structure.Hca, structure.AudioData, structure.EncryptionKey);
             }
 
@@ -109,7 +110,15 @@ namespace VGAudio.Containers.Hca
             structure.AudioData = new byte[structure.Hca.FrameCount][];
             for (int i = 0; i < structure.Hca.FrameCount; i++)
             {
-                structure.AudioData[i] = reader.ReadBytes(structure.Hca.FrameSize);
+                byte[] data = reader.ReadBytes(structure.Hca.FrameSize);
+                int crc = Crc16.Compute(data, data.Length - 2);
+                int expectedCrc = data[data.Length - 2] << 8 | data[data.Length - 1];
+                if (crc != expectedCrc)
+                {
+                    // TODO: Decide how to handle bad CRC
+                }
+
+                structure.AudioData[i] = data;
             }
         }
 
