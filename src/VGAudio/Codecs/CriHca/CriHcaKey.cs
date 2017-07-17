@@ -12,11 +12,28 @@ namespace VGAudio.Codecs.CriHca
             EncryptionTable = InvertTable(DecryptionTable);
         }
 
+        public CriHcaKey(Type type)
+        {
+            switch (type)
+            {
+                case Type.Type0:
+                    DecryptionTable = CreateDecryptionTableType0();
+                    break;
+                case Type.Type1:
+                    DecryptionTable = CreateDecryptionTableType1();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+
+            EncryptionTable = InvertTable(DecryptionTable);
+        }
+
         public ulong KeyCode { get; }
         public byte[] DecryptionTable { get; }
         public byte[] EncryptionTable { get; }
 
-        private static  byte[][] Rows { get; } = GenerateAllRows();
+        private static byte[][] Rows { get; } = GenerateAllRows();
 
         public static byte[] CreateDecryptionTable(ulong keyCode)
         {
@@ -41,6 +58,39 @@ namespace VGAudio.Codecs.CriHca
             seed[15] = kc[6];
 
             return CreateTable(kc[0], seed);
+        }
+
+        public static byte[] CreateDecryptionTableType0()
+        {
+            byte[] table = new byte[256];
+
+            for (int i = 0; i < 256; i++)
+            {
+                table[i] = (byte)i;
+            }
+
+            return table;
+        }
+
+        public static byte[] CreateDecryptionTableType1()
+        {
+            byte[] table = new byte[256];
+            int xor = 0;
+            const int mult = 13;
+            const int inc = 11;
+            int outPos = 1;
+
+            for (int i = 0; i < 256; i++)
+            {
+                xor = (xor * mult + inc) % 256;
+                if (xor != 0 && xor != 0xff)
+                {
+                    table[outPos++] = (byte)xor;
+                }
+            }
+
+            table[0xff] = 0xff;
+            return table;
         }
 
         public static byte[] CreateTable(byte rowSeed, byte[] columnSeeds)
@@ -117,6 +167,12 @@ namespace VGAudio.Codecs.CriHca
             }
 
             return table;
+        }
+
+        public enum Type
+        {
+            Type0 = 0,
+            Type1 = 1
         }
     }
 }

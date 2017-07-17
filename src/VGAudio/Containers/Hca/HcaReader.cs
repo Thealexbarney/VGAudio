@@ -208,9 +208,17 @@ namespace VGAudio.Containers.Hca
 
         private static CriHcaKey FindKey(HcaStructure structure)
         {
-            return structure.Hca.EncryptionType != 56
-                ? null
-                : CriHcaEncryption.FindKey(structure.Hca, structure.AudioData);
+            switch (structure.Hca.EncryptionType)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    return new CriHcaKey(CriHcaKey.Type.Type1);
+                case 56:
+                    return CriHcaEncryption.FindKey(structure.Hca, structure.AudioData);
+                default:
+                    return null;
+            }
         }
     }
 }
