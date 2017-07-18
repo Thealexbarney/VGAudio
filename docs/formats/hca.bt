@@ -76,6 +76,13 @@ struct AthHeader
     int16 AthTableType;
 };
 
+struct VbrHeader
+{
+    ID Signature;
+    int16 MaxFrameSize;
+    int16 NoiseLevel;
+};
+
 struct CiphHeader
 {
     ID Signature;
@@ -135,6 +142,9 @@ while( !headerFinished )
             break;
         case "ath":
             AthHeader Ath <open=true>;
+            break;
+        case "vbr":
+            VbrHeader Vbr <open=true>;
             break;
         case "rva":
             RvaHeader Rva <open=true>;
