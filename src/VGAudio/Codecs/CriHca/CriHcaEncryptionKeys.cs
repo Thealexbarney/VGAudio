@@ -47,7 +47,13 @@ namespace VGAudio.Codecs.CriHca
             new CriHcaKey(12345),
 
             //Raramagi (Mobile)
-            new CriHcaKey(45719322)
+            new CriHcaKey(45719322),
+
+            // Idolm@ster Million Live (iOS/Android)
+            new CriHcaKey(765765765765765),
+
+            // Black Knight and White Devil (iOS/Android)
+            new CriHcaKey(3003875739822025258)
         };
     }
 }
