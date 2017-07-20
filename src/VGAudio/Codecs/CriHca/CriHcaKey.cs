@@ -159,9 +159,10 @@ namespace VGAudio.Codecs.CriHca
 
         public static byte[] InvertTable(byte[] tableIn)
         {
-            byte[] table = new byte[256];
+            int length = tableIn.Length;
+            byte[] table = new byte[length];
 
-            for (int i = 0; i < 256; i++)
+            for (int i = 0; i < length; i++)
             {
                 table[tableIn[i]] = (byte)i;
             }

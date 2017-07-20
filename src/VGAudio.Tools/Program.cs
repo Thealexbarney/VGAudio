@@ -23,6 +23,9 @@ namespace VGAudio.Tools
                 case "crackadx":
                     CrackAdx.Runner.Run(args);
                     break;
+                case "crackhca":
+                    CrackHca.Runner.Run(args);
+                    break;
                 default:
                     Console.WriteLine("Unknown test");
                     PrintTestList();
@@ -35,7 +38,8 @@ namespace VGAudio.Tools
             Console.WriteLine("Available tests:");
             Console.WriteLine("Rebuild\t\tReads and rebuilds an audio file and compares the result with the original");
             Console.WriteLine("GcAdpcm\t\tCompares GcAdpcm encoding with the official implementation");
-            Console.WriteLine("CrackAdx\t\tAttempts to crack the decryption key of a folder of ADX files");
+            Console.WriteLine("CrackAdx\tAttempts to crack the decryption key of a folder of ADX files");
+            Console.WriteLine("CrackHca\tIncomplete, experimental HCA decryption cracker");
         }
     }
 }

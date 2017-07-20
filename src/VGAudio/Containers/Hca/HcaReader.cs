@@ -11,6 +11,8 @@ namespace VGAudio.Containers.Hca
 {
     public class HcaReader : AudioReader<HcaReader, HcaStructure, HcaConfiguration>
     {
+        /// <summary>If <c>true</c>, decrypts the HCA data if possible.</summary>
+        public bool Decrypt { get; set; }
         public CriHcaKey EncryptionKey { get; set; }
 
         protected override HcaStructure ReadFile(Stream stream, bool readAudioData = true)
@@ -25,7 +27,7 @@ namespace VGAudio.Containers.Hca
                 if (readAudioData)
                 {
                     ReadHcaData(reader, structure);
-                    structure.EncryptionKey = EncryptionKey ?? FindKey((structure));
+                    structure.EncryptionKey = Decrypt ? EncryptionKey ?? FindKey(structure) : null;
                 }
 
                 return structure;
