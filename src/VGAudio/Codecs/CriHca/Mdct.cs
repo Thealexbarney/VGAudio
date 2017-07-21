@@ -26,10 +26,17 @@ namespace VGAudio.Codecs.CriHca
             }
         }
 
-        private static void Dct4(float[] spectra, float[] work)
+        /// <summary>
+        /// Does a 128-point, Type-4 DCT. An overall scale factor of sqrt(2/N) is applied.
+        /// </summary>
+        /// <param name="inOutSamples">The input and output array containing 128 time or frequency-domain samples.
+        /// The final result of the transformation will be placed in this array.</param>
+        /// <param name="work">A temporary array used for scratch work. Must be at least 128 elements long.
+        /// It does not matter what the initial values of this array are, and it will be filled with garbage data afterward.</param>
+        private static void Dct4(float[] inOutSamples, float[] work)
         {
-            RunDif(spectra, work);
-            DctMain(work, spectra);
+            RunDif(inOutSamples, work);
+            DctMain(work, inOutSamples);
         }
 
         private static void RunDif(float[] input, float[] workBuffer)
@@ -98,6 +105,11 @@ namespace VGAudio.Codecs.CriHca
         }
 
         // ReSharper disable once UnusedMember.Local
+        /// <summary>
+        /// Does a slow, 128-point, Type-4 DCT. An overall scale factor of sqrt(2/N) is applied. Intended for reference only.
+        /// </summary>
+        /// <param name="input">The input array containing 128 time or frequency-domain samples</param>
+        /// <param name="output">The output array containing 128 time or frequency-domain samples</param>
         private static void Dct4Slow(float[] input, float[] output)
         {
             const int points = 128;
