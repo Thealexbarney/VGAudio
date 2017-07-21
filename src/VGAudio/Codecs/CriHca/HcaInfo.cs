@@ -34,6 +34,9 @@
 
         public int AthTableType { get; set; }
 
+        public int VbrMaxFrameSize { get; set; }
+        public int VbrNoiseLevel { get; set; }
+
         public int EncryptionType { get; set; }
 
         public float Volume { get; set; }

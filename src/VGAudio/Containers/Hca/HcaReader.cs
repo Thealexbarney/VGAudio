@@ -90,6 +90,9 @@ namespace VGAudio.Containers.Hca
                     case "rva\0":
                         ReadRvaChunk(reader, structure);
                         break;
+                    case "vbr\0":
+                        ReadVbrChunk(reader, structure);
+                        break;
                     case "pad\0":
                         reader.BaseStream.Position = structure.HeaderSize;
                         break;
@@ -184,6 +187,12 @@ namespace VGAudio.Containers.Hca
         private static void ReadAthChunk(BinaryReader reader, HcaStructure structure)
         {
             structure.Hca.AthTableType = reader.ReadInt16();
+        }
+
+        private static void ReadVbrChunk(BinaryReader reader, HcaStructure structure)
+        {
+            structure.Hca.VbrMaxFrameSize = reader.ReadInt16();
+            structure.Hca.VbrNoiseLevel = reader.ReadInt16();
         }
 
         private static void ReadCiphChunk(BinaryReader reader, HcaStructure structure)
