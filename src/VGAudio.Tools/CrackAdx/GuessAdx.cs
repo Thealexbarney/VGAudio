@@ -30,7 +30,7 @@ namespace VGAudio.Tools.CrackAdx
         public GuessAdx(string path, string executable, IProgressReport progress = null)
         {
             Progress = progress;
-            Progress?.ReportTotal(0x1000);
+            Progress?.SetTotal(0x1000);
 
             if (Directory.Exists(path))
             {
@@ -42,7 +42,7 @@ namespace VGAudio.Tools.CrackAdx
             }
             else
             {
-                Progress?.ReportMessage($"{path} does not exist.");
+                Progress?.LogMessage($"{path} does not exist.");
             }
 
             switch (EncryptionType)
@@ -127,17 +127,17 @@ namespace VGAudio.Tools.CrackAdx
         {
             if (!TriedKeys.TryAdd(key, 0)) return;
 
-            Progress?.ReportMessage($"Trying key {PrintKey(key)}");
+            Progress?.LogMessage($"Trying key {PrintKey(key)}");
 
             if (Files.Any(stream => !KeyIsValid(key, stream.Scales)))
             {
-                Progress?.ReportMessage($"Key {PrintKey(key)} is invalid");
+                Progress?.LogMessage($"Key {PrintKey(key)} is invalid");
                 return;
             }
 
             string[] keyStrings = KeyStrings?[key].ToArray();
 
-            Progress?.ReportMessage($"Key {PrintKey(key)} could be valid. Calculating confidence...");
+            Progress?.LogMessage($"Key {PrintKey(key)} could be valid. Calculating confidence...");
             var confidences = Files.AsParallel().Select(file => GetReencodeConfidence(key, file.Filename)).ToList();
 
             double confidenceSmall = 1 - (double)confidences.Sum(x => x.IdenticalBytesShort) / confidences.Sum(x => x.TotalBytesShort);
@@ -152,7 +152,7 @@ namespace VGAudio.Tools.CrackAdx
             sb.Append('-', 40);
 
             Keys.Add(key);
-            Progress?.ReportMessage(sb.ToString());
+            Progress?.LogMessage(sb.ToString());
 
             string PrintKey(CriAdxKey k) => $"Seed - {k.Seed:x4} Multiplier - {k.Mult:x4} Increment - {k.Inc:x4}";
         }

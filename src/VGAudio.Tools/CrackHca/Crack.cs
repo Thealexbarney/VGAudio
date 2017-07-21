@@ -23,20 +23,20 @@ namespace VGAudio.Tools.CrackHca
             }
             else
             {
-                Progress?.ReportMessage($"Directory {path} does not exist.");
+                Progress?.LogMessage($"Directory {path} does not exist.");
             }
         }
 
         public void Run()
         {
-            Progress?.ReportMessage("Loading files...");
+            Progress?.LogMessage("Loading files...");
             Frequency[][] freq = LoadFrequencies(Path);
-            Progress.ReportTotal(0);
+            Progress.SetTotal(0);
 
-            Progress?.ReportMessage("Cracking...");
+            Progress?.LogMessage("Cracking...");
             var solver = new Solver(freq);
             solver.Solve();
-            Progress?.ReportMessage($"Lower byte of key could be 0x{solver.UpperSeed + 1:X2}");
+            Progress?.LogMessage($"Lower byte of key could be 0x{solver.UpperSeed + 1:X2}");
         }
 
         public Frequency[][] LoadFrequencies(string path)
@@ -45,7 +45,7 @@ namespace VGAudio.Tools.CrackHca
             var freq = Helpers.CreateJaggedArray<Frequency[][]>(30, 0x100);
             var counts = Helpers.CreateJaggedArray<int[][]>(30, 0x100);
             int total = 0;
-            Progress.ReportTotal(files.Length);
+            Progress.SetTotal(files.Length);
 
             var reader = new HcaReader { Decrypt = false };
 

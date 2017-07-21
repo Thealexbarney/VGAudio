@@ -62,7 +62,7 @@ namespace VGAudio.Formats.CriAdx
             int alignmentSamples = Helpers.GetNextMultiple(pcm16.LoopStart, alignmentMultiple) - pcm16.LoopStart;
 
             int frameCount = SampleCountToByteCount(pcm16.SampleCount, config.FrameSize).DivideByRoundUp(config.FrameSize) * pcm16.ChannelCount;
-            config.Progress?.ReportTotal(frameCount);
+            config.Progress?.SetTotal(frameCount);
 
             Parallel.For(0, pcm16.ChannelCount, i =>
             {

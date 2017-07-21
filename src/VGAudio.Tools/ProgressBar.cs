@@ -20,6 +20,8 @@ namespace VGAudio.Tools
         private bool _disposed;
         private int _animationIndex;
 
+        private StringBuilder LogText { get; } = new StringBuilder();
+
         public ProgressBar()
         {
             var timerCallBack = new TimerCallback(TimerHandler);
@@ -36,17 +38,15 @@ namespace VGAudio.Tools
             Interlocked.Add(ref _progress, value);
         }
 
-        public void ReportMessage(string message)
+        public void LogMessage(string message)
         {
             lock (_timer)
             {
-                Console.WriteLine($"\r{message}");
-                _currentText = string.Empty;
-                TimerHandler(null);
+                LogText.AppendLine(message);
             }
         }
 
-        public void ReportTotal(int value)
+        public void SetTotal(int value)
         {
             Interlocked.Exchange(ref _total, value);
         }
@@ -57,9 +57,14 @@ namespace VGAudio.Tools
             {
                 if (_disposed) return;
 
-                double progress = _total == 0 ? 0 : (double)_progress / _total;
-                int progressBlockCount = (int)(progress * BlockCount);
-                string text = $"[{new string('#', progressBlockCount)}{new string('-', BlockCount - progressBlockCount)}] {_progress}/{_total} {progress:P1} {Animation[_animationIndex++ % Animation.Length]}";
+                string text = string.Empty;
+
+                if (_total > 0)
+                {
+                    double progress = _total == 0 ? 0 : (double)_progress / _total;
+                    int progressBlockCount = (int) Math.Min(progress * BlockCount, BlockCount);
+                    text = $"[{new string('#', progressBlockCount)}{new string('-', BlockCount - progressBlockCount)}] {_progress}/{_total} {progress:P1} {Animation[_animationIndex++ % Animation.Length]}";
+                }
                 UpdateText(text);
 
                 ResetTimer();
@@ -68,6 +73,19 @@ namespace VGAudio.Tools
 
         private void UpdateText(string text)
         {
+            StringBuilder outputBuilder = new StringBuilder();
+
+            if (LogText.Length > 0)
+            {
+                // Erase current text
+                outputBuilder.Append("\r");
+                outputBuilder.Append(' ', _currentText.Length);
+                outputBuilder.Append("\r");
+                outputBuilder.Append(LogText);
+                _currentText = string.Empty;
+                LogText.Clear();
+            }
+
             // Get length of common portion
             int commonPrefixLength = 0;
             int commonLength = Math.Min(_currentText.Length, text.Length);
@@ -77,7 +95,6 @@ namespace VGAudio.Tools
             }
 
             // Backtrack to the first differing character
-            StringBuilder outputBuilder = new StringBuilder();
             outputBuilder.Append('\b', _currentText.Length - commonPrefixLength);
 
             // Output new suffix
