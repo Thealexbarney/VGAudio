@@ -15,6 +15,8 @@ namespace VGAudio.Containers.Hca
         public bool Decrypt { get; set; }
         public CriHcaKey EncryptionKey { get; set; }
 
+        private static Crc16 Crc { get; } = new Crc16(0x8005);
+
         protected override HcaStructure ReadFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
@@ -116,7 +118,7 @@ namespace VGAudio.Containers.Hca
             for (int i = 0; i < structure.Hca.FrameCount; i++)
             {
                 byte[] data = reader.ReadBytes(structure.Hca.FrameSize);
-                int crc = Crc16.Compute(data, data.Length - 2);
+                int crc = Crc.Compute(data, data.Length - 2);
                 int expectedCrc = data[data.Length - 2] << 8 | data[data.Length - 1];
                 if (crc != expectedCrc)
                 {

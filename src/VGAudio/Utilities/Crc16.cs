@@ -1,10 +1,15 @@
 ﻿namespace VGAudio.Utilities
 {
-    public static class Crc16
+    public class Crc16
     {
-        private static ushort[] Table { get; } = GenerateTable(0x8005);
+        private ushort[] Table { get; }
 
-        public static ushort Compute(byte[] data, int size)
+        public Crc16(ushort polynomial)
+        {
+            Table = GenerateTable(polynomial);
+        }
+
+        public ushort Compute(byte[] data, int size)
         {
             ushort crc = 0;
             for (int i = 0; i < size; i++)
