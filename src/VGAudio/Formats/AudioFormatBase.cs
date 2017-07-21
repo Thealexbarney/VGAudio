@@ -30,6 +30,8 @@ namespace VGAudio.Formats
         IAudioFormat IAudioFormat.WithLoop(bool loop) => WithLoop(loop);
 
         public abstract Pcm16Format ToPcm16();
+        public virtual Pcm16Format ToPcm16(CodecParameters config) => ToPcm16();
+        public virtual Pcm16Format ToPcm16(TConfig config) => ToPcm16((CodecParameters)config);
         public abstract TFormat EncodeFromPcm16(Pcm16Format pcm16);
         public virtual TFormat EncodeFromPcm16(Pcm16Format pcm16, TConfig config) => EncodeFromPcm16(pcm16);
 

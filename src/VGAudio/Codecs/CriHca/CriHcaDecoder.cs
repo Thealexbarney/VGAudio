@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using VGAudio.Formats.CriHca;
 using VGAudio.Utilities;
 using static VGAudio.Codecs.CriHca.CriHcaTables;
 
@@ -11,8 +12,9 @@ namespace VGAudio.Codecs.CriHca
         private const int SubframeLength = 128;
         private const int FrameLength = SubframesPerFrame * SubframeLength;
 
-        public static short[][] Decode(HcaInfo hca, byte[][] audio)
+        public static short[][] Decode(HcaInfo hca, byte[][] audio, CriHcaParameters config = null)
         {
+            config?.Progress?.SetTotal(hca.FrameCount);
             var pcmOut = Helpers.CreateJaggedArray<short[][]>(hca.ChannelCount, hca.SampleCount);
             var pcmBuffer = Helpers.CreateJaggedArray<short[][]>(hca.ChannelCount, FrameLength);
 
@@ -26,6 +28,7 @@ namespace VGAudio.Codecs.CriHca
                 {
                     Array.Copy(pcmBuffer[c], 0, pcmOut[c], i * FrameLength, pcmBuffer[c].Length);
                 }
+                config?.Progress?.ReportAdd(1);
             }
 
             return pcmOut;

@@ -15,6 +15,7 @@ namespace VGAudio.Formats
         IAudioFormat WithLoop(bool loop, int loopStart, int loopEnd);
         IAudioFormat WithLoop(bool loop);
         Pcm16Format ToPcm16();
+        Pcm16Format ToPcm16(CodecParameters config);
         IAudioFormat EncodeFromPcm16(Pcm16Format pcm16);
         IAudioFormat EncodeFromPcm16(Pcm16Format pcm16, CodecParameters config);
         IAudioFormat GetChannels(params int[] channelRange);

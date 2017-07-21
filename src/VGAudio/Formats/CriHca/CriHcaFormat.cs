@@ -1,4 +1,5 @@
 ﻿using System;
+using VGAudio.Codecs;
 using VGAudio.Codecs.CriHca;
 using VGAudio.Formats.Pcm16;
 
@@ -16,9 +17,11 @@ namespace VGAudio.Formats.CriHca
             Hca = b.Hca;
         }
 
-        public override Pcm16Format ToPcm16()
+        public override Pcm16Format ToPcm16() => ToPcm16(null);
+        public override Pcm16Format ToPcm16(CodecParameters config) => ToPcm16(new CriHcaParameters(config));
+        public override Pcm16Format ToPcm16(CriHcaParameters config)
         {
-            var audio = CriHcaDecoder.Decode(Hca, AudioData);
+            var audio = CriHcaDecoder.Decode(Hca, AudioData, config);
             return new Pcm16FormatBuilder(audio, SampleRate)
                 .WithLoop(Looping, UnalignedLoopStart, UnalignedLoopEnd)
                 .Build();
