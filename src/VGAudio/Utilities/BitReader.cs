@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace VGAudio.Codecs.CriHca
+namespace VGAudio.Utilities
 {
     public class BitReader
     {
