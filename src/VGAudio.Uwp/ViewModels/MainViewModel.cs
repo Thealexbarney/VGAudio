@@ -21,7 +21,7 @@ using VGAudio.Containers.Idsp;
 
 namespace VGAudio.Uwp.ViewModels
 {
-    [ImplementPropertyChanged]
+    [AddINotifyPropertyChangedInterface]
     public class MainViewModel
     {
         public MainState State { get; set; } = MainState.NotOpened;
