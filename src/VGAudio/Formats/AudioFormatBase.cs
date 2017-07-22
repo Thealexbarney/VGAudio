@@ -105,7 +105,8 @@ namespace VGAudio.Formats
         private TConfig GetDerivedParameters(CodecParameters param)
         {
             if (param == null) return null;
-            if (param is TConfig) return (TConfig)param;
+            var config = param as TConfig;
+            if (config != null) return config;
 
             return new TConfig
             {

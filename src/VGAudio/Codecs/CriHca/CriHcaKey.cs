@@ -35,7 +35,7 @@ namespace VGAudio.Codecs.CriHca
 
         private static byte[][] Rows { get; } = GenerateAllRows();
 
-        public static byte[] CreateDecryptionTable(ulong keyCode)
+        private static byte[] CreateDecryptionTable(ulong keyCode)
         {
             byte[] kc = BitConverter.GetBytes(keyCode - 1);
             byte[] seed = new byte[16];
@@ -60,7 +60,7 @@ namespace VGAudio.Codecs.CriHca
             return CreateTable(kc[0], seed);
         }
 
-        public static byte[] CreateDecryptionTableType0()
+        private static byte[] CreateDecryptionTableType0()
         {
             byte[] table = new byte[256];
 
@@ -72,7 +72,7 @@ namespace VGAudio.Codecs.CriHca
             return table;
         }
 
-        public static byte[] CreateDecryptionTableType1()
+        private static byte[] CreateDecryptionTableType1()
         {
             byte[] table = new byte[256];
             int xor = 0;
@@ -93,7 +93,7 @@ namespace VGAudio.Codecs.CriHca
             return table;
         }
 
-        public static byte[] CreateTable(byte rowSeed, byte[] columnSeeds)
+        private static byte[] CreateTable(byte rowSeed, byte[] columnSeeds)
         {
             byte[] table = new byte[256];
             byte[] row = Rows[rowSeed];
@@ -126,7 +126,7 @@ namespace VGAudio.Codecs.CriHca
             return row;
         }
 
-        public static byte[][] GenerateAllRows()
+        private static byte[][] GenerateAllRows()
         {
             var rows = new byte[0x100][];
 
@@ -138,7 +138,7 @@ namespace VGAudio.Codecs.CriHca
             return rows;
         }
 
-        public static byte[] ShuffleTable(byte[] tableIn)
+        private static byte[] ShuffleTable(byte[] tableIn)
         {
             byte[] table = new byte[256];
             byte x = 0;
