@@ -11,8 +11,7 @@ namespace VGAudio.Codecs.CriHca
             {
                 for (int c = 0; c < frame.ChannelCount; c++)
                 {
-                    Dct4(frame.Spectra[sf][c], frame.DctTempBuffer);
-                    Array.Copy(frame.Spectra[sf][c], frame.DctOutput[c], 0x80);
+                    Dct4(frame.Spectra[sf][c], frame.DctOutput[c], frame.DctTempBuffer);
 
                     for (int i = 0; i < 0x40; i++)
                     {
@@ -29,14 +28,16 @@ namespace VGAudio.Codecs.CriHca
         /// <summary>
         /// Does a 128-point, Type-4 DCT. An overall scale factor of sqrt(2/N) is applied.
         /// </summary>
-        /// <param name="inOutSamples">The input and output array containing 128 time or frequency-domain samples.
-        /// The final result of the transformation will be placed in this array.</param>
+        /// <param name="input">The input array containing 128 time or frequency-domain samples</param>
+        /// <param name="output">The output array containing 128 time or frequency-domain samples</param>
         /// <param name="work">A temporary array used for scratch work. Must be at least 128 elements long.
         /// It does not matter what the initial values of this array are, and it will be filled with garbage data afterward.</param>
-        private static void Dct4(float[] inOutSamples, float[] work)
+        private static void Dct4(float[] input, float[] output, float[] work = null)
         {
-            RunDif(inOutSamples, work);
-            DctMain(work, inOutSamples);
+            work = work ?? new float[0x80];
+            Array.Copy(input, output, 0x80);
+            RunDif(output, work);
+            DctMain(work, output);
         }
 
         private static void RunDif(float[] input, float[] workBuffer)
