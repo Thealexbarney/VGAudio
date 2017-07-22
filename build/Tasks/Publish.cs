@@ -29,12 +29,9 @@ namespace Build.Tasks
                 Configuration = context.Configuration,
                 OutputDirectory = context.LibraryBinDir,
                 NoBuild = true,
-                ArgumentCustomization = args =>
-                {
-                    args.Append("--include-source");
-                    args.Append("--include-symbols");
-                    return args.Append($"/p:TargetFrameworks=\\\"{string.Join(";", frameworks)}\\\"");
-                }
+                IncludeSource = true,
+                IncludeSymbols = true,
+                ArgumentCustomization = args => args.Append($"/p:TargetFrameworks=\\\"{string.Join(";", frameworks)}\\\"")
             });
         }
 
