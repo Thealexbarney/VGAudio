@@ -60,7 +60,7 @@ namespace VGAudio.Formats.GcAdpcm
             var channels = new GcAdpcmChannel[pcm16.ChannelCount];
 
             int frameCount = pcm16.SampleCount.DivideByRoundUp(14) * pcm16.ChannelCount;
-            config?.Progress?.ReportTotal(frameCount);
+            config?.Progress?.SetTotal(frameCount);
 
             Parallel.For(0, pcm16.ChannelCount, i =>
             {

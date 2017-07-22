@@ -1,0 +1,175 @@
+//------------------------------------------------
+//--- 010 Editor v8.0 Binary Template
+//
+//      File: hca.bt
+//   Authors: Alex Barney
+//   Version: 1.0
+//   Purpose: Parse HCA audio files
+//  Category: Audio
+// File Mask: *.hca
+//  ID Bytes: 48 43 41 00 // HCA\0
+//   History: 
+//   1.0   Initial Release
+//------------------------------------------------
+
+typedef char ID[4];
+
+struct HcaHeader
+{
+    ID Signature;
+    byte VersionMajor;
+    byte VersionMinor;
+    int16 HeaderSize;
+};
+
+struct FmtHeader
+{
+    ID Signature;
+    int32 ChannelCount : 8;
+    int32 SampleRate : 24;
+    int32 FrameCount;
+    int16 InsertedSamples;
+    int16 AppendedSamples;
+};
+
+struct CompHeader
+{
+    ID Signature;
+    int16 FrameSize;
+    byte MinResolution;
+    byte MaxResolution;
+    byte TrackCount;
+    byte ChannelConfig;
+    unsigned byte TotalBandCount;
+    unsigned byte BaseBandCount;
+    unsigned byte StereoBandCount;
+    unsigned byte BandsPerHfrGroup;
+    byte reserved1;
+    byte reserved2;
+};
+
+struct DecHeader
+{
+    ID Signature;
+    int16 FrameSize;
+    byte MinResolution;
+    byte MaxResolution;
+    unsigned byte TotalBandCount;
+    unsigned byte BaseBandCount;
+    byte TrackCount : 4;
+    byte ChannelConfig : 4;
+    byte StereoType;
+};
+
+struct LoopHeader
+{
+    ID Signature;
+    int32 LoopStart;
+    int32 LoopEnd;
+    int16 PreLoopSamples;
+    int16 PostLoopSamples;
+};
+
+struct AthHeader
+{
+    ID Signature;
+    int16 AthTableType;
+};
+
+struct VbrHeader
+{
+    ID Signature;
+    int16 MaxFrameSize;
+    int16 NoiseLevel;
+};
+
+struct CiphHeader
+{
+    ID Signature;
+    int16 CipherType;
+};
+
+struct RvaHeader
+{
+    ID Signature;
+    float Volume;
+};
+
+struct Frame(int frameSize)
+{
+    local int start = FTell();
+    local int i;
+    int16 SyncWord <format=hex>;
+    int16 AcceptableNoiseLevel : 9;
+    int16 EvaluationBoundary : 7;
+    int16 DifferentialSize : 3;
+    int16 InitialScale : 6;
+    byte data[frameSize - 6];
+};
+
+BigEndian();
+
+HcaHeader Hca <open=true>;
+
+local char signature[5];
+local int headerFinished = 0;
+
+while( !headerFinished )
+{    
+    ReadBytes( signature, FTell(), 4 );
+    signature[0] &= 0x7f;
+    signature[1] &= 0x7f;
+    signature[2] &= 0x7f;
+    signature[3] &= 0x7f;
+    signature[4] = 0;
+
+    switch( signature )
+    {
+        case "fmt":
+            FmtHeader Fmt <open=true>;
+            break;
+        case "comp":
+            CompHeader Comp <open=true>;
+            break;
+        case "ciph":
+            CiphHeader Ciph <open=true>;
+            break;
+        case "loop":
+            LoopHeader Loop <open=true>;
+            break;
+        case "dec":
+            DecHeader Dec <open=true>;
+            break;
+        case "ath":
+            AthHeader Ath <open=true>;
+            break;
+        case "vbr":
+            VbrHeader Vbr <open=true>;
+            break;
+        case "rva":
+            RvaHeader Rva <open=true>;
+            break;
+        default:
+            headerFinished = 1;
+            break;
+    }
+}
+
+FSeek(Hca.HeaderSize);
+
+local int i = 0;
+local int frameSize;
+
+if(exists(Comp))
+{
+    frameSize = Comp.FrameSize;
+}
+else if(exists(Dec))
+{
+    frameSize = Dec.FrameSize;
+}
+
+for(i = 0; i < Fmt.FrameCount; i++)
+{
+    Frame frames(frameSize);
+}

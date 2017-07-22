@@ -8,6 +8,7 @@
         GcAdpcm,
         CriAdx,
         CriAdxFixed,
-        CriAdxExp
+        CriAdxExp,
+        CriHca
     }
 }

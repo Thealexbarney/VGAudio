@@ -26,7 +26,7 @@ namespace VGAudio.Formats
                 return format;
             }
 
-            CreatePcm16();
+            CreatePcm16(configuration);
             CreateFormat<T>(configuration);
 
             return GetAudioFormat<T>();
@@ -102,11 +102,11 @@ namespace VGAudio.Formats
             AddFormat(new T().EncodeFromPcm16(pcm, configuration));
         }
 
-        private void CreatePcm16()
+        private void CreatePcm16(CodecParameters configuration = null)
         {
             if (GetAudioFormat<Pcm16Format>() == null)
             {
-                AddFormat(Formats.First().Value.ToPcm16());
+                AddFormat(Formats.First().Value.ToPcm16(configuration));
             }
         }
     }

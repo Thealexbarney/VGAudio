@@ -7,6 +7,7 @@ using VGAudio.Containers.Adx;
 using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Genh;
+using VGAudio.Containers.Hca;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
 using VGAudio.Containers.Wave;
@@ -25,6 +26,7 @@ namespace VGAudio.Uwp.Audio
             [FileType.Bfstm] = new ContainerType("BFSTM", new[] { "bfstm" }, "BFSTM Audio File", () => new BfstmReader(), () => new BfstmWriter()),
             [FileType.Hps] = new ContainerType("HPS", new[] { "hps" }, "HPS Audio File", () => new HpsReader(), () => new HpsWriter()),
             [FileType.Adx] = new ContainerType("ADX", new[] { "adx" }, "CRI ADX Audio File", () => new AdxReader(), () => new AdxWriter()),
+            [FileType.Hca] = new ContainerType("HCA", new[] { "hca" }, "CRI HCA Audio File", () => new HcaReader(), null),
             [FileType.Genh] = new ContainerType("GENH", new[] { "genh" }, "GENH Audio File", () => new GenhReader(), null)
         };
 
@@ -51,6 +53,7 @@ namespace VGAudio.Uwp.Audio
         Idsp,
         Hps,
         Adx,
+        Hca,
         Genh
     }
 

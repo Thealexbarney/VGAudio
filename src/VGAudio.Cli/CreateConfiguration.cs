@@ -157,5 +157,10 @@ namespace VGAudio.Cli
             }
             return config;
         }
+
+        public static Configuration Hca(Options options, Configuration inConfig = null)
+        {
+            return inConfig;
+        }
     }
 }
