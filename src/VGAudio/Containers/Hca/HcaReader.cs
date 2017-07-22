@@ -136,7 +136,7 @@ namespace VGAudio.Containers.Hca
             structure.Hca.FrameCount = reader.ReadInt32();
             structure.Hca.InsertedSamples = reader.ReadInt16();
             structure.Hca.AppendedSamples = reader.ReadInt16();
-            structure.Hca.SampleCount = structure.Hca.FrameCount * 1024 - 
+            structure.Hca.SampleCount = structure.Hca.FrameCount * 1024 -
                 structure.Hca.InsertedSamples - structure.Hca.AppendedSamples;
         }
 
@@ -230,7 +230,8 @@ namespace VGAudio.Containers.Hca
                 case 1:
                     return new CriHcaKey(CriHcaKey.Type.Type1);
                 case 56:
-                    return CriHcaEncryption.FindKey(structure.Hca, structure.AudioData);
+                    return CriHcaEncryption.FindKey(structure.Hca, structure.AudioData) ??
+                           throw new InvalidDataException("Cannot find key to decrypt HCA file.");
                 default:
                     return null;
             }

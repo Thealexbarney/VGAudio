@@ -4,7 +4,7 @@ namespace VGAudio.Codecs.CriHca
 {
     public static partial class CriHcaEncryption
     {
-        public static readonly List<CriHcaKey> Keys = new List<CriHcaKey>
+        public static List<CriHcaKey> Keys { get; } = new List<CriHcaKey>
         {
             // HCA Decoder default
             new CriHcaKey(9621963164387704),
