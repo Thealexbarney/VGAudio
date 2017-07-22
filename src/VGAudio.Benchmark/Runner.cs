@@ -16,7 +16,8 @@ namespace VGAudio.Benchmark
             typeof(BuildParseBenchmarks),
             typeof(EncodeBenchmarks),
             typeof(DecodeBenchmarks),
-            typeof(InterleaveBenchmarks)
+            typeof(InterleaveBenchmarks),
+            typeof(BitReaderBenchmarks)
         };
 
         public static IConfig FastConfig { get; } =

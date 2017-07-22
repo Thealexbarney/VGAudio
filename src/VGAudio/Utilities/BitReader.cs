@@ -6,10 +6,15 @@ namespace VGAudio.Utilities
     public class BitReader
     {
         public byte[] Buffer { get; }
+        public int LengthBits { get; }
         public int Position { get; set; }
-        public int Remaining => Buffer.Length * 8 - Position;
+        public int Remaining => LengthBits - Position;
 
-        public BitReader(byte[] buffer) => Buffer = buffer;
+        public BitReader(byte[] buffer)
+        {
+            Buffer = buffer;
+            LengthBits = Buffer.Length * 8;
+        }
 
         public int ReadInt(int bitCount)
         {
@@ -30,6 +35,38 @@ namespace VGAudio.Utilities
         {
             Debug.Assert(bitCount >= 0 && bitCount <= 32);
             if (bitCount > Remaining) return 0;
+
+            int byteIndex = Position / 8;
+            int bitIndex = Position % 8;
+
+            if (bitCount <= 9 && Remaining >= 16)
+            {
+                int value = Buffer[byteIndex] << 8 | Buffer[byteIndex + 1];
+                value &= 0xFFFF >> bitIndex;
+                value >>= 16 - bitCount - bitIndex;
+                return value;
+            }
+
+            if (bitCount <= 17 && Remaining >= 24)
+            {
+                int value = Buffer[byteIndex] << 16 | Buffer[byteIndex + 1] << 8 | Buffer[byteIndex + 2];
+                value &= 0xFFFFFF >> bitIndex;
+                value >>= 24 - bitCount - bitIndex;
+                return value;
+            }
+
+            if (bitCount <= 25 && Remaining >= 32)
+            {
+                int value = Buffer[byteIndex] << 24 | Buffer[byteIndex + 1] << 16 | Buffer[byteIndex + 2] << 8 | Buffer[byteIndex + 3];
+                value &= (int)(0xFFFFFFFF >> bitIndex);
+                value >>= 32 - bitCount - bitIndex;
+                return value;
+            }
+            return PeekIntFallback(bitCount);
+        }
+
+        private int PeekIntFallback(int bitCount)
+        {
             int value = 0;
             int byteIndex = Position / 8;
             int bitIndex = Position % 8;
