@@ -1,6 +1,6 @@
 ﻿{
-  "projects": [ "VGAudio", "VGAudio.Cli", "VGAudio.Tests", "VGAudio.Benchmark" ],
+  "projects": [ "VGAudio", "VGAudio.Cli", "VGAudio.Tests", "VGAudio.Tools", "VGAudio.Benchmark" ],
   "sdk": {
-    "version": "1.0.3"
+    "version": "1.0.4"
   }
 }
