@@ -136,7 +136,8 @@ namespace VGAudio.Containers.Hca
             structure.Hca.FrameCount = reader.ReadInt32();
             structure.Hca.InsertedSamples = reader.ReadInt16();
             structure.Hca.AppendedSamples = reader.ReadInt16();
-            structure.Hca.SampleCount = structure.Hca.FrameCount * 1024;
+            structure.Hca.SampleCount = structure.Hca.FrameCount * 1024 - 
+                structure.Hca.InsertedSamples - structure.Hca.AppendedSamples;
         }
 
         private static void ReadCompChunk(BinaryReader reader, HcaStructure structure)
@@ -184,6 +185,7 @@ namespace VGAudio.Containers.Hca
             structure.Hca.LoopEndFrame = reader.ReadInt32();
             structure.Hca.PreLoopSamples = reader.ReadInt16();
             structure.Hca.PostLoopSamples = reader.ReadInt16();
+            structure.Hca.SampleCount = Math.Min(structure.Hca.SampleCount, structure.Hca.LoopEndSample);
         }
 
         private static void ReadAthChunk(BinaryReader reader, HcaStructure structure)

@@ -24,14 +24,27 @@ namespace VGAudio.Codecs.CriHca
             {
                 DecodeFrame(audio[i], frame, pcmBuffer);
 
-                for (int c = 0; c < pcmOut.Length; c++)
-                {
-                    Array.Copy(pcmBuffer[c], 0, pcmOut[c], i * FrameLength, pcmBuffer[c].Length);
-                }
+                CopyPcmToOutput(pcmBuffer, pcmOut, hca, i);
                 config?.Progress?.ReportAdd(1);
             }
 
             return pcmOut;
+        }
+
+        private static void CopyPcmToOutput(short[][] pcmIn, short[][] pcmOut, HcaInfo hca, int frame)
+        {
+            int currentSample = frame * FrameLength - hca.InsertedSamples;
+            int remainingSamples = hca.SampleCount - currentSample;
+            int srcStart = Helpers.Clamp(0 - currentSample, 0, FrameLength);
+            int destStart = Math.Max(currentSample, 0);
+
+            int length = Math.Min(FrameLength - srcStart, remainingSamples);
+            if (length <= 0) return;
+
+            for (int c = 0; c < pcmOut.Length; c++)
+            {
+                Array.Copy(pcmIn[c], srcStart, pcmOut[c], destStart, length);
+            }
         }
 
         private static void DecodeFrame(byte[] audio, CriHcaFrame frame, short[][] pcmOut)
