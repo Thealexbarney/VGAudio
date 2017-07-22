@@ -20,7 +20,7 @@ namespace VGAudio.Benchmark.AdpcmBenchmarks
         private byte[] _dsp;
         private byte[] _idsp;
 
-        [Setup]
+        [GlobalSetup]
         public void Setup()
         {
             _adpcm = GenerateAudio.GenerateAdpcmEmpty((int)(_sampleRate * LengthSeconds), ChannelCount, _sampleRate);

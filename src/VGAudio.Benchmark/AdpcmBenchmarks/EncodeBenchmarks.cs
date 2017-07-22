@@ -11,7 +11,7 @@ namespace VGAudio.Benchmark.AdpcmBenchmarks
         private short[] _pcm;
         private short[] _coefs;
 
-        [Setup]
+        [GlobalSetup]
         public void Setup()
         {
             _pcm = GenerateAudio.GenerateSineWave((int)(_sampleRate * LengthSeconds), 440, _sampleRate);
