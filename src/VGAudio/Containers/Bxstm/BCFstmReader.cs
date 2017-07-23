@@ -174,7 +174,7 @@ namespace VGAudio.Containers.Bxstm
             }
             if (structure.Version >= 5)
             {
-                structure.Unknown5 = reader.ReadInt32();
+                structure.Checksum = reader.ReadInt32();
             }
         }
 

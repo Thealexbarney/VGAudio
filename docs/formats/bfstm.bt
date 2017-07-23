@@ -197,10 +197,15 @@ struct StreamInfo
         Reference pREGNData(0);
     }
 
-    if(Version >> 16 == 4)
+    if(Version >> 16 >= 4)
     {
         int32 UnalignedLoopStart;
         int32 UnalignedSampleCount; 
+    }
+
+    if(Version >> 16 >= 5)
+    {
+        int32 Checksum <format=hex>;
     }
 };
 

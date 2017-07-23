@@ -61,6 +61,6 @@
         /// </summary>
         public int LoopEndUnaligned { get; set; }
 
-        public int Unknown5 { get; set; }
+        public int Checksum { get; set; }
     }
 }
