@@ -22,6 +22,8 @@ struct StreamInfo;
 struct ChannelInfo;
 struct AdpcmChannelInfo;
 struct TrackInfo;
+struct WavInfoBlock;
+struct WavChannelInfo;
 
 typedef char ID[4];
 
@@ -40,6 +42,9 @@ typedef enum <int16>
     StreamInfoType = 0x4100,
     TrackInfoType = 0x4101,
     ChannelInfoType = 0x4102,
+    WavInfoBlockType = 0x7000,
+    WavDataBlockType = 0x7001,
+    WavChannelInfoType = 0x7100,
 } Type <format=hex>;
 
 enum <byte> AudioCodec
@@ -69,6 +74,9 @@ struct Reference(int baseOffset)
             break;
         case ChannelInfoType:
             ChannelInfo channelInfo;
+            break;
+        case WavChannelInfoType:
+            WavChannelInfo wavChannelInfo;
             break;
         case DspAdpcmInfoType:
             AdpcmChannelInfo adpcmChannelInfo;
@@ -104,6 +112,9 @@ struct SizedReference
             break;
         case RegionBlockType:
             RegionBlock regionBlock;
+            break;
+        case WavInfoBlockType:
+            WavInfoBlock wavInfoBlock;
             break;
     }
 
@@ -142,6 +153,21 @@ struct InfoBlock
     Reference streamInfo(base);
     Reference TrackInfoTable(base);
     Reference ChannelInfoTable(base);
+};
+
+struct WavInfoBlock
+{    
+    ID InfoId;
+    int32 Size;
+    local int32 base = FTell();
+    AudioCodec Codec;
+    byte Loops;
+    int16 Padding;
+    int32 SampleRate;
+    int32 LoopStart;
+    int32 SampleCount;
+    int32 UnalignedLoopStart;
+    ReferenceTable ChannelInfoTable;
 };
 
 struct StreamInfo
@@ -196,6 +222,14 @@ struct ChannelInfo
 {
     local int32 base = FTell();
     Reference channelInfo(base);
+};
+
+struct WavChannelInfo
+{
+    local int32 base = FTell();
+    Reference channelInfo(base);
+    Reference channelInfo2(base);
+    int32 Padding;
 };
 
 struct AdpcmChannelInfo
