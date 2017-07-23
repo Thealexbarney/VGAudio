@@ -11,7 +11,7 @@ namespace VGAudio.Benchmark.AdpcmBenchmarks
         private int _sampleRate = 48000;
         private GcAdpcmFormat _adpcmStream;
 
-        [Setup]
+        [GlobalSetup]
         public void Setup()
         {
             _adpcmStream = GenerateAudio.GenerateAdpcmEmpty((int)(_sampleRate * LengthSeconds), 1, _sampleRate);

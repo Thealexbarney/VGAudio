@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
@@ -32,24 +31,9 @@ namespace VGAudio.Benchmark
 
         public static void Main(string[] args)
         {
-            RunFull(Benchmarks);
-        }
-
-        private static void RunFull(IEnumerable<Type> benchmarks)
-        {
-            foreach (Type benchmark in benchmarks)
-            {
-                BenchmarkRunner.Run(benchmark);
-            }
-        }
-
-        // ReSharper disable once UnusedMember.Local
-        private static void RunFast(IEnumerable<Type> benchmarks)
-        {
-            foreach (Type benchmark in benchmarks)
-            {
-                BenchmarkRunner.Run(benchmark, FastConfig);
-            }
+            var switcher = new BenchmarkSwitcher(Benchmarks);
+            switcher.Run(args);
+            //switcher.Run(args, FastConfig);
         }
     }
 }

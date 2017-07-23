@@ -17,7 +17,7 @@ namespace VGAudio.Benchmark.HelperBenchmarks
         private byte[][] _deinterleaved;
         private short[][] _deinterleavedShort;
 
-        [Setup]
+        [GlobalSetup]
         public void Setup()
         {
             _singleStreamLength = TotalStreamLength / StreamCount;

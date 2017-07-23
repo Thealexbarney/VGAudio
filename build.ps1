@@ -31,7 +31,7 @@ Param(
     [string[]]$ScriptArgs
 )
 
-$dotnetCliVersion = "1.0.3"
+$dotnetCliVersion = "1.0.4"
 
 # Define directories.
 $basePath = Split-Path $MyInvocation.MyCommand.Path -Parent

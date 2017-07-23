@@ -12,7 +12,7 @@ namespace VGAudio.Benchmark.HelperBenchmarks
         private byte[] _rand;
         private const int Size = 0x2000;
 
-        [Setup]
+        [GlobalSetup]
         public void Setup()
         {
             _data = new byte[Size];
