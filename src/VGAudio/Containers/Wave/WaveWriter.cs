@@ -1,10 +1,10 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using VGAudio.Codecs;
 using VGAudio.Formats;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Formats.Pcm8;
 using VGAudio.Utilities;
+using VGAudio.Utilities.Riff;
 using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.Wave
@@ -33,13 +33,6 @@ namespace VGAudio.Containers.Wave
         private int BytesPerSample => BitDepth.DivideByRoundUp(8);
         private int BytesPerSecond => SampleRate * BytesPerSample * ChannelCount;
         private int BlockAlign => BytesPerSample * ChannelCount;
-
-        // ReSharper disable InconsistentNaming
-        private static readonly Guid KSDATAFORMAT_SUBTYPE_PCM =
-            new Guid("00000001-0000-0010-8000-00aa00389b71");
-        private const ushort WAVE_FORMAT_PCM = 1;
-        private const ushort WAVE_FORMAT_EXTENSIBLE = 0xfffe;
-        // ReSharper restore InconsistentNaming
 
         protected override void SetupWriter(AudioData audio)
         {
@@ -84,7 +77,7 @@ namespace VGAudio.Containers.Wave
             writer.BaseStream.Position += writer.BaseStream.Position & 1;
             writer.WriteUTF8("fmt ");
             writer.Write(FmtChunkSize);
-            writer.Write((short)(ChannelCount > 2 ? WAVE_FORMAT_EXTENSIBLE : WAVE_FORMAT_PCM));
+            writer.Write((short)(ChannelCount > 2 ? WaveFormatTags.WaveFormatExtensible : WaveFormatTags.WaveFormatPcm));
             writer.Write((short)ChannelCount);
             writer.Write(SampleRate);
             writer.Write(BytesPerSecond);
@@ -96,7 +89,7 @@ namespace VGAudio.Containers.Wave
                 writer.Write((short)22);
                 writer.Write((short)BitDepth);
                 writer.Write(GetChannelMask(ChannelCount));
-                writer.Write(KSDATAFORMAT_SUBTYPE_PCM.ToByteArray());
+                writer.Write(MediaSubtypes.MediaSubtypePcm.ToByteArray());
             }
         }
 
