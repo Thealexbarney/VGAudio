@@ -6,7 +6,7 @@ namespace VGAudio.Utilities.Riff
     {
         public byte[] Data { get; set; }
 
-        private WaveDataChunk(RiffParser parser, BinaryReader reader) : base(reader)
+        protected WaveDataChunk(RiffParser parser, BinaryReader reader) : base(reader)
         {
             if (parser.ReadDataChunk)
             {

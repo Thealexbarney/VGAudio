@@ -6,7 +6,7 @@ namespace VGAudio.Utilities.Riff
     {
         public int SampleCount { get; set; }
 
-        private WaveFactChunk(BinaryReader reader) : base(reader)
+        protected WaveFactChunk(BinaryReader reader) : base(reader)
         {
             SampleCount = reader.ReadInt32();
         }

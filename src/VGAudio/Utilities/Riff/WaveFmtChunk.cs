@@ -13,7 +13,7 @@ namespace VGAudio.Utilities.Riff
         public int BitsPerSample { get; set; }
         public WaveFormatExtensible Ext { get; set; }
 
-        private WaveFmtChunk(RiffParser parser, BinaryReader reader) : base(reader)
+        protected WaveFmtChunk(RiffParser parser, BinaryReader reader) : base(reader)
         {
             FormatTag = reader.ReadUInt16();
             ChannelCount = reader.ReadInt16();

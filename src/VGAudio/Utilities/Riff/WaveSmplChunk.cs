@@ -15,7 +15,7 @@ namespace VGAudio.Utilities.Riff
         public int SamplerData { get; set; }
         public SampleLoop[] Loops { get; set; }
 
-        private WaveSmplChunk(BinaryReader reader) : base(reader)
+        protected WaveSmplChunk(BinaryReader reader) : base(reader)
         {
             Manufacturer = reader.ReadInt32();
             Product = reader.ReadInt32();

@@ -16,7 +16,7 @@ namespace VGAudio.Utilities.Riff
         public Guid SubFormat { get; set; }
         public byte[] Extra { get; set; }
 
-        private WaveFormatExtensible(BinaryReader reader)
+        protected WaveFormatExtensible(BinaryReader reader)
         {
             Size = reader.ReadInt16();
 
