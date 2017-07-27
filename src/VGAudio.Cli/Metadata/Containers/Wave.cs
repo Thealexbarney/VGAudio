@@ -7,16 +7,28 @@ namespace VGAudio.Cli.Metadata.Containers
     {
         public override Common ToCommon(object structure)
         {
-            var wave = structure as WaveStructure;
-            if (wave == null) throw new InvalidDataException("Could not parse file metadata.");
+            var wave = structure as WaveStructure ?? throw new InvalidDataException("Could not parse file metadata.");
+
+            var format = AudioFormat.None;
+            switch (wave.BitsPerSample)
+            {
+                case 16:
+                    format = AudioFormat.Pcm16;
+                    break;
+                case 8:
+                    format = AudioFormat.Pcm8;
+                    break;
+            }
 
             return new Common
             {
                 SampleCount = wave.SampleCount,
                 SampleRate = wave.SampleRate,
                 ChannelCount = wave.ChannelCount,
-                Format = AudioFormat.Pcm16,
-                Looping = false
+                Looping = wave.Looping,
+                LoopStart = wave.LoopStart,
+                LoopEnd = wave.LoopEnd,
+                Format = format
             };
         }
 
