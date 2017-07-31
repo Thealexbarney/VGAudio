@@ -12,7 +12,8 @@ Supports reading and writing:
 * WAVE
 
 Supports reading:
-* GENH
+* GENH (Nintendo DSP-ADPCM only)
+* HCA
 
 The most recent release of the library can be found [on NuGet](https://www.nuget.org/packages/VGAudio/)
 
