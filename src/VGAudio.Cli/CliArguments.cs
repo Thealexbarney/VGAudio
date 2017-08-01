@@ -94,6 +94,21 @@ namespace VGAudio.Cli
 
                             options.NoLoop = true;
                             continue;
+                        case "-LOOP-ALIGN":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --loop-align.");
+                                return null;
+                            }
+                            if (!int.TryParse(args[i + 1], out int align))
+                            {
+                                PrintWithUsage("Error parsing loop alignment.");
+                                return null;
+                            }
+
+                            options.LoopAlignment = align;
+                            i++;
+                            continue;
                         case "F":
                             if (options.OutFormat != AudioFormat.None)
                             {

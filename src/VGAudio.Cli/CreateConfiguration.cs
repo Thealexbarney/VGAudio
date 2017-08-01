@@ -44,6 +44,11 @@ namespace VGAudio.Cli
                     throw new InvalidDataException("Can't use format PCM8 with DSP files");
             }
 
+            if (options.LoopAlignment > 0)
+            {
+                config.LoopPointAlignment = options.LoopAlignment;
+            }
+
             return config;
         }
 
@@ -57,6 +62,11 @@ namespace VGAudio.Cli
                     throw new InvalidDataException("Can't use format PCM16 with IDSP files");
                 case AudioFormat.Pcm8:
                     throw new InvalidDataException("Can't use format PCM8 with IDSP files");
+            }
+
+            if (options.LoopAlignment > 0)
+            {
+                config.LoopPointAlignment = options.LoopAlignment;
             }
 
             return config;
@@ -79,6 +89,11 @@ namespace VGAudio.Cli
                     break;
             }
 
+            if (options.LoopAlignment > 0)
+            {
+                config.LoopPointAlignment = options.LoopAlignment;
+            }
+
             return config;
         }
 
@@ -99,6 +114,11 @@ namespace VGAudio.Cli
                     break;
             }
 
+            if (options.LoopAlignment > 0)
+            {
+                config.LoopPointAlignment = options.LoopAlignment;
+            }
+
             return config;
         }
 
@@ -117,6 +137,11 @@ namespace VGAudio.Cli
                 case AudioFormat.Pcm8:
                     config.Codec = BxstmCodec.Pcm8Bit;
                     break;
+            }
+
+            if (options.LoopAlignment > 0)
+            {
+                config.LoopPointAlignment = options.LoopAlignment;
             }
 
             return config;
