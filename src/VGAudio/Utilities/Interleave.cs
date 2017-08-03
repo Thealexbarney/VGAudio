@@ -123,7 +123,7 @@ namespace VGAudio.Utilities
                 if (remainingLength < length)
                 {
                     throw new ArgumentOutOfRangeException(nameof(length), length,
-                        "Specified length is less than the number of bytes remaining in the Stream");
+                        "Specified length is greater than the number of bytes remaining in the Stream");
                 }
             }
 

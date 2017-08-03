@@ -51,13 +51,12 @@ namespace VGAudio.Containers.Hps
                 var channelBuilder = new GcAdpcmChannelBuilder(audio, structure.Channels[c].Coefs, structure.Channels[c].SampleCount)
                 {
                     Gain = structure.Channels[c].Gain,
-                    Hist1 = structure.Channels[c].Hist1,
-                    Hist2 = structure.Channels[c].Hist2
+                    StartContext = structure.Channels[c].Start
                 };
 
                 channelBuilder.WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
-                    .WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
-                        structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
+                    .WithLoopContext(structure.LoopStart, structure.Channels[c].Loop?.PredScale ?? 0,
+                        structure.Channels[c].Loop?.Hist1 ?? 0, structure.Channels[c].Loop?.Hist2 ?? 0);
 
                 channels[c] = channelBuilder.Build();
             }
@@ -81,9 +80,7 @@ namespace VGAudio.Containers.Hps
                 reader.ReadInt32();
                 channel.Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray();
                 channel.Gain = reader.ReadInt16();
-                channel.PredScale = reader.ReadInt16();
-                channel.Hist1 = reader.ReadInt16();
-                channel.Hist2 = reader.ReadInt16();
+                channel.Start = new GcAdpcmContext(reader);
 
                 structure.Channels.Add(channel);
             }
@@ -111,9 +108,7 @@ namespace VGAudio.Containers.Hps
                 {
                     block.Channels.Add(new HpsBlockChannel
                     {
-                        PredScale = reader.ReadInt16(),
-                        Hist1 = reader.ReadInt16(),
-                        Hist2 = reader.ReadInt16()
+                        Context = new GcAdpcmContext(reader)
                     });
                     reader.BaseStream.Position += 2;
                 }
@@ -155,9 +150,7 @@ namespace VGAudio.Containers.Hps
 
                     for (int i = 0; i < structure.Channels.Count; i++)
                     {
-                        structure.Channels[i].LoopPredScale = block.Channels[i].PredScale;
-                        structure.Channels[i].LoopHist1 = block.Channels[i].Hist1;
-                        structure.Channels[i].LoopHist2 = block.Channels[i].Hist2;
+                        structure.Channels[i].Loop = block.Channels[i].Context;
                     }
                 }
                 currentNibble += block.FinalNibble + 1;

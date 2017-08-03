@@ -77,9 +77,7 @@ namespace VGAudio.Containers.Hps
             writer.Write(SampleToNibble(0));
             writer.Write(channel.Coefs.ToByteArray(Endianness.BigEndian));
             writer.Write(channel.Gain);
-            writer.Write(channel.PredScale);
-            writer.Write(channel.Hist1);
-            writer.Write(channel.Hist2);
+            channel.StartContext.Write(writer);
         }
 
         private void WriteBody(BinaryWriter writer)

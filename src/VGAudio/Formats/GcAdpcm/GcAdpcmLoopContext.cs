@@ -2,28 +2,21 @@
 
 namespace VGAudio.Formats.GcAdpcm
 {
-    internal class GcAdpcmLoopContext
+    internal class GcAdpcmLoopContext : GcAdpcmContext
     {
-        public short PredScale { get; }
-        public short Hist1 { get; }
-        public short Hist2 { get; }
         public int LoopStart { get; }
         public bool IsSelfCalculated { get; }
 
         public GcAdpcmLoopContext(short predScale, short hist1, short hist2, int loopStart, bool isSelfCalculated)
+            : base(predScale, hist1, hist2)
         {
-            PredScale = predScale;
-            Hist1 = hist1;
-            Hist2 = hist2;
             LoopStart = loopStart;
             IsSelfCalculated = isSelfCalculated;
         }
 
         public GcAdpcmLoopContext(byte[] adpcm, short[] pcm, int loopStart)
+            : base(GetPredScale(adpcm, loopStart), GetHist1(pcm, loopStart), GetHist2(pcm, loopStart))
         {
-            PredScale = GetPredScale(adpcm, loopStart);
-            Hist1 = GetHist1(pcm, loopStart);
-            Hist2 = GetHist2(pcm, loopStart);
             LoopStart = loopStart;
             IsSelfCalculated = true;
         }

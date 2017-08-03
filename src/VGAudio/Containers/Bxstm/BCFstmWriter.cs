@@ -327,14 +327,12 @@ namespace VGAudio.Containers.Bxstm
 
             foreach (var channel in Adpcm.Channels)
             {
+                GcAdpcmContext loopContext = Adpcm.Looping ? channel.LoopContext : channel.StartContext;
+
                 writer.Write(channel.Coefs.ToByteArray(Endianness));
-                writer.Write(channel.PredScale);
-                writer.Write(channel.Hist1);
-                writer.Write(channel.Hist2);
-                writer.Write(Adpcm.Looping ? channel.LoopPredScale : channel.PredScale);
-                writer.Write(Adpcm.Looping ? channel.LoopHist1 : (short)0);
-                writer.Write(Adpcm.Looping ? channel.LoopHist2 : (short)0);
-                writer.Write(channel.Gain);
+                channel.StartContext.Write(writer);
+                loopContext.Write(writer);
+                writer.Write((short)0);
             }
         }
 

@@ -8,7 +8,7 @@ namespace VGAudio.Tools.GcAdpcm
         public GcAdpcmChannel EncodeChannel(short[] pcm)
         {
             int sampleCount = pcm.Length;
-            short[] coefs = GcAdpcmCoefficient.CalculateCoefficients(pcm);
+            short[] coefs = GcAdpcmCoefficients.CalculateCoefficients(pcm);
             byte[] adpcm = GcAdpcmEncoder.Encode(pcm, coefs);
 
             return new GcAdpcmChannel(adpcm, coefs, sampleCount);
@@ -16,7 +16,7 @@ namespace VGAudio.Tools.GcAdpcm
 
         public short[] DspCorrelateCoefs(short[] pcm)
         {
-            return GcAdpcmCoefficient.CalculateCoefficients(pcm);
+            return GcAdpcmCoefficients.CalculateCoefficients(pcm);
         }
 
         public void DspEncodeFrame(short[] pcmInOut, int sampleCount, byte[] adpcmOut, short[] coefsIn)

@@ -39,13 +39,12 @@ namespace VGAudio.Containers.Dsp
                 var channelBuilder = new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, structure.SampleCount)
                 {
                     Gain = structure.Channels[c].Gain,
-                    Hist1 = structure.Channels[c].Hist1,
-                    Hist2 = structure.Channels[c].Hist2
+                    StartContext = structure.Channels[c].Start
                 };
 
                 channelBuilder.WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
-                    .WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
-                        structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
+                    .WithLoopContext(structure.LoopStart, structure.Channels[c].Loop.PredScale,
+                        structure.Channels[c].Loop.Hist1, structure.Channels[c].Loop.Hist2);
 
                 channels[c] = channelBuilder.Build();
             }
@@ -78,12 +77,8 @@ namespace VGAudio.Containers.Dsp
                 {
                     Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray(),
                     Gain = reader.ReadInt16(),
-                    PredScale = reader.ReadInt16(),
-                    Hist1 = reader.ReadInt16(),
-                    Hist2 = reader.ReadInt16(),
-                    LoopPredScale = reader.ReadInt16(),
-                    LoopHist1 = reader.ReadInt16(),
-                    LoopHist2 = reader.ReadInt16()
+                    Start = new GcAdpcmContext(reader),
+                    Loop = new GcAdpcmContext(reader)
                 };
 
                 structure.Channels.Add(channel);

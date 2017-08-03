@@ -27,6 +27,8 @@ struct WavChannelInfo;
 
 typedef char ID[4];
 
+typedef uint32 NwVersion <read=VersionRead>;
+
 typedef enum <int16> 
 {
     ByteTableType = 0x0100,
@@ -337,6 +339,13 @@ struct DataBlock (StreamInfo &head)
     AudioBlock Blocks(head.ChannelCount, head.FinalBlockSizeBytesWithoutPadding, padding); 
 };
 
+string VersionRead( NwVersion v )
+{
+    string s;   
+    SPrintf( s, "%i.%i.%i.%i", v >> 24, v >> 16 & 0xf, v >> 8 & 0xf, v & 0xf );
+    return s;
+}
+
 BigEndian();
 switch(ReadUShort(4))
 {
@@ -350,7 +359,7 @@ switch(ReadUShort(4))
 ID RstmId;
 int16 BOM <format=hex>;
 int16 HeaderSize;
-int32 Version <format=hex>;
+NwVersion Version <format=hex>;
 int32 FileSize;
 int16 BlockCount;
 int16 Padding;

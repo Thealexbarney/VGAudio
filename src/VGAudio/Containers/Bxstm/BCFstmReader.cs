@@ -1,7 +1,9 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
+using VGAudio.Containers.Bxstm.Structures;
 using VGAudio.Formats;
+using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Utilities.Helpers;
 
@@ -52,7 +54,7 @@ namespace VGAudio.Containers.Bxstm
                 ReadInfoChunk(reader, structure);
                 ReadSeekChunk(reader, structure);
                 ReadRegnChunk(reader, structure);
-                Common.ReadDataChunk(reader, structure, readAudioData);
+                Common.ReadDataChunk2(reader, structure, readAudioData);
 
                 return structure;
             }
@@ -75,68 +77,43 @@ namespace VGAudio.Containers.Bxstm
 
             for (int i = 0; i < structure.HeaderSections; i++)
             {
-                int type = reader.ReadInt16();
-                reader.BaseStream.Position += 2;
-                switch (type)
-                {
-                    case 0x4000:
-                        structure.InfoChunkOffset = reader.ReadInt32();
-                        structure.InfoChunkSizeHeader = reader.ReadInt32();
-                        break;
-                    case 0x4001:
-                        structure.SeekChunkOffset = reader.ReadInt32();
-                        structure.SeekChunkSizeHeader = reader.ReadInt32();
-                        break;
-                    case 0x4002:
-                        structure.DataChunkOffset = reader.ReadInt32();
-                        structure.DataChunkSizeHeader = reader.ReadInt32();
-                        break;
-                    case 0x4003:
-                        structure.RegnChunkOffset = reader.ReadInt32();
-                        structure.RegnChunkSizeHeader = reader.ReadInt32();
-                        break;
-                    case 0x4004:
-                        structure.PdatChunkOffset = reader.ReadInt32();
-                        structure.PdatChunkSizeHeader = reader.ReadInt32();
-                        break;
-                    default:
-                        throw new InvalidDataException($"Unknown section type {type}");
-                }
+                structure.Sections.Add(new SizedReference(reader));
             }
         }
 
         private static void ReadInfoChunk(BinaryReader reader, BCFstmStructure structure)
         {
-            reader.BaseStream.Position = structure.InfoChunkOffset;
-            if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "INFO")
+            SizedReference reference = structure.Sections.FirstOrDefault(x => x.Type == ReferenceType.StreamInfoBlock) ??
+                throw new InvalidDataException("File has no INFO chunk");
+
+            reader.BaseStream.Position = reference.AbsoluteOffset;
+            if (reader.ReadUTF8(4) != "INFO")
             {
                 throw new InvalidDataException("Unknown or invalid INFO chunk");
             }
 
             structure.InfoChunkSize = reader.ReadInt32();
-            if (structure.InfoChunkSize != structure.InfoChunkSizeHeader)
+            if (structure.InfoChunkSize != reference.Size)
             {
-                throw new InvalidDataException("INFO chunk size in CSTM header doesn't match size in INFO header");
+                throw new InvalidDataException("INFO chunk size in main header doesn't match size in INFO header");
             }
 
-            reader.Expect((short)0x4100);
-            reader.BaseStream.Position += 2;
-            structure.InfoChunk1Offset = reader.ReadInt32();
-            reader.Expect((short)0x0101, (short)0);
-            reader.BaseStream.Position += 2;
-            structure.InfoChunk2Offset = reader.ReadInt32();
-            reader.Expect((short)0x0101);
-            reader.BaseStream.Position += 2;
-            structure.InfoChunk3Offset = reader.ReadInt32();
+            int baseOffset = (int)reader.BaseStream.Position;
+            var streamInfo = new Reference(reader, baseOffset);
+            var trackInfo = new Reference(reader, baseOffset);
+            var channelInfo = new Reference(reader, baseOffset);
 
-            ReadInfoChunk1(reader, structure);
-            ReadInfoChunk2(reader, structure);
-            ReadInfoChunk3(reader, structure);
+            ReadStreamInfo(reader, structure, streamInfo);
+            ReadTrackInfo(reader, structure, trackInfo);
+            ReadChannelInfo(reader, structure, channelInfo);
         }
 
-        private static void ReadInfoChunk1(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadStreamInfo(BinaryReader reader, BCFstmStructure structure, Reference reference)
         {
-            reader.BaseStream.Position = structure.InfoChunkOffset + 8 + structure.InfoChunk1Offset;
+            if (reference?.IsType(ReferenceType.StreamInfo) != true)
+                throw new InvalidDataException("Could not read stream info.");
+
+            reader.BaseStream.Position = reference.AbsoluteOffset;
             structure.Codec = (BxstmCodec)reader.ReadByte();
 
             structure.Looping = reader.ReadBoolean();
@@ -157,52 +134,40 @@ namespace VGAudio.Containers.Bxstm
             structure.BytesPerSeekTableEntry = reader.ReadInt32();
             structure.SamplesPerSeekTableEntry = reader.ReadInt32();
 
-            reader.Expect((short)0x1f00);
+            structure.AudioOffset = new Reference(reader);
+
+            structure.RegionEntrySize = reader.ReadInt16();
             reader.BaseStream.Position += 2;
-            structure.AudioDataOffset = reader.ReadInt32() + structure.DataChunkOffset + 8;
-            short regnEntrySize = reader.ReadInt16();
-            structure.IncludeRegnPointer = regnEntrySize == 0x100;
-            if (structure.IncludeRegnPointer)
-            {
-                structure.RegnEntrySize = regnEntrySize;
-                reader.BaseStream.Position += 10;
-            }
+            structure.RegionOffset = new Reference(reader);
+
             if (structure.Version >= 4)
             {
                 structure.LoopStartUnaligned = reader.ReadInt32();
                 structure.LoopEndUnaligned = reader.ReadInt32();
             }
+
             if (structure.Version >= 5)
             {
                 structure.Checksum = reader.ReadInt32();
             }
         }
 
-        private static void ReadInfoChunk2(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadTrackInfo(BinaryReader reader, BCFstmStructure structure, Reference reference)
         {
-            if (structure.InfoChunk2Offset == -1)
+            if (reference?.IsType(ReferenceType.ReferenceTable) != true)
             {
-                structure.IncludeTracks = false;
                 return;
             }
 
             structure.IncludeTracks = true;
-            int part2Offset = structure.InfoChunkOffset + 8 + structure.InfoChunk2Offset;
-            reader.BaseStream.Position = part2Offset;
 
-            int numTracks = reader.ReadInt32();
+            reader.BaseStream.Position = reference.AbsoluteOffset;
+            int baseOffset = reference.AbsoluteOffset;
+            var table = new ReferenceTable(reader, baseOffset);
 
-            int[] trackOffsets = new int[numTracks];
-            for (int i = 0; i < numTracks; i++)
+            foreach (Reference trackInfo in table.References)
             {
-                reader.Expect((short)0x4101);
-                reader.BaseStream.Position += 2;
-                trackOffsets[i] = reader.ReadInt32();
-            }
-
-            foreach (int offset in trackOffsets)
-            {
-                reader.BaseStream.Position = part2Offset + offset;
+                reader.BaseStream.Position = trackInfo.AbsoluteOffset;
 
                 var track = new AudioTrack();
                 track.Volume = reader.ReadByte();
@@ -217,41 +182,31 @@ namespace VGAudio.Containers.Bxstm
             }
         }
 
-        private static void ReadInfoChunk3(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadChannelInfo(BinaryReader reader, BCFstmStructure structure, Reference reference)
         {
-            int part3Offset = structure.InfoChunkOffset + 8 + structure.InfoChunk3Offset;
-            reader.BaseStream.Position = part3Offset;
+            if (reference?.IsType(ReferenceType.ReferenceTable) != true) { return; }
 
-            reader.Expect(structure.ChannelCount);
+            reader.BaseStream.Position = reference.AbsoluteOffset;
+            int baseOffset = reference.AbsoluteOffset;
+            var table = new ReferenceTable(reader, baseOffset);
 
-            for (int i = 0; i < structure.ChannelCount; i++)
+            foreach (Reference channelInfo in table.References)
             {
-                var channel = new BxstmChannelInfo();
-                reader.Expect((short)0x4102);
-                reader.BaseStream.Position += 2;
-                channel.Offset = reader.ReadInt32();
-                structure.Channels.Add(channel);
-            }
+                reader.BaseStream.Position = channelInfo.AbsoluteOffset;
+                var adpcmInfo = new Reference(reader, channelInfo.AbsoluteOffset);
 
-            if (structure.Codec != BxstmCodec.Adpcm) return;
+                if (adpcmInfo.IsType(ReferenceType.GcAdpcmInfo))
+                {
+                    reader.BaseStream.Position = adpcmInfo.AbsoluteOffset;
 
-            foreach (BxstmChannelInfo channel in structure.Channels)
-            {
-                int channelInfoOffset = part3Offset + channel.Offset;
-                reader.BaseStream.Position = channelInfoOffset;
-                reader.Expect((short)0x0300);
-                reader.BaseStream.Position += 2;
-                int coefsOffset = reader.ReadInt32() + channelInfoOffset;
-                reader.BaseStream.Position = coefsOffset;
-
-                channel.Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray();
-                channel.PredScale = reader.ReadInt16();
-                channel.Hist1 = reader.ReadInt16();
-                channel.Hist2 = reader.ReadInt16();
-                channel.LoopPredScale = reader.ReadInt16();
-                channel.LoopHist1 = reader.ReadInt16();
-                channel.LoopHist2 = reader.ReadInt16();
-                channel.Gain = reader.ReadInt16();
+                    var channel = new BxstmChannelInfo
+                    {
+                        Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray(),
+                        Start = new GcAdpcmContext(reader),
+                        Loop = new GcAdpcmContext(reader)
+                    };
+                    structure.Channels.Add(channel);
+                }
             }
         }
 

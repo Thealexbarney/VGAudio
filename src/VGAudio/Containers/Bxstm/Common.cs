@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
+using VGAudio.Containers.Bxstm.Structures;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
@@ -65,13 +66,12 @@ namespace VGAudio.Containers.Bxstm
                 var channelBuilder = new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, structure.SampleCount)
                 {
                     Gain = structure.Channels[c].Gain,
-                    Hist1 = structure.Channels[c].Hist1,
-                    Hist2 = structure.Channels[c].Hist2
+                    StartContext = structure.Channels[c].Start
                 };
 
                 channelBuilder.WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
-                    .WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
-                        structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
+                    .WithLoopContext(structure.LoopStart, structure.Channels[c].Loop.PredScale,
+                        structure.Channels[c].Loop.Hist1, structure.Channels[c].Loop.Hist2);
 
                 if (structure.SeekTable != null)
                 {
@@ -102,6 +102,35 @@ namespace VGAudio.Containers.Bxstm
                 .WithTracks(structure.Tracks)
                 .WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
                 .Build() as Pcm8SignedFormat;
+        }
+
+        public static void ReadDataChunk2(BinaryReader reader, BxstmStructure structure, bool readAudioData)
+        {
+            SizedReference reference = structure.Sections.FirstOrDefault(x => x.Type == ReferenceType.StreamDataBlock) ??
+                                       throw new InvalidDataException("File has no DATA chunk");
+
+            reader.BaseStream.Position = reference.AbsoluteOffset;
+
+            if (reader.ReadUTF8(4) != "DATA")
+            {
+                throw new InvalidDataException("Unknown or invalid DATA chunk");
+            }
+            structure.DataChunkSize = reader.ReadInt32();
+
+            if (structure.DataChunkSize != reference.Size)
+            {
+                throw new InvalidDataException("DATA chunk size in main header doesn't match size in DATA header");
+            }
+
+            if (!readAudioData) return;
+
+            int audioOffset = reference.AbsoluteOffset + structure.AudioOffset.Offset + 8;
+            reader.BaseStream.Position = audioOffset;
+            int audioDataLength = structure.DataChunkSize - (audioOffset - reference.AbsoluteOffset);
+            int outputSize = SamplesToBytes(structure.SampleCount, structure.Codec);
+
+            structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
+                structure.ChannelCount, outputSize);
         }
 
         public static void ReadDataChunk(BinaryReader reader, BxstmStructure structure, bool readAudioData)

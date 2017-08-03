@@ -4,7 +4,7 @@ using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
 namespace VGAudio.Codecs.GcAdpcm
 {
-    public static class GcAdpcmCoefficient
+    public static class GcAdpcmCoefficients
     {
         public static short[] CalculateCoefficients(short[] source)
         {

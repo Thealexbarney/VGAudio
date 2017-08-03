@@ -128,7 +128,7 @@ namespace VGAudio.Formats.GcAdpcm
 
         private static GcAdpcmChannel EncodeChannel(short[] pcm, int sampleCount, GcAdpcmParameters config)
         {
-            short[] coefs = GcAdpcmCoefficient.CalculateCoefficients(pcm);
+            short[] coefs = GcAdpcmCoefficients.CalculateCoefficients(pcm);
             byte[] adpcm = GcAdpcmEncoder.Encode(pcm, coefs, config);
 
             return new GcAdpcmChannel(adpcm, coefs, sampleCount);

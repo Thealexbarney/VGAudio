@@ -28,7 +28,7 @@
         /// REGN chunk header.
         /// </summary>
         public int RegnChunkSize { get; set; }
-        public int RegnEntrySize { get; set; }
+        public int RegionEntrySize { get; set; }
 
         /// <summary>
         /// The REGN chunk.

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using VGAudio.Formats;
+using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
@@ -191,12 +192,8 @@ namespace VGAudio.Containers.Bxstm
 
                 channel.Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray();
                 channel.Gain = reader.ReadInt16();
-                channel.PredScale = reader.ReadInt16();
-                channel.Hist1 = reader.ReadInt16();
-                channel.Hist2 = reader.ReadInt16();
-                channel.LoopPredScale = reader.ReadInt16();
-                channel.LoopHist1 = reader.ReadInt16();
-                channel.LoopHist2 = reader.ReadInt16();
+                channel.Start = new GcAdpcmContext(reader);
+                channel.Loop = new GcAdpcmContext(reader);
             }
         }
 

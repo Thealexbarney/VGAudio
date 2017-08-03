@@ -15,8 +15,8 @@ namespace VGAudio.Tests.Equality
             return
                 x.SampleCount == y.SampleCount &&
                 x.Gain == y.Gain &&
-                x.Hist1 == y.Hist1 &&
-                x.Hist2 == y.Hist2 &&
+                x.StartContext.Hist1 == y.StartContext.Hist1 &&
+                x.StartContext.Hist2 == y.StartContext.Hist2 &&
                 x.Coefs.SequenceEqual(y.Coefs) &&
                 x.Adpcm.SequenceEqual(y.Adpcm);
         }
@@ -28,8 +28,8 @@ namespace VGAudio.Tests.Equality
                 if (obj == null) return 0;
                 int hashCode = obj.SampleCount;
                 hashCode = (hashCode * 397) ^ obj.Gain;
-                hashCode = (hashCode * 397) ^ obj.Hist1;
-                hashCode = (hashCode * 397) ^ obj.Hist2;
+                hashCode = (hashCode * 397) ^ obj.StartContext.Hist1;
+                hashCode = (hashCode * 397) ^ obj.StartContext.Hist2;
                 return hashCode;
             }
         }

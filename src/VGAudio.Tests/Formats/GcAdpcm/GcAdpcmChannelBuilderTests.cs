@@ -68,9 +68,9 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         {
             var builder = GetBuilder().WithLoopContext(loopStart, predScale, loopHist1, loopHist2, isSelfCalculated);
             Assert.Equal(loopStart, builder.LoopContextStart);
-            Assert.Equal(predScale, builder.LoopPredScale);
-            Assert.Equal(loopHist1, builder.LoopHist1);
-            Assert.Equal(loopHist2, builder.LoopHist2);
+            Assert.Equal(predScale, builder.LoopContext.PredScale);
+            Assert.Equal(loopHist1, builder.LoopContext.Hist1);
+            Assert.Equal(loopHist2, builder.LoopContext.Hist2);
             Assert.Equal(isSelfCalculated, builder.LoopContextIsSelfCalculated);
         }
 

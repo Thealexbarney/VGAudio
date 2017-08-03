@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using VGAudio.Containers.Bxstm.Structures;
 using VGAudio.Formats;
 using VGAudio.Utilities;
 
@@ -11,6 +12,8 @@ namespace VGAudio.Containers.Bxstm
         /// </summary>
         public int FileSize { get; set; }
         public Endianness Endianness { get; set; }
+
+        public List<SizedReference> Sections { get; set; } = new List<SizedReference>();
 
         /// <summary>
         /// The size of the file header.
@@ -155,6 +158,10 @@ namespace VGAudio.Containers.Bxstm
         /// The ADPCM information for each channel.
         /// </summary>
         public List<BxstmChannelInfo> Channels { get; set; } = new List<BxstmChannelInfo>();
+
+        public Reference AudioOffset { get; set; }
+        public Reference RegionOffset { get; set; }
+
         /// <summary>
         /// The size of the seek table in the file.
         /// </summary>
