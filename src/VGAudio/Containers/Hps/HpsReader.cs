@@ -15,7 +15,7 @@ namespace VGAudio.Containers.Hps
         {
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
             {
-                if (Encoding.UTF8.GetString(reader.ReadBytes(8), 0, 8) != " HALPST\0")
+                if (reader.ReadUTF8(8) != " HALPST\0")
                 {
                     throw new InvalidDataException("File has no HALPST header");
                 }

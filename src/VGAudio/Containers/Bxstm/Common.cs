@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Linq;
-using System.Text;
 using VGAudio.Containers.Bxstm.Structures;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
@@ -44,7 +43,7 @@ namespace VGAudio.Containers.Bxstm
 
         public static IAudioFormat ToAudioStream(BxstmStructure structure)
         {
-            switch (structure.Codec)
+            switch (structure.StreamInfo.Codec)
             {
                 case BxstmCodec.Adpcm:
                     return ToAdpcmStream(structure);
@@ -59,48 +58,51 @@ namespace VGAudio.Containers.Bxstm
 
         private static GcAdpcmFormat ToAdpcmStream(BxstmStructure structure)
         {
-            var channels = new GcAdpcmChannel[structure.ChannelCount];
+            var info = structure.StreamInfo;
+            var channels = new GcAdpcmChannel[info.ChannelCount];
 
             for (int c = 0; c < channels.Length; c++)
             {
-                var channelBuilder = new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, structure.SampleCount)
+                var channelBuilder = new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, info.SampleCount)
                 {
                     Gain = structure.Channels[c].Gain,
                     StartContext = structure.Channels[c].Start
                 };
 
-                channelBuilder.WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
-                    .WithLoopContext(structure.LoopStart, structure.Channels[c].Loop.PredScale,
+                channelBuilder.WithLoop(info.Looping, info.LoopStart, info.SampleCount)
+                    .WithLoopContext(info.LoopStart, structure.Channels[c].Loop.PredScale,
                         structure.Channels[c].Loop.Hist1, structure.Channels[c].Loop.Hist2);
 
                 if (structure.SeekTable != null)
                 {
-                    channelBuilder.WithSeekTable(structure.SeekTable[c], structure.SamplesPerSeekTableEntry);
+                    channelBuilder.WithSeekTable(structure.SeekTable[c], info.SamplesPerSeekTableEntry);
                 }
 
                 channels[c] = channelBuilder.Build();
             }
 
-            return new GcAdpcmFormatBuilder(channels, structure.SampleRate)
+            return new GcAdpcmFormatBuilder(channels, info.SampleRate)
                 .WithTracks(structure.Tracks)
-                .WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .WithLoop(info.Looping, info.LoopStart, info.SampleCount)
                 .Build();
         }
 
         private static Pcm16Format ToPcm16Stream(BxstmStructure structure)
         {
+            var info = structure.StreamInfo;
             short[][] channels = structure.AudioData.Select(x => x.ToShortArray(structure.Endianness)).ToArray();
-            return new Pcm16FormatBuilder(channels, structure.SampleRate)
+            return new Pcm16FormatBuilder(channels, info.SampleRate)
                 .WithTracks(structure.Tracks)
-                .WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .WithLoop(info.Looping, info.LoopStart, info.SampleCount)
                 .Build();
         }
 
         private static Pcm8SignedFormat ToPcm8Stream(BxstmStructure structure)
         {
-            return new Pcm8FormatBuilder(structure.AudioData, structure.SampleRate, true)
+            var info = structure.StreamInfo;
+            return new Pcm8FormatBuilder(structure.AudioData, info.SampleRate, true)
                 .WithTracks(structure.Tracks)
-                .WithLoop(structure.Looping, structure.LoopStart, structure.SampleCount)
+                .WithLoop(info.Looping, info.LoopStart, info.SampleCount)
                 .Build() as Pcm8SignedFormat;
         }
 
@@ -108,6 +110,8 @@ namespace VGAudio.Containers.Bxstm
         {
             SizedReference reference = structure.Sections.FirstOrDefault(x => x.Type == ReferenceType.StreamDataBlock) ??
                                        throw new InvalidDataException("File has no DATA chunk");
+
+            var info = structure.StreamInfo;
 
             reader.BaseStream.Position = reference.AbsoluteOffset;
 
@@ -124,20 +128,21 @@ namespace VGAudio.Containers.Bxstm
 
             if (!readAudioData) return;
 
-            int audioOffset = reference.AbsoluteOffset + structure.AudioOffset.Offset + 8;
+            int audioOffset = reference.AbsoluteOffset + info.AudioReference.Offset + 8;
             reader.BaseStream.Position = audioOffset;
             int audioDataLength = structure.DataChunkSize - (audioOffset - reference.AbsoluteOffset);
-            int outputSize = SamplesToBytes(structure.SampleCount, structure.Codec);
+            int outputSize = SamplesToBytes(info.SampleCount, info.Codec);
 
-            structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.ChannelCount, outputSize);
+            structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, info.InterleaveSize,
+                info.ChannelCount, outputSize);
         }
 
         public static void ReadDataChunk(BinaryReader reader, BxstmStructure structure, bool readAudioData)
         {
             reader.BaseStream.Position = structure.DataChunkOffset;
+            var info = structure.StreamInfo;
 
-            if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "DATA")
+            if (reader.ReadUTF8(4) != "DATA")
             {
                 throw new InvalidDataException("Unknown or invalid DATA chunk");
             }
@@ -150,12 +155,44 @@ namespace VGAudio.Containers.Bxstm
 
             if (!readAudioData) return;
 
-            reader.BaseStream.Position = structure.AudioDataOffset;
-            int audioDataLength = structure.DataChunkSize - (structure.AudioDataOffset - structure.DataChunkOffset);
-            int outputSize = SamplesToBytes(structure.SampleCount, structure.Codec);
+            reader.BaseStream.Position = info.AudioDataOffset;
+            int audioDataLength = structure.DataChunkSize - (info.AudioDataOffset - structure.DataChunkOffset);
+            int outputSize = SamplesToBytes(info.SampleCount, info.Codec);
 
-            structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, structure.InterleaveSize,
-                structure.ChannelCount, outputSize);
+            structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, info.InterleaveSize,
+                info.ChannelCount, outputSize);
+        }
+        
+        private static NwVersion IncludeTrackInfoBfstm { get; } = new NwVersion(0, 2, 0, 0);
+        private static NwVersion IncludeUnalignedLoopBfstm { get; } = new NwVersion(0, 4, 0, 0);
+        private static NwVersion IncludeChecksumBfstm { get; } = new NwVersion(0, 5, 0, 0);
+
+        //This one is weird. Some version 2.1 BCSTM files have the region offset, and some don't.
+        private static NwVersion IncludeRegionBcstm { get; } = new NwVersion(2, 1, 0, 0);
+        private static NwVersion IncludeTrackInfoBcstm { get; } = new NwVersion(2, 1, 0, 0);
+        private static NwVersion IncludeUnalignedLoopBcstm { get; } = new NwVersion(2, 3, 0, 0);
+
+        public static bool IncludeTrackInfo(NwVersion version)
+        {
+            return version.Major == 0 && version.Version <= IncludeTrackInfoBfstm.Version ||
+                   version.Major >= 2 && version.Version <= IncludeTrackInfoBcstm.Version;
+        }
+
+        public static bool IncludeRegionInfo(NwVersion version)
+        {
+            return version.Major >= 2 && version.Version >= IncludeRegionBcstm.Version ||
+                   version.Major == 0;
+        }
+
+        public static bool IncludeUnalignedLoop(NwVersion version)
+        {
+            return version.Major == 0 && version.Version >= IncludeUnalignedLoopBfstm.Version ||
+                   version.Major >= 2 && version.Version >= IncludeUnalignedLoopBcstm.Version;
+        }
+
+        public static bool IncludeChecksum(NwVersion version)
+        {
+            return version.Major == 0 && version.Version >= IncludeChecksumBfstm.Version;
         }
     }
 }

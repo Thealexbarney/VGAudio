@@ -15,7 +15,7 @@ namespace VGAudio.Containers.Idsp
         {
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
             {
-                if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "IDSP")
+                if (reader.ReadUTF8(4) != "IDSP")
                 {
                     throw new InvalidDataException("File has no IDSP header");
                 }

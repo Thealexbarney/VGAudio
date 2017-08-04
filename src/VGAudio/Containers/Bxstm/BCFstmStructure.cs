@@ -41,18 +41,6 @@
         public int SectionCount { get; set; }
 
         /// <summary>
-        /// Specifies whether the file includes an extra chunk in the header
-        /// after the stream info and before the track offset table.
-        /// The purpose of this chunk is unknown.
-        /// </summary>
-        public bool IncludeRegnPointer { get; set; }
-
-        /// <summary>
-        /// Specifies whether the file lists the tracks
-        /// included in it.
-        /// </summary>
-        public bool IncludeTracks { get; set; }
-        /// <summary>
         /// The start loop point before alignment.
         /// </summary>
         public int LoopStartUnaligned { get; set; }

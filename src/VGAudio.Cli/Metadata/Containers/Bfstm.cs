@@ -28,7 +28,7 @@ namespace VGAudio.Cli.Metadata.Containers
                 builder.AppendLine($"Start sample: {bfstm.Regn.Entries[i].StartSample}");
                 builder.AppendLine($"End sample: {bfstm.Regn.Entries[i].EndSample}");
 
-                for (int c = 0; c < bfstm.ChannelCount; c++)
+                for (int c = 0; c < bfstm.StreamInfo.ChannelCount; c++)
                 {
                     short v1 = bfstm.Regn.Entries[i].Channels[c].Value1;
                     short v2 = bfstm.Regn.Entries[i].Channels[c].Value2;

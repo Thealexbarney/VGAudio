@@ -57,16 +57,16 @@ namespace VGAudio.Containers.Bxstm
 
         private static int HeaderSize => 0x40;
 
-        private bool InfoPart1Extra => Type == BCFstmType.Bcstm ? BcstmConfig.InfoPart1Extra : true;
-        private bool IncludeUnalignedLoopPoints => Type == BCFstmType.Bfstm ? BfstmConfig.IncludeUnalignedLoopPoints : false;
-        private bool IncludeTrackInformation => Type == BCFstmType.Bcstm ? BcstmConfig.IncludeTrackInformation : false;
+        private bool IncludeRegionInfo => IncludeRegionInfo(Configuration.Version);
+        private bool IncludeUnalignedLoopPoints => IncludeUnalignedLoop(Configuration.Version);
+        private bool IncludeTrackInformation => IncludeTrackInfo(Configuration.Version);
 
         private int InfoChunkOffset => HeaderSize;
         private int InfoChunkSize => GetNextMultiple(InfoChunkHeaderSize + InfoChunkTableSize +
             InfoChunk1Size + InfoChunk2Size + InfoChunk3Size, 0x20);
         private int InfoChunkHeaderSize => 8;
         private int InfoChunkTableSize => 8 * 3;
-        private int InfoChunk1Size => 0x38 + (!InfoPart1Extra ? 0 : 0xc) + (!IncludeUnalignedLoopPoints ? 0 : 8);
+        private int InfoChunk1Size => 0x38 + (!IncludeRegionInfo ? 0 : 0xc) + (!IncludeUnalignedLoopPoints ? 0 : 8);
         private int InfoChunk2Size => IncludeTrackInformation ? 4 + 8 * TrackCount : 0;
         private int InfoChunk3Size => (4 + 8 * ChannelCount) +
             (IncludeTrackInformation ? 0x14 * TrackCount : 0) +
@@ -158,10 +158,10 @@ namespace VGAudio.Containers.Bxstm
             }
 
             //All BCSTM files I've seen follow this pattern except for Kingdom Hearts 3D
-            if (IncludeTrackInformation && InfoPart1Extra)
+            if (IncludeTrackInformation && IncludeRegionInfo)
                 return 0x201;
 
-            if (!IncludeTrackInformation && InfoPart1Extra)
+            if (!IncludeTrackInformation && IncludeRegionInfo)
                 return 0x202;
 
             return 0x200;
@@ -245,7 +245,7 @@ namespace VGAudio.Containers.Bxstm
             writer.Write((short)0);
             writer.Write(0x18);
 
-            if (InfoPart1Extra)
+            if (IncludeRegionInfo)
             {
                 writer.Write((short)0x0100);
                 writer.Write((short)0);

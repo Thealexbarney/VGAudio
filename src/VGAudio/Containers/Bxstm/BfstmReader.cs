@@ -15,14 +15,13 @@ namespace VGAudio.Containers.Bxstm
         protected override BfstmConfiguration GetConfiguration(BfstmStructure structure)
         {
             var configuration = new BfstmConfiguration();
-            if (structure.Codec == BxstmCodec.Adpcm)
+            if (structure.StreamInfo.Codec == BxstmCodec.Adpcm)
             {
-                configuration.SamplesPerSeekTableEntry = structure.SamplesPerSeekTableEntry;
+                configuration.SamplesPerSeekTableEntry = structure.StreamInfo.SamplesPerSeekTableEntry;
             }
-            configuration.Codec = structure.Codec;
+            configuration.Codec = structure.StreamInfo.Codec;
             configuration.Endianness = structure.Endianness;
-            configuration.SamplesPerInterleave = structure.SamplesPerInterleave;
-            configuration.IncludeUnalignedLoopPoints = structure.Version == 4;
+            configuration.SamplesPerInterleave = structure.StreamInfo.SamplesPerInterleave;
             return configuration;
         }
     }

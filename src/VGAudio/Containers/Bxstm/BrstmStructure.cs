@@ -42,11 +42,11 @@
         /// The track description used in most games other than 
         /// Super Smash Bros. Brawl.
         /// </summary>
-        Standard,
+        Standard = 1,
         /// <summary>
         /// The track description used in Super Smash Bros. Brawl.
         /// It does not contain values for volume or panning.
         /// </summary>
-        Short
+        Short = 0
     }
 }

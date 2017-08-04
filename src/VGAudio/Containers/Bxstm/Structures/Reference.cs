@@ -8,8 +8,18 @@ namespace VGAudio.Containers.Bxstm.Structures
         public int Offset { get; }
         public int BaseOffset { get; }
         public int AbsoluteOffset => BaseOffset + Offset;
-        public Reference() { }
 
+        /// <summary>
+        /// The reference type. Used in NW4R file formats. 0 = Address, 1 = Offset
+        /// </summary>
+        public byte ReferenceType => (byte)((int)Type >> 8);
+        /// <summary>
+        /// The data type of the referenced data. Used in NW4R file formats.
+        /// Meaning can change between different structures.
+        /// </summary>
+        public byte DataType => (byte)Type;
+
+        public Reference() { }
         public Reference(BinaryReader reader, int baseOffset = 0)
         {
             Type = (ReferenceType)reader.ReadInt16();

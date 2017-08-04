@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Linq;
-using System.Text;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
@@ -43,14 +42,14 @@ namespace VGAudio.Containers.Genh
                 channels[c] = channel;
             }
 
-            return new GcAdpcmFormatBuilder(channels, structure.SampleRate)
+            return new GcAdpcmFormatBuilder(channels, structure.SampleRate) 
                 .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
                 .Build();
         }
 
         private static void ReadHeader(BinaryReader reader, GenhStructure structure)
         {
-            if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "GENH")
+            if (reader.ReadUTF8(4) != "GENH")
             {
                 throw new InvalidDataException("File has no GENH header");
             }

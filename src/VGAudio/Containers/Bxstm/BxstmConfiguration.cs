@@ -93,5 +93,6 @@ namespace VGAudio.Containers.Bxstm
 
         public BxstmCodec Codec { get; set; } = BxstmCodec.Adpcm;
         public Endianness? Endianness { get; set; }
+        public NwVersion Version { get; set; }
     }
 }

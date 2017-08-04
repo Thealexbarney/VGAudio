@@ -1,4 +1,6 @@
-﻿namespace VGAudio.Containers.Bxstm.Structures
+﻿using System.IO;
+
+namespace VGAudio.Containers.Bxstm.Structures
 {
     public class StreamInfo
     {
@@ -53,5 +55,82 @@
 
         /// <summary>The offset that the actual audio data starts at.</summary>
         public int AudioDataOffset { get; set; }
+        public Reference AudioReference { get; set; }
+        public Reference RegionReference { get; set; }
+
+        public int RegionInfoSize { get; set; }
+        public int LoopStartUnaligned { get; set; }
+        public int LoopEndUnaligned { get; set; }
+        public uint Checksum { get; set; }
+
+        public static StreamInfo ReadBfstm(BinaryReader reader, NwVersion version)
+        {
+            var info = new StreamInfo();
+            info.Codec = (BxstmCodec)reader.ReadByte();
+
+            info.Looping = reader.ReadBoolean();
+            info.ChannelCount = reader.ReadByte();
+            info.RegionCount = reader.ReadByte();
+            info.SampleRate = reader.ReadInt32();
+            info.LoopStart = reader.ReadInt32();
+            info.SampleCount = reader.ReadInt32();
+
+            info.InterleaveCount = reader.ReadInt32();
+            info.InterleaveSize = reader.ReadInt32();
+            info.SamplesPerInterleave = reader.ReadInt32();
+            info.LastBlockSizeWithoutPadding = reader.ReadInt32();
+            info.LastBlockSamples = reader.ReadInt32();
+            info.LastBlockSize = reader.ReadInt32();
+            info.BytesPerSeekTableEntry = reader.ReadInt32();
+            info.SamplesPerSeekTableEntry = reader.ReadInt32();
+
+            info.AudioReference = new Reference(reader);
+
+            if (Common.IncludeRegionInfo(version))
+            {
+                info.RegionInfoSize = reader.ReadInt16();
+                reader.BaseStream.Position += 2;
+                info.RegionReference = new Reference(reader);
+            }
+
+            if (Common.IncludeUnalignedLoop(version))
+            {
+                info.LoopStartUnaligned = reader.ReadInt32();
+                info.LoopEndUnaligned = reader.ReadInt32();
+            }
+
+            if (Common.IncludeChecksum(version))
+            {
+                info.Checksum = reader.ReadUInt32();
+            }
+
+            return info;
+        }
+
+        public static StreamInfo ReadBrstm(BinaryReader reader)
+        {
+            var info = new StreamInfo();
+            info.Codec = (BxstmCodec)reader.ReadByte();
+            info.Looping = reader.ReadBoolean();
+            info.ChannelCount = reader.ReadByte();
+            reader.BaseStream.Position += 1;
+
+            info.SampleRate = reader.ReadUInt16();
+            reader.BaseStream.Position += 2;
+
+            info.LoopStart = reader.ReadInt32();
+            info.SampleCount = reader.ReadInt32();
+
+            info.AudioDataOffset = reader.ReadInt32();
+            info.InterleaveCount = reader.ReadInt32();
+            info.InterleaveSize = reader.ReadInt32();
+            info.SamplesPerInterleave = reader.ReadInt32();
+            info.LastBlockSizeWithoutPadding = reader.ReadInt32();
+            info.LastBlockSamples = reader.ReadInt32();
+            info.LastBlockSize = reader.ReadInt32();
+            info.SamplesPerSeekTableEntry = reader.ReadInt32();
+
+            return info;
+        }
     }
 }

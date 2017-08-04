@@ -218,7 +218,7 @@ namespace VGAudio.Containers.Hca
                 bytes[i] &= 0x7f;
             }
 
-            return Encoding.UTF8.GetString(bytes, 0, 4);
+            return reader.ReadUTF8(4);
         }
 
         private static CriHcaKey FindKey(HcaStructure structure)

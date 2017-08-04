@@ -63,6 +63,9 @@ namespace VGAudio.Formats
         /// </summary>
         public int ChannelRight { get; set; }
 
+        public int SurroundPanning { get; set; }
+        public int Flags { get; set; }
+
         public static IEnumerable<AudioTrack> GetDefaultTrackList(int channelCount)
         {
             int trackCount = channelCount.DivideByRoundUp(2);
