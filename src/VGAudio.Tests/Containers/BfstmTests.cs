@@ -1,4 +1,4 @@
-﻿using VGAudio.Containers.Bxstm;
+﻿using VGAudio.Containers.NintendoWare;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;

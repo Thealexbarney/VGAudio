@@ -2,10 +2,10 @@
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
+using VGAudio.Containers.NintendoWare;
 using VGAudio.Containers.Wave;
 using VGAudio.Formats.CriAdx;
 

@@ -7,11 +7,11 @@ using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Formats.Pcm8;
 using VGAudio.Utilities;
-using static VGAudio.Containers.Bxstm.Common;
+using static VGAudio.Containers.NintendoWare.Common;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers.Bxstm
+namespace VGAudio.Containers.NintendoWare
 {
     public class BrstmWriter : AudioWriter<BrstmWriter, BrstmConfiguration>
     {

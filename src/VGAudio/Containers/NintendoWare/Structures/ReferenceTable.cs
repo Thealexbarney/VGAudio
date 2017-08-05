@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace VGAudio.Containers.Bxstm.Structures
+namespace VGAudio.Containers.NintendoWare.Structures
 {
     public class ReferenceTable
     {

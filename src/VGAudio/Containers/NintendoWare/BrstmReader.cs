@@ -1,11 +1,11 @@
 ﻿using System.IO;
-using VGAudio.Containers.Bxstm.Structures;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Formats;
 using VGAudio.Utilities;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers.Bxstm
+namespace VGAudio.Containers.NintendoWare
 {
     public class BrstmReader : AudioReader<BrstmReader, BrstmStructure, BrstmConfiguration>
     {

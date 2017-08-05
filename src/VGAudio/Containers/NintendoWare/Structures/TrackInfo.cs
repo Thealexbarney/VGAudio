@@ -2,7 +2,7 @@
 using System.IO;
 using VGAudio.Formats;
 
-namespace VGAudio.Containers.Bxstm.Structures
+namespace VGAudio.Containers.NintendoWare.Structures
 {
     public class TrackInfo
     {

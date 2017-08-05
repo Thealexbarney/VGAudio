@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Genh;
 using VGAudio.Containers.Hca;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
+using VGAudio.Containers.NintendoWare;
 using VGAudio.Containers.Wave;
 
 namespace VGAudio.Cli

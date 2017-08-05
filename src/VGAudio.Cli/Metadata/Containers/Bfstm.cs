@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Text;
-using VGAudio.Containers.Bxstm;
+using VGAudio.Containers.NintendoWare;
 
 namespace VGAudio.Cli.Metadata.Containers
 {

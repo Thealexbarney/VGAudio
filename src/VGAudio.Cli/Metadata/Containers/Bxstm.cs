@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using VGAudio.Containers.Bxstm;
-using VGAudio.Containers.Bxstm.Structures;
+using VGAudio.Containers.NintendoWare;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 

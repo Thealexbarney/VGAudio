@@ -9,7 +9,6 @@ using Windows.Storage;
 using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 using Windows.UI.Popups;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
 using VGAudio.Formats;
 using VGAudio.Uwp.Audio;
@@ -18,6 +17,7 @@ using PropertyChanged;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
 using VGAudio.Containers.Idsp;
+using VGAudio.Containers.NintendoWare;
 
 namespace VGAudio.Uwp.ViewModels
 {

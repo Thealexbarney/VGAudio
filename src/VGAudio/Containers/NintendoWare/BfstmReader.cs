@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using VGAudio.Formats;
 
-namespace VGAudio.Containers.Bxstm
+namespace VGAudio.Containers.NintendoWare
 {
     public class BfstmReader : AudioReader<BfstmReader, BxstmStructure, BxstmConfiguration>
     {

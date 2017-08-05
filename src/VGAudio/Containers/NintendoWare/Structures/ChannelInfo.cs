@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using VGAudio.Formats.GcAdpcm;
 
-namespace VGAudio.Containers.Bxstm.Structures
+namespace VGAudio.Containers.NintendoWare.Structures
 {
     public class ChannelInfo
     {

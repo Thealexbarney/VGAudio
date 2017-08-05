@@ -1,9 +1,9 @@
 ﻿using System;
 using VGAudio.Utilities;
-using static VGAudio.Containers.Bxstm.Common;
+using static VGAudio.Containers.NintendoWare.Common;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
-namespace VGAudio.Containers.Bxstm
+namespace VGAudio.Containers.NintendoWare
 {
     /// <summary>
     /// Contains the options used to build BRSTM, BCSTM and BFSTM files.

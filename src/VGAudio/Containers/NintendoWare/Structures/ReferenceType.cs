@@ -1,4 +1,4 @@
-﻿namespace VGAudio.Containers.Bxstm.Structures
+﻿namespace VGAudio.Containers.NintendoWare.Structures
 {
     public enum ReferenceType
     {

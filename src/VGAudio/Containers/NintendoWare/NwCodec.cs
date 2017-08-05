@@ -1,4 +1,4 @@
-﻿namespace VGAudio.Containers.Bxstm
+﻿namespace VGAudio.Containers.NintendoWare
 {
     /// <summary>
     /// The different audio codecs used in BRSTM, BCSTM, and BFSTM files.

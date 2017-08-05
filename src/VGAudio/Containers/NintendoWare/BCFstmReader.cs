@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using VGAudio.Containers.Bxstm.Structures;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers.Bxstm
+namespace VGAudio.Containers.NintendoWare
 {
     public class BCFstmReader
     {

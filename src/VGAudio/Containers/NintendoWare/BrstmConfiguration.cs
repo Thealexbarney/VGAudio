@@ -1,4 +1,4 @@
-﻿namespace VGAudio.Containers.Bxstm
+﻿namespace VGAudio.Containers.NintendoWare
 {
     /// <summary>
     /// Contains the options used to build BRSTM files.

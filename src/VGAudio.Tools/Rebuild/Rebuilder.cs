@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using VGAudio.Containers;
-using VGAudio.Containers.Bxstm;
+using VGAudio.Containers.NintendoWare;
 using VGAudio.Utilities;
 
 namespace VGAudio.Tools.Rebuild

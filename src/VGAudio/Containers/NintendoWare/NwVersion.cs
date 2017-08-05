@@ -1,4 +1,4 @@
-﻿namespace VGAudio.Containers.Bxstm
+﻿namespace VGAudio.Containers.NintendoWare
 {
     public class NwVersion
     {

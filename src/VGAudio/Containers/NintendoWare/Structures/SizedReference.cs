@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace VGAudio.Containers.Bxstm.Structures
+namespace VGAudio.Containers.NintendoWare.Structures
 {
     public class SizedReference : Reference
     {

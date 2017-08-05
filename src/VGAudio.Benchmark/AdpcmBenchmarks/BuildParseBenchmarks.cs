@@ -1,7 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Idsp;
+using VGAudio.Containers.NintendoWare;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 

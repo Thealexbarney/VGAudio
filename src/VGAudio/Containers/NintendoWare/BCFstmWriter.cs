@@ -2,16 +2,16 @@
 using System.IO;
 using System.Linq;
 using VGAudio.Codecs.GcAdpcm;
-using VGAudio.Containers.Bxstm.Structures;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Formats.Pcm8;
 using VGAudio.Utilities;
-using static VGAudio.Containers.Bxstm.Common;
+using static VGAudio.Containers.NintendoWare.Common;
 using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Containers.Bxstm
+namespace VGAudio.Containers.NintendoWare
 {
     internal class BCFstmWriter
     {

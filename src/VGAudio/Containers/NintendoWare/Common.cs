@@ -5,7 +5,7 @@ using VGAudio.Formats.Pcm16;
 using VGAudio.Formats.Pcm8;
 using VGAudio.Utilities;
 
-namespace VGAudio.Containers.Bxstm
+namespace VGAudio.Containers.NintendoWare
 {
     internal static class Common
     {

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using VGAudio.Containers.Bxstm.Structures;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Utilities;
 
-namespace VGAudio.Containers.Bxstm
+namespace VGAudio.Containers.NintendoWare
 {
     public class BxstmStructure
     {
