@@ -2,15 +2,16 @@
 using System.IO;
 using System.Linq;
 using VGAudio.Containers.NintendoWare.Structures;
+using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
 using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.NintendoWare
 {
-    public class BCFstmReader
+    public class BCFstmReader : AudioReader<BCFstmReader, BxstmStructure, BxstmConfiguration>
     {
-        public BxstmStructure ReadFile(Stream stream, bool readAudioData = true)
+        protected override BxstmStructure ReadFile(Stream stream, bool readAudioData = true)
         {
             Endianness endianness;
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
@@ -48,6 +49,23 @@ namespace VGAudio.Containers.NintendoWare
 
                 return structure;
             }
+        }
+
+        protected override IAudioFormat ToAudioStream(BxstmStructure structure) => Common.ToAudioStream(structure);
+
+        protected override BxstmConfiguration GetConfiguration(BxstmStructure structure)
+        {
+            StreamInfo info = structure.StreamInfo;
+            var configuration = new BxstmConfiguration();
+            if (info.Codec == NwCodec.GcAdpcm)
+            {
+                configuration.SamplesPerSeekTableEntry = info.SamplesPerSeekTableEntry;
+            }
+            configuration.Codec = info.Codec;
+            configuration.Endianness = structure.Endianness;
+            configuration.SamplesPerInterleave = info.SamplesPerInterleave;
+            configuration.Version = structure.Version;
+            return configuration;
         }
 
         private static void ReadHeader(BinaryReader reader, BxstmStructure structure)

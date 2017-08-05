@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using VGAudio.Codecs.GcAdpcm;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
@@ -13,7 +14,7 @@ using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.NintendoWare
 {
-    public class BrstmWriter : AudioWriter<BrstmWriter, BrstmConfiguration>
+    public class BrstmWriter : AudioWriter<BrstmWriter, BxstmConfiguration>
     {
         private GcAdpcmFormat Adpcm { get; set; }
         private Pcm16Format Pcm16 { get; set; }

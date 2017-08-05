@@ -19,35 +19,35 @@
         <StackPanel>
             <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                 <TextBlock Text="Audio format:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                <ComboBox  Margin="10, 0" ItemsSource="{Binding Path=FormatTypesBinding, Mode=OneTime}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding BrstmConfiguration.Codec, Mode=TwoWay}"/>
+                <ComboBox  Margin="10, 0" ItemsSource="{Binding Path=FormatTypesBinding, Mode=OneTime}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding BxstmConfiguration.Codec, Mode=TwoWay}"/>
             </StackPanel>
             <ToggleButton x:Name="Advanced" Margin="0,10,0,0">
                 <TextBlock Text="Show Advanced Options"/>
             </ToggleButton>
             <StackPanel Visibility="{Binding IsChecked, ElementName=Advanced, Converter={StaticResource BoolToVisibilityConverter}}">
-                <CheckBox Content="Recalculate seek table" IsChecked="{Binding BrstmConfiguration.RecalculateSeekTable}"/>
-                <CheckBox Content="Recalculate loop context" IsChecked="{Binding BrstmConfiguration.RecalculateLoopContext}"/>
+                <CheckBox Content="Recalculate seek table" IsChecked="{Binding BxstmConfiguration.RecalculateSeekTable}"/>
+                <CheckBox Content="Recalculate loop context" IsChecked="{Binding BxstmConfiguration.RecalculateLoopContext}"/>
                 <TextBlock Text="Track description type:" TextWrapping="Wrap" VerticalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal">
-                    <RadioButton IsChecked="{Binding Path=BrstmConfiguration.TrackType, Converter={StaticResource TrackTypeConverter}, ConverterParameter=Standard, Mode=TwoWay}" Content="Standard"/>
-                    <RadioButton IsChecked="{Binding Path=BrstmConfiguration.TrackType, Converter={StaticResource TrackTypeConverter}, ConverterParameter=Short, Mode=TwoWay}" Content="Short"/>
+                    <RadioButton IsChecked="{Binding Path=BxstmConfiguration.TrackType, Converter={StaticResource TrackTypeConverter}, ConverterParameter=Standard, Mode=TwoWay}" Content="Standard"/>
+                    <RadioButton IsChecked="{Binding Path=BxstmConfiguration.TrackType, Converter={StaticResource TrackTypeConverter}, ConverterParameter=Short, Mode=TwoWay}" Content="Short"/>
                 </StackPanel>
                 <TextBlock Text="Seek table type:" TextWrapping="Wrap" VerticalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal">
-                    <RadioButton IsChecked="{Binding Path=BrstmConfiguration.SeekTableType, Converter={StaticResource SeekTableTypeConverter}, ConverterParameter=Standard, Mode=TwoWay}" GroupName="A">Standard</RadioButton>
-                    <RadioButton IsChecked="{Binding Path=BrstmConfiguration.SeekTableType, Converter={StaticResource SeekTableTypeConverter}, ConverterParameter=Short, Mode=TwoWay}" GroupName="A">Short</RadioButton>
+                    <RadioButton IsChecked="{Binding Path=BxstmConfiguration.SeekTableType, Converter={StaticResource SeekTableTypeConverter}, ConverterParameter=Standard, Mode=TwoWay}" GroupName="A">Standard</RadioButton>
+                    <RadioButton IsChecked="{Binding Path=BxstmConfiguration.SeekTableType, Converter={StaticResource SeekTableTypeConverter}, ConverterParameter=Short, Mode=TwoWay}" GroupName="A">Short</RadioButton>
                 </StackPanel>
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                     <TextBlock Text="Loop point alignment:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BrstmConfiguration.LoopPointAlignment, Mode=TwoWay}"/>
+                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.LoopPointAlignment, Mode=TwoWay}"/>
                 </StackPanel>
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                     <TextBlock Text="Samples per interleaved block:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BrstmConfiguration.SamplesPerInterleave, Mode=TwoWay}"/>
+                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.SamplesPerInterleave, Mode=TwoWay}"/>
                 </StackPanel>
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                     <TextBlock Text="Samples per seek table entry:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BrstmConfiguration.SamplesPerSeekTableEntry, Mode=TwoWay}"/>
+                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.SamplesPerSeekTableEntry, Mode=TwoWay}"/>
                 </StackPanel>
             </StackPanel>
         </StackPanel>

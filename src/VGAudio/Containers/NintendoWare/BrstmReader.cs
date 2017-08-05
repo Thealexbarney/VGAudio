@@ -7,9 +7,9 @@ using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.NintendoWare
 {
-    public class BrstmReader : AudioReader<BrstmReader, BrstmStructure, BrstmConfiguration>
+    public class BrstmReader : AudioReader<BrstmReader, BxstmStructure, BxstmConfiguration>
     {
-        protected override BrstmStructure ReadFile(Stream stream, bool readAudioData = true)
+        protected override BxstmStructure ReadFile(Stream stream, bool readAudioData = true)
         {
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
             {
@@ -18,7 +18,7 @@ namespace VGAudio.Containers.NintendoWare
                     throw new InvalidDataException("File has no RSTM header");
                 }
 
-                var structure = new BrstmStructure();
+                var structure = new BxstmStructure();
 
                 ReadRstmHeader(reader, structure);
                 ReadHeadBlock(reader, structure);
@@ -29,24 +29,24 @@ namespace VGAudio.Containers.NintendoWare
             }
         }
 
-        protected override IAudioFormat ToAudioStream(BrstmStructure structure) => Common.ToAudioStream(structure);
+        protected override IAudioFormat ToAudioStream(BxstmStructure structure) => Common.ToAudioStream(structure);
 
-        protected override BrstmConfiguration GetConfiguration(BrstmStructure structure)
+        protected override BxstmConfiguration GetConfiguration(BxstmStructure structure)
         {
             var info = structure.StreamInfo;
-            var configuration = new BrstmConfiguration();
+            var configuration = new BxstmConfiguration();
             if (info.Codec == NwCodec.GcAdpcm)
             {
                 configuration.SamplesPerSeekTableEntry = info.SamplesPerSeekTableEntry;
             }
             configuration.Codec = info.Codec;
             configuration.SamplesPerInterleave = info.SamplesPerInterleave;
-            configuration.TrackType = structure.HeaderType;
-            configuration.SeekTableType = structure.SeekTableType;
+            configuration.TrackType = structure.TrackInfo.Type;
+            configuration.SeekTableType = structure.BrstmSeekTableType;
             return configuration;
         }
 
-        private static void ReadRstmHeader(BinaryReader reader, BrstmStructure structure)
+        private static void ReadRstmHeader(BinaryReader reader, BxstmStructure structure)
         {
             reader.Expect((ushort)0xfeff);
             structure.Version = new NwVersion(reader.ReadByte(), reader.ReadByte());
@@ -60,24 +60,19 @@ namespace VGAudio.Containers.NintendoWare
             structure.HeaderSize = reader.ReadInt16();
             structure.BlockCount = reader.ReadInt16();
 
-            structure.HeadBlockOffset = reader.ReadInt32();
-            structure.HeadBlockSize = reader.ReadInt32();
-            structure.SeekBlockOffset = reader.ReadInt32();
-            structure.SeekBlockSize = reader.ReadInt32();
-            structure.DataBlockOffset = reader.ReadInt32();
-            structure.DataBlockSize = reader.ReadInt32();
+            structure.BrstmHeader = BrstmHeader.Read(reader);
         }
 
-        private static void ReadHeadBlock(BinaryReader reader, BrstmStructure structure)
+        private static void ReadHeadBlock(BinaryReader reader, BxstmStructure structure)
         {
-            reader.BaseStream.Position = structure.HeadBlockOffset;
+            reader.BaseStream.Position = structure.BrstmHeader.HeadBlockOffset;
 
             if (reader.ReadUTF8(4) != "HEAD")
             {
                 throw new InvalidDataException("Unknown or invalid HEAD block");
             }
 
-            if (reader.ReadInt32() != structure.HeadBlockSize)
+            if (reader.ReadInt32() != structure.BrstmHeader.HeadBlockSize)
             {
                 throw new InvalidDataException("HEAD block size in RSTM header doesn't match size in HEAD header");
             }
@@ -92,7 +87,7 @@ namespace VGAudio.Containers.NintendoWare
             ReadChannelInfo(reader, structure, channelInfo);
         }
 
-        private static void ReadStreamInfo(BinaryReader reader, BrstmStructure structure, Reference reference)
+        private static void ReadStreamInfo(BinaryReader reader, BxstmStructure structure, Reference reference)
         {
             if (reference?.IsType(ReferenceType.ByteTable) != true)
                 throw new InvalidDataException("Could not read stream info.");
@@ -101,7 +96,7 @@ namespace VGAudio.Containers.NintendoWare
             structure.StreamInfo = StreamInfo.ReadBrstm(reader);
         }
 
-        private static void ReadTrackInfo(BinaryReader reader, BrstmStructure structure, Reference reference)
+        private static void ReadTrackInfo(BinaryReader reader, BxstmStructure structure, Reference reference)
         {
             if (reference?.IsType(ReferenceType.ByteTable) != true)
                 throw new InvalidDataException("Could not read track info.");
@@ -110,7 +105,7 @@ namespace VGAudio.Containers.NintendoWare
             structure.TrackInfo = TrackInfo.ReadBrstm(reader, reference);
         }
 
-        private static void ReadChannelInfo(BinaryReader reader, BrstmStructure structure, Reference reference)
+        private static void ReadChannelInfo(BinaryReader reader, BxstmStructure structure, Reference reference)
         {
             if (reference?.IsType(ReferenceType.ByteTable) != true)
                 throw new InvalidDataException("Could not read channel info.");
@@ -119,22 +114,22 @@ namespace VGAudio.Containers.NintendoWare
             structure.ChannelInfo = ChannelInfo.ReadBrstm(reader, reference);
         }
 
-        private static void ReadAdpcBlock(BinaryReader reader, BrstmStructure structure)
+        private static void ReadAdpcBlock(BinaryReader reader, BxstmStructure structure)
         {
-            var info = structure.StreamInfo;
-            if (structure.SeekBlockOffset == 0) return;
-            reader.BaseStream.Position = structure.SeekBlockOffset;
+            if (structure.BrstmHeader.SeekBlockOffset == 0) return;
+            reader.BaseStream.Position = structure.BrstmHeader.SeekBlockOffset;
 
             if (reader.ReadUTF8(4) != "ADPC")
             {
                 throw new InvalidDataException("Unknown or invalid ADPC block");
             }
 
-            if (reader.ReadInt32() != structure.SeekBlockSize)
+            if (reader.ReadInt32() != structure.BrstmHeader.SeekBlockSize)
             {
                 throw new InvalidDataException("ADPC block size in RSTM header doesn't match size in ADPC header");
             }
 
+            StreamInfo info = structure.StreamInfo;
             bool fullLastSeekTableEntry = info.SampleCount % info.SamplesPerSeekTableEntry == 0 && info.SampleCount > 0;
             int bytesPerEntry = 4 * info.ChannelCount;
             int seekTableEntriesCountShortened = (SampleCountToByteCount(info.SampleCount) / info.SamplesPerSeekTableEntry) + 1;
@@ -142,30 +137,31 @@ namespace VGAudio.Containers.NintendoWare
             int expectedSizeShortened = GetNextMultiple(8 + seekTableEntriesCountShortened * bytesPerEntry, 0x20);
             int expectedSizeStandard = GetNextMultiple(8 + seekTableEntriesCountStandard * bytesPerEntry, 0x20);
 
-            if (structure.SeekBlockSize == expectedSizeStandard)
+            int seekTableSize;
+            if (structure.BrstmHeader.SeekBlockSize == expectedSizeStandard)
             {
-                structure.SeekTableSize = bytesPerEntry * seekTableEntriesCountStandard;
-                structure.SeekTableType = BrstmSeekTableType.Standard;
+                seekTableSize = bytesPerEntry * seekTableEntriesCountStandard;
+                structure.BrstmSeekTableType = BrstmSeekTableType.Standard;
             }
-            else if (structure.SeekBlockSize == expectedSizeShortened)
+            else if (structure.BrstmHeader.SeekBlockSize == expectedSizeShortened)
             {
-                structure.SeekTableSize = bytesPerEntry * seekTableEntriesCountShortened;
-                structure.SeekTableType = BrstmSeekTableType.Short;
+                seekTableSize = bytesPerEntry * seekTableEntriesCountShortened;
+                structure.BrstmSeekTableType = BrstmSeekTableType.Short;
             }
             else
             {
                 return; //Unknown format. Don't parse table
             }
 
-            byte[] tableBytes = reader.ReadBytes(structure.SeekTableSize);
+            byte[] tableBytes = reader.ReadBytes(seekTableSize);
 
             structure.SeekTable = tableBytes.ToShortArray(Endianness.BigEndian)
                 .DeInterleave(2, info.ChannelCount);
         }
 
-        private static void ReadDataBlock(BinaryReader reader, BrstmStructure structure, bool readAudioData)
+        private static void ReadDataBlock(BinaryReader reader, BxstmStructure structure, bool readAudioData)
         {
-            reader.BaseStream.Position = structure.DataBlockOffset;
+            reader.BaseStream.Position = structure.BrstmHeader.DataBlockOffset;
             StreamInfo info = structure.StreamInfo;
 
             if (reader.ReadUTF8(4) != "DATA")
@@ -173,7 +169,7 @@ namespace VGAudio.Containers.NintendoWare
                 throw new InvalidDataException("Unknown or invalid DATA block");
             }
 
-            if (reader.ReadInt32() != structure.DataBlockSize)
+            if (reader.ReadInt32() != structure.BrstmHeader.DataBlockSize)
             {
                 throw new InvalidDataException("DATA block size in main header doesn't match size in DATA header");
             }
@@ -181,7 +177,7 @@ namespace VGAudio.Containers.NintendoWare
             if (!readAudioData) return;
 
             reader.BaseStream.Position = info.AudioDataOffset;
-            int audioDataLength = structure.DataBlockSize - (info.AudioDataOffset - structure.DataBlockOffset);
+            int audioDataLength = structure.BrstmHeader.DataBlockSize - (info.AudioDataOffset - structure.BrstmHeader.DataBlockOffset);
             int outputSize = Common.SamplesToBytes(info.SampleCount, info.Codec);
 
             structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, info.InterleaveSize,

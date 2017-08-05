@@ -25,6 +25,15 @@ namespace VGAudio.Containers.NintendoWare
         /// </summary>
         public int BlockCount { get; set; }
 
+        /// <summary>
+        /// Information about the data blocks in the file.
+        /// Used in BRSTM files.
+        /// </summary>
+        public BrstmHeader BrstmHeader { get; set; }
+        /// <summary>
+        /// Information about the data blocks in the file.
+        /// Used in BCSTM and BFSTM files.
+        /// </summary>
         public List<SizedReference> Blocks { get; set; } = new List<SizedReference>();
 
         public StreamInfo StreamInfo { get; set; }
@@ -32,8 +41,17 @@ namespace VGAudio.Containers.NintendoWare
         public ChannelInfo ChannelInfo { get; set; }
 
         /// <summary>The audio regions in the file.
-        /// Used in BFSTM and BCSTM formats.</summary>
+        /// Used in BCSTM and BFSTM files.</summary>
         public List<RegionInfo> Regions { get; set; }
+
+        /// <summary>
+        /// Specifies whether the seek table is full
+        /// length, or a truncated table used in some
+        /// games including Pokémon Battle Revolution
+        /// and Mario Party 8. 
+        /// Used in BRSTM files.
+        /// </summary>
+        public BrstmSeekTableType BrstmSeekTableType { get; set; }
 
         /// <summary>
         /// The seek table containing PCM samples

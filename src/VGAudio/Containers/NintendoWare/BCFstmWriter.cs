@@ -13,18 +13,16 @@ using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.NintendoWare
 {
-    internal class BCFstmWriter
+    public class BCFstmWriter : AudioWriter<BCFstmWriter, BxstmConfiguration>
     {
         private GcAdpcmFormat Adpcm { get; set; }
         private Pcm16Format Pcm16 { get; set; }
         private Pcm8SignedFormat Pcm8 { get; set; }
         private IAudioFormat AudioFormat { get; set; }
 
-        public int FileSize => HeaderSize + InfoBlockSize + SeekBlockSize + DataBlockSize;
+        protected override int FileSize => HeaderSize + InfoBlockSize + SeekBlockSize + DataBlockSize;
 
-        public BxstmConfiguration Configuration { get; }
-
-        public BCFstmType Type { get; }
+        public NwTarget Type { get; }
         public Endianness Endianness => Configuration.Endianness ?? GetTypeEndianness(Type);
         private int SampleCount => AudioFormat.Looping ? LoopEnd : AudioFormat.SampleCount;
         private int ChannelCount => AudioFormat.ChannelCount;
@@ -57,7 +55,7 @@ namespace VGAudio.Containers.NintendoWare
         private static int HeaderSize => 0x40;
 
         private NwVersion Version => Configuration.Version ??
-                                     (Type == BCFstmType.Bcstm ? DefaultBcstmVersion : DefaultBfstmVersion);
+                                     (Type == NwTarget.Ctr ? DefaultBcstmVersion : DefaultBfstmVersion);
         private static NwVersion DefaultBcstmVersion { get; } = new NwVersion(2, 1);
         private static NwVersion DefaultBfstmVersion { get; } = new NwVersion(0, 3);
         private bool IncludeRegionInfo => IncludeRegionInfo(Version);
@@ -84,13 +82,12 @@ namespace VGAudio.Containers.NintendoWare
         private int DataBlockOffset => HeaderSize + InfoBlockSize + SeekBlockSize;
         private int DataBlockSize => 0x20 + AudioDataSize * ChannelCount;
 
-        public BCFstmWriter(BxstmConfiguration configuration, BCFstmType type)
+        public BCFstmWriter(NwTarget type)
         {
-            Configuration = configuration;
             Type = type;
         }
 
-        internal void SetupWriter(AudioData audio)
+        protected override void SetupWriter(AudioData audio)
         {
             var parameters = new GcAdpcmParameters { Progress = Configuration.Progress };
 
@@ -132,7 +129,7 @@ namespace VGAudio.Containers.NintendoWare
             }
         }
 
-        public void WriteStream(Stream stream)
+        protected override void WriteStream(Stream stream)
         {
             using (BinaryWriter writer = GetBinaryWriter(stream, Endianness))
             {
@@ -147,9 +144,9 @@ namespace VGAudio.Containers.NintendoWare
             }
         }
 
-        private int GetVersion(BCFstmType type)
+        private int GetVersion(NwTarget type)
         {
-            if (type == BCFstmType.Bfstm)
+            if (type == NwTarget.Cafe)
             {
                 return IncludeUnalignedLoopPoints ? 4 : 3;
             }
@@ -166,7 +163,7 @@ namespace VGAudio.Containers.NintendoWare
 
         private void WriteHeader(BinaryWriter writer)
         {
-            writer.WriteUTF8(Type == BCFstmType.Bcstm ? "CSTM" : "FSTM");
+            writer.WriteUTF8(Type == NwTarget.Ctr ? "CSTM" : "FSTM");
             writer.Write((ushort)0xfeff); //Endianness
             writer.Write((short)HeaderSize);
             writer.Write(GetVersion(Type) << 16);
@@ -369,13 +366,7 @@ namespace VGAudio.Containers.NintendoWare
             channels.Interleave(writer.BaseStream, InterleaveSize, AudioDataSize);
         }
 
-        public enum BCFstmType
-        {
-            Bcstm,
-            Bfstm
-        }
-
-        private static Endianness GetTypeEndianness(BCFstmType type) =>
-            type == BCFstmType.Bcstm ? Endianness.LittleEndian : Endianness.BigEndian;
+        private static Endianness GetTypeEndianness(NwTarget type) =>
+            type == NwTarget.Ctr ? Endianness.LittleEndian : Endianness.BigEndian;
     }
 }

@@ -72,57 +72,7 @@ namespace VGAudio.Cli
             return config;
         }
 
-        public static Configuration Brstm(Options options, Configuration inConfig = null)
-        {
-            var config = inConfig as BrstmConfiguration ?? new BrstmConfiguration();
-
-            switch (options.OutFormat)
-            {
-                case AudioFormat.GcAdpcm:
-                    config.Codec = NwCodec.GcAdpcm;
-                    break;
-                case AudioFormat.Pcm16:
-                    config.Codec = NwCodec.Pcm16Bit;
-                    break;
-                case AudioFormat.Pcm8:
-                    config.Codec = NwCodec.Pcm8Bit;
-                    break;
-            }
-
-            if (options.LoopAlignment > 0)
-            {
-                config.LoopPointAlignment = options.LoopAlignment;
-            }
-
-            return config;
-        }
-
-        public static Configuration Bcstm(Options options, Configuration inConfig = null)
-        {
-            var config = inConfig as BxstmConfiguration ?? new BxstmConfiguration();
-
-            switch (options.OutFormat)
-            {
-                case AudioFormat.GcAdpcm:
-                    config.Codec = NwCodec.GcAdpcm;
-                    break;
-                case AudioFormat.Pcm16:
-                    config.Codec = NwCodec.Pcm16Bit;
-                    break;
-                case AudioFormat.Pcm8:
-                    config.Codec = NwCodec.Pcm8Bit;
-                    break;
-            }
-
-            if (options.LoopAlignment > 0)
-            {
-                config.LoopPointAlignment = options.LoopAlignment;
-            }
-
-            return config;
-        }
-
-        public static Configuration Bfstm(Options options, Configuration inConfig = null)
+        public static Configuration Bxstm(Options options, Configuration inConfig = null)
         {
             var config = inConfig as BxstmConfiguration ?? new BxstmConfiguration();
 

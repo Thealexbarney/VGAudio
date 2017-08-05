@@ -1,7 +1,7 @@
 ﻿using System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
-using VGAudio.Containers.NintendoWare;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Uwp.Audio;
 
 namespace VGAudio.Uwp.Views

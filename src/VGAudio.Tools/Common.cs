@@ -18,8 +18,8 @@ namespace VGAudio.Tools
             new FileTypeInfo(FileType.Dsp, "*.dsp", () => new DspReader(), () => new DspWriter()),
             new FileTypeInfo(FileType.Idsp, "*.idsp", () => new IdspReader(), () => new IdspWriter()),
             new FileTypeInfo(FileType.Brstm, "*.brstm", () => new BrstmReader(), () => new BrstmWriter()),
-            new FileTypeInfo(FileType.Bcstm, "*.bcstm", () => new BcstmReader(), () => new BcstmWriter()),
-            new FileTypeInfo(FileType.Bfstm, "*.bfstm", () => new BfstmReader(), () => new BfstmWriter()),
+            new FileTypeInfo(FileType.Bcstm, "*.bcstm", () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Ctr)),
+            new FileTypeInfo(FileType.Bfstm, "*.bfstm", () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Cafe)),
             new FileTypeInfo(FileType.Hps, "*.hps", () => new HpsReader(), () => new HpsWriter()),
             new FileTypeInfo(FileType.Adx, "*.adx", () => new AdxReader(), () => new AdxWriter()),
             new FileTypeInfo(FileType.Genh, "*.genh", () => new GenhReader(), () => null)

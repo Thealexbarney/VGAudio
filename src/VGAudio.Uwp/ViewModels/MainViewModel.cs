@@ -53,9 +53,7 @@ namespace VGAudio.Uwp.ViewModels
         public double SamplesPerMs => Samples / (Time * 1000);
 
         public DspConfiguration DspConfiguration { get; set; } = new DspConfiguration();
-        public BrstmConfiguration BrstmConfiguration { get; set; } = new BrstmConfiguration();
-        public BxstmConfiguration BcstmConfiguration { get; set; } = new BxstmConfiguration();
-        public BxstmConfiguration BfstmConfiguration { get; set; } = new BxstmConfiguration();
+        public BxstmConfiguration BxstmConfiguration { get; set; } = new BxstmConfiguration();
         public IdspConfiguration IdspConfiguration { get; set; } = new IdspConfiguration();
         public AdxConfiguration AdxConfiguration { get; set; } = new AdxConfiguration();
 
@@ -179,11 +177,9 @@ namespace VGAudio.Uwp.ViewModels
                 case FileType.Idsp:
                     return IdspConfiguration;
                 case FileType.Brstm:
-                    return BrstmConfiguration;
                 case FileType.Bcstm:
-                    return BcstmConfiguration;
                 case FileType.Bfstm:
-                    return BfstmConfiguration;
+                    return BxstmConfiguration;
                 case FileType.Adx:
                     return AdxConfiguration;
                 default:

@@ -1,4 +1,5 @@
 ﻿using System;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Utilities;
 using static VGAudio.Containers.NintendoWare.Common;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
@@ -94,5 +95,21 @@ namespace VGAudio.Containers.NintendoWare
         public NwCodec Codec { get; set; } = NwCodec.GcAdpcm;
         public Endianness? Endianness { get; set; }
         public NwVersion Version { get; set; }
+
+        /// <summary>
+        /// The type of track description to be used when building the 
+        /// BRSTM header.
+        /// Default is <see cref="BrstmTrackType.Standard"/>.
+        /// Used only in BRSTM files.
+        /// </summary>
+        public BrstmTrackType TrackType { get; set; } = BrstmTrackType.Standard;
+
+        /// <summary>
+        /// The type of seek table to use when building the BRSTM
+        /// ADPC block.
+        /// Default is <see cref="BrstmSeekTableType.Standard"/>.
+        /// Used only in BRSTM files.
+        /// </summary>
+        public BrstmSeekTableType SeekTableType { get; set; } = BrstmSeekTableType.Standard;
     }
 }
