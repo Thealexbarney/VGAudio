@@ -19,7 +19,7 @@ namespace VGAudio.Containers.Bxstm
         private Pcm8SignedFormat Pcm8 { get; set; }
         private IAudioFormat AudioFormat { get; set; }
 
-        public int FileSize => HeaderSize + InfoChunkSize + SeekChunkSize + DataChunkSize;
+        public int FileSize => HeaderSize + InfoBlockSize + SeekBlockSize + DataBlockSize;
 
         public BcstmConfiguration BcstmConfig { get; } = new BcstmConfiguration();
         public BfstmConfiguration BfstmConfig { get; } = new BfstmConfiguration();
@@ -36,7 +36,7 @@ namespace VGAudio.Containers.Bxstm
         private int LoopEnd => AudioFormat.LoopEnd;
 
         private BxstmCodec Codec => Configuration.Codec;
-        private int AudioDataOffset => DataChunkOffset + 0x20;
+        private int AudioDataOffset => DataBlockOffset + 0x20;
 
         /// <summary>
         /// Size of a single channel's ADPCM audio data with padding when written to a file
@@ -57,29 +57,33 @@ namespace VGAudio.Containers.Bxstm
 
         private static int HeaderSize => 0x40;
 
-        private bool IncludeRegionInfo => IncludeRegionInfo(Configuration.Version);
-        private bool IncludeUnalignedLoopPoints => IncludeUnalignedLoop(Configuration.Version);
-        private bool IncludeTrackInformation => IncludeTrackInfo(Configuration.Version);
+        private NwVersion Version => Configuration.Version ??
+                                     (Type == BCFstmType.Bcstm ? DefaultBcstmVersion : DefaultBfstmVersion);
+        private static NwVersion DefaultBcstmVersion { get; } = new NwVersion(2, 1);
+        private static NwVersion DefaultBfstmVersion { get; } = new NwVersion(0, 3);
+        private bool IncludeRegionInfo => IncludeRegionInfo(Version);
+        private bool IncludeUnalignedLoopPoints => IncludeUnalignedLoop(Version);
+        private bool IncludeTrackInformation => IncludeTrackInfo(Version);
 
-        private int InfoChunkOffset => HeaderSize;
-        private int InfoChunkSize => GetNextMultiple(InfoChunkHeaderSize + InfoChunkTableSize +
-            InfoChunk1Size + InfoChunk2Size + InfoChunk3Size, 0x20);
-        private int InfoChunkHeaderSize => 8;
-        private int InfoChunkTableSize => 8 * 3;
-        private int InfoChunk1Size => 0x38 + (!IncludeRegionInfo ? 0 : 0xc) + (!IncludeUnalignedLoopPoints ? 0 : 8);
-        private int InfoChunk2Size => IncludeTrackInformation ? 4 + 8 * TrackCount : 0;
-        private int InfoChunk3Size => (4 + 8 * ChannelCount) +
+        private int InfoBlockOffset => HeaderSize;
+        private int InfoBlockSize => GetNextMultiple(InfoBlockHeaderSize + InfoBlockTableSize +
+            InfoBlock1Size + InfoBlock2Size + InfoBlock3Size, 0x20);
+        private int InfoBlockHeaderSize => 8;
+        private int InfoBlockTableSize => 8 * 3;
+        private int InfoBlock1Size => 0x38 + (!IncludeRegionInfo ? 0 : 0xc) + (!IncludeUnalignedLoopPoints ? 0 : 8);
+        private int InfoBlock2Size => IncludeTrackInformation ? 4 + 8 * TrackCount : 0;
+        private int InfoBlock3Size => (4 + 8 * ChannelCount) +
             (IncludeTrackInformation ? 0x14 * TrackCount : 0) +
             8 * ChannelCount +
             ChannelInfoSize * ChannelCount;
 
         private int ChannelInfoSize => Codec == BxstmCodec.Adpcm ? 0x2e : 0;
 
-        private int SeekChunkOffset => Codec == BxstmCodec.Adpcm ? HeaderSize + InfoChunkSize : 0;
-        private int SeekChunkSize => Codec == BxstmCodec.Adpcm ? GetNextMultiple(8 + SeekTableEntryCount * ChannelCount * BytesPerSeekTableEntry, 0x20) : 0;
+        private int SeekBlockOffset => Codec == BxstmCodec.Adpcm ? HeaderSize + InfoBlockSize : 0;
+        private int SeekBlockSize => Codec == BxstmCodec.Adpcm ? GetNextMultiple(8 + SeekTableEntryCount * ChannelCount * BytesPerSeekTableEntry, 0x20) : 0;
 
-        private int DataChunkOffset => HeaderSize + InfoChunkSize + SeekChunkSize;
-        private int DataChunkSize => 0x20 + AudioDataSize * ChannelCount;
+        private int DataBlockOffset => HeaderSize + InfoBlockSize + SeekBlockSize;
+        private int DataBlockSize => 0x20 + AudioDataSize * ChannelCount;
 
         public BCFstmWriter(BcstmConfiguration configuration)
         {
@@ -141,12 +145,12 @@ namespace VGAudio.Containers.Bxstm
             {
                 stream.Position = 0;
                 WriteHeader(writer);
-                stream.Position = InfoChunkOffset;
-                WriteInfoChunk(writer);
-                stream.Position = SeekChunkOffset;
-                WriteSeekChunk(writer);
-                stream.Position = DataChunkOffset;
-                WriteDataChunk(writer);
+                stream.Position = InfoBlockOffset;
+                WriteInfoBlock(writer);
+                stream.Position = SeekBlockOffset;
+                WriteSeekBlock(writer);
+                stream.Position = DataBlockOffset;
+                WriteDataBlock(writer);
             }
         }
 
@@ -179,25 +183,25 @@ namespace VGAudio.Containers.Bxstm
             writer.Write((short)0);
             writer.Write((short)0x4000);
             writer.Write((short)0);
-            writer.Write(InfoChunkOffset);
-            writer.Write(InfoChunkSize);
+            writer.Write(InfoBlockOffset);
+            writer.Write(InfoBlockSize);
             if (Codec == BxstmCodec.Adpcm)
             {
                 writer.Write((short)0x4001);
                 writer.Write((short)0);
-                writer.Write(SeekChunkOffset);
-                writer.Write(SeekChunkSize);
+                writer.Write(SeekBlockOffset);
+                writer.Write(SeekBlockSize);
             }
             writer.Write((short)0x4002);
             writer.Write((short)0);
-            writer.Write(DataChunkOffset);
-            writer.Write(DataChunkSize);
+            writer.Write(DataBlockOffset);
+            writer.Write(DataBlockSize);
         }
 
-        private void WriteInfoChunk(BinaryWriter writer)
+        private void WriteInfoBlock(BinaryWriter writer)
         {
             writer.WriteUTF8("INFO");
-            writer.Write(InfoChunkSize);
+            writer.Write(InfoBlockSize);
 
             int headerTableSize = 8 * 3;
 
@@ -208,7 +212,7 @@ namespace VGAudio.Containers.Bxstm
             {
                 writer.Write((short)0x0101);
                 writer.Write((short)0);
-                writer.Write(headerTableSize + InfoChunk1Size);
+                writer.Write(headerTableSize + InfoBlock1Size);
             }
             else
             {
@@ -217,14 +221,14 @@ namespace VGAudio.Containers.Bxstm
             }
             writer.Write((short)0x0101);
             writer.Write((short)0);
-            writer.Write(headerTableSize + InfoChunk1Size + InfoChunk2Size);
+            writer.Write(headerTableSize + InfoBlock1Size + InfoBlock2Size);
 
-            WriteInfoChunk1(writer);
-            WriteInfoChunk2(writer);
-            WriteInfoChunk3(writer);
+            WriteInfoBlock1(writer);
+            WriteInfoBlock2(writer);
+            WriteInfoBlock3(writer);
         }
 
-        private void WriteInfoChunk1(BinaryWriter writer)
+        private void WriteInfoBlock1(BinaryWriter writer)
         {
             writer.Write((byte)Codec);
             writer.Write(AudioFormat.Looping);
@@ -260,7 +264,7 @@ namespace VGAudio.Containers.Bxstm
             }
         }
 
-        private void WriteInfoChunk2(BinaryWriter writer)
+        private void WriteInfoBlock2(BinaryWriter writer)
         {
             if (!IncludeTrackInformation) return;
 
@@ -278,7 +282,7 @@ namespace VGAudio.Containers.Bxstm
             }
         }
 
-        private void WriteInfoChunk3(BinaryWriter writer)
+        private void WriteInfoBlock3(BinaryWriter writer)
         {
             int channelTableSize = 4 + 8 * ChannelCount;
             int trackTableSize = IncludeTrackInformation ? 0x14 * TrackCount : 0;
@@ -336,21 +340,21 @@ namespace VGAudio.Containers.Bxstm
             }
         }
 
-        private void WriteSeekChunk(BinaryWriter writer)
+        private void WriteSeekBlock(BinaryWriter writer)
         {
             if (Codec != BxstmCodec.Adpcm) return;
             writer.WriteUTF8("SEEK");
-            writer.Write(SeekChunkSize);
+            writer.Write(SeekBlockSize);
 
             var table = Adpcm.BuildSeekTable(SeekTableEntryCount, Endianness.LittleEndian);
 
             writer.Write(table);
         }
 
-        private void WriteDataChunk(BinaryWriter writer)
+        private void WriteDataBlock(BinaryWriter writer)
         {
             writer.WriteUTF8("DATA");
-            writer.Write(DataChunkSize);
+            writer.Write(DataBlockSize);
 
             writer.BaseStream.Position = AudioDataOffset;
 

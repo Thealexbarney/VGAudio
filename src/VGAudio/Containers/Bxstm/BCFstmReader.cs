@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using VGAudio.Containers.Bxstm.Structures;
 using VGAudio.Formats.GcAdpcm;
@@ -49,10 +50,10 @@ namespace VGAudio.Containers.Bxstm
                 structure.Endianness = endianness;
 
                 ReadHeader(reader, structure);
-                ReadInfoChunk(reader, structure);
-                ReadSeekChunk(reader, structure);
-                //ReadRegnChunk(reader, structure);
-                Common.ReadDataChunk2(reader, structure, readAudioData);
+                ReadInfoBlock(reader, structure);
+                ReadSeekBlock(reader, structure);
+                ReadRegionBlock(reader, structure);
+                ReadDataBlock(reader, structure, readAudioData);
 
                 return structure;
             }
@@ -70,30 +71,29 @@ namespace VGAudio.Containers.Bxstm
                 throw new InvalidDataException("Actual file length is less than stated length");
             }
 
-            structure.HeaderSections = reader.ReadInt16();
+            structure.BlockCount = reader.ReadInt16();
             reader.BaseStream.Position += 2;
 
-            for (int i = 0; i < structure.HeaderSections; i++)
+            for (int i = 0; i < structure.BlockCount; i++)
             {
-                structure.Sections.Add(new SizedReference(reader));
+                structure.Blocks.Add(new SizedReference(reader));
             }
         }
 
-        private static void ReadInfoChunk(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadInfoBlock(BinaryReader reader, BCFstmStructure structure)
         {
-            SizedReference reference = structure.Sections.FirstOrDefault(x => x.Type == ReferenceType.StreamInfoBlock) ??
-                throw new InvalidDataException("File has no INFO chunk");
+            SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamInfoBlock) ??
+                throw new InvalidDataException("File has no INFO block");
 
             reader.BaseStream.Position = reference.AbsoluteOffset;
             if (reader.ReadUTF8(4) != "INFO")
             {
-                throw new InvalidDataException("Unknown or invalid INFO chunk");
+                throw new InvalidDataException("Unknown or invalid INFO block");
             }
 
-            structure.InfoChunkSize = reader.ReadInt32();
-            if (structure.InfoChunkSize != reference.Size)
+            if (reader.ReadInt32() != reference.Size)
             {
-                throw new InvalidDataException("INFO chunk size in main header doesn't match size in INFO header");
+                throw new InvalidDataException("INFO block size in main header doesn't match size in INFO header");
             }
 
             int baseOffset = (int)reader.BaseStream.Position;
@@ -128,94 +128,64 @@ namespace VGAudio.Containers.Bxstm
             if (reference?.IsType(ReferenceType.ReferenceTable) != true) { return; }
 
             reader.BaseStream.Position = reference.AbsoluteOffset;
-            int baseOffset = reference.AbsoluteOffset;
-            var table = new ReferenceTable(reader, baseOffset);
-
-            foreach (Reference channelInfo in table.References)
-            {
-                reader.BaseStream.Position = channelInfo.AbsoluteOffset;
-                var adpcmInfo = new Reference(reader, channelInfo.AbsoluteOffset);
-
-                if (adpcmInfo.IsType(ReferenceType.GcAdpcmInfo))
-                {
-                    reader.BaseStream.Position = adpcmInfo.AbsoluteOffset;
-
-                    var channel = new GcAdpcmChannelInfo
-                    {
-                        Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray(),
-                        Start = new GcAdpcmContext(reader),
-                        Loop = new GcAdpcmContext(reader)
-                    };
-                    structure.Channels.Add(channel);
-                }
-            }
+            structure.ChannelInfo = ChannelInfo.ReadBfstm(reader);
         }
 
-        private static void ReadSeekChunk(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadSeekBlock(BinaryReader reader, BCFstmStructure structure)
         {
+            SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamSeekBlock);
+            if (reference == null) return;
+
+            reader.BaseStream.Position = reference.AbsoluteOffset;
             StreamInfo info = structure.StreamInfo;
-            if (structure.SeekChunkOffset == 0) return;
-            reader.BaseStream.Position = structure.SeekChunkOffset;
 
             if (reader.ReadUTF8(4) != "SEEK")
             {
-                throw new InvalidDataException("Unknown or invalid SEEK chunk");
+                throw new InvalidDataException("Unknown or invalid SEEK block");
             }
-            structure.SeekChunkSize = reader.ReadInt32();
 
-            if (structure.SeekChunkSizeHeader != structure.SeekChunkSize)
+            if (reader.ReadInt32() != reference.Size)
             {
-                throw new InvalidDataException("SEEK chunk size in header doesn't match size in SEEK header");
+                throw new InvalidDataException("SEEK block size in main header doesn't match size in SEEK header");
             }
 
             int bytesPerEntry = 4 * info.ChannelCount;
             int numSeekTableEntries = info.SampleCount.DivideByRoundUp(info.SamplesPerSeekTableEntry);
 
-            structure.SeekTableSize = bytesPerEntry * numSeekTableEntries;
+            int seekTableSize = bytesPerEntry * numSeekTableEntries;
 
-            byte[] tableBytes = reader.ReadBytes(structure.SeekTableSize);
+            byte[] tableBytes = reader.ReadBytes(seekTableSize);
 
             structure.SeekTable = tableBytes.ToShortArray()
                 .DeInterleave(2, info.ChannelCount);
         }
 
-        private static void ReadRegnChunk(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadRegionBlock(BinaryReader reader, BCFstmStructure structure)
         {
-            SizedReference reference = structure.Sections.FirstOrDefault(x => x.Type == ReferenceType.StreamInfoBlock);
+            SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamRegionBlock);
             if (reference == null) return;
-
-            StreamInfo info = structure.StreamInfo;
-
+            
             reader.BaseStream.Position = reference.AbsoluteOffset;
 
             if (reader.ReadUTF8(4) != "REGN")
             {
-                throw new InvalidDataException("Unknown or invalid REGN chunk");
-            }
-            structure.RegnChunkSize = reader.ReadInt32();
-
-            if (structure.RegnChunkSizeHeader != structure.RegnChunkSize)
-            {
-                throw new InvalidDataException("REGN chunk size in header doesn't match size in REGN header");
+                throw new InvalidDataException("Unknown or invalid REGN block");
             }
 
-            if (info.RegionCount * info.RegionInfoSize != structure.RegnChunkSize)
+            if (reader.ReadInt32() != reference.Size)
             {
-                throw new InvalidDataException(
-                    $"Invalid REGN chunk size 0x{structure.RegnChunkSize:x}. Expected 0x{info.RegionCount * info.RegionInfoSize + 0x20:x}");
+                throw new InvalidDataException("REGN block size in main header doesn't match size in REGN header");
             }
 
-            var regn = new RegnChunk
-            {
-                Size = structure.RegnChunkSize,
-                EntryCount = info.RegionCount
-            };
+            StreamInfo info = structure.StreamInfo;
+            int startAddress = reference.AbsoluteOffset + 8 + info.RegionReference.Offset;
+            var regions = new List<RegionInfo>();
 
-            for (int i = 0; i < regn.EntryCount; i++)
+            for (int i = 0; i < info.RegionCount; i++)
             {
-                reader.BaseStream.Position = structure.RegnChunkOffset + 0x20 + info.RegionInfoSize * i;
+                reader.BaseStream.Position = startAddress + info.RegionInfoSize * i;
 
-                var entry = new RegnEntry
+                var entry = new RegionInfo
                 {
                     StartSample = reader.ReadInt32(),
                     EndSample = reader.ReadInt32()
@@ -223,17 +193,42 @@ namespace VGAudio.Containers.Bxstm
 
                 for (int c = 0; c < info.ChannelCount; c++)
                 {
-                    entry.Channels.Add(new RegnChannel
-                    {
-                        PredScale = reader.ReadInt16(),
-                        Value1 = reader.ReadInt16(),
-                        Value2 = reader.ReadInt16()
-                    });
+                    entry.Channels.Add(new GcAdpcmContext(reader));
                 }
-                regn.Entries.Add(entry);
+                regions.Add(entry);
             }
 
-            structure.Regn = regn;
+            structure.Regions = regions;
+        }
+
+        private static void ReadDataBlock(BinaryReader reader, BCFstmStructure structure, bool readAudioData)
+        {
+            SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamDataBlock) ??
+                                       throw new InvalidDataException("File has no DATA block");
+
+            var info = structure.StreamInfo;
+
+            reader.BaseStream.Position = reference.AbsoluteOffset;
+
+            if (reader.ReadUTF8(4) != "DATA")
+            {
+                throw new InvalidDataException("Unknown or invalid DATA block");
+            }
+
+            if (reader.ReadInt32() != reference.Size)
+            {
+                throw new InvalidDataException("DATA block size in main header doesn't match size in DATA header");
+            }
+
+            if (!readAudioData) return;
+
+            int audioOffset = reference.AbsoluteOffset + info.AudioReference.Offset + 8;
+            reader.BaseStream.Position = audioOffset;
+            int audioDataLength = reference.Size - (audioOffset - reference.AbsoluteOffset);
+            int outputSize = Common.SamplesToBytes(info.SampleCount, info.Codec);
+
+            structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, info.InterleaveSize,
+                info.ChannelCount, outputSize);
         }
 
         private enum BCFstmType

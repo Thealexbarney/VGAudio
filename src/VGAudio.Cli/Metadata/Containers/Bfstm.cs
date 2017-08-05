@@ -15,26 +15,15 @@ namespace VGAudio.Cli.Metadata.Containers
             var bfstm = structure as BfstmStructure;
             if (bfstm == null) throw new InvalidDataException("Could not parse file metadata.");
 
-            if (bfstm.Regn == null) return;
+            if (bfstm.Regions == null) return;
 
-            builder.AppendLine("\nREGN Chunk");
+            builder.AppendLine("\nAudio Regions");
             builder.AppendLine(new string('-', 40));
+            builder.AppendLine("Start sample - End sample\n");
 
-            for (int i = 0; i < bfstm.Regn.EntryCount; i++)
+            for (int i = 0; i < bfstm.Regions.Count; i++)
             {
-                builder.AppendLine();
-                builder.AppendLine($"Entry {i}");
-                builder.AppendLine(new string('-', 25));
-                builder.AppendLine($"Start sample: {bfstm.Regn.Entries[i].StartSample}");
-                builder.AppendLine($"End sample: {bfstm.Regn.Entries[i].EndSample}");
-
-                for (int c = 0; c < bfstm.StreamInfo.ChannelCount; c++)
-                {
-                    short v1 = bfstm.Regn.Entries[i].Channels[c].Value1;
-                    short v2 = bfstm.Regn.Entries[i].Channels[c].Value2;
-
-                    builder.AppendLine($"Channel {c}: {v1}, {v2}");
-                }
+                builder.AppendLine($"{i}: {bfstm.Regions[i].StartSample} - {bfstm.Regions[i].EndSample}");
             }
         }
     }

@@ -14,7 +14,7 @@
 
         /// <summary>
         /// The type of seek table to use when building the BRSTM
-        /// ADPC chunk.
+        /// ADPC block.
         /// Default is <see cref="BrstmSeekTableType.Standard"/>
         /// </summary>
         public BrstmSeekTableType SeekTableType { get; set; } = BrstmSeekTableType.Standard;

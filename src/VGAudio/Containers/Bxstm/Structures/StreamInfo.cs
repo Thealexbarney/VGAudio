@@ -65,26 +65,25 @@ namespace VGAudio.Containers.Bxstm.Structures
 
         public static StreamInfo ReadBfstm(BinaryReader reader, NwVersion version)
         {
-            var info = new StreamInfo();
-            info.Codec = (BxstmCodec)reader.ReadByte();
-
-            info.Looping = reader.ReadBoolean();
-            info.ChannelCount = reader.ReadByte();
-            info.RegionCount = reader.ReadByte();
-            info.SampleRate = reader.ReadInt32();
-            info.LoopStart = reader.ReadInt32();
-            info.SampleCount = reader.ReadInt32();
-
-            info.InterleaveCount = reader.ReadInt32();
-            info.InterleaveSize = reader.ReadInt32();
-            info.SamplesPerInterleave = reader.ReadInt32();
-            info.LastBlockSizeWithoutPadding = reader.ReadInt32();
-            info.LastBlockSamples = reader.ReadInt32();
-            info.LastBlockSize = reader.ReadInt32();
-            info.BytesPerSeekTableEntry = reader.ReadInt32();
-            info.SamplesPerSeekTableEntry = reader.ReadInt32();
-
-            info.AudioReference = new Reference(reader);
+            var info = new StreamInfo
+            {
+                Codec = (BxstmCodec) reader.ReadByte(),
+                Looping = reader.ReadBoolean(),
+                ChannelCount = reader.ReadByte(),
+                RegionCount = reader.ReadByte(),
+                SampleRate = reader.ReadInt32(),
+                LoopStart = reader.ReadInt32(),
+                SampleCount = reader.ReadInt32(),
+                InterleaveCount = reader.ReadInt32(),
+                InterleaveSize = reader.ReadInt32(),
+                SamplesPerInterleave = reader.ReadInt32(),
+                LastBlockSizeWithoutPadding = reader.ReadInt32(),
+                LastBlockSamples = reader.ReadInt32(),
+                LastBlockSize = reader.ReadInt32(),
+                BytesPerSeekTableEntry = reader.ReadInt32(),
+                SamplesPerSeekTableEntry = reader.ReadInt32(),
+                AudioReference = new Reference(reader)
+            };
 
             if (Common.IncludeRegionInfo(version))
             {
@@ -120,7 +119,6 @@ namespace VGAudio.Containers.Bxstm.Structures
 
             info.LoopStart = reader.ReadInt32();
             info.SampleCount = reader.ReadInt32();
-
             info.AudioDataOffset = reader.ReadInt32();
             info.InterleaveCount = reader.ReadInt32();
             info.InterleaveSize = reader.ReadInt32();

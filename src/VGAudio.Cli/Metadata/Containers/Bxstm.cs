@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Bxstm.Structures;
@@ -51,16 +50,16 @@ namespace VGAudio.Cli.Metadata.Containers
 
             builder.AppendLine($"Samples per seek table entry: {info.SamplesPerSeekTableEntry}");
 
-            for (int i = 0; i < bxstm.Tracks.Count; i++)
+            for (int i = 0; i < bxstm.TrackInfo?.Tracks.Count; i++)
             {
                 builder.AppendLine();
                 builder.AppendLine($"Track {i}");
                 builder.AppendLine(new string('-', 25));
-                PrintTrackMetadata(bxstm.Tracks[i], builder);
+                PrintTrackMetadata(bxstm.TrackInfo?.Tracks[i], builder);
             }
 
             if (info.Codec != BxstmCodec.Adpcm) return;
-            GcAdpcm.PrintAdpcmMetadata(bxstm.Channels.Cast<GcAdpcmChannelInfo>().ToList(), builder);
+            GcAdpcm.PrintAdpcmMetadata(bxstm.ChannelInfo.Channels, builder);
         }
 
         public static void PrintTrackMetadata(AudioTrack track, StringBuilder builder)
