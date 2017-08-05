@@ -12,7 +12,7 @@ namespace VGAudio.Cli.Metadata.Containers
         {
             Bxstm.PrintSpecificMetadata(structure, builder);
 
-            var bfstm = structure as BfstmStructure;
+            var bfstm = structure as BxstmStructure;
             if (bfstm == null) throw new InvalidDataException("Could not parse file metadata.");
 
             if (bfstm.Regions == null) return;

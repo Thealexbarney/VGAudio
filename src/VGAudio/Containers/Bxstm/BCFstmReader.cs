@@ -10,26 +10,19 @@ namespace VGAudio.Containers.Bxstm
 {
     public class BCFstmReader
     {
-        public BCFstmStructure ReadFile(Stream stream, bool readAudioData = true)
+        public BxstmStructure ReadFile(Stream stream, bool readAudioData = true)
         {
-            BCFstmType type;
             Endianness endianness;
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 string magic = reader.ReadUTF8(4);
-                switch (magic)
+                if (magic != "CSTM" && magic != "FSTM")
                 {
-                    case "CSTM":
-                        type = BCFstmType.Bcstm;
-                        break;
-                    case "FSTM":
-                        type = BCFstmType.Bfstm;
-                        break;
-                    default:
-                        throw new InvalidDataException("File has no CSTM or FSTM header");
+                    throw new InvalidDataException("File has no CSTM or FSTM header");
                 }
 
-                var bom = reader.ReadUInt16();
+                ushort bom = reader.ReadUInt16();
+                stream.Position -= 2;
                 switch (bom)
                 {
                     case 0xFEFF:
@@ -41,13 +34,11 @@ namespace VGAudio.Containers.Bxstm
                     default:
                         throw new InvalidDataException("File has no byte order mark");
                 }
-                stream.Position -= 2;
             }
 
             using (BinaryReader reader = GetBinaryReader(stream, endianness))
             {
-                BCFstmStructure structure = type == BCFstmType.Bcstm ? (BCFstmStructure)new BcstmStructure() : new BfstmStructure();
-                structure.Endianness = endianness;
+                var structure = new BxstmStructure { Endianness = endianness };
 
                 ReadHeader(reader, structure);
                 ReadInfoBlock(reader, structure);
@@ -59,7 +50,7 @@ namespace VGAudio.Containers.Bxstm
             }
         }
 
-        private static void ReadHeader(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadHeader(BinaryReader reader, BxstmStructure structure)
         {
             reader.Expect((ushort)0xfeff);
             structure.HeaderSize = reader.ReadInt16();
@@ -80,7 +71,7 @@ namespace VGAudio.Containers.Bxstm
             }
         }
 
-        private static void ReadInfoBlock(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadInfoBlock(BinaryReader reader, BxstmStructure structure)
         {
             SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamInfoBlock) ??
                 throw new InvalidDataException("File has no INFO block");
@@ -106,7 +97,7 @@ namespace VGAudio.Containers.Bxstm
             ReadChannelInfo(reader, structure, channelInfo);
         }
 
-        private static void ReadStreamInfo(BinaryReader reader, BCFstmStructure structure, Reference reference)
+        private static void ReadStreamInfo(BinaryReader reader, BxstmStructure structure, Reference reference)
         {
             if (reference?.IsType(ReferenceType.StreamInfo) != true)
                 throw new InvalidDataException("Could not read stream info.");
@@ -115,7 +106,7 @@ namespace VGAudio.Containers.Bxstm
             structure.StreamInfo = StreamInfo.ReadBfstm(reader, structure.Version);
         }
 
-        private static void ReadTrackInfo(BinaryReader reader, BCFstmStructure structure, Reference reference)
+        private static void ReadTrackInfo(BinaryReader reader, BxstmStructure structure, Reference reference)
         {
             if (reference?.IsType(ReferenceType.ReferenceTable) != true) { return; }
 
@@ -123,7 +114,7 @@ namespace VGAudio.Containers.Bxstm
             structure.TrackInfo = TrackInfo.ReadBfstm(reader);
         }
 
-        private static void ReadChannelInfo(BinaryReader reader, BCFstmStructure structure, Reference reference)
+        private static void ReadChannelInfo(BinaryReader reader, BxstmStructure structure, Reference reference)
         {
             if (reference?.IsType(ReferenceType.ReferenceTable) != true) { return; }
 
@@ -131,7 +122,7 @@ namespace VGAudio.Containers.Bxstm
             structure.ChannelInfo = ChannelInfo.ReadBfstm(reader);
         }
 
-        private static void ReadSeekBlock(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadSeekBlock(BinaryReader reader, BxstmStructure structure)
         {
             SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamSeekBlock);
             if (reference == null) return;
@@ -160,11 +151,11 @@ namespace VGAudio.Containers.Bxstm
                 .DeInterleave(2, info.ChannelCount);
         }
 
-        private static void ReadRegionBlock(BinaryReader reader, BCFstmStructure structure)
+        private static void ReadRegionBlock(BinaryReader reader, BxstmStructure structure)
         {
             SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamRegionBlock);
             if (reference == null) return;
-            
+
             reader.BaseStream.Position = reference.AbsoluteOffset;
 
             if (reader.ReadUTF8(4) != "REGN")
@@ -201,7 +192,7 @@ namespace VGAudio.Containers.Bxstm
             structure.Regions = regions;
         }
 
-        private static void ReadDataBlock(BinaryReader reader, BCFstmStructure structure, bool readAudioData)
+        private static void ReadDataBlock(BinaryReader reader, BxstmStructure structure, bool readAudioData)
         {
             SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamDataBlock) ??
                                        throw new InvalidDataException("File has no DATA block");
@@ -229,12 +220,6 @@ namespace VGAudio.Containers.Bxstm
 
             structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, info.InterleaveSize,
                 info.ChannelCount, outputSize);
-        }
-
-        private enum BCFstmType
-        {
-            Bcstm,
-            Bfstm
         }
     }
 }

@@ -30,7 +30,7 @@ namespace VGAudio.Containers.Bxstm
         private int LoopStart => AudioFormat.LoopStart;
         private int LoopEnd => AudioFormat.LoopEnd;
 
-        private BxstmCodec Codec => Configuration.Codec;
+        private NwCodec Codec => Configuration.Codec;
         private int AudioDataOffset => DataBlockOffset + 0x20;
 
         /// <summary>
@@ -46,8 +46,8 @@ namespace VGAudio.Containers.Bxstm
         private int LastBlockSizeWithoutPadding => SamplesToBytes(LastBlockSamples, Codec);
         private int LastBlockSize => GetNextMultiple(LastBlockSizeWithoutPadding, 0x20);
 
-        private int SamplesPerSeekTableEntry => Codec == BxstmCodec.Adpcm ? Configuration.SamplesPerSeekTableEntry : 0;
-        private int BytesPerSeekTableEntry => Codec == BxstmCodec.Adpcm ? 4 : 0;
+        private int SamplesPerSeekTableEntry => Codec == NwCodec.GcAdpcm ? Configuration.SamplesPerSeekTableEntry : 0;
+        private int BytesPerSeekTableEntry => Codec == NwCodec.GcAdpcm ? 4 : 0;
         private int SeekTableEntryCount => Configuration.SeekTableType == BrstmSeekTableType.Standard
             ? SampleCount.DivideByRoundUp(SamplesPerSeekTableEntry)
             : (SampleCountToByteCount(SampleCount) / SamplesPerSeekTableEntry) + 1;
@@ -64,10 +64,10 @@ namespace VGAudio.Containers.Bxstm
         private BrstmTrackType HeaderType => Configuration.TrackType;
         private int TrackInfoSize => HeaderType == BrstmTrackType.Short ? 4 : 0x0c;
         private int HeadBlock3Size => 4 + (8 * ChannelCount) + (ChannelInfoSize * ChannelCount);
-        private int ChannelInfoSize => Codec == BxstmCodec.Adpcm ? 0x38 : 8;
+        private int ChannelInfoSize => Codec == NwCodec.GcAdpcm ? 0x38 : 8;
 
-        private int AdpcBlockOffset => Codec == BxstmCodec.Adpcm ? RstmHeaderSize + HeadBlockSize : 0;
-        private int AdpcBlockSize => Codec == BxstmCodec.Adpcm ? GetNextMultiple(8 + SeekTableEntryCount * ChannelCount * BytesPerSeekTableEntry, 0x20) : 0;
+        private int AdpcBlockOffset => Codec == NwCodec.GcAdpcm ? RstmHeaderSize + HeadBlockSize : 0;
+        private int AdpcBlockSize => Codec == NwCodec.GcAdpcm ? GetNextMultiple(8 + SeekTableEntryCount * ChannelCount * BytesPerSeekTableEntry, 0x20) : 0;
 
         private int DataBlockOffset => RstmHeaderSize + HeadBlockSize + AdpcBlockSize;
         private int DataBlockSize => 0x20 + AudioDataSize * ChannelCount;
@@ -82,7 +82,7 @@ namespace VGAudio.Containers.Bxstm
         {
             var parameters = new GcAdpcmParameters { Progress = Configuration.Progress };
 
-            if (Codec == BxstmCodec.Adpcm)
+            if (Codec == NwCodec.GcAdpcm)
             {
                 Adpcm = audio.GetFormat<GcAdpcmFormat>(parameters);
 
@@ -106,13 +106,13 @@ namespace VGAudio.Containers.Bxstm
                 AudioFormat = Adpcm;
                 Tracks = Adpcm.Tracks;
             }
-            else if (Codec == BxstmCodec.Pcm16Bit)
+            else if (Codec == NwCodec.Pcm16Bit)
             {
                 Pcm16 = audio.GetFormat<Pcm16Format>(parameters);
                 AudioFormat = Pcm16;
                 Tracks = Pcm16.Tracks;
             }
-            else if (Codec == BxstmCodec.Pcm8Bit)
+            else if (Codec == NwCodec.Pcm8Bit)
             {
                 Pcm8 = audio.GetFormat<Pcm8SignedFormat>(parameters);
                 AudioFormat = Pcm8;
@@ -239,7 +239,7 @@ namespace VGAudio.Containers.Bxstm
             for (int i = 0; i < ChannelCount; i++)
             {
                 writer.Write(OffsetMarker);
-                if (Codec != BxstmCodec.Adpcm)
+                if (Codec != NwCodec.GcAdpcm)
                 {
                     writer.Write(0);
                     continue;
@@ -259,7 +259,7 @@ namespace VGAudio.Containers.Bxstm
 
         private void WriteAdpcBlock(BinaryWriter writer)
         {
-            if (Codec != BxstmCodec.Adpcm) return;
+            if (Codec != NwCodec.GcAdpcm) return;
             writer.WriteUTF8("ADPC");
             writer.Write(AdpcBlockSize);
 
@@ -279,13 +279,13 @@ namespace VGAudio.Containers.Bxstm
             byte[][] channels = null;
             switch (Codec)
             {
-                case BxstmCodec.Adpcm:
+                case NwCodec.GcAdpcm:
                     channels = Adpcm.Channels.Select(x => x.GetAdpcmAudio()).ToArray();
                     break;
-                case BxstmCodec.Pcm16Bit:
+                case NwCodec.Pcm16Bit:
                     channels = Pcm16.Channels.Select(x => x.ToByteArray(Endianness.BigEndian)).ToArray();
                     break;
-                case BxstmCodec.Pcm8Bit:
+                case NwCodec.Pcm8Bit:
                     channels = Pcm8.Channels;
                     break;
             }

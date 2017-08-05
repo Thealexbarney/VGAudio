@@ -9,30 +9,30 @@ namespace VGAudio.Containers.Bxstm
 {
     internal static class Common
     {
-        public static int SamplesToBytes(int sampleCount, BxstmCodec codec)
+        public static int SamplesToBytes(int sampleCount, NwCodec codec)
         {
             switch (codec)
             {
-                case BxstmCodec.Adpcm:
+                case NwCodec.GcAdpcm:
                     return GcAdpcmHelpers.SampleCountToByteCount(sampleCount);
-                case BxstmCodec.Pcm16Bit:
+                case NwCodec.Pcm16Bit:
                     return sampleCount * 2;
-                case BxstmCodec.Pcm8Bit:
+                case NwCodec.Pcm8Bit:
                     return sampleCount;
                 default:
                     return 0;
             }
         }
 
-        public static int BytesToSamples(int byteCount, BxstmCodec codec)
+        public static int BytesToSamples(int byteCount, NwCodec codec)
         {
             switch (codec)
             {
-                case BxstmCodec.Adpcm:
+                case NwCodec.GcAdpcm:
                     return GcAdpcmHelpers.NibbleCountToSampleCount(byteCount * 2);
-                case BxstmCodec.Pcm16Bit:
+                case NwCodec.Pcm16Bit:
                     return byteCount / 2;
-                case BxstmCodec.Pcm8Bit:
+                case NwCodec.Pcm8Bit:
                     return byteCount;
                 default:
                     return 0;
@@ -43,11 +43,11 @@ namespace VGAudio.Containers.Bxstm
         {
             switch (structure.StreamInfo.Codec)
             {
-                case BxstmCodec.Adpcm:
+                case NwCodec.GcAdpcm:
                     return ToAdpcmStream(structure);
-                case BxstmCodec.Pcm16Bit:
+                case NwCodec.Pcm16Bit:
                     return ToPcm16Stream(structure);
-                case BxstmCodec.Pcm8Bit:
+                case NwCodec.Pcm8Bit:
                     return ToPcm8Stream(structure);
                 default:
                     return null;

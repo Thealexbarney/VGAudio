@@ -3,14 +3,14 @@ using VGAudio.Formats;
 
 namespace VGAudio.Containers.Bxstm
 {
-    public class BcstmWriter : AudioWriter<BcstmWriter, BcstmConfiguration>
+    public class BcstmWriter : AudioWriter<BcstmWriter, BxstmConfiguration>
     {
         private BCFstmWriter Writer { get; set; }
 
         protected override int FileSize => Writer.FileSize;
         protected override void SetupWriter(AudioData audio)
         {
-            Writer = new BCFstmWriter(Configuration);
+            Writer = new BCFstmWriter(Configuration, BCFstmWriter.BCFstmType.Bcstm);
             Writer.SetupWriter(audio);
         }
 

@@ -5,7 +5,7 @@ namespace VGAudio.Containers.Bxstm.Structures
     public class StreamInfo
     {
         /// <summary>The audio codec.</summary>
-        public BxstmCodec Codec { get; set; }
+        public NwCodec Codec { get; set; }
         /// <summary>This flag is set if the file loops.</summary>
         public bool Looping { get; set; }
         /// <summary>The number of channels in the file.</summary>
@@ -67,7 +67,7 @@ namespace VGAudio.Containers.Bxstm.Structures
         {
             var info = new StreamInfo
             {
-                Codec = (BxstmCodec) reader.ReadByte(),
+                Codec = (NwCodec)reader.ReadByte(),
                 Looping = reader.ReadBoolean(),
                 ChannelCount = reader.ReadByte(),
                 RegionCount = reader.ReadByte(),
@@ -109,7 +109,7 @@ namespace VGAudio.Containers.Bxstm.Structures
         public static StreamInfo ReadBrstm(BinaryReader reader)
         {
             var info = new StreamInfo();
-            info.Codec = (BxstmCodec)reader.ReadByte();
+            info.Codec = (NwCodec)reader.ReadByte();
             info.Looping = reader.ReadBoolean();
             info.ChannelCount = reader.ReadByte();
             reader.BaseStream.Position += 1;

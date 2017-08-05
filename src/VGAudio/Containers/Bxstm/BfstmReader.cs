@@ -3,19 +3,19 @@ using VGAudio.Formats;
 
 namespace VGAudio.Containers.Bxstm
 {
-    public class BfstmReader : AudioReader<BfstmReader, BfstmStructure, BfstmConfiguration>
+    public class BfstmReader : AudioReader<BfstmReader, BxstmStructure, BxstmConfiguration>
     {
-        protected override BfstmStructure ReadFile(Stream stream, bool readAudioData = true)
+        protected override BxstmStructure ReadFile(Stream stream, bool readAudioData = true)
         {
-            return (BfstmStructure)new BCFstmReader().ReadFile(stream, readAudioData);
+            return new BCFstmReader().ReadFile(stream, readAudioData);
         }
 
-        protected override IAudioFormat ToAudioStream(BfstmStructure structure) => Common.ToAudioStream(structure);
+        protected override IAudioFormat ToAudioStream(BxstmStructure structure) => Common.ToAudioStream(structure);
 
-        protected override BfstmConfiguration GetConfiguration(BfstmStructure structure)
+        protected override BxstmConfiguration GetConfiguration(BxstmStructure structure)
         {
-            var configuration = new BfstmConfiguration();
-            if (structure.StreamInfo.Codec == BxstmCodec.Adpcm)
+            var configuration = new BxstmConfiguration();
+            if (structure.StreamInfo.Codec == NwCodec.GcAdpcm)
             {
                 configuration.SamplesPerSeekTableEntry = structure.StreamInfo.SamplesPerSeekTableEntry;
             }

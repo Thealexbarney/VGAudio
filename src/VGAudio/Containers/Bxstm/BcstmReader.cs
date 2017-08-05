@@ -1,22 +1,23 @@
 ﻿using System.IO;
+using VGAudio.Containers.Bxstm.Structures;
 using VGAudio.Formats;
 
 namespace VGAudio.Containers.Bxstm
 {
-    public class BcstmReader : AudioReader<BcstmReader, BcstmStructure, BcstmConfiguration>
+    public class BcstmReader : AudioReader<BcstmReader, BxstmStructure, BxstmConfiguration>
     {
-        protected override BcstmStructure ReadFile(Stream stream, bool readAudioData = true)
+        protected override BxstmStructure ReadFile(Stream stream, bool readAudioData = true)
         {
-            return (BcstmStructure)new BCFstmReader().ReadFile(stream, readAudioData);
+            return new BCFstmReader().ReadFile(stream, readAudioData);
         }
 
-        protected override IAudioFormat ToAudioStream(BcstmStructure structure) => Common.ToAudioStream(structure);
+        protected override IAudioFormat ToAudioStream(BxstmStructure structure) => Common.ToAudioStream(structure);
 
-        protected override BcstmConfiguration GetConfiguration(BcstmStructure structure)
+        protected override BxstmConfiguration GetConfiguration(BxstmStructure structure)
         {
-            var info = structure.StreamInfo;
-            var configuration = new BcstmConfiguration();
-            if (info.Codec == BxstmCodec.Adpcm)
+            StreamInfo info = structure.StreamInfo;
+            var configuration = new BxstmConfiguration();
+            if (info.Codec == NwCodec.GcAdpcm)
             {
                 configuration.SamplesPerSeekTableEntry = info.SamplesPerSeekTableEntry;
             }

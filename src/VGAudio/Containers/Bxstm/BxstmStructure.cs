@@ -4,7 +4,7 @@ using VGAudio.Utilities;
 
 namespace VGAudio.Containers.Bxstm
 {
-    public abstract class BxstmStructure
+    public class BxstmStructure
     {
         /// <summary>
         /// The size of the entire file.
@@ -30,7 +30,11 @@ namespace VGAudio.Containers.Bxstm
         public StreamInfo StreamInfo { get; set; }
         public TrackInfo TrackInfo { get; set; }
         public ChannelInfo ChannelInfo { get; set; }
-        
+
+        /// <summary>The audio regions in the file.
+        /// Used in BFSTM and BCSTM formats.</summary>
+        public List<RegionInfo> Regions { get; set; }
+
         /// <summary>
         /// The seek table containing PCM samples
         /// from throughout the audio stream.

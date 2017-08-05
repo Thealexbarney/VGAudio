@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using VGAudio.Codecs.GcAdpcm;
+using VGAudio.Containers.Bxstm.Structures;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
@@ -21,9 +22,7 @@ namespace VGAudio.Containers.Bxstm
 
         public int FileSize => HeaderSize + InfoBlockSize + SeekBlockSize + DataBlockSize;
 
-        public BcstmConfiguration BcstmConfig { get; } = new BcstmConfiguration();
-        public BfstmConfiguration BfstmConfig { get; } = new BfstmConfiguration();
-        public BxstmConfiguration Configuration => Type == BCFstmType.Bcstm ? (BxstmConfiguration)BcstmConfig : BfstmConfig;
+        public BxstmConfiguration Configuration { get; }
 
         public BCFstmType Type { get; }
         public Endianness Endianness => Configuration.Endianness ?? GetTypeEndianness(Type);
@@ -35,7 +34,7 @@ namespace VGAudio.Containers.Bxstm
         private int LoopStart => AudioFormat.LoopStart;
         private int LoopEnd => AudioFormat.LoopEnd;
 
-        private BxstmCodec Codec => Configuration.Codec;
+        private NwCodec Codec => Configuration.Codec;
         private int AudioDataOffset => DataBlockOffset + 0x20;
 
         /// <summary>
@@ -77,31 +76,25 @@ namespace VGAudio.Containers.Bxstm
             8 * ChannelCount +
             ChannelInfoSize * ChannelCount;
 
-        private int ChannelInfoSize => Codec == BxstmCodec.Adpcm ? 0x2e : 0;
+        private int ChannelInfoSize => Codec == NwCodec.GcAdpcm ? 0x2e : 0;
 
-        private int SeekBlockOffset => Codec == BxstmCodec.Adpcm ? HeaderSize + InfoBlockSize : 0;
-        private int SeekBlockSize => Codec == BxstmCodec.Adpcm ? GetNextMultiple(8 + SeekTableEntryCount * ChannelCount * BytesPerSeekTableEntry, 0x20) : 0;
+        private int SeekBlockOffset => Codec == NwCodec.GcAdpcm ? HeaderSize + InfoBlockSize : 0;
+        private int SeekBlockSize => Codec == NwCodec.GcAdpcm ? GetNextMultiple(8 + SeekTableEntryCount * ChannelCount * BytesPerSeekTableEntry, 0x20) : 0;
 
         private int DataBlockOffset => HeaderSize + InfoBlockSize + SeekBlockSize;
         private int DataBlockSize => 0x20 + AudioDataSize * ChannelCount;
 
-        public BCFstmWriter(BcstmConfiguration configuration)
+        public BCFstmWriter(BxstmConfiguration configuration, BCFstmType type)
         {
-            BcstmConfig = configuration;
-            Type = BCFstmType.Bcstm;
-        }
-
-        public BCFstmWriter(BfstmConfiguration configuration)
-        {
-            BfstmConfig = configuration;
-            Type = BCFstmType.Bfstm;
+            Configuration = configuration;
+            Type = type;
         }
 
         internal void SetupWriter(AudioData audio)
         {
             var parameters = new GcAdpcmParameters { Progress = Configuration.Progress };
 
-            if (Codec == BxstmCodec.Adpcm)
+            if (Codec == NwCodec.GcAdpcm)
             {
                 Adpcm = audio.GetFormat<GcAdpcmFormat>(parameters);
 
@@ -125,13 +118,13 @@ namespace VGAudio.Containers.Bxstm
                 AudioFormat = Adpcm;
                 Tracks = Adpcm.Tracks;
             }
-            else if (Codec == BxstmCodec.Pcm16Bit)
+            else if (Codec == NwCodec.Pcm16Bit)
             {
                 Pcm16 = audio.GetFormat<Pcm16Format>(parameters);
                 AudioFormat = Pcm16;
                 Tracks = Pcm16.Tracks;
             }
-            else if (Codec == BxstmCodec.Pcm8Bit)
+            else if (Codec == NwCodec.Pcm8Bit)
             {
                 Pcm8 = audio.GetFormat<Pcm8SignedFormat>(parameters);
                 AudioFormat = Pcm8;
@@ -179,20 +172,20 @@ namespace VGAudio.Containers.Bxstm
             writer.Write(GetVersion(Type) << 16);
             writer.Write(FileSize);
 
-            writer.Write((short)(Codec == BxstmCodec.Adpcm ? 3 : 2)); // NumEntries
+            writer.Write((short)(Codec == NwCodec.GcAdpcm ? 3 : 2)); // NumEntries
             writer.Write((short)0);
-            writer.Write((short)0x4000);
+            writer.Write((short)ReferenceType.StreamInfoBlock);
             writer.Write((short)0);
             writer.Write(InfoBlockOffset);
             writer.Write(InfoBlockSize);
-            if (Codec == BxstmCodec.Adpcm)
+            if (Codec == NwCodec.GcAdpcm)
             {
-                writer.Write((short)0x4001);
+                writer.Write((short)ReferenceType.StreamSeekBlock);
                 writer.Write((short)0);
                 writer.Write(SeekBlockOffset);
                 writer.Write(SeekBlockSize);
             }
-            writer.Write((short)0x4002);
+            writer.Write((short)ReferenceType.StreamDataBlock);
             writer.Write((short)0);
             writer.Write(DataBlockOffset);
             writer.Write(DataBlockSize);
@@ -205,12 +198,12 @@ namespace VGAudio.Containers.Bxstm
 
             int headerTableSize = 8 * 3;
 
-            writer.Write((short)0x4100);
+            writer.Write((short)ReferenceType.StreamInfo);
             writer.Write((short)0);
             writer.Write(headerTableSize);
             if (IncludeTrackInformation)
             {
-                writer.Write((short)0x0101);
+                writer.Write((short)ReferenceType.ReferenceTable);
                 writer.Write((short)0);
                 writer.Write(headerTableSize + InfoBlock1Size);
             }
@@ -219,7 +212,7 @@ namespace VGAudio.Containers.Bxstm
                 writer.Write(0);
                 writer.Write(-1);
             }
-            writer.Write((short)0x0101);
+            writer.Write((short)ReferenceType.ReferenceTable);
             writer.Write((short)0);
             writer.Write(headerTableSize + InfoBlock1Size + InfoBlock2Size);
 
@@ -245,13 +238,13 @@ namespace VGAudio.Containers.Bxstm
             writer.Write(LastBlockSize);
             writer.Write(BytesPerSeekTableEntry);
             writer.Write(SamplesPerSeekTableEntry);
-            writer.Write((short)0x1f00);
+            writer.Write((short)ReferenceType.SampleData);
             writer.Write((short)0);
             writer.Write(0x18);
 
             if (IncludeRegionInfo)
             {
-                writer.Write((short)0x0100);
+                writer.Write((short)ReferenceType.ByteTable);
                 writer.Write((short)0);
                 writer.Write(0);
                 writer.Write(-1);
@@ -276,7 +269,7 @@ namespace VGAudio.Containers.Bxstm
 
             for (int i = 0; i < TrackCount; i++)
             {
-                writer.Write((short)0x4101);
+                writer.Write((short)ReferenceType.TrackInfo);
                 writer.Write((short)0);
                 writer.Write(trackTableSize + channelTableSize + trackSize * i);
             }
@@ -290,7 +283,7 @@ namespace VGAudio.Containers.Bxstm
             writer.Write(ChannelCount);
             for (int i = 0; i < ChannelCount; i++)
             {
-                writer.Write((short)0x4102);
+                writer.Write((short)ReferenceType.ChannelInfo);
                 writer.Write((short)0);
                 writer.Write(channelTableSize + trackTableSize + 8 * i);
             }
@@ -302,7 +295,8 @@ namespace VGAudio.Containers.Bxstm
                     writer.Write((byte)track.Volume);
                     writer.Write((byte)track.Panning);
                     writer.Write((short)0);
-                    writer.Write(0x0100);
+                    writer.Write((short)ReferenceType.ByteTable);
+                    writer.Write((short)0);
                     writer.Write(0xc);
                     writer.Write(track.ChannelCount);
                     writer.Write((byte)track.ChannelLeft);
@@ -314,9 +308,9 @@ namespace VGAudio.Containers.Bxstm
             int channelTable2Size = 8 * ChannelCount;
             for (int i = 0; i < ChannelCount; i++)
             {
-                if (Codec == BxstmCodec.Adpcm)
+                if (Codec == NwCodec.GcAdpcm)
                 {
-                    writer.Write((short)0x0300);
+                    writer.Write((short)ReferenceType.GcAdpcmInfo);
                     writer.Write((short)0);
                     writer.Write(channelTable2Size - 8 * i + ChannelInfoSize * i);
                 }
@@ -327,7 +321,7 @@ namespace VGAudio.Containers.Bxstm
                 }
             }
 
-            if (Codec != BxstmCodec.Adpcm) { return; }
+            if (Codec != NwCodec.GcAdpcm) { return; }
 
             foreach (var channel in Adpcm.Channels)
             {
@@ -342,7 +336,7 @@ namespace VGAudio.Containers.Bxstm
 
         private void WriteSeekBlock(BinaryWriter writer)
         {
-            if (Codec != BxstmCodec.Adpcm) return;
+            if (Codec != NwCodec.GcAdpcm) return;
             writer.WriteUTF8("SEEK");
             writer.Write(SeekBlockSize);
 
@@ -361,13 +355,13 @@ namespace VGAudio.Containers.Bxstm
             byte[][] channels = null;
             switch (Codec)
             {
-                case BxstmCodec.Adpcm:
+                case NwCodec.GcAdpcm:
                     channels = Adpcm.Channels.Select(x => x.GetAdpcmAudio()).ToArray();
                     break;
-                case BxstmCodec.Pcm16Bit:
+                case NwCodec.Pcm16Bit:
                     channels = Pcm16.Channels.Select(x => x.ToByteArray(Endianness)).ToArray();
                     break;
-                case BxstmCodec.Pcm8Bit:
+                case NwCodec.Pcm8Bit:
                     channels = Pcm8.Channels;
                     break;
             }

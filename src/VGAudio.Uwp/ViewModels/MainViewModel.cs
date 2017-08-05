@@ -35,11 +35,11 @@ namespace VGAudio.Uwp.ViewModels
             set => SelectedFileType = (FileType)value;
         }
 
-        public Dictionary<BxstmCodec, string> FormatTypesBinding { get; } = new Dictionary<BxstmCodec, string>
+        public Dictionary<NwCodec, string> FormatTypesBinding { get; } = new Dictionary<NwCodec, string>
         {
-            [BxstmCodec.Adpcm] = "DSP-ADPCM",
-            [BxstmCodec.Pcm16Bit] = "16-bit PCM",
-            [BxstmCodec.Pcm8Bit] = "8-bit PCM"
+            [NwCodec.GcAdpcm] = "DSP-ADPCM",
+            [NwCodec.Pcm16Bit] = "16-bit PCM",
+            [NwCodec.Pcm8Bit] = "8-bit PCM"
         };
 
         public FileType SelectedFileType { get; set; } = FileType.Dsp;
@@ -54,8 +54,8 @@ namespace VGAudio.Uwp.ViewModels
 
         public DspConfiguration DspConfiguration { get; set; } = new DspConfiguration();
         public BrstmConfiguration BrstmConfiguration { get; set; } = new BrstmConfiguration();
-        public BcstmConfiguration BcstmConfiguration { get; set; } = new BcstmConfiguration();
-        public BfstmConfiguration BfstmConfiguration { get; set; } = new BfstmConfiguration();
+        public BxstmConfiguration BcstmConfiguration { get; set; } = new BxstmConfiguration();
+        public BxstmConfiguration BfstmConfiguration { get; set; } = new BxstmConfiguration();
         public IdspConfiguration IdspConfiguration { get; set; } = new IdspConfiguration();
         public AdxConfiguration AdxConfiguration { get; set; } = new AdxConfiguration();
 

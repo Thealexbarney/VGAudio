@@ -27,7 +27,7 @@ namespace VGAudio.Tests.Containers
         public void BrstmBuildAndParseEqualPcm16(int numChannels)
         {
             Pcm16Format audio = GenerateAudio.GeneratePcmSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate);
-            var writer = new BrstmWriter {Configuration = {Codec = BxstmCodec.Pcm16Bit}};
+            var writer = new BrstmWriter {Configuration = {Codec = NwCodec.Pcm16Bit}};
 
             BuildParseTests.BuildParseCompareAudio(audio, writer, new BrstmReader());
         }
@@ -39,7 +39,7 @@ namespace VGAudio.Tests.Containers
         public void BrstmBuildAndParseEqualPcm8(int numChannels)
         {
             Pcm8SignedFormat audio = GenerateAudio.GeneratePcm8SignedSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate);
-            var writer = new BrstmWriter {Configuration = {Codec = BxstmCodec.Pcm8Bit}};
+            var writer = new BrstmWriter {Configuration = {Codec = NwCodec.Pcm8Bit}};
 
             BuildParseTests.BuildParseCompareAudio(audio, writer, new BrstmReader());
         }

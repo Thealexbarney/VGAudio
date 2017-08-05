@@ -58,7 +58,7 @@ namespace VGAudio.Cli.Metadata.Containers
                 PrintTrackMetadata(bxstm.TrackInfo?.Tracks[i], builder);
             }
 
-            if (info.Codec != BxstmCodec.Adpcm) return;
+            if (info.Codec != NwCodec.GcAdpcm) return;
             GcAdpcm.PrintAdpcmMetadata(bxstm.ChannelInfo.Channels, builder);
         }
 
@@ -71,15 +71,15 @@ namespace VGAudio.Cli.Metadata.Containers
             builder.AppendLine($"Panning: 0x{track.Panning:X2}");
         }
 
-        public static AudioFormat FromBxstm(BxstmCodec codec)
+        public static AudioFormat FromBxstm(NwCodec codec)
         {
             switch (codec)
             {
-                case BxstmCodec.Pcm8Bit:
+                case NwCodec.Pcm8Bit:
                     return AudioFormat.Pcm8;
-                case BxstmCodec.Pcm16Bit:
+                case NwCodec.Pcm16Bit:
                     return AudioFormat.Pcm16;
-                case BxstmCodec.Adpcm:
+                case NwCodec.GcAdpcm:
                     return AudioFormat.GcAdpcm;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(codec), codec, null);

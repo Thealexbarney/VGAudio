@@ -35,7 +35,7 @@ namespace VGAudio.Containers.Bxstm
         {
             var info = structure.StreamInfo;
             var configuration = new BrstmConfiguration();
-            if (info.Codec == BxstmCodec.Adpcm)
+            if (info.Codec == NwCodec.GcAdpcm)
             {
                 configuration.SamplesPerSeekTableEntry = info.SamplesPerSeekTableEntry;
             }

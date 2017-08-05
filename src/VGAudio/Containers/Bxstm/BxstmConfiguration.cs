@@ -8,7 +8,7 @@ namespace VGAudio.Containers.Bxstm
     /// <summary>
     /// Contains the options used to build BRSTM, BCSTM and BFSTM files.
     /// </summary>
-    public abstract class BxstmConfiguration : Configuration
+    public class BxstmConfiguration : Configuration
     {
         private const int Default = -1;
         private const int DefaultInterleave = 0x2000;
@@ -50,7 +50,7 @@ namespace VGAudio.Containers.Bxstm
                     throw new ArgumentOutOfRangeException(nameof(value), value,
                         "Number of samples per interleave must be positive");
                 }
-                if (Codec == BxstmCodec.Adpcm && value % SamplesPerFrame != 0)
+                if (Codec == NwCodec.GcAdpcm && value % SamplesPerFrame != 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), value,
                         "Number of samples per interleave must be divisible by 14");
@@ -91,7 +91,7 @@ namespace VGAudio.Containers.Bxstm
             set => _loopPointAlignment = value;
         }
 
-        public BxstmCodec Codec { get; set; } = BxstmCodec.Adpcm;
+        public NwCodec Codec { get; set; } = NwCodec.GcAdpcm;
         public Endianness? Endianness { get; set; }
         public NwVersion Version { get; set; }
     }

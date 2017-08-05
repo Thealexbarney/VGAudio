@@ -79,13 +79,13 @@ namespace VGAudio.Cli
             switch (options.OutFormat)
             {
                 case AudioFormat.GcAdpcm:
-                    config.Codec = BxstmCodec.Adpcm;
+                    config.Codec = NwCodec.GcAdpcm;
                     break;
                 case AudioFormat.Pcm16:
-                    config.Codec = BxstmCodec.Pcm16Bit;
+                    config.Codec = NwCodec.Pcm16Bit;
                     break;
                 case AudioFormat.Pcm8:
-                    config.Codec = BxstmCodec.Pcm8Bit;
+                    config.Codec = NwCodec.Pcm8Bit;
                     break;
             }
 
@@ -99,18 +99,18 @@ namespace VGAudio.Cli
 
         public static Configuration Bcstm(Options options, Configuration inConfig = null)
         {
-            var config = inConfig as BcstmConfiguration ?? new BcstmConfiguration();
+            var config = inConfig as BxstmConfiguration ?? new BxstmConfiguration();
 
             switch (options.OutFormat)
             {
                 case AudioFormat.GcAdpcm:
-                    config.Codec = BxstmCodec.Adpcm;
+                    config.Codec = NwCodec.GcAdpcm;
                     break;
                 case AudioFormat.Pcm16:
-                    config.Codec = BxstmCodec.Pcm16Bit;
+                    config.Codec = NwCodec.Pcm16Bit;
                     break;
                 case AudioFormat.Pcm8:
-                    config.Codec = BxstmCodec.Pcm8Bit;
+                    config.Codec = NwCodec.Pcm8Bit;
                     break;
             }
 
@@ -124,18 +124,18 @@ namespace VGAudio.Cli
 
         public static Configuration Bfstm(Options options, Configuration inConfig = null)
         {
-            var config = inConfig as BfstmConfiguration ?? new BfstmConfiguration();
+            var config = inConfig as BxstmConfiguration ?? new BxstmConfiguration();
 
             switch (options.OutFormat)
             {
                 case AudioFormat.GcAdpcm:
-                    config.Codec = BxstmCodec.Adpcm;
+                    config.Codec = NwCodec.GcAdpcm;
                     break;
                 case AudioFormat.Pcm16:
-                    config.Codec = BxstmCodec.Pcm16Bit;
+                    config.Codec = NwCodec.Pcm16Bit;
                     break;
                 case AudioFormat.Pcm8:
-                    config.Codec = BxstmCodec.Pcm8Bit;
+                    config.Codec = NwCodec.Pcm8Bit;
                     break;
             }
 
