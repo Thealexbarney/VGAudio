@@ -17,7 +17,7 @@ namespace VGAudio.Containers.NintendoWare
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 string magic = reader.ReadUTF8(4);
-                if (magic != "CSTM" && magic != "FSTM")
+                if (magic != "CSTM" && magic != "FSTM" && magic != "CWAV" && magic != "FWAV")
                 {
                     throw new InvalidDataException("File has no CSTM or FSTM header");
                 }
@@ -57,13 +57,16 @@ namespace VGAudio.Containers.NintendoWare
         {
             StreamInfo info = structure.StreamInfo;
             var configuration = new BxstmConfiguration();
-            if (info.Codec == NwCodec.GcAdpcm)
+            if (info.Codec == NwCodec.GcAdpcm && info.SamplesPerSeekTableEntry != 0)
             {
                 configuration.SamplesPerSeekTableEntry = info.SamplesPerSeekTableEntry;
             }
             configuration.Codec = info.Codec;
             configuration.Endianness = structure.Endianness;
-            configuration.SamplesPerInterleave = info.SamplesPerInterleave;
+            if (info.SamplesPerInterleave != 0)
+            {
+                configuration.SamplesPerInterleave = info.SamplesPerInterleave;
+            }
             configuration.Version = structure.Version;
             return configuration;
         }
@@ -91,7 +94,9 @@ namespace VGAudio.Containers.NintendoWare
 
         private static void ReadInfoBlock(BinaryReader reader, BxstmStructure structure)
         {
-            SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamInfoBlock) ??
+            SizedReference reference =
+                structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamInfoBlock ||
+                                                     x.Type == ReferenceType.WaveInfoBlock) ??
                 throw new InvalidDataException("File has no INFO block");
 
             reader.BaseStream.Position = reference.AbsoluteOffset;
@@ -105,14 +110,24 @@ namespace VGAudio.Containers.NintendoWare
                 throw new InvalidDataException("INFO block size in main header doesn't match size in INFO header");
             }
 
-            int baseOffset = (int)reader.BaseStream.Position;
-            var streamInfo = new Reference(reader, baseOffset);
-            var trackInfo = new Reference(reader, baseOffset);
-            var channelInfo = new Reference(reader, baseOffset);
+            switch (reference.Type)
+            {
+                case ReferenceType.StreamInfoBlock:
+                    int baseOffset = (int)reader.BaseStream.Position;
+                    var streamInfo = new Reference(reader, baseOffset);
+                    var trackInfo = new Reference(reader, baseOffset);
+                    var channelInfo = new Reference(reader, baseOffset);
 
-            ReadStreamInfo(reader, structure, streamInfo);
-            ReadTrackInfo(reader, structure, trackInfo);
-            ReadChannelInfo(reader, structure, channelInfo);
+                    ReadStreamInfo(reader, structure, streamInfo);
+                    ReadTrackInfo(reader, structure, trackInfo);
+                    ReadChannelInfo(reader, structure, channelInfo);
+                    break;
+                case ReferenceType.WaveInfoBlock:
+                    structure.StreamInfo = StreamInfo.ReadBfwav(reader, structure.Version);
+                    structure.ChannelInfo = ChannelInfo.ReadBfstm(reader);
+                    structure.StreamInfo.ChannelCount = structure.ChannelInfo.Channels.Count;
+                    break;
+            }
         }
 
         private static void ReadStreamInfo(BinaryReader reader, BxstmStructure structure, Reference reference)
@@ -212,8 +227,10 @@ namespace VGAudio.Containers.NintendoWare
 
         private static void ReadDataBlock(BinaryReader reader, BxstmStructure structure, bool readAudioData)
         {
-            SizedReference reference = structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamDataBlock) ??
-                                       throw new InvalidDataException("File has no DATA block");
+            SizedReference reference =
+                structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamDataBlock ||
+                                                     x.Type == ReferenceType.WaveDataBlock) ??
+                throw new InvalidDataException("File has no DATA block");
 
             var info = structure.StreamInfo;
 
@@ -231,13 +248,28 @@ namespace VGAudio.Containers.NintendoWare
 
             if (!readAudioData) return;
 
-            int audioOffset = reference.AbsoluteOffset + info.AudioReference.Offset + 8;
-            reader.BaseStream.Position = audioOffset;
-            int audioDataLength = reference.Size - (audioOffset - reference.AbsoluteOffset);
-            int outputSize = Common.SamplesToBytes(info.SampleCount, info.Codec);
+            if (reference.IsType(ReferenceType.WaveDataBlock))
+            {
+                int audioDataLength = Common.SamplesToBytes(info.SampleCount, info.Codec);
+                structure.AudioData = CreateJaggedArray<byte[][]>(info.ChannelCount, audioDataLength);
+                int baseOffset = (int)reader.BaseStream.Position;
 
-            structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, info.InterleaveSize,
-                info.ChannelCount, outputSize);
+                for (int i = 0; i < info.ChannelCount; i++)
+                {
+                    reader.BaseStream.Position = baseOffset + structure.ChannelInfo.WaveAudioOffsets[i];
+                    structure.AudioData[i] = reader.ReadBytes(audioDataLength);
+                }
+            }
+            else if (reference.IsType(ReferenceType.StreamDataBlock))
+            {
+                int audioOffset = reference.AbsoluteOffset + info.AudioReference.Offset + 8;
+                reader.BaseStream.Position = audioOffset;
+                int audioDataLength = reference.Size - (audioOffset - reference.AbsoluteOffset);
+                int outputSize = Common.SamplesToBytes(info.SampleCount, info.Codec);
+
+                structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, info.InterleaveSize,
+                    info.ChannelCount, outputSize);
+            }
         }
     }
 }

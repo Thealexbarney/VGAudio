@@ -106,6 +106,19 @@ namespace VGAudio.Containers.NintendoWare.Structures
             return info;
         }
 
+        public static StreamInfo ReadBfwav(BinaryReader reader, NwVersion version)
+        {
+            var info = new StreamInfo();
+            info.Codec = (NwCodec)reader.ReadByte();
+            info.Looping = reader.ReadBoolean();
+            reader.BaseStream.Position += 2;
+            info.SampleRate = reader.ReadInt32();
+            info.LoopStart = reader.ReadInt32();
+            info.SampleCount = reader.ReadInt32();
+            info.LoopStartUnaligned = reader.ReadInt32();
+            return info;
+        }
+
         public static StreamInfo ReadBrstm(BinaryReader reader)
         {
             var info = new StreamInfo();

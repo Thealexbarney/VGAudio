@@ -8,6 +8,7 @@ namespace VGAudio.Containers.NintendoWare.Structures
     public class ChannelInfo
     {
         public List<GcAdpcmChannelInfo> Channels { get; } = new List<GcAdpcmChannelInfo>();
+        public List<int> WaveAudioOffsets { get; } = new List<int>();
 
         public static ChannelInfo ReadBfstm(BinaryReader reader)
         {
@@ -19,6 +20,12 @@ namespace VGAudio.Containers.NintendoWare.Structures
             foreach (Reference channelInfo in table.References)
             {
                 reader.BaseStream.Position = channelInfo.AbsoluteOffset;
+                if (channelInfo.IsType(ReferenceType.WaveChannelInfo))
+                {
+                    var audioData = new Reference(reader);
+                    info.WaveAudioOffsets.Add(audioData.Offset);
+                }
+
                 var adpcmInfo = new Reference(reader, channelInfo.AbsoluteOffset);
 
                 if (adpcmInfo.IsType(ReferenceType.GcAdpcmInfo))
