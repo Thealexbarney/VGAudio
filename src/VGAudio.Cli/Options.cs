@@ -51,6 +51,7 @@ namespace VGAudio.Cli
         Brstm,
         Bcstm,
         Bfstm,
+        Brwav,
         Hps,
         Adx,
         Hca,

@@ -64,6 +64,7 @@ namespace VGAudio.Cli.Metadata
             [FileType.Brstm] = new Brstm(),
             [FileType.Bcstm] = new Bcstm(),
             [FileType.Bfstm] = new Bfstm(),
+            [FileType.Brwav] = new Brwav(),
             [FileType.Hps] = new Hps(),
             [FileType.Adx] = new Adx(),
             [FileType.Hca] = new Hca(),

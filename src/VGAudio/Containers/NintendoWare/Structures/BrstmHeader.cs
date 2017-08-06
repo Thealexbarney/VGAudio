@@ -41,5 +41,16 @@ namespace VGAudio.Containers.NintendoWare.Structures
                 DataBlockSize = reader.ReadInt32()
             };
         }
+
+        public static BrstmHeader ReadBrwav(BinaryReader reader)
+        {
+            return new BrstmHeader
+            {
+                HeadBlockOffset = reader.ReadInt32(),
+                HeadBlockSize = reader.ReadInt32(),
+                DataBlockOffset = reader.ReadInt32(),
+                DataBlockSize = reader.ReadInt32()
+            };
+        }
     }
 }
