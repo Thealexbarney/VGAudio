@@ -14,6 +14,9 @@ Supports reading and writing:
 Supports reading:
 * GENH (Nintendo DSP-ADPCM only)
 * HCA
+* BRWAV
+* BCWAV
+* BFWAV
 
 The most recent release of the library can be found [on NuGet](https://www.nuget.org/packages/VGAudio/)
 
