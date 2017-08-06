@@ -70,7 +70,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         {
             int loopEnd = sineCycles * 4 * SamplesPerFrame + loopStart;
             var pcm = GenerateSineWave(GetNextMultiple(loopEnd, SamplesPerFrame), 1, SamplesPerFrame * 4);
-            var coefs = GcAdpcmCoefficient.CalculateCoefficients(pcm);
+            var coefs = GcAdpcmCoefficients.CalculateCoefficients(pcm);
             var adpcm = GcAdpcmEncoder.Encode(pcm, coefs);
             var alignment = new GcAdpcmAlignment(multiple, loopStart, loopEnd, adpcm, coefs);
             var pcmAligned = GcAdpcmDecoder.Decode(alignment.AdpcmAligned, coefs, new GcAdpcmParameters { SampleCount = alignment.SampleCountAligned });
@@ -98,7 +98,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         {
             int loopEnd = sineCycles * 4 * SamplesPerFrame + loopStart;
             var pcm = GenerateSineWave(GetNextMultiple(loopEnd, SamplesPerFrame), 1, SamplesPerFrame * 4);
-            var coefs = GcAdpcmCoefficient.CalculateCoefficients(pcm);
+            var coefs = GcAdpcmCoefficients.CalculateCoefficients(pcm);
             var adpcm = GcAdpcmEncoder.Encode(pcm, coefs);
             var alignment = new GcAdpcmAlignment(multiple, loopStart, loopEnd, adpcm, coefs);
             var pcmAligned = alignment.PcmAligned;

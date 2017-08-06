@@ -21,15 +21,15 @@ namespace VGAudio.Cli.Metadata.Containers
             builder.AppendLine("Coefficients:");
             builder.AppendLine($"{CoefficientsToString(channel.Coefs)}");
             builder.AppendLine($"Gain: 0x{channel.Gain:X4}");
-            builder.AppendLine($"Pred/Scale: 0x{channel.PredScale:X4}");
-            builder.AppendLine($"History sample 1 (n-1): 0x{channel.Hist1:X4}");
-            builder.AppendLine($"History sample 2 (n-2): 0x{channel.Hist2:X4}");
+            builder.AppendLine($"Pred/Scale: 0x{channel.Start.PredScale:X4}");
+            builder.AppendLine($"History sample 1 (n-1): 0x{channel.Start.Hist1:X4}");
+            builder.AppendLine($"History sample 2 (n-2): 0x{channel.Start.Hist2:X4}");
             if (!printLoopInfo) return;
 
             builder.AppendLine();
-            builder.AppendLine($"Loop Pred/Scale: 0x{channel.LoopPredScale:X4}");
-            builder.AppendLine($"Loop History sample 1: 0x{channel.LoopHist1:X4}");
-            builder.AppendLine($"Loop History sample 2: 0x{channel.LoopHist1:X4}");
+            builder.AppendLine($"Loop Pred/Scale: 0x{channel.Loop.PredScale:X4}");
+            builder.AppendLine($"Loop History sample 1: 0x{channel.Loop.Hist1:X4}");
+            builder.AppendLine($"Loop History sample 2: 0x{channel.Loop.Hist1:X4}");
         }
 
         public static string CoefficientsToString(short[] coefs)

@@ -1,4 +1,4 @@
-﻿using VGAudio.Containers.Bxstm;
+﻿using VGAudio.Containers.NintendoWare;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
@@ -17,7 +17,7 @@ namespace VGAudio.Tests.Containers
         {
             GcAdpcmFormat audio = GenerateAudio.GenerateAdpcmSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate);
 
-            BuildParseTests.BuildParseCompareAudio(audio, new BfstmWriter(), new BfstmReader());
+            BuildParseTests.BuildParseCompareAudio(audio, new BCFstmWriter(NwTarget.Cafe), new BCFstmReader());
         }
 
         [Theory]
@@ -27,9 +27,9 @@ namespace VGAudio.Tests.Containers
         public void BfstmBuildAndParseEqualPcm16(int numChannels)
         {
             Pcm16Format audio = GenerateAudio.GeneratePcmSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate);
-            var writer = new BfstmWriter { Configuration = { Codec = BxstmCodec.Pcm16Bit } };
+            var writer = new BCFstmWriter(NwTarget.Cafe) { Configuration = { Codec = NwCodec.Pcm16Bit } };
 
-            BuildParseTests.BuildParseCompareAudio(audio, writer, new BfstmReader());
+            BuildParseTests.BuildParseCompareAudio(audio, writer, new BCFstmReader());
         }
 
         [Theory]
@@ -39,9 +39,9 @@ namespace VGAudio.Tests.Containers
         public void BfstmBuildAndParseEqualPcm8(int numChannels)
         {
             Pcm8SignedFormat audio = GenerateAudio.GeneratePcm8SignedSineWave(BuildParseTestOptions.Samples, numChannels, BuildParseTestOptions.SampleRate);
-            var writer = new BfstmWriter { Configuration = { Codec = BxstmCodec.Pcm8Bit } };
+            var writer = new BCFstmWriter(NwTarget.Cafe) { Configuration = { Codec = NwCodec.Pcm8Bit } };
 
-            BuildParseTests.BuildParseCompareAudio(audio, writer, new BfstmReader());
+            BuildParseTests.BuildParseCompareAudio(audio, writer, new BCFstmReader());
         }
 
         [Fact]
@@ -49,10 +49,10 @@ namespace VGAudio.Tests.Containers
         {
             GcAdpcmFormat audio = GenerateAudio.GenerateAdpcmSineWave(BuildParseTestOptions.Samples, 1, BuildParseTestOptions.SampleRate);
             audio = audio.WithLoop(true, 1288, 16288);
-            var writer = new BfstmWriter { Configuration = { LoopPointAlignment = 700 } };
+            var writer = new BCFstmWriter(NwTarget.Cafe) { Configuration = { LoopPointAlignment = 700 } };
 
             byte[] builtFile = writer.GetFile(audio);
-            IAudioFormat parsedAudio = new BfstmReader().ReadFormat(builtFile);
+            IAudioFormat parsedAudio = new BCFstmReader().ReadFormat(builtFile);
 
             Assert.Equal(1400, parsedAudio.LoopStart);
             Assert.Equal(16400, parsedAudio.LoopEnd);

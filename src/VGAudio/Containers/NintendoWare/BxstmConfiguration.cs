@@ -1,14 +1,15 @@
 ﻿using System;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Utilities;
-using static VGAudio.Containers.Bxstm.Common;
+using static VGAudio.Containers.NintendoWare.Common;
 using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
 
-namespace VGAudio.Containers.Bxstm
+namespace VGAudio.Containers.NintendoWare
 {
     /// <summary>
     /// Contains the options used to build BRSTM, BCSTM and BFSTM files.
     /// </summary>
-    public abstract class BxstmConfiguration : Configuration
+    public class BxstmConfiguration : Configuration
     {
         private const int Default = -1;
         private const int DefaultInterleave = 0x2000;
@@ -50,7 +51,7 @@ namespace VGAudio.Containers.Bxstm
                     throw new ArgumentOutOfRangeException(nameof(value), value,
                         "Number of samples per interleave must be positive");
                 }
-                if (Codec == BxstmCodec.Adpcm && value % SamplesPerFrame != 0)
+                if (Codec == NwCodec.GcAdpcm && value % SamplesPerFrame != 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), value,
                         "Number of samples per interleave must be divisible by 14");
@@ -91,7 +92,24 @@ namespace VGAudio.Containers.Bxstm
             set => _loopPointAlignment = value;
         }
 
-        public BxstmCodec Codec { get; set; } = BxstmCodec.Adpcm;
+        public NwCodec Codec { get; set; } = NwCodec.GcAdpcm;
         public Endianness? Endianness { get; set; }
+        public NwVersion Version { get; set; }
+
+        /// <summary>
+        /// The type of track description to be used when building the 
+        /// BRSTM header.
+        /// Default is <see cref="BrstmTrackType.Standard"/>.
+        /// Used only in BRSTM files.
+        /// </summary>
+        public BrstmTrackType TrackType { get; set; } = BrstmTrackType.Standard;
+
+        /// <summary>
+        /// The type of seek table to use when building the BRSTM
+        /// ADPC block.
+        /// Default is <see cref="BrstmSeekTableType.Standard"/>.
+        /// Used only in BRSTM files.
+        /// </summary>
+        public BrstmSeekTableType SeekTableType { get; set; } = BrstmSeekTableType.Standard;
     }
 }

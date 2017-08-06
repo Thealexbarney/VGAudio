@@ -19,20 +19,20 @@
                 <TextBlock Text="Show Advanced Options"/>
             </ToggleButton>
             <StackPanel Visibility="{Binding IsChecked, ElementName=AdvancedBcstm, Converter={StaticResource BoolToVisibilityConverter}}">
-                <CheckBox Content="Recalculate seek table" IsChecked="{Binding BcstmConfiguration.RecalculateSeekTable}"/>
-                <CheckBox Content="Recalculate loop context" IsChecked="{Binding BcstmConfiguration.RecalculateLoopContext}"/>
+                <CheckBox Content="Recalculate seek table" IsChecked="{Binding BxstmConfiguration.RecalculateSeekTable}"/>
+                <CheckBox Content="Recalculate loop context" IsChecked="{Binding BxstmConfiguration.RecalculateLoopContext}"/>
                 <TextBlock Text="Track description type:" TextWrapping="Wrap" VerticalAlignment="Center"/>
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                     <TextBlock Text="Loop point alignment:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BcstmConfiguration.LoopPointAlignment, Mode=TwoWay}"/>
+                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.LoopPointAlignment, Mode=TwoWay}"/>
                 </StackPanel>
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                     <TextBlock Text="Samples per interleaved block:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BcstmConfiguration.SamplesPerInterleave, Mode=TwoWay}"/>
+                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.SamplesPerInterleave, Mode=TwoWay}"/>
                 </StackPanel>
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                     <TextBlock Text="Samples per seek table entry:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BcstmConfiguration.SamplesPerSeekTableEntry, Mode=TwoWay}"/>
+                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.SamplesPerSeekTableEntry, Mode=TwoWay}"/>
                 </StackPanel>
             </StackPanel>
         </StackPanel>

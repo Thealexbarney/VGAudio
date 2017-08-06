@@ -2,10 +2,10 @@
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
+using VGAudio.Containers.NintendoWare;
 using VGAudio.Containers.Wave;
 using VGAudio.Formats.CriAdx;
 
@@ -72,70 +72,20 @@ namespace VGAudio.Cli
             return config;
         }
 
-        public static Configuration Brstm(Options options, Configuration inConfig = null)
+        public static Configuration Bxstm(Options options, Configuration inConfig = null)
         {
-            var config = inConfig as BrstmConfiguration ?? new BrstmConfiguration();
+            var config = inConfig as BxstmConfiguration ?? new BxstmConfiguration();
 
             switch (options.OutFormat)
             {
                 case AudioFormat.GcAdpcm:
-                    config.Codec = BxstmCodec.Adpcm;
+                    config.Codec = NwCodec.GcAdpcm;
                     break;
                 case AudioFormat.Pcm16:
-                    config.Codec = BxstmCodec.Pcm16Bit;
+                    config.Codec = NwCodec.Pcm16Bit;
                     break;
                 case AudioFormat.Pcm8:
-                    config.Codec = BxstmCodec.Pcm8Bit;
-                    break;
-            }
-
-            if (options.LoopAlignment > 0)
-            {
-                config.LoopPointAlignment = options.LoopAlignment;
-            }
-
-            return config;
-        }
-
-        public static Configuration Bcstm(Options options, Configuration inConfig = null)
-        {
-            var config = inConfig as BcstmConfiguration ?? new BcstmConfiguration();
-
-            switch (options.OutFormat)
-            {
-                case AudioFormat.GcAdpcm:
-                    config.Codec = BxstmCodec.Adpcm;
-                    break;
-                case AudioFormat.Pcm16:
-                    config.Codec = BxstmCodec.Pcm16Bit;
-                    break;
-                case AudioFormat.Pcm8:
-                    config.Codec = BxstmCodec.Pcm8Bit;
-                    break;
-            }
-
-            if (options.LoopAlignment > 0)
-            {
-                config.LoopPointAlignment = options.LoopAlignment;
-            }
-
-            return config;
-        }
-
-        public static Configuration Bfstm(Options options, Configuration inConfig = null)
-        {
-            var config = inConfig as BfstmConfiguration ?? new BfstmConfiguration();
-
-            switch (options.OutFormat)
-            {
-                case AudioFormat.GcAdpcm:
-                    config.Codec = BxstmCodec.Adpcm;
-                    break;
-                case AudioFormat.Pcm16:
-                    config.Codec = BxstmCodec.Pcm16Bit;
-                    break;
-                case AudioFormat.Pcm8:
-                    config.Codec = BxstmCodec.Pcm8Bit;
+                    config.Codec = NwCodec.Pcm8Bit;
                     break;
             }
 

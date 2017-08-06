@@ -4,10 +4,11 @@
 //      File: bfstm.bt
 //   Authors: Alex Barney
 //   Version: 1.0
-//   Purpose: Parse BFSTM and BCSTM audio files
+//   Purpose: Parse BFSTM, BCSTM, BFWAV, and BCWAV audio files
 //  Category: Audio
-// File Mask: *.bfstm, *.bcstm
-//  ID Bytes: 46 53 54 4D, 43 53 54 4D //FSTM, CSTM
+// File Mask: *.bfstm,*.bcstm,*.bfwav,*.bcwav
+//  ID Bytes: 46 53 54 4D, 43 53 54 4D, 46 57 41 56, 43 57 41 56
+//            FSTM, CSTM, FWAV, CWAV
 //   History: 
 //   1.0   Initial Release
 //------------------------------------------------
@@ -22,8 +23,24 @@ struct StreamInfo;
 struct ChannelInfo;
 struct AdpcmChannelInfo;
 struct TrackInfo;
+struct WavInfoBlock;
+struct WavDataBlock;
+struct WavChannelInfo;
 
 typedef char ID[4];
+
+typedef uint32 NwVersion <read=VersionRead>;
+
+int IncludeUnalignedLoop(NwVersion version)
+{
+    return (version >> 24) == 0 && version >= 0x00040000 ||
+           (version >> 24) >= 2 && version >= 0x02030000;
+}
+
+int IncludeChecksum(NwVersion version)
+{
+    return (version >> 24) == 0 && version >= 0x00050000;
+}
 
 typedef enum <int16> 
 {
@@ -40,6 +57,9 @@ typedef enum <int16>
     StreamInfoType = 0x4100,
     TrackInfoType = 0x4101,
     ChannelInfoType = 0x4102,
+    WavInfoBlockType = 0x7000,
+    WavDataBlockType = 0x7001,
+    WavChannelInfoType = 0x7100,
 } Type <format=hex>;
 
 enum <byte> AudioCodec
@@ -69,6 +89,9 @@ struct Reference(int baseOffset)
             break;
         case ChannelInfoType:
             ChannelInfo channelInfo;
+            break;
+        case WavChannelInfoType:
+            WavChannelInfo wavChannelInfo;
             break;
         case DspAdpcmInfoType:
             AdpcmChannelInfo adpcmChannelInfo;
@@ -102,8 +125,14 @@ struct SizedReference
         case DataBlockType:
             DataBlock dataBlock(Blocks[GetBlockIndex(InfoBlockType)].infoBlock.streamInfo.streamInfo);
             break;
+        case WavDataBlockType:
+            WavDataBlock dataBlock(Blocks[GetBlockIndex(WavInfoBlockType)].wavInfoBlock);
+            break;
         case RegionBlockType:
             RegionBlock regionBlock;
+            break;
+        case WavInfoBlockType:
+            WavInfoBlock wavInfoBlock;
             break;
     }
 
@@ -144,6 +173,21 @@ struct InfoBlock
     Reference ChannelInfoTable(base);
 };
 
+struct WavInfoBlock
+{    
+    ID InfoId;
+    int32 Size;
+    local int32 base = FTell();
+    AudioCodec Codec;
+    byte Loops;
+    int16 Padding;
+    int32 SampleRate;
+    int32 LoopStart;
+    int32 SampleCount;
+    int32 UnalignedLoopStart;
+    ReferenceTable ChannelInfoTable;
+};
+
 struct StreamInfo
 {
     AudioCodec Codec;
@@ -171,10 +215,15 @@ struct StreamInfo
         Reference pREGNData(0);
     }
 
-    if(Version >> 16 == 4)
+    if(IncludeUnalignedLoop(Version))
     {
         int32 UnalignedLoopStart;
         int32 UnalignedSampleCount; 
+    }
+
+    if(IncludeChecksum(Version))
+    {
+        int32 Checksum <format=hex>;
     }
 };
 
@@ -196,6 +245,14 @@ struct ChannelInfo
 {
     local int32 base = FTell();
     Reference channelInfo(base);
+};
+
+struct WavChannelInfo
+{
+    local int32 base = FTell();
+    Reference channelInfo(base);
+    Reference channelInfo2(base);
+    int32 Padding;
 };
 
 struct AdpcmChannelInfo
@@ -298,6 +355,28 @@ struct DataBlock (StreamInfo &head)
     AudioBlock Blocks(head.ChannelCount, head.FinalBlockSizeBytesWithoutPadding, padding); 
 };
 
+struct WavDataBlock (WavInfoBlock &head)
+{    
+    ID DataId;
+    int32 Size;
+    
+    local int i;
+    local int baseOffset = FTell();
+
+    for (i = 0; i < head.ChannelInfoTable.Count ; i++)
+    {
+        FSeek(baseOffset + head.ChannelInfoTable.Entries[i].wavChannelInfo.channelInfo.Offset);
+        byte AudioData;
+    }
+};
+
+string VersionRead( NwVersion v )
+{
+    string s;   
+    SPrintf( s, "%i.%i.%i.%i", v >> 24, v >> 16 & 0xf, v >> 8 & 0xf, v & 0xf );
+    return s;
+}
+
 BigEndian();
 switch(ReadUShort(4))
 {
@@ -311,7 +390,7 @@ switch(ReadUShort(4))
 ID RstmId;
 int16 BOM <format=hex>;
 int16 HeaderSize;
-int32 Version <format=hex>;
+NwVersion Version <format=hex>;
 int32 FileSize;
 int16 BlockCount;
 int16 Padding;

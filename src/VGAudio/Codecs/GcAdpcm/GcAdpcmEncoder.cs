@@ -159,7 +159,7 @@ namespace VGAudio.Codecs.GcAdpcm
                     // Clamp and store
                     pcmOut[s + 2] = Clamp16(scaledSample);
                     // Accumulate distance
-                    int actualDistance = pcmIn[s + 2] - pcmOut[s + 2];
+                    double actualDistance = pcmIn[s + 2] - pcmOut[s + 2];
                     totalDistance += actualDistance * actualDistance;
                 }
 

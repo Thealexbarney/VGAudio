@@ -8,9 +8,9 @@ namespace VGAudio.Formats.GcAdpcm
         public short[] Coefs { get; }
         internal short[] Pcm { get; set; }
         public int SampleCount { get; }
+
+        public GcAdpcmContext StartContext { get; set; }
         public short Gain { get; set; }
-        public short Hist1 { get; set; }
-        public short Hist2 { get; set; }
         public int LoopAlignmentMultiple { get; set; }
 
         public bool EnsureSeekTableIsSelfCalculated { get; set; }
@@ -20,9 +20,7 @@ namespace VGAudio.Formats.GcAdpcm
         internal int SamplesPerSeekTableEntry { get; private set; }
         internal bool SeekTableIsSelfCalculated { get; private set; }
 
-        internal short LoopPredScale { get; private set; }
-        internal short LoopHist1 { get; private set; }
-        internal short LoopHist2 { get; private set; }
+        public GcAdpcmContext LoopContext { get; set; }
         internal int LoopContextStart { get; private set; }
         internal bool LoopContextIsSelfCalculated { get; private set; }
 
@@ -51,6 +49,8 @@ namespace VGAudio.Formats.GcAdpcm
             AlignedAdpcm = Adpcm;
             AlignedLoopStart = LoopStart;
             AlignedSampleCount = SampleCount;
+            StartContext = StartContext ?? new GcAdpcmContext(0, 0, 0);
+            LoopContext = LoopContext ?? new GcAdpcmContext(0, 0, 0);
             return this;
         }
 
@@ -89,9 +89,7 @@ namespace VGAudio.Formats.GcAdpcm
         public GcAdpcmChannelBuilder WithLoopContext(int loopStart, short predScale, short loopHist1, short loopHist2, bool isSelfCalculated = false)
         {
             LoopContextStart = loopStart;
-            LoopPredScale = predScale;
-            LoopHist1 = loopHist1;
-            LoopHist2 = loopHist2;
+            LoopContext = new GcAdpcmContext(predScale, loopHist1, loopHist2);
             LoopContextIsSelfCalculated = isSelfCalculated;
             return this;
         }
@@ -174,7 +172,7 @@ namespace VGAudio.Formats.GcAdpcm
 
             if (CurrentLoopContextIsValid(AlignedLoopStart))
             {
-                return new GcAdpcmLoopContext(LoopPredScale, LoopHist1, LoopHist2, LoopContextStart, LoopContextIsSelfCalculated);
+                return new GcAdpcmLoopContext(LoopContext.PredScale, LoopContext.Hist1, LoopContext.Hist2, LoopContextStart, LoopContextIsSelfCalculated);
             }
 
             EnsurePcmDecoded();

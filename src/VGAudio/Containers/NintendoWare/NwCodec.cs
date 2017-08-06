@@ -1,9 +1,9 @@
-﻿namespace VGAudio.Containers.Bxstm
+﻿namespace VGAudio.Containers.NintendoWare
 {
     /// <summary>
     /// The different audio codecs used in BRSTM, BCSTM, and BFSTM files.
     /// </summary>
-    public enum BxstmCodec
+    public enum NwCodec
     {
         /// <summary>
         /// Big-endian, 8-bit PCM.
@@ -16,6 +16,7 @@
         /// <summary>
         /// Nintendo's 4-Bit ADPCM codec.
         /// </summary>
-        Adpcm = 2
+        GcAdpcm = 2,
+        ImaAdpcm = 3
     }
 }

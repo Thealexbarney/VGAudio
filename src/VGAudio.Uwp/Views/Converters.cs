@@ -1,7 +1,7 @@
 ﻿using System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
-using VGAudio.Containers.Bxstm;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Uwp.Audio;
 
 namespace VGAudio.Uwp.Views
@@ -95,11 +95,11 @@ namespace VGAudio.Uwp.Views
             if (parameter == null)
                 return DependencyProperty.UnsetValue;
 
-            if (!(bool) value)
+            if (!(bool)value)
             {
                 return DependencyProperty.UnsetValue;
             }
-                return Enum.Parse(typeof(BrstmSeekTableType), param);
+            return Enum.Parse(typeof(BrstmSeekTableType), param);
         }
     }
 

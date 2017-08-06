@@ -12,16 +12,11 @@ namespace VGAudio.Formats.GcAdpcm
 
         public short Gain { get; }
         public short[] Coefs { get; }
-        public short PredScale => Adpcm[0];
-        public short Hist1 { get; }
-        public short Hist2 { get; }
-
-        public short LoopPredScale => LoopContext?.PredScale ?? 0;
-        public short LoopHist1 => LoopContext?.Hist1 ?? 0;
-        public short LoopHist2 => LoopContext?.Hist2 ?? 0;
+        public GcAdpcmContext StartContext { get; }
+        public GcAdpcmContext LoopContext => LoopContextEx;
 
         private GcAdpcmSeekTable SeekTable { get; }
-        private GcAdpcmLoopContext LoopContext { get; }
+        private GcAdpcmLoopContext LoopContextEx { get; }
         private GcAdpcmAlignment Alignment { get; }
         private int AlignmentMultiple => Alignment?.AlignmentMultiple ?? 0;
         private bool AlignmentNeeded => Alignment?.AlignmentNeeded ?? false;
@@ -46,11 +41,10 @@ namespace VGAudio.Formats.GcAdpcm
 
             Coefs = b.Coefs;
             Gain = b.Gain;
-            Hist1 = b.Hist1;
-            Hist2 = b.Hist2;
+            StartContext = new GcAdpcmContext(Adpcm[0], b.StartContext.Hist1, b.StartContext.Hist2);
 
             Alignment = b.GetAlignment();
-            LoopContext = b.GetLoopContext();
+            LoopContextEx = b.GetLoopContext();
             SeekTable = b.GetSeekTable();
 
             //Grab the PCM data in case it was generated for the loop context or seek table
@@ -63,7 +57,7 @@ namespace VGAudio.Formats.GcAdpcm
         public short[] GetPcmAudio() => AlignmentNeeded
             ? Alignment.PcmAligned
             : Pcm ?? GcAdpcmDecoder.Decode(GetAdpcmAudio(), Coefs,
-                  new GcAdpcmParameters {SampleCount = SampleCount, History1 = Hist1, History2 = Hist2});
+                  new GcAdpcmParameters {SampleCount = SampleCount, History1 = StartContext.Hist1, History2 = StartContext.Hist2});
         public short[] GetSeekTable() => SeekTable?.SeekTable ?? new short[0];
         public byte[] GetAdpcmAudio() => AlignmentNeeded ? Alignment.AdpcmAligned : Adpcm;
 
@@ -77,20 +71,19 @@ namespace VGAudio.Formats.GcAdpcm
             {
                 Pcm = Pcm,
                 Gain = Gain,
-                Hist1 = Hist1,
-                Hist2 = Hist2,
+                StartContext = StartContext,
                 LoopAlignmentMultiple = AlignmentMultiple
             };
-            builder.WithPrevious(SeekTable, LoopContext, Alignment);
+            builder.WithPrevious(SeekTable, LoopContextEx, Alignment);
 
             if (SeekTable != null)
             {
                 builder.WithSeekTable(SeekTable.SeekTable, SeekTable.SamplesPerEntry, SeekTable.IsSelfCalculated);
             }
 
-            if (LoopContext != null)
+            if (LoopContextEx != null)
             {
-                builder.WithLoopContext(LoopContext.LoopStart, PredScale, Hist1, Hist2);
+                builder.WithLoopContext(LoopContextEx.LoopStart, StartContext.PredScale, StartContext.Hist1, StartContext.Hist2);
             }
 
             if (Alignment != null)

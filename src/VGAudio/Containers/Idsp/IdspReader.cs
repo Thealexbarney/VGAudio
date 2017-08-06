@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Linq;
-using System.Text;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
@@ -15,7 +14,7 @@ namespace VGAudio.Containers.Idsp
         {
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian))
             {
-                if (Encoding.UTF8.GetString(reader.ReadBytes(4), 0, 4) != "IDSP")
+                if (reader.ReadUTF8(4) != "IDSP")
                 {
                     throw new InvalidDataException("File has no IDSP header");
                 }
@@ -41,13 +40,12 @@ namespace VGAudio.Containers.Idsp
                 var channelBuilder = new GcAdpcmChannelBuilder(structure.AudioData[c], structure.Channels[c].Coefs, structure.SampleCount)
                 {
                     Gain = structure.Channels[c].Gain,
-                    Hist1 = structure.Channels[c].Hist1,
-                    Hist2 = structure.Channels[c].Hist2
+                    StartContext = structure.Channels[c].Start
                 };
 
                 channelBuilder.WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
-                    .WithLoopContext(structure.LoopStart, structure.Channels[c].LoopPredScale,
-                        structure.Channels[c].LoopHist1, structure.Channels[c].LoopHist2);
+                    .WithLoopContext(structure.LoopStart, structure.Channels[c].Loop.PredScale,
+                        structure.Channels[c].Loop.Hist1, structure.Channels[c].Loop.Hist2);
 
                 channels[c] = channelBuilder.Build();
             }
@@ -93,12 +91,8 @@ namespace VGAudio.Containers.Idsp
                 channel.CurrentAddress = reader.ReadInt32();
                 channel.Coefs = Enumerable.Range(0, 16).Select(x => reader.ReadInt16()).ToArray();
                 channel.Gain = reader.ReadInt16();
-                channel.PredScale = reader.ReadInt16();
-                channel.Hist1 = reader.ReadInt16();
-                channel.Hist2 = reader.ReadInt16();
-                channel.LoopPredScale = reader.ReadInt16();
-                channel.LoopHist1 = reader.ReadInt16();
-                channel.LoopHist2 = reader.ReadInt16();
+                channel.Start = new GcAdpcmContext(reader);
+                channel.Loop = new GcAdpcmContext(reader);
 
                 structure.Channels.Add(channel);
             }

@@ -67,14 +67,10 @@ namespace VGAudio.Containers.Dsp
                 writer.Write(CurAddr);
                 writer.Write(channel.Coefs.ToByteArray(Endianness.BigEndian));
                 writer.Write(channel.Gain);
-                writer.Write(channel.PredScale);
-                writer.Write(channel.Hist1);
-                writer.Write(channel.Hist2);
+                channel.StartContext.Write(writer);
                 if (Adpcm.Looping)
                 {
-                    writer.Write(channel.LoopPredScale);
-                    writer.Write(channel.LoopHist1);
-                    writer.Write(channel.LoopHist2);
+                    channel.LoopContext.Write(writer);
                 }
                 else
                 {

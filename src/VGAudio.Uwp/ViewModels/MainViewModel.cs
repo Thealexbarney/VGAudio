@@ -9,7 +9,6 @@ using Windows.Storage;
 using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
 using Windows.UI.Popups;
-using VGAudio.Containers.Bxstm;
 using VGAudio.Containers.Dsp;
 using VGAudio.Formats;
 using VGAudio.Uwp.Audio;
@@ -18,6 +17,7 @@ using PropertyChanged;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
 using VGAudio.Containers.Idsp;
+using VGAudio.Containers.NintendoWare;
 
 namespace VGAudio.Uwp.ViewModels
 {
@@ -35,11 +35,11 @@ namespace VGAudio.Uwp.ViewModels
             set => SelectedFileType = (FileType)value;
         }
 
-        public Dictionary<BxstmCodec, string> FormatTypesBinding { get; } = new Dictionary<BxstmCodec, string>
+        public Dictionary<NwCodec, string> FormatTypesBinding { get; } = new Dictionary<NwCodec, string>
         {
-            [BxstmCodec.Adpcm] = "DSP-ADPCM",
-            [BxstmCodec.Pcm16Bit] = "16-bit PCM",
-            [BxstmCodec.Pcm8Bit] = "8-bit PCM"
+            [NwCodec.GcAdpcm] = "DSP-ADPCM",
+            [NwCodec.Pcm16Bit] = "16-bit PCM",
+            [NwCodec.Pcm8Bit] = "8-bit PCM"
         };
 
         public FileType SelectedFileType { get; set; } = FileType.Dsp;
@@ -53,9 +53,7 @@ namespace VGAudio.Uwp.ViewModels
         public double SamplesPerMs => Samples / (Time * 1000);
 
         public DspConfiguration DspConfiguration { get; set; } = new DspConfiguration();
-        public BrstmConfiguration BrstmConfiguration { get; set; } = new BrstmConfiguration();
-        public BcstmConfiguration BcstmConfiguration { get; set; } = new BcstmConfiguration();
-        public BfstmConfiguration BfstmConfiguration { get; set; } = new BfstmConfiguration();
+        public BxstmConfiguration BxstmConfiguration { get; set; } = new BxstmConfiguration();
         public IdspConfiguration IdspConfiguration { get; set; } = new IdspConfiguration();
         public AdxConfiguration AdxConfiguration { get; set; } = new AdxConfiguration();
 
@@ -179,11 +177,9 @@ namespace VGAudio.Uwp.ViewModels
                 case FileType.Idsp:
                     return IdspConfiguration;
                 case FileType.Brstm:
-                    return BrstmConfiguration;
                 case FileType.Bcstm:
-                    return BcstmConfiguration;
                 case FileType.Bfstm:
-                    return BfstmConfiguration;
+                    return BxstmConfiguration;
                 case FileType.Adx:
                     return AdxConfiguration;
                 default:

@@ -86,12 +86,8 @@ namespace VGAudio.Containers.Idsp
                 writer.Write(CurAddr);
                 writer.Write(channel.Coefs.ToByteArray(Endianness.BigEndian));
                 writer.Write(channel.Gain);
-                writer.Write(channel.PredScale);
-                writer.Write(channel.Hist1);
-                writer.Write(channel.Hist2);
-                writer.Write(channel.LoopPredScale);
-                writer.Write(channel.LoopHist1);
-                writer.Write(channel.LoopHist2);
+                channel.StartContext.Write(writer);
+                channel.LoopContext.Write(writer);
             }
         }
 
