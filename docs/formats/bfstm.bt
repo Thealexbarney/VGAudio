@@ -4,10 +4,11 @@
 //      File: bfstm.bt
 //   Authors: Alex Barney
 //   Version: 1.0
-//   Purpose: Parse BFSTM and BCSTM audio files
+//   Purpose: Parse BFSTM, BCSTM, BFWAV, and BCWAV audio files
 //  Category: Audio
-// File Mask: *.bfstm, *.bcstm
-//  ID Bytes: 46 53 54 4D, 43 53 54 4D //FSTM, CSTM
+// File Mask: *.bfstm,*.bcstm,*.bfwav,*.bcwav
+//  ID Bytes: 46 53 54 4D, 43 53 54 4D, 46 57 41 56, 43 57 41 56
+//            FSTM, CSTM, FWAV, CWAV
 //   History: 
 //   1.0   Initial Release
 //------------------------------------------------
@@ -23,11 +24,23 @@ struct ChannelInfo;
 struct AdpcmChannelInfo;
 struct TrackInfo;
 struct WavInfoBlock;
+struct WavDataBlock;
 struct WavChannelInfo;
 
 typedef char ID[4];
 
 typedef uint32 NwVersion <read=VersionRead>;
+
+int IncludeUnalignedLoop(NwVersion version)
+{
+    return (version >> 24) == 0 && version >= 0x00040000 ||
+           (version >> 24) >= 2 && version >= 0x02030000;
+}
+
+int IncludeChecksum(NwVersion version)
+{
+    return (version >> 24) == 0 && version >= 0x00050000;
+}
 
 typedef enum <int16> 
 {
@@ -111,6 +124,9 @@ struct SizedReference
             break;
         case DataBlockType:
             DataBlock dataBlock(Blocks[GetBlockIndex(InfoBlockType)].infoBlock.streamInfo.streamInfo);
+            break;
+        case WavDataBlockType:
+            WavDataBlock dataBlock(Blocks[GetBlockIndex(WavInfoBlockType)].wavInfoBlock);
             break;
         case RegionBlockType:
             RegionBlock regionBlock;
@@ -199,13 +215,13 @@ struct StreamInfo
         Reference pREGNData(0);
     }
 
-    if(Version >> 16 >= 4)
+    if(IncludeUnalignedLoop(Version))
     {
         int32 UnalignedLoopStart;
         int32 UnalignedSampleCount; 
     }
 
-    if(Version >> 16 >= 5)
+    if(IncludeChecksum(Version))
     {
         int32 Checksum <format=hex>;
     }
@@ -337,6 +353,21 @@ struct DataBlock (StreamInfo &head)
 
     local int padding = head.FinalBlockSizeBytesWithPadding - head.FinalBlockSizeBytesWithoutPadding;
     AudioBlock Blocks(head.ChannelCount, head.FinalBlockSizeBytesWithoutPadding, padding); 
+};
+
+struct WavDataBlock (WavInfoBlock &head)
+{    
+    ID DataId;
+    int32 Size;
+    
+    local int i;
+    local int baseOffset = FTell();
+
+    for (i = 0; i < head.ChannelInfoTable.Count ; i++)
+    {
+        FSeek(baseOffset + head.ChannelInfoTable.Entries[i].wavChannelInfo.channelInfo.Offset);
+        byte AudioData;
+    }
 };
 
 string VersionRead( NwVersion v )

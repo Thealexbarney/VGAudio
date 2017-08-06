@@ -125,7 +125,6 @@ namespace VGAudio.Containers.NintendoWare
                 case ReferenceType.WaveInfoBlock:
                     structure.StreamInfo = StreamInfo.ReadBfwav(reader, structure.Version);
                     structure.ChannelInfo = ChannelInfo.ReadBfstm(reader);
-                    structure.StreamInfo.ChannelCount = structure.ChannelInfo.Channels.Count;
                     break;
             }
         }

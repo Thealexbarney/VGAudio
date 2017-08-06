@@ -115,7 +115,19 @@ namespace VGAudio.Containers.NintendoWare.Structures
             info.SampleRate = reader.ReadInt32();
             info.LoopStart = reader.ReadInt32();
             info.SampleCount = reader.ReadInt32();
-            info.LoopStartUnaligned = reader.ReadInt32();
+
+            if (Common.IncludeUnalignedLoopWave(version))
+            {
+                info.LoopStartUnaligned = reader.ReadInt32();
+            }
+            else
+            {
+                reader.BaseStream.Position += 4;
+            }
+
+            //Peek at the number of entries in the reference table
+            info.ChannelCount = reader.ReadInt32();
+            reader.BaseStream.Position -= 4;
             return info;
         }
 

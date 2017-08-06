@@ -81,6 +81,8 @@ namespace VGAudio.Cli.Metadata.Containers
                     return AudioFormat.Pcm16;
                 case NwCodec.GcAdpcm:
                     return AudioFormat.GcAdpcm;
+                case NwCodec.ImaAdpcm:
+                    return AudioFormat.ImaAdpcm;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(codec), codec, null);
             }

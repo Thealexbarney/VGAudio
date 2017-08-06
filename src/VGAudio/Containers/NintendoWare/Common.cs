@@ -114,6 +114,9 @@ namespace VGAudio.Containers.NintendoWare
         private static NwVersion IncludeTrackInfoBcstm { get; } = new NwVersion(2, 1);
         private static NwVersion IncludeUnalignedLoopBcstm { get; } = new NwVersion(2, 3);
 
+        private static NwVersion IncludeUnalignedLoopBfwav { get; } = new NwVersion(0, 1, 2);
+        private static NwVersion IncludeUnalignedLoopBcwav { get; } = new NwVersion(2, 1, 1);
+
         public static bool IncludeTrackInfo(NwVersion version)
         {
             return version.Major == 0 && version.Version <= IncludeTrackInfoBfstm.Version ||
@@ -135,6 +138,12 @@ namespace VGAudio.Containers.NintendoWare
         public static bool IncludeChecksum(NwVersion version)
         {
             return version.Major == 0 && version.Version >= IncludeChecksumBfstm.Version;
+        }
+
+        public static bool IncludeUnalignedLoopWave(NwVersion version)
+        {
+            return version.Major == 0 && version.Version >= IncludeUnalignedLoopBfwav.Version ||
+                   version.Major >= 2 && version.Version >= IncludeUnalignedLoopBcwav.Version;
         }
     }
 }
