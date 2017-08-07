@@ -83,7 +83,7 @@ namespace VGAudio.Tests.Helpers
             new byte[] { 08, 09, 14 }
         };
 
-        private static IEnumerable<object[]> ArrayData()
+        public static IEnumerable<object[]> ArrayData()
         {
             return new[]
             {

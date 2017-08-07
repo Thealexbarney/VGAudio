@@ -9,7 +9,6 @@ using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Build;
-using Cake.Common.Tools.DotNetCore.Test;
 using Cake.Common.Tools.SignTool;
 using Cake.Core.IO;
 
@@ -28,11 +27,7 @@ namespace Build
 
         public static void TestNetCli(Context context, string csprojPath, string framework)
         {
-            context.DotNetCoreTest(csprojPath, new DotNetCoreTestSettings
-            {
-                Framework = framework,
-                Configuration = context.Configuration
-            });
+            context.DotNetCoreTool(csprojPath, "xunit", $"-c {context.Configuration} -f {framework}");
         }
 
         public static void DeleteDirectory(Context context, DirectoryPath path, bool verbose)
