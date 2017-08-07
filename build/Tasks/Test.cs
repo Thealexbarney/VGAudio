@@ -10,17 +10,17 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            TestNetCli(context, context.TestsCsproj.FullPath, "netcoreapp1.0");
-            context.LibBuilds["netstandard"].TestSuccess = true;
+            TestNetCli(context, context.TestsCsproj.FullPath, context.LibBuilds["core"].TestFramework);
+            context.LibBuilds["core"].TestSuccess = true;
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["netstandard"].LibSuccess == true;
+            context.LibBuilds["core"].LibSuccess == true;
 
         public override void OnError(Exception exception, Context context)
         {
             DisplayError(context, exception.Message);
-            context.LibBuilds["netstandard"].TestSuccess = false;
+            context.LibBuilds["core"].TestSuccess = false;
         }
     }
 
@@ -30,17 +30,17 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            TestNetCli(context, context.TestsCsproj.FullPath, "net46");
-            context.LibBuilds["net45"].TestSuccess = true;
+            TestNetCli(context, context.TestsCsproj.FullPath, context.LibBuilds["full"].TestFramework);
+            context.LibBuilds["full"].TestSuccess = true;
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["net45"].LibSuccess == true;
+            context.LibBuilds["full"].LibSuccess == true;
 
         public override void OnError(Exception exception, Context context)
         {
             DisplayError(context, exception.Message);
-            context.LibBuilds["net45"].TestSuccess = false;
+            context.LibBuilds["full"].TestSuccess = false;
         }
     }
 }

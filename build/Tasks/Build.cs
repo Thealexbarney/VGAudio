@@ -24,14 +24,14 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            BuildNetCli(context, context.LibraryDir.FullPath, "netstandard1.1");
-            context.LibBuilds["netstandard"].LibSuccess = true;
+            BuildNetCli(context, context.LibraryDir.FullPath, context.LibBuilds["core"].LibFramework);
+            context.LibBuilds["core"].LibSuccess = true;
         }
 
         public override void OnError(Exception exception, Context context)
         {
             DisplayError(context, exception.Message);
-            context.LibBuilds["netstandard"].LibSuccess = false;
+            context.LibBuilds["core"].LibSuccess = false;
         }
     }
 
@@ -40,8 +40,8 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            BuildNetCli(context, context.LibraryDir.FullPath, "net45");
-            context.LibBuilds["net45"].LibSuccess = true;
+            BuildNetCli(context, context.LibraryDir.FullPath, context.LibBuilds["full"].LibFramework);
+            context.LibBuilds["full"].LibSuccess = true;
         }
 
         public override bool ShouldRun(Context context) => context.IsRunningOnWindows();
@@ -49,7 +49,7 @@ namespace Build.Tasks
         public override void OnError(Exception exception, Context context)
         {
             DisplayError(context, exception.Message);
-            context.LibBuilds["net45"].LibSuccess = false;
+            context.LibBuilds["full"].LibSuccess = false;
         }
     }
 
@@ -58,17 +58,17 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            BuildNetCli(context, context.CliDir.FullPath, "netcoreapp1.0");
-            context.LibBuilds["netstandard"].CliSuccess = true;
+            BuildNetCli(context, context.CliDir.FullPath, context.LibBuilds["core"].CliFramework);
+            context.LibBuilds["core"].CliSuccess = true;
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["netstandard"].LibSuccess == true;
+            context.LibBuilds["core"].LibSuccess == true;
 
         public override void OnError(Exception exception, Context context)
         {
             DisplayError(context, exception.Message);
-            context.LibBuilds["netstandard"].CliSuccess = false;
+            context.LibBuilds["core"].CliSuccess = false;
         }
     }
 
@@ -77,18 +77,18 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            BuildNetCli(context, context.CliDir.FullPath, "net45");
-            context.LibBuilds["net45"].CliSuccess = true;
+            BuildNetCli(context, context.CliDir.FullPath, context.LibBuilds["full"].CliFramework);
+            context.LibBuilds["full"].CliSuccess = true;
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["net45"].LibSuccess == true &&
+            context.LibBuilds["full"].LibSuccess == true &&
             context.IsRunningOnWindows();
 
         public override void OnError(Exception exception, Context context)
         {
             DisplayError(context, exception.Message);
-            context.LibBuilds["net45"].CliSuccess = false;
+            context.LibBuilds["full"].CliSuccess = false;
         }
     }
 
@@ -97,17 +97,17 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            BuildNetCli(context, context.ToolsDir.FullPath, "netcoreapp1.0");
-            context.LibBuilds["netstandard"].ToolsSuccess = true;
+            BuildNetCli(context, context.ToolsDir.FullPath, context.LibBuilds["core"].ToolsFramework);
+            context.LibBuilds["core"].ToolsSuccess = true;
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["netstandard"].LibSuccess == true;
+            context.LibBuilds["core"].LibSuccess == true;
 
         public override void OnError(Exception exception, Context context)
         {
             DisplayError(context, exception.Message);
-            context.LibBuilds["netstandard"].ToolsSuccess = false;
+            context.LibBuilds["core"].ToolsSuccess = false;
         }
     }
 
@@ -116,18 +116,18 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            BuildNetCli(context, context.ToolsDir.FullPath, "net451");
-            context.LibBuilds["net45"].ToolsSuccess = true;
+            BuildNetCli(context, context.ToolsDir.FullPath, context.LibBuilds["full"].ToolsFramework);
+            context.LibBuilds["full"].ToolsSuccess = true;
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["net45"].LibSuccess == true &&
+            context.LibBuilds["full"].LibSuccess == true &&
             context.IsRunningOnWindows();
 
         public override void OnError(Exception exception, Context context)
         {
             DisplayError(context, exception.Message);
-            context.LibBuilds["net45"].ToolsSuccess = false;
+            context.LibBuilds["full"].ToolsSuccess = false;
         }
     }
 
