@@ -21,10 +21,15 @@ namespace Build
             context.ToolsDir = context.SourceDir.Combine("VGAudio.Tools");
             context.SourceDir.Combine("VGAudio.Benchmark");
             context.UwpDir = context.SourceDir.Combine("VGAudio.Uwp");
+            context.BenchmarkDir = context.SourceDir.Combine("VGAudio.Benchmark");
 
-            context.SourceDir.CombineWithFilePath("VGAudio.sln");
+            context.SolutionFile = context.SourceDir.CombineWithFilePath("VGAudio.sln");
+            context.LibraryCsproj = context.LibraryDir.CombineWithFilePath("VGAudio.csproj");
+            context.CliCsproj = context.CliDir.CombineWithFilePath("VGAudio.Cli.csproj");
+            context.ToolsCsproj = context.ToolsDir.CombineWithFilePath("VGAudio.Tools.csproj");
             context.TestsCsproj = context.TestsDir.CombineWithFilePath("VGAudio.Tests.csproj");
             context.UwpCsproj = context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj");
+            context.BenchmarkCsproj = context.BenchmarkDir.CombineWithFilePath("VGAudio.Benchmark.csproj");
 
             context.TopBinDir = context.BaseDir.Combine("bin");
             context.BinDir = context.TopBinDir.Combine(context.IsReleaseBuild ? "release" : "debug");

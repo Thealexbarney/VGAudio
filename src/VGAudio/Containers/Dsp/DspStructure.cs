@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats.GcAdpcm;
 
 namespace VGAudio.Containers.Dsp

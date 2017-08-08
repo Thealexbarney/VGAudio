@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats.GcAdpcm;
 
 namespace VGAudio.Tools.GcAdpcm

@@ -48,7 +48,7 @@ namespace Build.Tasks
     [Dependency(typeof(PackageCli))]
     [Dependency(typeof(PackageUwp))]
     public sealed class Package : FrostingTask<Context> { }
-    
+
     [Dependency(typeof(Clean))]
     [Dependency(typeof(Publish))]
     [Dependency(typeof(Sign))]

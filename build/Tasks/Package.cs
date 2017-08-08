@@ -17,8 +17,6 @@ namespace Build.Tasks
         public override void Run(Context context)
         {
             context.EnsureDirectoryExists(context.PackageDir);
-            context.MoveFiles(context.GetFiles($"{context.CliBinDir}/net451/VGAudioTools*"), context.CliBinDir.Combine("net45"));
-            context.DeleteDirectory(context.CliBinDir.Combine("net451"), true);
             context.Zip(context.CliBinDir, context.PackageDir.CombineWithFilePath("VGAudioCli.zip"));
             context.CopyFiles(context.GetFiles($"{context.CliBinDir}/*.exe"), context.PackageDir);
         }

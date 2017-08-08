@@ -7,7 +7,7 @@ namespace VGAudio.Formats.Pcm16
     public class Pcm16FormatBuilder : AudioFormatBaseBuilder<Pcm16Format, Pcm16FormatBuilder, CodecParameters>
     {
         public short[][] Channels { get; set; }
-        protected internal override int ChannelCount => Channels.Length;
+        public override int ChannelCount => Channels.Length;
 
         public Pcm16FormatBuilder(short[][] channels, int sampleRate)
         {

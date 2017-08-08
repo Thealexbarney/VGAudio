@@ -2,7 +2,7 @@
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using Xunit;
-using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
 
 namespace VGAudio.Tests.Formats
 {

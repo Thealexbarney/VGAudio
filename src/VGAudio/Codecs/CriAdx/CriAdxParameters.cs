@@ -1,6 +1,4 @@
-﻿using VGAudio.Formats.CriAdx;
-
-namespace VGAudio.Codecs.CriAdx
+﻿namespace VGAudio.Codecs.CriAdx
 {
     public class CriAdxParameters : CodecParameters
     {

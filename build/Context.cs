@@ -25,9 +25,15 @@ namespace Build
         public DirectoryPath TestsDir { get; set; }
         public DirectoryPath ToolsDir { get; set; }
         public DirectoryPath UwpDir { get; set; }
+        public DirectoryPath BenchmarkDir { get; set; }
 
+        public FilePath SolutionFile { get; set; }
+        public FilePath LibraryCsproj { get; set; }
+        public FilePath CliCsproj { get; set; }
+        public FilePath ToolsCsproj { get; set; }
         public FilePath TestsCsproj { get; set; }
         public FilePath UwpCsproj { get; set; }
+        public FilePath BenchmarkCsproj { get; set; }
 
         public DirectoryPath TopBinDir { get; set; }
         public DirectoryPath BinDir { get; set; }
@@ -44,8 +50,8 @@ namespace Build
 
         public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>
         {
-            ["netstandard"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.0", "netcoreapp1.0", "netcoreapp1.0"),
-            ["net45"] = new LibraryBuildStatus("net45", "net45", "net451", "net46")
+            ["core"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.1", "netcoreapp1.1", "netcoreapp1.1"),
+            ["full"] = new LibraryBuildStatus("net45", "net451", "net451", "net46")
         };
 
         public Dictionary<string, bool?> OtherBuilds { get; } = new Dictionary<string, bool?>

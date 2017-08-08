@@ -1,6 +1,4 @@
-﻿using VGAudio.Codecs;
-
-namespace VGAudio.Formats.CriHca
+﻿namespace VGAudio.Codecs.CriHca
 {
     public class CriHcaParameters : CodecParameters
     {

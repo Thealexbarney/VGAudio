@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using VGAudio.Formats.GcAdpcm;
+using VGAudio.Codecs.GcAdpcm;
 
 namespace VGAudio.Containers.NintendoWare.Structures
 {

@@ -1,5 +1,4 @@
 ﻿using System;
-using VGAudio.Formats.CriAdx;
 using VGAudio.Utilities;
 using static VGAudio.Utilities.Helpers;
 
