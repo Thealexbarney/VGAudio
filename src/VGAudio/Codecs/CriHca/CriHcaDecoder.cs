@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using VGAudio.Formats.CriHca;
 using VGAudio.Utilities;
 using static VGAudio.Codecs.CriHca.CriHcaTables;
 

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using VGAudio.Codecs.CriAdx;
 using VGAudio.Formats;
-using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Cli
 {

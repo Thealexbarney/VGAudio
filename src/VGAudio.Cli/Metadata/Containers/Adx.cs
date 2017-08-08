@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using VGAudio.Codecs.CriAdx;
 using VGAudio.Containers.Adx;
-using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Cli.Metadata.Containers
 {

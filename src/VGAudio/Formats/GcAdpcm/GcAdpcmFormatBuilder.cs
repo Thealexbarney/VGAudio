@@ -9,7 +9,7 @@ namespace VGAudio.Formats.GcAdpcm
     {
         public GcAdpcmChannel[] Channels { get; set; }
         public int AlignmentMultiple { get; set; }
-        protected internal override int ChannelCount => Channels.Length;
+        public override int ChannelCount => Channels.Length;
 
         public GcAdpcmFormatBuilder(IReadOnlyCollection<GcAdpcmChannel> channels, int sampleRate)
         {

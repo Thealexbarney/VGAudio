@@ -1,5 +1,5 @@
 ﻿using System;
-using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
 
 namespace VGAudio.Containers.Idsp
 {

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Containers;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Containers.NintendoWare;
 using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Formats;
-using VGAudio.Formats.GcAdpcm;
 
 namespace VGAudio.Cli.Metadata.Containers
 {

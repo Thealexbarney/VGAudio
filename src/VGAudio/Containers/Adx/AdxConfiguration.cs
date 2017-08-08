@@ -1,5 +1,4 @@
 ﻿using VGAudio.Codecs.CriAdx;
-using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Containers.Adx
 {

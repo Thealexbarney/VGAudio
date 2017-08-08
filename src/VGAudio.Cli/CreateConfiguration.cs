@@ -7,7 +7,6 @@ using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
 using VGAudio.Containers.NintendoWare;
 using VGAudio.Containers.Wave;
-using VGAudio.Formats.CriAdx;
 
 namespace VGAudio.Cli
 {

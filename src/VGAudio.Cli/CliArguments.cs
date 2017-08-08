@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using VGAudio.Formats.CriAdx;
+using VGAudio.Codecs.CriAdx;
 
 namespace VGAudio.Cli
 {

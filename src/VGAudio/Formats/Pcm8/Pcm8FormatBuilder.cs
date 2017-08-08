@@ -8,7 +8,7 @@ namespace VGAudio.Formats.Pcm8
     {
         public byte[][] Channels { get; set; }
         public bool Signed { get; set; }
-        protected internal override int ChannelCount => Channels.Length;
+        public override int ChannelCount => Channels.Length;
 
         public Pcm8FormatBuilder(byte[][] channels, int sampleRate, bool signed = false)
         {

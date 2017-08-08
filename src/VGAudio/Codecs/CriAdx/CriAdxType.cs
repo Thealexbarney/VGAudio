@@ -1,4 +1,4 @@
-﻿namespace VGAudio.Formats.CriAdx
+﻿namespace VGAudio.Codecs.CriAdx
 {
     public enum CriAdxType
     {

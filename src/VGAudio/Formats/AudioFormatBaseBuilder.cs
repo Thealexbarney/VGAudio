@@ -10,7 +10,7 @@ namespace VGAudio.Formats
         where TBuilder : AudioFormatBaseBuilder<TFormat, TBuilder, TConfig>
         where TConfig : CodecParameters, new()
     {
-        protected internal abstract int ChannelCount { get; }
+        public abstract int ChannelCount { get; }
         protected internal bool Looping { get; set; }
         protected internal int LoopStart { get; set; }
         protected internal int LoopEnd { get; set; }

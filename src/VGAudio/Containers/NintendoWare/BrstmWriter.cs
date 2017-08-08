@@ -9,7 +9,7 @@ using VGAudio.Formats.Pcm16;
 using VGAudio.Formats.Pcm8;
 using VGAudio.Utilities;
 using static VGAudio.Containers.NintendoWare.Common;
-using static VGAudio.Formats.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
 using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.NintendoWare

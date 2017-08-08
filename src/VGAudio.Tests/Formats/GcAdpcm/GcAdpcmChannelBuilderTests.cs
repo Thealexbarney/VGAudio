@@ -1,4 +1,5 @@
-﻿using VGAudio.Formats.GcAdpcm;
+﻿using VGAudio.Codecs.GcAdpcm;
+using VGAudio.Formats.GcAdpcm;
 using Xunit;
 
 namespace VGAudio.Tests.Formats.GcAdpcm
