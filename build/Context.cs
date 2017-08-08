@@ -25,9 +25,15 @@ namespace Build
         public DirectoryPath TestsDir { get; set; }
         public DirectoryPath ToolsDir { get; set; }
         public DirectoryPath UwpDir { get; set; }
+        public DirectoryPath BenchmarkDir { get; set; }
 
+        public FilePath SolutionFile { get; set; }
+        public FilePath LibraryCsproj { get; set; }
+        public FilePath CliCsproj { get; set; }
+        public FilePath ToolsCsproj { get; set; }
         public FilePath TestsCsproj { get; set; }
         public FilePath UwpCsproj { get; set; }
+        public FilePath BenchmarkCsproj { get; set; }
 
         public DirectoryPath TopBinDir { get; set; }
         public DirectoryPath BinDir { get; set; }
