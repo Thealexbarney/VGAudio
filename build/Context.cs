@@ -50,7 +50,7 @@ namespace Build
 
         public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>
         {
-            ["core"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp1.1", "netcoreapp1.1", "netcoreapp1.1"),
+            ["core"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp2.0", "netcoreapp2.0", "netcoreapp2.0"),
             ["full"] = new LibraryBuildStatus("net45", "net451", "net451", "net46")
         };
 
