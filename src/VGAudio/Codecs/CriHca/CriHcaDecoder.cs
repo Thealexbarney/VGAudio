@@ -53,7 +53,7 @@ namespace VGAudio.Codecs.CriHca
             UnpackFrame(frame, reader);
             DequantizeFrame(frame);
             RestoreMissingBands(frame);
-            Mdct.RunImdct(frame);
+            RunImdct(frame);
             PcmFloatToShort(frame, pcmOut);
         }
 
@@ -291,6 +291,17 @@ namespace VGAudio.Codecs.CriHca
                 }
             }
             return true;
+        }
+
+        private static void RunImdct(CriHcaFrame frame)
+        {
+            for (int sf = 0; sf < 8; sf++)
+            {
+                for (int c = 0; c < frame.ChannelCount; c++)
+                {
+                    frame.Mdct[c].RunImdct(frame.Spectra[sf][c], frame.PcmFloat[sf][c]);
+                }
+            }
         }
 
         private static void PcmFloatToShort(CriHcaFrame frame, short[][] pcm)

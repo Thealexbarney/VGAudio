@@ -28,17 +28,5 @@ namespace VGAudio.Tests.Formats.CriHca
         {
             Assert.Equal(CriHcaTables.ScaleConversionTable, CriHcaTablesPrebuilt.ScaleConversionTable);
         }
-
-        [Fact]
-        public void GeneratedSinTableMatchesOriginal()
-        {
-            Assert.Equal(CriHcaTables.SinTable, CriHcaTablesPrebuilt.SinTable);
-        }
-
-        [Fact]
-        public void GeneratedCosTableMatchesOriginal()
-        {
-            Assert.Equal(CriHcaTables.CosTable, CriHcaTablesPrebuilt.CosTable);
-        }
     }
 }
