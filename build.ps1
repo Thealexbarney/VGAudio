@@ -38,7 +38,7 @@ $basePath = Split-Path $MyInvocation.MyCommand.Path -Parent
 $buildPath = Join-Path $basePath "build"
 $dotnetPath = Join-Path $basePath "tools/dotnet"
 $dotnetCliPath = Join-Path $dotnetPath "cli"
-$globalJsonFile = Join-Path $buildPath global.json
+$globalJsonFile = Join-Path $basePath global.json
 
 ###########################################################################
 # INSTALL .NET CORE CLI
