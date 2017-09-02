@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
+using VGAudio.Utilities;
 using Xunit;
 using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
 
@@ -85,7 +86,7 @@ namespace VGAudio.Tests.Formats
                 .WithAlignment(alignment)
                 .WithLoop(looping, loopStart, loopEnd);
 
-            int extraSamples = Utilities.Helpers.GetNextMultiple(loopStart, alignment) - loopStart;
+            int extraSamples = Helpers.GetNextMultiple(loopStart, alignment) - loopStart;
 
             Assert.Equal(SampleCountToByteCount(loopEnd + extraSamples), adpcm.Channels[0].GetAdpcmAudio().Length);
         }
@@ -110,7 +111,7 @@ namespace VGAudio.Tests.Formats
                 .WithAlignment(alignment)
                 .WithLoop(looping, loopStart, loopEnd);
 
-            int extraSamples = Utilities.Helpers.GetNextMultiple(loopStart, alignment) - loopStart;
+            int extraSamples = Helpers.GetNextMultiple(loopStart, alignment) - loopStart;
 
             Assert.Equal(loopStart + extraSamples, adpcm.LoopStart);
             Assert.Equal(loopEnd + extraSamples, adpcm.LoopEnd);

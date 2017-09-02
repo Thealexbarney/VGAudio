@@ -1,7 +1,7 @@
 ﻿using VGAudio.Utilities;
 using Xunit;
 
-namespace VGAudio.Tests.Helpers
+namespace VGAudio.Tests.Utilities
 {
     public class MdctTests
     {

@@ -10,6 +10,7 @@ namespace VGAudio.Tests.Equality
     {
         public override bool Equals(IAudioFormat x, IAudioFormat y)
         {
+            if (x == null || y == null) return false;
             if (x.GetType() != y.GetType()) return false;
 
             switch (x)
