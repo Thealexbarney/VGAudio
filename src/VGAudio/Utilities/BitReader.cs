@@ -23,6 +23,15 @@ namespace VGAudio.Utilities
             return value;
         }
 
+        public int ReadSignedInt(int bitCount)
+        {
+            int value = PeekInt(bitCount);
+            Position += bitCount;
+            return SignExtend32(value, bitCount);
+        }
+
+        public bool ReadBool() => ReadInt(1) == 1;
+
         public int ReadOffsetBinary(int bitCount)
         {
             int offset = (1 << (bitCount - 1)) - 1;
@@ -31,10 +40,28 @@ namespace VGAudio.Utilities
             return value;
         }
 
+        public static int SignExtend32(int value, int bits)
+        {
+            int shift = 8 * sizeof(int) - bits;
+            return (value << shift) >> shift;
+        }
+
+        public void AlignPosition(int multiple)
+        {
+            Position = Helpers.GetNextMultiple(Position, multiple);
+        }
+
         public int PeekInt(int bitCount)
         {
             Debug.Assert(bitCount >= 0 && bitCount <= 32);
-            if (bitCount > Remaining) return 0;
+
+            if (bitCount > Remaining)
+            {
+                if (Position >= LengthBits) return 0;
+
+                int extraBits = bitCount - Remaining;
+                return PeekIntFallback(Remaining) << extraBits;
+            }
 
             int byteIndex = Position / 8;
             int bitIndex = Position % 8;
