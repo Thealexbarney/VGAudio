@@ -11,6 +11,8 @@ namespace Build.SplitProject
         {
             var root = context.SourceDir;
             var projects = new Projects(root);
+            context.DotNetCoreTool(context.SolutionFile, "new -i Microsoft.DotNet.Common.ProjectTemplates.1.x::1.0.0-*");
+
             foreach (var project in projects.ProjectList)
             {
                 context.EnsureDirectoryExists(project.Path);
