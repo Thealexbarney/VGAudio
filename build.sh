@@ -26,7 +26,7 @@ while (($#)); do
     shift
 done
 
-dotnetCliVersion="1.0.4"
+dotnetCliVersion="2.0.0"
 
 # Define directories.
 basePath=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
@@ -90,5 +90,5 @@ fi
 
 echo "Running build..."
 dotnet publish /v:q /nologo
-dotnet bin/Debug/netcoreapp1.1/publish/Build.dll --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
+dotnet bin/Debug/netcoreapp2.0/publish/Build.dll --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
 exit $?
