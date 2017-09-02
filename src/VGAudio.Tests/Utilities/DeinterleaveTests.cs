@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xunit;
 using VGAudio.Utilities;
+using Xunit;
 
 namespace VGAudio.Tests.Utilities
 {
