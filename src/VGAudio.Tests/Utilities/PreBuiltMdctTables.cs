@@ -1,4 +1,4 @@
-﻿namespace VGAudio.Tests.Helpers
+﻿namespace VGAudio.Tests.Utilities
 {
     public static class PreBuiltMdctTables
     {

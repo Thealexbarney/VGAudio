@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using VGAudio.Utilities;
 
-
-namespace VGAudio.Benchmark.HelperBenchmarks
+namespace VGAudio.Benchmark.UtilityBenchmarks
 {
     public class BitReaderBenchmarks
     {

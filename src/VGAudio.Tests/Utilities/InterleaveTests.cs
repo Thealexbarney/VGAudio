@@ -5,7 +5,7 @@ using System.Linq;
 using Xunit;
 using VGAudio.Utilities;
 
-namespace VGAudio.Tests.Helpers
+namespace VGAudio.Tests.Utilities
 {
     public static class InterleaveTests
     {

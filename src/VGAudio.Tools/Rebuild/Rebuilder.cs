@@ -40,9 +40,18 @@ namespace VGAudio.Tools.Rebuild
                         a.RecalculateLoopContext = false;
                         a.RecalculateSeekTable = false;
                     }
-                    byte[] outFile = Writer().GetFile(audio.AudioFormat, audio.Configuration);
-                    int diff = Common.DiffArrays(inFile, outFile);
-                    Results[i] = new Result(Files[i], diff);
+
+                    int bytesDiff = 0;
+                    if (Writer != null)
+                    {
+                        byte[] outFile = Writer().GetFile(audio.AudioFormat, audio.Configuration);
+                        bytesDiff = Common.DiffArrays(inFile, outFile);
+                    }
+                    else
+                    {
+                        audio.AudioFormat.ToPcm16();
+                    }
+                    Results[i] = new Result(Files[i], bytesDiff);
                 }
                 catch (Exception ex)
                 {

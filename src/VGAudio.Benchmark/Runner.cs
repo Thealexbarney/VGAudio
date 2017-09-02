@@ -4,7 +4,7 @@ using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using VGAudio.Benchmark.AdpcmBenchmarks;
-using VGAudio.Benchmark.HelperBenchmarks;
+using VGAudio.Benchmark.UtilityBenchmarks;
 
 namespace VGAudio.Benchmark
 {

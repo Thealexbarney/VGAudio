@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xunit;
 using VGAudio.Utilities;
+using Xunit;
 
-namespace VGAudio.Tests.Helpers
+namespace VGAudio.Tests.Utilities
 {
     public static class DeinterleaveTests
     {

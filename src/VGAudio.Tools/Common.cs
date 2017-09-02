@@ -3,6 +3,7 @@ using System.Linq;
 using VGAudio.Containers.Adx;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Genh;
+using VGAudio.Containers.Hca;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
 using VGAudio.Containers.NintendoWare;
@@ -22,7 +23,8 @@ namespace VGAudio.Tools
             new FileTypeInfo(FileType.Bfstm, "*.bfstm", () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Cafe)),
             new FileTypeInfo(FileType.Hps, "*.hps", () => new HpsReader(), () => new HpsWriter()),
             new FileTypeInfo(FileType.Adx, "*.adx", () => new AdxReader(), () => new AdxWriter()),
-            new FileTypeInfo(FileType.Genh, "*.genh", () => new GenhReader(), () => null)
+            new FileTypeInfo(FileType.Genh, "*.genh", () => new GenhReader(), null),
+            new FileTypeInfo(FileType.Hca, "*.hca", () => new HcaReader(), null)
         }.ToDictionary(x => x.Type, x => x);
 
         public static int[] GetPrimes(int maxPrime)

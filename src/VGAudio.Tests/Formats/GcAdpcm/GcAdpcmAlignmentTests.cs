@@ -90,11 +90,11 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         }
 
         [Theory]
-        [InlineData(1000, 4524, 100, 2)]
-        [InlineData(1000, 2012, 1, 2)]
-        [InlineData(1000, 60, 1, 2)]
-        [InlineData(1000, 60, 20, 2)]
-        public void AlignedPcmIsCorrect(int multiple, int loopStart, int sineCycles, int tolerance)
+        [InlineData(1000, 4524, 100)]
+        [InlineData(1000, 2012, 1)]
+        [InlineData(1000, 60, 1)]
+        [InlineData(1000, 60, 20)]
+        public void AlignedPcmIsCorrect(int multiple, int loopStart, int sineCycles)
         {
             int loopEnd = sineCycles * 4 * SamplesPerFrame + loopStart;
             var pcm = GenerateSineWave(GetNextMultiple(loopEnd, SamplesPerFrame), 1, SamplesPerFrame * 4);
@@ -102,7 +102,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
             var adpcm = GcAdpcmEncoder.Encode(pcm, coefs);
             var alignment = new GcAdpcmAlignment(multiple, loopStart, loopEnd, adpcm, coefs);
             var pcmAligned = alignment.PcmAligned;
-            var pcmExpected = GcAdpcmDecoder.Decode(alignment.AdpcmAligned, coefs, new GcAdpcmParameters{ SampleCount = alignment.SampleCountAligned});
+            var pcmExpected = GcAdpcmDecoder.Decode(alignment.AdpcmAligned, coefs, new GcAdpcmParameters { SampleCount = alignment.SampleCountAligned });
 
             Assert.Equal(pcmExpected, pcmAligned);
         }
