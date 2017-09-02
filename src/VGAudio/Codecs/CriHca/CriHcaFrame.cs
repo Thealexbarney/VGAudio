@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using VGAudio.Utilities;
 
 namespace VGAudio.Codecs.CriHca
@@ -6,6 +7,8 @@ namespace VGAudio.Codecs.CriHca
     public class CriHcaFrame
     {
         private const int SubframesPerFrame = 8;
+        private const int FrameSizeBits = 7;
+        private const int FrameSize = 1 << FrameSizeBits;
 
         public HcaInfo Hca { get; }
         public int ChannelCount { get; }
@@ -17,11 +20,9 @@ namespace VGAudio.Codecs.CriHca
         public int[][] HfrScale { get; }
         public float[][] Gain { get; }
         public int[][][] QuantizedSpectra { get; }
-        public float[][][] Spectra { get; }
-        public float[][][] PcmFloat { get; }
-        public float[] DctTempBuffer { get; } = new float[0x80];
-        public float[][] ImdctPrevious { get; }
-        public float[][] DctOutput { get; }
+        public double[][][] Spectra { get; }
+        public double[][][] PcmFloat { get; }
+        public Mdct[] Mdct { get; }
 
 
         public CriHcaFrame(HcaInfo hca)
@@ -30,21 +31,21 @@ namespace VGAudio.Codecs.CriHca
             ChannelCount = hca.ChannelCount;
             ChannelType = GetChannelTypes(hca).Select(x => (ChannelType)x).ToArray();
             ScaleLength = new int[hca.ChannelCount];
-            Scale = Helpers.CreateJaggedArray<int[][]>(ChannelCount, 0x80);
+            Mdct = new Mdct[hca.ChannelCount];
+            Scale = Helpers.CreateJaggedArray<int[][]>(ChannelCount, FrameSize);
             Intensity = Helpers.CreateJaggedArray<int[][]>(ChannelCount, 8);
-            Resolution = Helpers.CreateJaggedArray<int[][]>(ChannelCount, 0x80);
-            HfrScale = Helpers.CreateJaggedArray<int[][]>(ChannelCount, 0x80);
-            Gain = Helpers.CreateJaggedArray<float[][]>(ChannelCount, 0x80);
-            QuantizedSpectra = Helpers.CreateJaggedArray<int[][][]>(SubframesPerFrame, ChannelCount, 0x80);
-            Spectra = Helpers.CreateJaggedArray<float[][][]>(SubframesPerFrame, ChannelCount, 0x80);
-            PcmFloat = Helpers.CreateJaggedArray<float[][][]>(SubframesPerFrame, ChannelCount, 0x80);
-            ImdctPrevious = Helpers.CreateJaggedArray<float[][]>(ChannelCount, 0x80);
-            DctOutput = Helpers.CreateJaggedArray<float[][]>(ChannelCount, 0x80);
+            Resolution = Helpers.CreateJaggedArray<int[][]>(ChannelCount, FrameSize);
+            HfrScale = Helpers.CreateJaggedArray<int[][]>(ChannelCount, FrameSize);
+            Gain = Helpers.CreateJaggedArray<float[][]>(ChannelCount, FrameSize);
+            QuantizedSpectra = Helpers.CreateJaggedArray<int[][][]>(SubframesPerFrame, ChannelCount, FrameSize);
+            Spectra = Helpers.CreateJaggedArray<double[][][]>(SubframesPerFrame, ChannelCount, FrameSize);
+            PcmFloat = Helpers.CreateJaggedArray<double[][][]>(SubframesPerFrame, ChannelCount, FrameSize);
 
             for (int i = 0; i < hca.ChannelCount; i++)
             {
                 ScaleLength[i] = hca.BaseBandCount;
                 if (ChannelType[i] != CriHca.ChannelType.IntensityStereoSecondary) ScaleLength[i] += hca.StereoBandCount;
+                Mdct[i] = new Mdct(FrameSizeBits, CriHcaTables.MdctWindow, Math.Sqrt(2.0 / FrameSize));
             }
         }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using VGAudio.Utilities;
 
 namespace VGAudio.Codecs.CriHca
 {
@@ -9,10 +8,8 @@ namespace VGAudio.Codecs.CriHca
         public static float[] DequantizerRangeTable { get; } = GenerateTable(16, DequantizerRangeFunction);
         public static float[] IntensityRatioTable { get; } = GenerateTable(16, IntensityRatioFunction);
         public static float[] ScaleConversionTable { get; } = GenerateTable(128, ScaleConversionTableFunction);
-        public static float[][] SinTable { get; } = GenerateTable(7, 64, SinTableFunction);
-        public static float[][] CosTable { get; } = GenerateTable(7, 64, CosTableFunction);
 
-        public static int[] ResolutionTable { get; } =
+        public static byte[] ResolutionTable { get; } =
         {
             0x0F, 0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0D,
             0x0D, 0x0D, 0x0D, 0x0D, 0x0D, 0x0C, 0x0C, 0x0C,
@@ -56,7 +53,8 @@ namespace VGAudio.Codecs.CriHca
         // Don't know what the window function is.
         // It's close to a KBD window with an alpha of around 3.82.
         // AAC and Vorbis windows are similar to it.
-        public static float[] MdctWindow { get; } =
+        //Todo: Make float
+        public static double[] MdctWindow { get; } =
         {
             6.90533780e-4f, 1.97623484e-3f, 3.67386453e-3f, 5.72424009e-3f, 8.09670333e-3f, 1.07731819e-2f, 1.37425177e-2f, 1.69978570e-2f,
             2.05352642e-2f, 2.43529025e-2f, 2.84505188e-2f, 3.28290947e-2f, 3.74906212e-2f, 4.24378961e-2f, 4.76744287e-2f, 5.32043017e-2f,
@@ -87,25 +85,6 @@ namespace VGAudio.Codecs.CriHca
             return 2f / ((1 << (x - 3)) - 1);
         }
 
-        private static double SinCosValue(int x, int y)
-        {
-            int period = 1 << x;
-            var i = y % period;
-            var n = period * 4;
-            return (2 * Math.PI * (2 * i + 1)) / (4 * n);
-        }
-
-        private static float SinTableFunction(int x, int y)
-        {
-            int periodNum = y / (1 << x);
-            var sign = Math.Pow(-1, Helpers.BitCount(periodNum) + 1);
-            var value = Math.Sin(SinCosValue(x, y)) / (x == 0 ? Math.Sqrt(128) : 1);
-            return (float)(sign * value);
-        }
-
-        private static float CosTableFunction(int x, int y) =>
-            (float)(Math.Cos(SinCosValue(x, y)) / (x == 0 ? Math.Sqrt(128) : 1));
-
         private static T[] GenerateTable<T>(int count, Func<int, T> elementGenerator)
         {
             var table = new T[count];
@@ -113,17 +92,6 @@ namespace VGAudio.Codecs.CriHca
             {
                 table[i] = elementGenerator(i);
             }
-            return table;
-        }
-
-        private static T[][] GenerateTable<T>(int countX, int countY, Func<int, int, T> elementGenerator)
-        {
-            var table = Helpers.CreateJaggedArray<T[][]>(countX, countY);
-            for (int x = 0; x < countX; x++)
-                for (int y = 0; y < countY; y++)
-                {
-                    table[x][y] = elementGenerator(x, y);
-                }
             return table;
         }
     }
