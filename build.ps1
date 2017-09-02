@@ -31,14 +31,14 @@ Param(
     [string[]]$ScriptArgs
 )
 
-$dotnetCliVersion = "1.0.4"
+$dotnetCliVersion = "2.0.0"
 
 # Define directories.
 $basePath = Split-Path $MyInvocation.MyCommand.Path -Parent
 $buildPath = Join-Path $basePath "build"
 $dotnetPath = Join-Path $basePath "tools/dotnet"
 $dotnetCliPath = Join-Path $dotnetPath "cli"
-$globalJsonFile = Join-Path $buildPath global.json
+$globalJsonFile = Join-Path $basePath global.json
 
 ###########################################################################
 # INSTALL .NET CORE CLI
@@ -108,7 +108,7 @@ try {
 
     Write-Output "Running build..."
 	& dotnet publish /v:q /nologo
-    & dotnet bin/Debug/netcoreapp1.1/publish/Build.dll $Arguments
+    & dotnet bin/Debug/netcoreapp2.0/publish/Build.dll $Arguments
     exit $LASTEXITCODE;
 
 } finally {

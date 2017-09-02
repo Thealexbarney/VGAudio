@@ -6,10 +6,10 @@ using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Pack;
 using Cake.Common.Tools.DotNetCore.Publish;
-using Cake.Common.Tools.ILRepack;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
+using ILRepacking;
 using static Build.Utilities;
 
 namespace Build.Tasks
@@ -90,13 +90,22 @@ namespace Build.Tasks
     }
 
     [Dependency(typeof(PublishCli))]
-    [Dependency(typeof(RestoreCakeTools))]
     public sealed class IlRepackCli : FrostingTask<Context>
     {
-        public override void Run(Context context) => context.ILRepack(
-            context.CliBinDir.CombineWithFilePath("VGAudioCli.exe"),
-            context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].CliFramework}/VGAudioCli.exe"),
-            new[] { context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].CliFramework}/VGAudio.dll") });
+        public override void Run(Context context)
+        {
+            RepackOptions options = new RepackOptions
+            {
+                OutputFile = context.CliBinDir.CombineWithFilePath("VGAudioCli.exe").FullPath,
+                InputAssemblies = new[]
+                {
+                    context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].CliFramework}/VGAudioCli.exe").FullPath,
+                    context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].CliFramework}/VGAudio.dll").FullPath
+                },
+                SearchDirectories = new[] { "." }
+            };
+            new ILRepack(options).Repack();
+        }
 
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["full"].CliSuccess == true;
@@ -106,13 +115,22 @@ namespace Build.Tasks
     }
 
     [Dependency(typeof(PublishTools))]
-    [Dependency(typeof(RestoreCakeTools))]
     public sealed class IlRepackTools : FrostingTask<Context>
     {
-        public override void Run(Context context) => context.ILRepack(
-            context.CliBinDir.CombineWithFilePath("VGAudioTools.exe"),
-            context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].ToolsFramework}/VGAudioTools.exe"),
-            new[] { context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].ToolsFramework}/VGAudio.dll") });
+        public override void Run(Context context)
+        {
+            RepackOptions options = new RepackOptions
+            {
+                OutputFile = context.CliBinDir.CombineWithFilePath("VGAudioTools.exe").FullPath,
+                InputAssemblies = new[]
+                {
+                    context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].ToolsFramework}/VGAudioTools.exe").FullPath,
+                    context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].ToolsFramework}/VGAudio.dll").FullPath
+                },
+                SearchDirectories = new[] { "." }
+            };
+            new ILRepack(options).Repack();
+        }
 
         public override bool ShouldRun(Context context) =>
             context.LibBuilds["full"].ToolsSuccess == true;
