@@ -219,7 +219,10 @@ namespace VGAudio.Codecs.CriAdx
 
             // Sonic runners [Android]
             // Verified by VGAudio
-            new CriAdxKey(19910623)
+            new CriAdxKey(19910623),
+
+            // Fallen Princess (iOS/Android)
+            new CriAdxKey(145552191146490718)
         };
     }
 }

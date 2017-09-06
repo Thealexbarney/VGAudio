@@ -38,13 +38,38 @@ namespace VGAudio.Codecs.CriHca
 
         private static bool TestKey(CriHcaFrame frame, byte[][] audio, CriHcaKey key, byte[] buffer)
         {
-            int framesToTest = Math.Min(audio.Length, FramesToTest);
-            for (int i = 0; i < framesToTest; i++)
+            int startFrame = FindFirstNonEmptyFrame(audio);
+            int endFrame = Math.Min(audio.Length, startFrame + FramesToTest);
+            for (int i = startFrame; i < endFrame; i++)
             {
                 Array.Copy(audio[i], buffer, audio[i].Length);
                 DecryptFrame(frame.Hca, buffer, key);
                 var reader = new BitReader(buffer);
                 if (!CriHcaDecoder.UnpackFrame(frame, reader))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static int FindFirstNonEmptyFrame(byte[][] frames)
+        {
+            for (int i = 0; i < frames.Length; i++)
+            {
+                if (!FrameEmpty(frames[i]))
+                {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        private static bool FrameEmpty(byte[] frame)
+        {
+            for (int i = 2; i < frame.Length - 2; i++)
+            {
+                if (frame[i] != 0)
                 {
                     return false;
                 }

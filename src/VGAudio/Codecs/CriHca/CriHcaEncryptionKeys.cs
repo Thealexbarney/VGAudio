@@ -53,7 +53,29 @@ namespace VGAudio.Codecs.CriHca
             new CriHcaKey(765765765765765),
 
             // Black Knight and White Devil (iOS/Android)
-            new CriHcaKey(3003875739822025258)
+            new CriHcaKey(3003875739822025258),
+
+            // Puella Magi Madoka Magica Side Story: Magia Record (iOS/Android)
+            new CriHcaKey(20536401),
+
+            // The Tower of Princess (iOS/Android)
+            new CriHcaKey(9101518402445063),
+
+            // Fallen Princess (iOS/Android)
+            new CriHcaKey(145552191146490718),
+
+            // Diss World (iOS/Android)
+            new CriHcaKey(9001712656335836006),
+
+            // イケメンヴァンパイア 偉人たちと恋の誘惑 (iOS/Android)
+            new CriHcaKey(45152594117267709),
+
+            // Super Robot Wars X-Ω (iOS/Android)
+            new CriHcaKey(165521992944278),
+
+            // BanG Dream! Girls Band Party! (iOS/Android)
+            new CriHcaKey(8910)
+
         };
     }
 }

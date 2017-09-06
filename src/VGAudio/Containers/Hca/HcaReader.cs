@@ -12,7 +12,7 @@ namespace VGAudio.Containers.Hca
     public class HcaReader : AudioReader<HcaReader, HcaStructure, HcaConfiguration>
     {
         /// <summary>If <c>true</c>, decrypts the HCA data if possible.</summary>
-        public bool Decrypt { get; set; }
+        public bool Decrypt { get; set; } = true;
         public CriHcaKey EncryptionKey { get; set; }
 
         private static Crc16 Crc { get; } = new Crc16(0x8005);
