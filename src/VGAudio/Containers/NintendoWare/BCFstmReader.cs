@@ -17,7 +17,7 @@ namespace VGAudio.Containers.NintendoWare
             using (BinaryReader reader = GetBinaryReader(stream, Endianness.LittleEndian))
             {
                 string magic = reader.ReadUTF8(4);
-                if (magic != "CSTM" && magic != "FSTM" && magic != "CWAV" && magic != "FWAV")
+                if (magic != "CSTM" && magic != "FSTM" && magic != "CWAV" && magic != "FWAV" && magic != "CSTP" && magic != "FSTP")
                 {
                     throw new InvalidDataException("File has no CSTM or FSTM header");
                 }
@@ -228,6 +228,7 @@ namespace VGAudio.Containers.NintendoWare
         {
             SizedReference reference =
                 structure.Blocks.FirstOrDefault(x => x.Type == ReferenceType.StreamDataBlock ||
+                                                     x.Type == ReferenceType.StreamPrefetchDataBlock ||
                                                      x.Type == ReferenceType.WaveDataBlock) ??
                 throw new InvalidDataException("File has no DATA block");
 
@@ -235,7 +236,8 @@ namespace VGAudio.Containers.NintendoWare
 
             reader.BaseStream.Position = reference.AbsoluteOffset;
 
-            if (reader.ReadUTF8(4) != "DATA")
+            string blockId = reader.ReadUTF8(4);
+            if (blockId != "DATA" && blockId != "PDAT")
             {
                 throw new InvalidDataException("Unknown or invalid DATA block");
             }
@@ -268,6 +270,20 @@ namespace VGAudio.Containers.NintendoWare
 
                 structure.AudioData = reader.BaseStream.DeInterleave(audioDataLength, info.InterleaveSize,
                     info.ChannelCount, outputSize);
+            }
+            else if (reference.IsType(ReferenceType.StreamPrefetchDataBlock))
+            {
+                structure.PrefetchData = new List<PrefetchData>();
+                int count = reader.ReadInt32();
+
+                for (int i = 0; i < count; i++)
+                {
+                    structure.PrefetchData.Add(PrefetchData.ReadPrefetchData(reader, info));
+                }
+
+                reader.BaseStream.Position = structure.PrefetchData[0].AudioData.AbsoluteOffset;
+                structure.AudioData = reader.BaseStream.DeInterleave(structure.PrefetchData[0].Size, info.InterleaveSize,
+                    info.ChannelCount, structure.PrefetchData[0].Size);
             }
         }
     }
