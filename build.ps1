@@ -86,6 +86,10 @@ try {
     $originalEnvPath = $env:Path
     SetupDotnetCli
 
+    # HP sets the "Platform" environment variable with some of their software
+    # Clear that to allow the build to work
+    $env:Platform = ""
+
 ###########################################################################
 # RUN BUILD SCRIPT
 ###########################################################################
