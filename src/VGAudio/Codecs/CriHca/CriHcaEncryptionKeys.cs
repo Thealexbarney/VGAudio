@@ -74,8 +74,34 @@ namespace VGAudio.Codecs.CriHca
             new CriHcaKey(165521992944278),
 
             // BanG Dream! Girls Band Party! (iOS/Android)
-            new CriHcaKey(8910)
+            new CriHcaKey(8910),
 
+            // Tokyo 7th Sisters (iOS/Android) *unconfirmed
+            new CriHcaKey(18279639311550860193),
+
+            // One Piece Dance Battle (iOS/Android)
+            new CriHcaKey(1905818),
+
+            // Derby Stallion Masters (iOS/Android)
+            new CriHcaKey(19840202),
+
+            // World Chain (iOS/Android)
+            new CriHcaKey(4892292804961027794),
+
+            // Yuyuyui (iOS/Android) *unconfirmed
+            new CriHcaKey(4867249871962584729),
+
+            // Tekken Mobile (iOS/Android)
+            new CriHcaKey(18446744073709551615),
+
+            // Tales of the Rays (iOS/Android)
+            new CriHcaKey(9516284),
+
+            // Skylock - Kamigami to Unmei no Itsutsuko [iOS]
+            new CriHcaKey(49160768297),
+
+            // For Whom the Alchemist Exists (iOS/Android)
+            new CriHcaKey(5047159794308)
         };
     }
 }

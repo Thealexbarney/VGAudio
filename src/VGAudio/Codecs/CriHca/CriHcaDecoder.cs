@@ -24,6 +24,7 @@ namespace VGAudio.Codecs.CriHca
                 DecodeFrame(audio[i], frame, pcmBuffer);
 
                 CopyPcmToOutput(pcmBuffer, pcmOut, hca, i);
+                //CopyBuffer(pcmBuffer, pcmOut, hca.InsertedSamples, i);
                 config?.Progress?.ReportAdd(1);
             }
 
@@ -33,7 +34,7 @@ namespace VGAudio.Codecs.CriHca
         private static void CopyPcmToOutput(short[][] pcmIn, short[][] pcmOut, HcaInfo hca, int frame)
         {
             int currentSample = frame * FrameLength - hca.InsertedSamples;
-            int remainingSamples = hca.SampleCount - currentSample;
+            int remainingSamples = Math.Min(hca.SampleCount - currentSample, hca.SampleCount);
             int srcStart = Helpers.Clamp(0 - currentSample, 0, FrameLength);
             int destStart = Math.Max(currentSample, 0);
 
@@ -43,6 +44,31 @@ namespace VGAudio.Codecs.CriHca
             for (int c = 0; c < pcmOut.Length; c++)
             {
                 Array.Copy(pcmIn[c], srcStart, pcmOut[c], destStart, length);
+            }
+        }
+
+        public static void CopyBuffer(short[][] bufferIn, short[][] bufferOut, int startIndex, int bufferIndex)
+        {
+            if (bufferIn == null || bufferOut == null || bufferIn.Length == 0 || bufferOut.Length == 0)
+            {
+                throw new ArgumentException(
+                    $"{nameof(bufferIn)} and {nameof(bufferOut)} must be non-null with a length greater than 0");
+            }
+
+            int bufferLength = bufferIn[0].Length;
+            int outLength = bufferOut[0].Length;
+
+            int currentIndex = bufferIndex * bufferLength - startIndex;
+            int remainingElements = Math.Min(outLength - currentIndex, outLength);
+            int srcStart = Helpers.Clamp(0 - currentIndex, 0, FrameLength);
+            int destStart = Math.Max(currentIndex, 0);
+
+            int length = Math.Min(FrameLength - srcStart, remainingElements);
+            if (length <= 0) return;
+
+            for (int c = 0; c < bufferOut.Length; c++)
+            {
+                Array.Copy(bufferIn[c], srcStart, bufferOut[c], destStart, length);
             }
         }
 
@@ -61,6 +87,10 @@ namespace VGAudio.Codecs.CriHca
         {
             if (!UnpackFrameHeader(frame, reader)) return false;
             ReadSpectralCoefficients(frame, reader);
+            // Todo: I've found 2 HCA files from Jojo's Bizarre Adventure - All Star Battle
+            // that don't use all the available bits in frames at the beginning of the file.
+            // Come up with a method of verifying if a frame unpacks successfully or not
+            // that accounts for frames like these.
             return reader.Remaining >= 16 && reader.Remaining <= 40 ||
                    FrameEmpty(reader.Buffer, 2, reader.Buffer.Length - 4);
         }
