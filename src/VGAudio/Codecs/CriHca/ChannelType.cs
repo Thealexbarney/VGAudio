@@ -2,8 +2,8 @@
 {
     public enum ChannelType
     {
-        FullStereo = 0,
-        IntensityStereoPrimary = 1,
-        IntensityStereoSecondary = 2
+        Discrete = 0,
+        StereoPrimary = 1,
+        StereoSecondary = 2
     }
 }

@@ -137,7 +137,7 @@ namespace VGAudio.Codecs.CriHca
                 if (!ReadScaleFactors(reader, frame.Scale[i], frame.ScaleLength[i])) return false;
                 CalculateResolution(frame.Scale[i], frame.Resolution[i], r, frame.ScaleLength[i]);
 
-                if (frame.ChannelType[i] == ChannelType.IntensityStereoSecondary)
+                if (frame.ChannelType[i] == ChannelType.StereoSecondary)
                 {
                     ReadIntensity(reader, frame.Intensity[i]);
                 }
@@ -254,7 +254,7 @@ namespace VGAudio.Codecs.CriHca
             {
                 for (int c = 0; c < frame.ChannelCount; c++)
                 {
-                    if (frame.ChannelType[c] == ChannelType.IntensityStereoSecondary) continue;
+                    if (frame.ChannelType[c] == ChannelType.StereoSecondary) continue;
 
                     int destBand = storedBands;
                     int sourceBand = storedBands - 1;
@@ -281,7 +281,7 @@ namespace VGAudio.Codecs.CriHca
             {
                 for (int c = 0; c < frame.ChannelCount - 1; c++)
                 {
-                    if (frame.ChannelType[c] != ChannelType.IntensityStereoPrimary) continue;
+                    if (frame.ChannelType[c] != ChannelType.StereoPrimary) continue;
 
                     var l = frame.Spectra[sf][c];
                     var r = frame.Spectra[sf][c + 1];
