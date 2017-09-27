@@ -232,7 +232,7 @@ namespace VGAudio.Codecs.CriHca
                         {
                             // Read the sign-magnitude value. The low bit is the sign
                             int quantizedCoefficient = value / 2 * (1 - (value % 2 * 2));
-                            if (value < 2)
+                            if (quantizedCoefficient == 0)
                             {
                                 bitSize--;
                             }
