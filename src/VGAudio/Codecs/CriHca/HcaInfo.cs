@@ -32,7 +32,7 @@
         public int LoopStartSample => LoopStartFrame * 1024 + PreLoopSamples - InsertedSamples;
         public int LoopEndSample => (LoopEndFrame + 1) * 1024 - PostLoopSamples - InsertedSamples;
 
-        public int AthTableType { get; set; }
+        public bool UseAthCurve { get; set; }
 
         public int VbrMaxFrameSize { get; set; }
         public int VbrNoiseLevel { get; set; }

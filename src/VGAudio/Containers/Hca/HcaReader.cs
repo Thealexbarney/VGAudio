@@ -65,6 +65,7 @@ namespace VGAudio.Containers.Hca
                 throw new InvalidDataException("Not a valid HCA file");
             }
 
+            bool hasAthChunk = false;
             while (reader.BaseStream.Position < structure.HeaderSize)
             {
                 string chunkId = ReadChunkId(reader);
@@ -85,6 +86,7 @@ namespace VGAudio.Containers.Hca
                         break;
                     case "ath\0":
                         ReadAthChunk(reader, structure);
+                        hasAthChunk = true;
                         break;
                     case "ciph":
                         ReadCiphChunk(reader, structure);
@@ -102,6 +104,8 @@ namespace VGAudio.Containers.Hca
                         throw new NotSupportedException($"Chunk {chunkId} is not supported.");
                 }
             }
+
+            if (structure.Version < 0x0200 && !hasAthChunk) structure.Hca.UseAthCurve = true;
 
             if (structure.Hca.TrackCount < 1) structure.Hca.TrackCount = 1;
 
@@ -190,7 +194,7 @@ namespace VGAudio.Containers.Hca
 
         private static void ReadAthChunk(BinaryReader reader, HcaStructure structure)
         {
-            structure.Hca.AthTableType = reader.ReadInt16();
+            structure.Hca.UseAthCurve = reader.ReadInt16() == 1;
         }
 
         private static void ReadVbrChunk(BinaryReader reader, HcaStructure structure)

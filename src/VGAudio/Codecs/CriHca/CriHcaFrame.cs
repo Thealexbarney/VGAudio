@@ -23,6 +23,7 @@ namespace VGAudio.Codecs.CriHca
         public double[][][] Spectra { get; }
         public double[][][] PcmFloat { get; }
         public Mdct[] Mdct { get; }
+        public byte[] AthCurve { get; } = new byte[128];
 
         public CriHcaFrame(HcaInfo hca)
         {
@@ -46,6 +47,11 @@ namespace VGAudio.Codecs.CriHca
                 if (ChannelType[i] != StereoSecondary) ScaleLength[i] += hca.StereoBandCount;
                 Mdct[i] = new Mdct(FrameSizeBits, CriHcaTables.MdctWindow, Math.Sqrt(2.0 / FrameSize));
             }
+
+            if (hca.UseAthCurve)
+            {
+                AthCurve = ScaleAthCurve(hca.SampleRate);
+            }
         }
 
         private static ChannelType[] GetChannelTypes(HcaInfo hca)
@@ -66,6 +72,38 @@ namespace VGAudio.Codecs.CriHca
                 case 8: return new[] { StereoPrimary, StereoSecondary, Discrete, Discrete, StereoPrimary, StereoSecondary, StereoPrimary, StereoSecondary };
                 default: return new ChannelType[channelsPerTrack];
             }
+        }
+
+        /// <summary>
+        /// Scales an ATH curve to the specified frequency.
+        /// </summary>
+        /// <param name="frequency">The frequency to scale the curve to.</param>
+        /// <returns>The scaled ATH curve</returns>
+        /// <remarks>The original ATH curve is for a frequency of 41856 Hz.</remarks>
+        private static byte[] ScaleAthCurve(int frequency)
+        {
+            var ath = new byte[128];
+
+            int acc = 0;
+            int i;
+            for (i = 0; i < ath.Length; i++)
+            {
+                acc += frequency;
+                int index = acc >> 13;
+                
+                if (index >= CriHcaTables.AthCurve.Length)
+                {
+                    break;
+                }
+                ath[i] = CriHcaTables.AthCurve[index];
+            }
+
+            for (; i < ath.Length; i++)
+            {
+                ath[i] = 0xff;
+            }
+
+            return ath;
         }
     }
 }

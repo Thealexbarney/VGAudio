@@ -135,7 +135,7 @@ namespace VGAudio.Codecs.CriHca
             for (int i = 0; i < frame.ChannelCount; i++)
             {
                 if (!ReadScaleFactors(reader, frame.Scale[i], frame.ScaleLength[i])) return false;
-                CalculateResolution(frame.Scale[i], frame.Resolution[i], r, frame.ScaleLength[i]);
+                CalculateResolution(frame.Scale[i], frame.Resolution[i], r, frame.ScaleLength[i], frame.AthCurve);
 
                 if (frame.ChannelType[i] == ChannelType.StereoSecondary)
                 {
@@ -170,7 +170,7 @@ namespace VGAudio.Codecs.CriHca
             return DeltaDecode(reader, deltaBits, 6, scaleCount, scale);
         }
 
-        private static void CalculateResolution(int[] scales, int[] resolutions, int r, int scaleCount)
+        private static void CalculateResolution(int[] scales, int[] resolutions, int r, int scaleCount, byte[] athCurve)
         {
             for (int i = 0; i < scaleCount; i++)
             {
@@ -180,7 +180,7 @@ namespace VGAudio.Codecs.CriHca
                 }
                 else
                 {
-                    int a = ((r + i) / 256) - (5 * scales[i] / 2) + 2;
+                    int a = athCurve[i] + ((r + i) / 256) - (5 * scales[i] / 2) + 2;
                     a = Helpers.Clamp(a, 0, 58);
                     resolutions[i] = ResolutionTable[a];
                 }
