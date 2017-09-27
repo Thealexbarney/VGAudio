@@ -43,6 +43,7 @@ namespace VGAudio.Containers.NintendoWare
         /// <summary>The audio regions in the file.
         /// Used in BCSTM and BFSTM files.</summary>
         public List<RegionInfo> Regions { get; set; }
+        public List<PrefetchData> PrefetchData { get; set; }
 
         /// <summary>
         /// Specifies whether the seek table is full

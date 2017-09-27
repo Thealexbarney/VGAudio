@@ -10,7 +10,7 @@
         StreamSeekBlock = 0x4001,
         StreamDataBlock = 0x4002,
         StreamRegionBlock = 0x4003,
-        StreamPdatBlock = 0x4004,
+        StreamPrefetchDataBlock = 0x4004,
         StreamInfo = 0x4100,
         TrackInfo = 0x4101,
         ChannelInfo = 0x4102,

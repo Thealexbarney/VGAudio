@@ -42,6 +42,13 @@ namespace VGAudio.Containers.NintendoWare
 
         public static IAudioFormat ToAudioStream(BxstmStructure structure)
         {
+            if (structure.PrefetchData != null)
+            {
+                // Read only the first prefetch region for now
+                var pdat = structure.PrefetchData[0];
+                structure.StreamInfo.Looping = false;
+                structure.StreamInfo.SampleCount = pdat.SampleCount;
+            }
             switch (structure.StreamInfo.Codec)
             {
                 case NwCodec.GcAdpcm:
