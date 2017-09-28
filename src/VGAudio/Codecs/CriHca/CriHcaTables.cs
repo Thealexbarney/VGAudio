@@ -5,11 +5,11 @@ namespace VGAudio.Codecs.CriHca
     public static class CriHcaTables
     {
         public static float[] DequantizerScalingTable { get; } = GenerateTable(64, DequantizerScalingFunction);
-        public static float[] DequantizerRangeTable { get; } = GenerateTable(16, DequantizerRangeFunction);
+        public static float[] DequantizerNormalizeTable { get; } = GenerateTable(16, DequantizerNormalizeFunction);
         public static float[] IntensityRatioTable { get; } = GenerateTable(16, IntensityRatioFunction);
         public static float[] ScaleConversionTable { get; } = GenerateTable(128, ScaleConversionTableFunction);
 
-        public static byte[] ResolutionTable { get; } =
+        public static byte[] ScaleToResolutionCurve { get; } =
         {
             0x0F, 0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0D,
             0x0D, 0x0D, 0x0D, 0x0D, 0x0D, 0x0C, 0x0C, 0x0C,
@@ -21,12 +21,12 @@ namespace VGAudio.Codecs.CriHca
             0x02, 0x02, 0x01
         };
 
-        public static byte[] MaxSampleBitSize { get; } =
+        public static byte[] QuantizedSpectrumMaxBits { get; } =
         {
             0, 2, 3, 3, 4, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12
         };
 
-        public static byte[,] ActualSampleBitSize { get; } =
+        public static byte[,] QuantizedSpectrumBits { get; } =
         {
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
             {1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -38,7 +38,7 @@ namespace VGAudio.Codecs.CriHca
             {3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}
         };
 
-        public static sbyte[,] QuantizedSampleValue { get; } =
+        public static sbyte[,] QuantizedSpectrumValue { get; } =
         {
             {+0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0},
             {+0, +0, +1, -1, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0},
@@ -129,7 +129,7 @@ namespace VGAudio.Codecs.CriHca
         private static float ScaleConversionTableFunction(int x) => x > 1 && x < 127 ? (float)Math.Pow(Math.Pow(2, 53f / 128), x - 64) : 0;
         private static float IntensityRatioFunction(int x) => x <= 14 ? (14 - x) / 7f : 0;
 
-        private static float DequantizerRangeFunction(int x)
+        private static float DequantizerNormalizeFunction(int x)
         {
             if (x == 0) return 0;
             if (x < 8) return 2f / (2 * x + 1);

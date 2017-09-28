@@ -182,7 +182,7 @@ namespace VGAudio.Codecs.CriHca
                 {
                     int a = athCurve[i] + ((r + i) / 256) - (5 * scales[i] / 2) + 2;
                     a = Helpers.Clamp(a, 0, 58);
-                    resolutions[i] = ResolutionTable[a];
+                    resolutions[i] = ScaleToResolutionCurve[a];
                 }
             }
         }
@@ -191,7 +191,7 @@ namespace VGAudio.Codecs.CriHca
         {
             for (int i = 0; i < scaleCount; i++)
             {
-                gain[i] = DequantizerScalingTable[scale[i]] * DequantizerRangeTable[resolution[i]];
+                gain[i] = DequantizerScalingTable[scale[i]] * DequantizerNormalizeTable[resolution[i]];
             }
         }
 
@@ -220,25 +220,24 @@ namespace VGAudio.Codecs.CriHca
                     for (int s = 0; s < frame.ScaleLength[c]; s++)
                     {
                         int resolution = frame.Resolution[c][s];
-                        int bitSize = MaxSampleBitSize[resolution];
-                        int value = reader.PeekInt(bitSize);
+                        int bits = QuantizedSpectrumMaxBits[resolution];
+                        int code = reader.PeekInt(bits);
                         if (resolution < 8)
                         {
-                            frame.QuantizedSpectra[sf][c][s] = value;
-                            bitSize = ActualSampleBitSize[resolution, value];
-                            frame.QuantizedSpectra[sf][c][s] = QuantizedSampleValue[resolution, value];
+                            bits = QuantizedSpectrumBits[resolution, code];
+                            frame.QuantizedSpectra[sf][c][s] = QuantizedSpectrumValue[resolution, code];
                         }
                         else
                         {
                             // Read the sign-magnitude value. The low bit is the sign
-                            int quantizedCoefficient = value / 2 * (1 - (value % 2 * 2));
+                            int quantizedCoefficient = code / 2 * (1 - (code % 2 * 2));
                             if (quantizedCoefficient == 0)
                             {
-                                bitSize--;
+                                bits--;
                             }
                             frame.QuantizedSpectra[sf][c][s] = quantizedCoefficient;
                         }
-                        reader.Position += bitSize;
+                        reader.Position += bits;
                     }
 
                     Array.Clear(frame.Spectra[sf][c], frame.ScaleLength[c], 0x80 - frame.ScaleLength[c]);
