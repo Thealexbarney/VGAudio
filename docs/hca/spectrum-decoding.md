@@ -7,24 +7,25 @@ Each band contains a single quantitized spectral coefficient, and has its own `R
 
 ## Quantization Resolution Table
 
-| Resolution | Min   | Max  | Levels |
-|:----------:|:-----:|:----:|:------:|
-| 0          | 0     | 0    | 1      |
-| 1          | -1    | 1    | 3      |
-| 2          | -2    | 2    | 5      |
-| 3          | -3    | 3    | 7      |
-| 4          | -4    | 4    | 9      |
-| 5          | -5    | 5    | 11     |
-| 6          | -6    | 6    | 13     |
-| 7          | -7    | 7    | 15     |
-| 8          | -15   | 15   | 31     |
-| 9          | -31   | 31   | 63     |
-| 10         | -63   | 63   | 127    |
-| 11         | -127  | 127  | 255    |
-| 12         | -255  | 255  | 511    |
-| 13         | -511  | 511  | 1023   |
-| 14         | -1023 | 1023 | 2047   |
-| 15         | -2047 | 2047 | 4095   |
+| Resolution | Min<br/>Value | Max<br/>Value | Levels |
+|:----------:|:-------------:|:-------------:|:------:|
+| 0          |  0            | 0             | 1      |
+| 1          | -1            | 1             | 3      |
+| 2          | -2            | 2             | 5      |
+| 3          | -3            | 3             | 7      |
+| 4          | -4            | 4             | 9      |
+| 5          | -5            | 5             | 11     |
+| 6          | -6            | 6             | 13     |
+| 7          | -7            | 7             | 15     |
+| 8          | -15           | 15            | 31     |
+| 9          | -31           | 31            | 63     |
+| 10         | -63           | 63            | 127    |
+| 11         | -127          | 127           | 255    |
+| 12         | -255          | 255           | 511    |
+| 13         | -511          | 511           | 1023   |
+| 14         | -1023         | 1023          | 2047   |
+| 15         | -2047         | 2047          | 4095   |
+
 
 ## Prefix Codebooks
 
@@ -134,7 +135,7 @@ The number of bits used to store each value is determined by `Resolution - 3`. T
 
 An example using Resolution 8 is given below. `x` represents the value, and `s` represents the sign.
 
-|Value|Code|
-|:---:|:--:|
-|0|0000|
-|X|xxxxs|
+|Value|Code |
+|:---:|:---:|
+|0    |0000 |
+|X    |xxxxs|
