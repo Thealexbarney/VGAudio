@@ -248,6 +248,9 @@ paket-files/
 # FAKE - F# Make
 .fake/
 
+# CAKE - C# Make
+tools/cake
+
 # JetBrains Rider
 .idea/
 *.sln.iml
@@ -268,9 +271,15 @@ paket-files/
 BDN.Auto/
 BenchmarkDotNet.Artifacts/
 
-/DspAdpcm/DspAdpcm.Cli/Properties/launchSettings.json
+**/launchSettings.json
+!*_TemporaryKey.pfx
 
 #Build script tools
 /build/runbuild.txt
 /build/global.json
-/tools/dotnet/sdk
+/build/tools/cake
+/tools/dotnet/cli
+Sideload.appxmanifest
+
+#Build output
+[Pp]ackage/

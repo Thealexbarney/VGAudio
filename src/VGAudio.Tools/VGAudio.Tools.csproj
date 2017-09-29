@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp2.0;net451</TargetFrameworks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	
+	<AssemblyName>VGAudioTools</AssemblyName>
+    <AssemblyTitle>VGAudio.Tools</AssemblyTitle>
+    <VersionPrefix>2.0.0</VersionPrefix>
+    <Copyright>Copyright © 2016 Alex Barney</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VGAudio\VGAudio.csproj" />
+  </ItemGroup>
+
+</Project>

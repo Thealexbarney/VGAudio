@@ -1,0 +1,427 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: bfstm.bt
+//   Authors: Alex Barney
+//   Version: 1.0
+//   Purpose: Parse BFSTM, BCSTM, BFSTP, BCSTP, BFWAV, and BCWAV audio files
+//  Category: Audio
+// File Mask: *.bfstm,*.bcstm,*.bfstp,*.bcstp*.bfwav,*.bcwav
+//  ID Bytes: 46 53 54 4D, 43 53 54 4D, 46 53 54 50, 43 53 54 50, 46 57 41 56, 43 57 41 56
+//            FSTM, CSTM, FSTP, CSTP, FWAV, CWAV
+//   History: 
+//   1.0   Initial Release
+//------------------------------------------------
+
+struct Reference;
+struct ReferenceTable;
+struct InfoBlock;
+struct SeekBlock;
+struct RegionBlock;
+struct PrefetchDataBlock;
+struct DataBlock;
+struct StreamInfo;
+struct ChannelInfo;
+struct AdpcmChannelInfo;
+struct TrackInfo;
+struct WavInfoBlock;
+struct WavDataBlock;
+struct WavChannelInfo;
+
+typedef char ID[4];
+
+typedef uint32 NwVersion <read=VersionRead>;
+
+int IncludeUnalignedLoop(NwVersion version)
+{
+    return (version >> 24) == 0 && version >= 0x00040000 ||
+           (version >> 24) >= 2 && version >= 0x02030000;
+}
+
+int IncludeChecksum(NwVersion version)
+{
+    return (version >> 24) == 0 && version >= 0x00050000;
+}
+
+typedef enum <int16> 
+{
+    ByteTableType = 0x0100,
+    ReferenceTableType = 0x0101,
+    DspAdpcmInfoType = 0x0300,
+    ImaAdpcmInfoType = 0x0301,
+    SampleDataType = 0x1f00,
+    InfoBlockType = 0x4000,
+    SeekBlockType = 0x4001,
+    DataBlockType = 0x4002,
+    RegionBlockType = 0x4003,
+    PrefetchDataBlockType = 0x4004,
+    StreamInfoType = 0x4100,
+    TrackInfoType = 0x4101,
+    ChannelInfoType = 0x4102,
+    WavInfoBlockType = 0x7000,
+    WavDataBlockType = 0x7001,
+    WavChannelInfoType = 0x7100,
+} Type <format=hex>;
+
+enum <byte> AudioCodec
+{
+    PCM_8Bit   = 0,
+    PCM_16Bit  = 1,
+    GcAdpcm    = 2,
+    ImaAdpcm   = 3,
+};
+
+struct Reference(int baseOffset)
+{
+    Type type;
+    int16 Padding;
+    int32 Offset;
+    
+    local int32 original = FTell();
+    FSeek(baseOffset + Offset);
+
+    switch(type)
+    {
+        case ReferenceTableType:
+            ReferenceTable reference;
+            break;
+        case StreamInfoType:
+            StreamInfo streamInfo;
+            break;
+        case ChannelInfoType:
+            ChannelInfo channelInfo;
+            break;
+        case WavChannelInfoType:
+            WavChannelInfo wavChannelInfo;
+            break;
+        case DspAdpcmInfoType:
+            AdpcmChannelInfo adpcmChannelInfo;
+            break;
+        case TrackInfoType:
+            TrackInfo track;
+            break;
+    }
+
+    FSeek(original);
+};
+
+struct SizedReference
+{    
+    Type type;
+    int16 Padding;
+    int32 Offset;
+    int32 Size;
+
+    local int32 original = FTell();
+    FSeek(Offset);
+
+    switch(type)
+    {
+        case InfoBlockType:
+            InfoBlock infoBlock;
+            break;
+        case SeekBlockType:
+            SeekBlock seekBlock;
+            break;
+        case DataBlockType:
+            DataBlock dataBlock(Blocks[GetBlockIndex(InfoBlockType)].infoBlock.streamInfo.streamInfo);
+            break;
+        case WavDataBlockType:
+            WavDataBlock dataBlock(Blocks[GetBlockIndex(WavInfoBlockType)].wavInfoBlock);
+            break;
+        case RegionBlockType:
+            RegionBlock regionBlock;
+            break;
+        case PrefetchDataBlockType:
+            PrefetchDataBlock prefetchBlock;
+            break;
+        case WavInfoBlockType:
+            WavInfoBlock wavInfoBlock;
+            break;
+    }
+
+    FSeek(original);
+};
+
+struct ReferenceTable
+{
+    local int32 base = FTell();
+    local int32 i = 0;
+    int32 Count;
+    for(i = 0; i < Count; i++)
+    {
+        Reference Entries(base);
+    }    
+};
+
+int GetBlockIndex(Type type)
+{
+    local int i;
+    for(i = 0; i < BlockCount; i++)
+    {
+        if(Blocks[i].type == type)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+struct InfoBlock
+{    
+    ID InfoId;
+    int32 Size;
+    local int32 base = FTell();
+    Reference streamInfo(base);
+    Reference TrackInfoTable(base);
+    Reference ChannelInfoTable(base);
+};
+
+struct WavInfoBlock
+{    
+    ID InfoId;
+    int32 Size;
+    local int32 base = FTell();
+    AudioCodec Codec;
+    byte Loops;
+    int16 Padding;
+    int32 SampleRate;
+    int32 LoopStart;
+    int32 SampleCount;
+    int32 UnalignedLoopStart;
+    ReferenceTable ChannelInfoTable;
+};
+
+struct StreamInfo
+{
+    AudioCodec Codec;
+    byte Loops;
+    byte ChannelCount;
+    byte RegionCount;
+    int32 SampleRate;
+    int32 LoopStart;
+    int32 SampleCount;    
+    int32 BlockCount;
+    int32 BlockSizeBytes;
+    int32 BlockSizeSamples;
+    int32 FinalBlockSizeBytesWithoutPadding;
+    int32 FinalBlockSizeSamples;
+    int32 FinalBlockSizeBytesWithPadding;
+    int32 BytesPerSeekTableEntry;
+    int32 SamplesPerSeekTableEntry;
+
+    Reference pAudioData(0);
+    
+    if(ReadShort() == 0x100)
+    {
+        int16 REGNEntrySize;
+        int16 Padding;
+        Reference pREGNData(0);
+    }
+
+    if(IncludeUnalignedLoop(Version))
+    {
+        int32 UnalignedLoopStart;
+        int32 UnalignedSampleCount; 
+    }
+
+    if(IncludeChecksum(Version))
+    {
+        int32 Checksum <format=hex>;
+    }
+};
+
+struct TrackInfo
+{
+    local int32 base = FTell();
+    byte Volume;
+    byte Panning;
+    byte SurroundPanning;
+    byte Flags;
+    Reference Table(base);
+    int32 ChannelCount;
+    byte LeftChannelId;
+    byte RightChannelId;
+    int16 Padding2;
+};
+
+struct ChannelInfo
+{
+    local int32 base = FTell();
+    Reference channelInfo(base);
+};
+
+struct WavChannelInfo
+{
+    local int32 base = FTell();
+    Reference channelInfo(base);
+    Reference channelInfo2(base);
+    int32 Padding;
+};
+
+struct AdpcmChannelInfo
+{
+    uint16 Coefficients[16];
+    int16 InitialPredictorScale <format=hex>;
+    int16 History1;
+    int16 History2;
+    int16 LoopPredictorScale <format=hex>;
+    int16 LoopHistory1;
+    int16 LoopHistory2;
+};
+
+struct SeekTableEntryChannel
+{
+    int16 History1;
+    int16 History2;
+};
+
+struct SeekTableEntry(int32 channelCount)
+{    
+    local int32 i;
+    for( i = 0; i < channelCount; i++ )
+    {
+        SeekTableEntryChannel Channel;
+    }
+};
+
+struct SeekBlock
+{   
+    local int32 channelCount = Blocks[GetBlockIndex(InfoBlockType)].infoBlock.streamInfo.streamInfo.ChannelCount;
+    local int32 entrySize = channelCount * 4; 
+    ID SeekId;
+    int32 Size;
+    local int32 entryCount = (Size - 8) / entrySize; 
+    local int32 i;
+    for( i = 0; i < entryCount; i++ )
+    {
+        SeekTableEntry Entry(channelCount);
+    }
+};
+
+struct LoopContext
+{
+    int16 PredScale;
+    int16 History1;
+    int16 History2;
+};
+
+struct RegionInfo
+{
+    local int32 channelCount = Blocks[GetBlockIndex(InfoBlockType)].infoBlock.streamInfo.streamInfo.ChannelCount;
+    local int32 endAddress = FTell() + 0x100;
+    int32 StartSample;
+    int32 EndSample;
+    LoopContext Channels[channelCount];
+    byte Padding[endAddress - FTell()];
+};
+
+struct RegionBlock
+{    
+    local int32 regionCount = Blocks[GetBlockIndex(InfoBlockType)].infoBlock.streamInfo.streamInfo.RegionCount;
+    local int32 base = FTell();
+    ID RegionId;
+    int32 Size;
+    byte Padding[0x18];
+    RegionInfo Regions[regionCount] <optimize=true>;
+};
+
+struct PrefetchData
+{
+    local int32 base = FTell();
+    int32 StartSample;
+    int32 Size;
+    int32 Padding;
+
+    Reference DataReference(base);
+    local int32 end = FTell();
+    FSeek(base + DataReference.Offset);
+    byte AudioData[Size];
+    FSeek(end);
+};
+
+struct PrefetchDataBlock
+{    
+    ID RegionId;
+    int32 Size;
+    int32 Count;
+
+    local int32 i;
+    for( i = 0; i < Count; i++ )
+    {
+        PrefetchData Data;
+    }    
+};
+
+struct AudioChannel(int32 size, int32 padding)
+{
+    byte Data[size];
+    if (padding)
+        byte Padding[padding];
+};
+
+struct AudioBlock(int32 count, int32 size, int32 padding)
+{
+    local int i;
+    for(i = 0; i < count; i++)
+    {
+        AudioChannel Channels(size, padding);
+    }
+};
+
+struct DataBlock (StreamInfo &head)
+{    
+    ID DataId;
+    int32 Size;
+    FSkip(head.pAudioData.Offset);
+
+    local int32 i;
+    for (i = 0; i < head.BlockCount - 1; i++)
+    {
+        AudioBlock Blocks(head.ChannelCount, head.BlockSizeBytes, 0);
+    }
+
+    local int padding = head.FinalBlockSizeBytesWithPadding - head.FinalBlockSizeBytesWithoutPadding;
+    AudioBlock Blocks(head.ChannelCount, head.FinalBlockSizeBytesWithoutPadding, padding); 
+};
+
+struct WavDataBlock (WavInfoBlock &head)
+{    
+    ID DataId;
+    int32 Size;
+    
+    local int i;
+    local int baseOffset = FTell();
+
+    for (i = 0; i < head.ChannelInfoTable.Count ; i++)
+    {
+        FSeek(baseOffset + head.ChannelInfoTable.Entries[i].wavChannelInfo.channelInfo.Offset);
+        byte AudioData;
+    }
+};
+
+string VersionRead( NwVersion v )
+{
+    string s;   
+    SPrintf( s, "%i.%i.%i.%i", v >> 24, v >> 16 & 0xf, v >> 8 & 0xf, v & 0xf );
+    return s;
+}
+
+BigEndian();
+switch(ReadUShort(4))
+{
+    case 0xFEFF: break;
+    case 0xFFFE: 
+        LittleEndian();
+        break;
+    default: Exit(1);
+}
+
+ID RstmId;
+int16 BOM <format=hex>;
+int16 HeaderSize;
+NwVersion Version <format=hex>;
+int32 FileSize;
+int16 BlockCount;
+int16 Padding;
+SizedReference Blocks[BlockCount] <optimize=false>;

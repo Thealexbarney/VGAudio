@@ -1,0 +1,132 @@
+//------------------------------------------------
+//--- 010 Editor v8.0 Binary Template
+//
+//      File: brwav.bt
+//   Authors: Alex Barney
+//   Version: 1.0
+//   Purpose: Parse BRWAV audio files
+//  Category: Audio
+// File Mask: *.brwav
+//  ID Bytes: 52 57 41 56 //RWAV
+//   History: 
+//   1.0   Initial Release
+//------------------------------------------------
+
+typedef char ID[4];
+
+enum <byte> AudioCodec
+{
+    PCM_8Bit   = 0,
+    PCM_16Bit  = 1,
+    GcAdpcm    = 2
+};
+
+struct RWAVHeader
+{
+    local int base = FTell();
+    ID RwavId;
+    int16 BOM;
+    byte MajorVersion;
+    byte MinorVersion;
+    int32 FileSize;
+    int16 HeaderSize;
+    int16 BlockCount;
+    int32 InfoBlockOffset;
+    int32 InfoBlockSize;
+    int32 DataBlockOffset;
+    int32 DataBlockSize;
+};
+
+struct AdpcmChannel
+{
+    uint16 Coefficients[16];
+    int16 Gain;
+    int16 InitialPredictorScale <format=hex>;
+    int16 History1;
+    int16 History2;
+    int16 LoopPredictorScale <format=hex>;
+    int16 LoopHistory1;
+    int16 LoopHistory2;
+};
+
+struct WaveChannelInfo
+{
+    int32 AudioDataOffset;
+    int32 AdpcmInfoOffset;
+    int32 VolumeFrontLeft;
+    int32 VolumeFrontRight;
+    int32 VolumeRearLeft;
+    int32 VolumeRearRight;
+    int32 Padding;
+};
+
+struct WaveInfo
+{
+    local int i;
+    local int baseOffset = FTell();
+    AudioCodec Codec;
+    byte Loops;
+    int32 ChannelCount : 8;
+    int32 SampleRate : 24;
+    uint16 Padding;
+    int32 LoopStart;
+    int32 SampleCount;
+    int32 ChannelInfoTableOffset;
+    int32 InfoStructureLength;
+    int32 Padding;
+
+    FSeek(baseOffset + ChannelInfoTableOffset);
+    int32 ChannelInfoOffsets[ChannelCount];
+
+    for(i = 0; i < ChannelCount; i++)
+    {
+        FSeek(baseOffset + ChannelInfoOffsets[i]);
+        WaveChannelInfo ChannelInfo;
+    }
+
+    for(i = 0; i < ChannelCount; i++)
+    {
+        FSeek(baseOffset + ChannelInfo[i].AdpcmInfoOffset);
+        AdpcmChannel AdpcmInfo;
+    }
+};
+
+struct InfoBlock
+{    
+    ID InfoId;
+    int32 Size;
+    WaveInfo info;
+};
+
+struct DataBlock (WaveInfo &info)
+{    
+    ID DataId;
+    int32 Size;
+
+    local int i;
+    local int baseOffset = FTell();
+
+    for(i = 0; i < info.ChannelCount; i++)
+    {
+        FSeek(baseOffset + info.ChannelInfo[i].AudioDataOffset);
+        byte AudioData;
+    }
+};
+
+BigEndian();
+switch(ReadUShort(4))
+{
+    case 0xFEFF: break;
+    case 0xFFFE: 
+        LittleEndian();
+        break;
+    default: Exit(1);
+}
+
+RWAVHeader Rwav;
+
+FSeek(Rwav.InfoBlockOffset);
+InfoBlock Head;
+
+FSeek(Rwav.DataBlockOffset);
+DataBlock Data(Head.info);

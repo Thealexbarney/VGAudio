@@ -1,0 +1,146 @@
+//------------------------------------------------
+//--- 010 Editor v8.0 Binary Template
+//
+//      File: adx.bt
+//   Authors: Alex Barney
+//   Version: 1.0
+//   Purpose: Parse ADX audio files
+//  Category: Audio
+// File Mask: *.adx
+//  ID Bytes: 80 00
+//   History: 
+//   1.0   Initial Release
+//------------------------------------------------
+
+int DivideByRoundUp(int value, int divisor)
+{
+    return (value + divisor - 1) / divisor;
+}
+
+struct History
+{
+    int16 hist1;
+    int16 hist2;
+};
+
+struct Loop
+{
+    int16 LoopNum;
+    int16 LoopType;
+    int32 LoopStartSample;
+    int32 LoopStartByte;
+    int32 LoopEndSample;
+    int32 LoopEndByte;
+};
+
+struct Ainf
+{
+    char Magic[4];
+    int32 size;
+    char id[16];
+    int16 Padding;
+    int16 Volume;
+    int16 PanningLeft;
+    int16 PanningRight;
+};
+
+struct Cinf
+{
+    char Magic[4];
+    //More unknown stuff
+};
+
+struct Header
+{
+    local int i;
+    int16 Magic <format=hex>;
+    int16 HeaderSize;
+    byte EncodingType;
+    ubyte FrameSize;
+    byte BitDepth;
+    byte ChannelCount;
+    int32 SampleRate;
+    int32 SampleCount;
+    int16 HighpassFreq;
+    byte Version;
+    byte Revision;
+
+    if(Version == 4) 
+    {
+        int32 Padding;
+        for(i = 0; i < (int)Max(2, ChannelCount); i++)
+        {
+            History history;
+        }
+    }
+
+    if(FTell() + 24 > HeaderSize)
+        break;
+
+    int16 AlignmentSamples;
+    int16 LoopCount;
+    for(i = 0; i < LoopCount; i++)
+    {
+        Loop loop <open=true>;
+    }
+};
+
+struct FrameChannel
+{
+    local int i;
+    local int samplesPerFrame = (head.FrameSize - 2) * 2;
+    int16 FilterNum : 3;
+    int16 Scale : 13;    
+    for (i = 0; i < samplesPerFrame; i++)
+    {
+        byte Sample : 4;
+    }
+};
+
+typedef struct
+{
+    local int i;
+    for(i = 0; i < head.ChannelCount; i++)
+    {
+        FrameChannel Channels;
+    }
+} Frame <size=SizeFrame>;
+
+struct Footer
+{
+    int16 Magic <format=hex>;
+    int16 PaddingLength;
+    byte Padding[PaddingLength];
+};
+
+typedef struct (Header &head)
+{
+    local int i;
+    local int samplesPerFrame = (head.FrameSize - 2) * 2;
+    local int frameCount = DivideByRoundUp(head.SampleCount, samplesPerFrame);
+
+    char CopyrightMarker[6];
+    for(i = 0; i < frameCount; i++)
+    {
+        Frame Frames(head.FrameSize, head.ChannelCount);
+    }    
+} Data <size=SizeData>;
+
+int SizeData( Data &d )
+{
+    local int samplesPerFrame = (head.FrameSize - 2) * 2;
+    local int frameCount = DivideByRoundUp(head.SampleCount, samplesPerFrame);
+    return 6 + frameCount * head.FrameSize * head.ChannelCount;
+}
+
+int SizeFrame( Frame &f )
+{
+    return head.FrameSize * head.ChannelCount;
+}
+
+BigEndian();
+Header head <open=true>;
+
+FSeek(head.HeaderSize - 2);
+Data data(head);
+Footer footer;
