@@ -12,9 +12,9 @@ namespace VGAudio.Tests.Formats.CriHca
         }
 
         [Fact]
-        public void GeneratedDequantizerRangeTableMatchesOriginal()
+        public void GeneratedDequantizerNormalizeTableMatchesOriginal()
         {
-            Assert.Equal(CriHcaTables.DequantizerRangeTable, CriHcaTablesPrebuilt.DequantizerRangeTable);
+            Assert.Equal(CriHcaTables.DequantizerNormalizeTable, CriHcaTablesPrebuilt.DequantizerNormalizeTable);
         }
 
         [Fact]

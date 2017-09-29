@@ -14,6 +14,7 @@ namespace VGAudio.Codecs.CriHca
                 DecryptFrame(hca, audio[frame], key);
             }
         }
+
         public static void DecryptFrame(HcaInfo hca, byte[] audio, CriHcaKey key)
         {
             for (int b = 0; b < hca.FrameSize; b++)

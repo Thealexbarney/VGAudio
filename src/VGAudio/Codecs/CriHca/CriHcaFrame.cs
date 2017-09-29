@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Linq;
 using VGAudio.Utilities;
+using static VGAudio.Codecs.CriHca.ChannelType;
 
 namespace VGAudio.Codecs.CriHca
 {
@@ -23,13 +23,13 @@ namespace VGAudio.Codecs.CriHca
         public double[][][] Spectra { get; }
         public double[][][] PcmFloat { get; }
         public Mdct[] Mdct { get; }
-
+        public byte[] AthCurve { get; } = new byte[128];
 
         public CriHcaFrame(HcaInfo hca)
         {
             Hca = hca;
             ChannelCount = hca.ChannelCount;
-            ChannelType = GetChannelTypes(hca).Select(x => (ChannelType)x).ToArray();
+            ChannelType = GetChannelTypes(hca);
             ScaleLength = new int[hca.ChannelCount];
             Mdct = new Mdct[hca.ChannelCount];
             Scale = Helpers.CreateJaggedArray<int[][]>(ChannelCount, FrameSize);
@@ -44,27 +44,66 @@ namespace VGAudio.Codecs.CriHca
             for (int i = 0; i < hca.ChannelCount; i++)
             {
                 ScaleLength[i] = hca.BaseBandCount;
-                if (ChannelType[i] != CriHca.ChannelType.IntensityStereoSecondary) ScaleLength[i] += hca.StereoBandCount;
+                if (ChannelType[i] != StereoSecondary) ScaleLength[i] += hca.StereoBandCount;
                 Mdct[i] = new Mdct(FrameSizeBits, CriHcaTables.MdctWindow, Math.Sqrt(2.0 / FrameSize));
+            }
+
+            if (hca.UseAthCurve)
+            {
+                AthCurve = ScaleAthCurve(hca.SampleRate);
             }
         }
 
-        private static int[] GetChannelTypes(HcaInfo hca)
+        private static ChannelType[] GetChannelTypes(HcaInfo hca)
         {
             int channelsPerTrack = hca.ChannelCount / hca.TrackCount;
-            if (hca.StereoBandCount == 0 || channelsPerTrack == 1) { return new int[8]; }
+            if (hca.StereoBandCount == 0 || channelsPerTrack == 1) { return new ChannelType[8]; }
 
             switch (channelsPerTrack)
             {
-                case 2: return new[] { 1, 2 };
-                case 3: return new[] { 1, 2, 0 };
-                case 4: return hca.ChannelConfig > 0 ? new[] { 1, 2, 0, 0 } : new[] { 1, 2, 1, 2 };
-                case 5: return hca.ChannelConfig > 2 ? new[] { 2, 0, 0, 0 } : new[] { 2, 0, 1, 2 };
-                case 6: return new[] { 1, 2, 0, 0, 1, 2 };
-                case 7: return new[] { 1, 2, 0, 0, 1, 2, 0 };
-                case 8: return new[] { 1, 2, 0, 0, 1, 2, 1, 2 };
-                default: return new int[channelsPerTrack];
+                case 2: return new[] { StereoPrimary, StereoSecondary };
+                case 3: return new[] { StereoPrimary, StereoSecondary, Discrete };
+                case 4 when hca.ChannelConfig != 0: return new[] { StereoPrimary, StereoSecondary, Discrete, Discrete };
+                case 4 when hca.ChannelConfig == 0: return new[] { StereoPrimary, StereoSecondary, StereoPrimary, StereoSecondary };
+                case 5 when hca.ChannelConfig > 2: return new[] { StereoPrimary, StereoSecondary, Discrete, Discrete, Discrete };
+                case 5 when hca.ChannelConfig <= 2: return new[] { StereoPrimary, StereoSecondary, Discrete, StereoPrimary, StereoSecondary };
+                case 6: return new[] { StereoPrimary, StereoSecondary, Discrete, Discrete, StereoPrimary, StereoSecondary };
+                case 7: return new[] { StereoPrimary, StereoSecondary, Discrete, Discrete, StereoPrimary, StereoSecondary, Discrete };
+                case 8: return new[] { StereoPrimary, StereoSecondary, Discrete, Discrete, StereoPrimary, StereoSecondary, StereoPrimary, StereoSecondary };
+                default: return new ChannelType[channelsPerTrack];
             }
+        }
+
+        /// <summary>
+        /// Scales an ATH curve to the specified frequency.
+        /// </summary>
+        /// <param name="frequency">The frequency to scale the curve to.</param>
+        /// <returns>The scaled ATH curve</returns>
+        /// <remarks>The original ATH curve is for a frequency of 41856 Hz.</remarks>
+        private static byte[] ScaleAthCurve(int frequency)
+        {
+            var ath = new byte[128];
+
+            int acc = 0;
+            int i;
+            for (i = 0; i < ath.Length; i++)
+            {
+                acc += frequency;
+                int index = acc >> 13;
+                
+                if (index >= CriHcaTables.AthCurve.Length)
+                {
+                    break;
+                }
+                ath[i] = CriHcaTables.AthCurve[index];
+            }
+
+            for (; i < ath.Length; i++)
+            {
+                ath[i] = 0xff;
+            }
+
+            return ath;
         }
     }
 }

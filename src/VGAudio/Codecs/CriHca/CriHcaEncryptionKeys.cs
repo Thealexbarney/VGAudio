@@ -1,81 +1,58 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace VGAudio.Codecs.CriHca
 {
     public static partial class CriHcaEncryption
     {
-        public static List<CriHcaKey> Keys { get; } = new List<CriHcaKey>
+        /* 
+         * Important! 
+         * If you add new keys to this list, make sure to update the
+         * /docs/hca/encryption-keys.md file in this repository.
+         */
+        private static readonly ulong[] KeyCodes =
         {
-            // HCA Decoder default
-            new CriHcaKey(9621963164387704),
-
-            // Phantasy Star Online 2
-            new CriHcaKey(24002584467202475),
-
-            // Ro-Kyu-Bu! 2? (PSP)
-            new CriHcaKey(2012082716),
-
-            // Jojo All Star Battle (PS3)
-            new CriHcaKey(19700307),
-
-            // Idolm@ster Cinderella Stage (iOS/Android)
-            new CriHcaKey(59751358413602),
-
-            // Grimoire (iOS/Android)
-            new CriHcaKey(5027916581011272),
-
-            // Idol Connect (iOS/Android)
-            new CriHcaKey(2424),
-
-            // Ro-Kyu-Bu! (Vita)
-            // Wax Cube
-            new CriHcaKey(1234253142),
-
-            // Kamen Rider Battle Rush (iOS/Android)
-            new CriHcaKey(29423500797988784),
-
-            // SD Gundam Strikers
-            new CriHcaKey(30260840980773),
-
-            // Sonic Runners
-            new CriHcaKey(19910623),
-
-            // Old Phantasy Star Online 2
-            new CriHcaKey(61891147883431481),
-
-            // FGO
-            new CriHcaKey(12345),
-
-            //Raramagi (Mobile)
-            new CriHcaKey(45719322),
-
-            // Idolm@ster Million Live (iOS/Android)
-            new CriHcaKey(765765765765765),
-
-            // Black Knight and White Devil (iOS/Android)
-            new CriHcaKey(3003875739822025258),
-
-            // Puella Magi Madoka Magica Side Story: Magia Record (iOS/Android)
-            new CriHcaKey(20536401),
-
-            // The Tower of Princess (iOS/Android)
-            new CriHcaKey(9101518402445063),
-
-            // Fallen Princess (iOS/Android)
-            new CriHcaKey(145552191146490718),
-
-            // Diss World (iOS/Android)
-            new CriHcaKey(9001712656335836006),
-
-            // イケメンヴァンパイア 偉人たちと恋の誘惑 (iOS/Android)
-            new CriHcaKey(45152594117267709),
-
-            // Super Robot Wars X-Ω (iOS/Android)
-            new CriHcaKey(165521992944278),
-
-            // BanG Dream! Girls Band Party! (iOS/Android)
-            new CriHcaKey(8910)
-
+            2424,
+            8910,
+            12345,
+            1905818,
+            9516284,
+            19700307,
+            19840202,
+            19910623,
+            20536401,
+            45719322,
+            1234253142,
+            2012082716,
+            49160768297,
+            5047159794308,
+            30260840980773,
+            59751358413602,
+            165521992944278,
+            765765765765765,
+            5027916581011272,
+            9101518402445063,
+            9621963164387704,
+            29423500797988784,
+            45152594117267709,
+            61891147883431481,
+            145552191146490718,
+            3003875739822025258,
+            4867249871962584729,
+            4892292804961027794,
+            9001712656335836006,
+            9117927877783581796,
+            14723751768204501419,
+            18279639311550860193,
+            18446744073709551615
         };
+
+        /// <summary>
+        /// A list of known keys used for encrypting HCA files.
+        /// </summary>
+        /// <remarks>
+        /// See the /docs/hca/encryption-keys.md file in this repository for a more detailed list.
+        /// </remarks>
+        public static List<CriHcaKey> Keys { get; } = KeyCodes.Select(key => new CriHcaKey(key)).ToList();
     }
 }
