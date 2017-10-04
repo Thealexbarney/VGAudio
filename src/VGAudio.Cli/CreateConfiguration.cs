@@ -3,6 +3,7 @@ using VGAudio.Codecs.CriAdx;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
 using VGAudio.Containers.Dsp;
+using VGAudio.Containers.Hca;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
 using VGAudio.Containers.NintendoWare;
@@ -134,7 +135,7 @@ namespace VGAudio.Cli
 
         public static Configuration Hca(Options options, Configuration inConfig = null)
         {
-            return inConfig;
+            return inConfig as HcaConfiguration ?? new HcaConfiguration();
         }
     }
 }

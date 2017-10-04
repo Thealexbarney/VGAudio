@@ -11,6 +11,8 @@ namespace VGAudio.Formats.CriHca
 
         public byte[][] AudioData { get; }
 
+        public CriHcaFormat() { }
+
         internal CriHcaFormat(CriHcaFormatBuilder b) : base(b)
         {
             AudioData = b.AudioData;
