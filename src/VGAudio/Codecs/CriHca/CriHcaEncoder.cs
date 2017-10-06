@@ -1,4 +1,5 @@
-﻿using VGAudio.Utilities;
+﻿using System;
+using VGAudio.Utilities;
 
 namespace VGAudio.Codecs.CriHca
 {
@@ -26,6 +27,7 @@ namespace VGAudio.Codecs.CriHca
             Hca = new HcaInfo
             {
                 ChannelCount = config.ChannelCount,
+                TrackCount = config.ChannelCount,
                 SampleCount = config.SampleCount,
                 SampleRate = config.SampleRate,
                 MinResolution = 1,
@@ -45,10 +47,14 @@ namespace VGAudio.Codecs.CriHca
             PcmBuffer = Helpers.CreateJaggedArray<short[][]>(Hca.ChannelCount, 1024);
             HcaBuffer = new byte[Hca.FrameSize];
 
+            var channelTypes = CriHcaFrame.GetChannelTypes(Hca);
             Channels = new CriHcaChannel[Hca.ChannelCount];
             for (int i = 0; i < Channels.Length; i++)
             {
-                Channels[i] = new CriHcaChannel();
+                Channels[i] = new CriHcaChannel
+                {
+                    Type = channelTypes[i]
+                };
             }
         }
 
@@ -63,6 +69,37 @@ namespace VGAudio.Codecs.CriHca
         {
             PcmToFloat(PcmBuffer, Channels);
             RunMdct(Channels);
+            CalculateScaleFactors(Channels, Hca);
+        }
+
+        private static void CalculateScaleFactors(CriHcaChannel[] channels, HcaInfo hca)
+        {
+            foreach (CriHcaChannel channel in channels)
+            {
+                var bands = channel.Type == ChannelType.StereoSecondary ? hca.BaseBandCount : hca.TotalBandCount;
+
+                for (int b = 0; b < bands; b++)
+                {
+                    double max = 0;
+                    for (int sf = 0; sf < 8; sf++)
+                    {
+                        var coeff = Math.Abs(channel.Spectra[sf][b]);
+                        max = Math.Max(coeff, max);
+                    }
+                    channel.ScaleFactors[b] = FindScaleFactor(max);
+                }
+                Array.Clear(channel.ScaleFactors, bands, channel.ScaleFactors.Length - bands);
+            }
+        }
+
+        private static int FindScaleFactor(double value)
+        {
+            var sf = CriHcaTables.DequantizerScalingTable;
+            for (int i = 0; i < sf.Length; i++)
+            {
+                if (sf[i] > value) return i;
+            }
+            return 63;
         }
 
         private void RunMdct(CriHcaChannel[] channels)

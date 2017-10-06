@@ -54,7 +54,7 @@ namespace VGAudio.Codecs.CriHca
             }
         }
 
-        private static ChannelType[] GetChannelTypes(HcaInfo hca)
+        public static ChannelType[] GetChannelTypes(HcaInfo hca)
         {
             int channelsPerTrack = hca.ChannelCount / hca.TrackCount;
             if (hca.StereoBandCount == 0 || channelsPerTrack == 1) { return new ChannelType[8]; }
