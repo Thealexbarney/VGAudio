@@ -29,9 +29,40 @@ namespace VGAudio.Formats.CriHca
                 .Build();
         }
 
+        public override CriHcaFormat EncodeFromPcm16(Pcm16Format pcm16, CriHcaParameters config)
+        {
+            var hcaFormat = new CriHcaFormat();
+            config.ChannelCount = pcm16.ChannelCount;
+            config.SampleRate = pcm16.SampleRate;
+            config.SampleCount = pcm16.SampleCount;
+
+            var encoder = CriHcaEncoder.InitializeNew(config);
+            const int frameSamples = 1024;
+            var pcm = pcm16.Channels;
+            var pcmBuffer = encoder.PcmBuffer;
+            var hcaBuffer = encoder.HcaBuffer;
+
+            for (int i = 0; i < encoder.Hca.FrameCount; i++)
+            {
+                for (int c = 0; c < encoder.Hca.ChannelCount; c++)
+                {
+                    Array.Copy(pcm[c], frameSamples * i, pcmBuffer[c], 0, frameSamples);
+                }
+
+                encoder.EncodeFrame();
+            }
+            return hcaFormat;
+        }
+
         public override CriHcaFormat EncodeFromPcm16(Pcm16Format pcm16)
         {
-            throw new NotImplementedException();
+            var config = new CriHcaParameters
+            {
+                ChannelCount = pcm16.ChannelCount,
+                SampleRate = pcm16.SampleRate
+            };
+
+            return EncodeFromPcm16(pcm16, config);
         }
 
         protected override CriHcaFormat GetChannelsInternal(int[] channelRange)
