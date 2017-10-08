@@ -187,7 +187,7 @@ namespace VGAudio.Codecs.CriHca
                     for (int sf = 0; sf < 8; sf++)
                     {
                         double value = channel.ScaledSpectra[sf][i] + 1;
-                        channel.QuantizedSpectra[sf][i] = (int)(value / CriHcaTables.DequantizerNormalizeTable[resolution]) -
+                        channel.QuantizedSpectra[sf][i] = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
                                                           CriHcaTables.ResolutionLevelsTable[resolution] / 2;
                     }
                 }
@@ -289,7 +289,7 @@ namespace VGAudio.Codecs.CriHca
                     for (int sf = 0; sf < 8; sf++)
                     {
                         double value = channel.ScaledSpectra[sf][i] + 1;
-                        channel.QuantizedSpectra[sf][i] = (int)(value / CriHcaTables.DequantizerNormalizeTable[resolution]) -
+                        channel.QuantizedSpectra[sf][i] = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
                                                                  CriHcaTables.ResolutionLevelsTable[resolution] / 2;
                         length += CalculateBitsUsedBySpectra(channel.QuantizedSpectra[sf][i], resolution);
                     }

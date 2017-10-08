@@ -6,6 +6,7 @@ namespace VGAudio.Codecs.CriHca
     {
         public static float[] DequantizerScalingTable { get; } = GenerateTable(64, DequantizerScalingFunction);
         public static float[] DequantizerNormalizeTable { get; } = GenerateTable(16, DequantizerNormalizeFunction);
+        public static float[] QuantizerRangeTable { get; } = GenerateTable(16, QuantizerRangeFunction);
         public static int[] ResolutionLevelsTable { get; } = GenerateTable(16, ResolutionLevelsFunction);
         public static float[] IntensityRatioTable { get; } = GenerateTable(16, IntensityRatioFunction);
         public static float[] ScaleConversionTable { get; } = GenerateTable(128, ScaleConversionTableFunction);
@@ -172,6 +173,8 @@ namespace VGAudio.Codecs.CriHca
             if (x < 8) return 2f / (2 * x + 1);
             return 2f / ((1 << (x - 3)) - 1);
         }
+
+        private static float QuantizerRangeFunction(int x) => ResolutionLevelsFunction(x) / 2f;
 
         private static int ResolutionLevelsFunction(int x)
         {
