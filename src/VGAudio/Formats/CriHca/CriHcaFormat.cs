@@ -2,6 +2,7 @@
 using VGAudio.Codecs;
 using VGAudio.Codecs.CriHca;
 using VGAudio.Formats.Pcm16;
+using VGAudio.Utilities;
 
 namespace VGAudio.Formats.CriHca
 {
@@ -31,7 +32,6 @@ namespace VGAudio.Formats.CriHca
 
         public override CriHcaFormat EncodeFromPcm16(Pcm16Format pcm16, CriHcaParameters config)
         {
-            var hcaFormat = new CriHcaFormat();
             config.ChannelCount = pcm16.ChannelCount;
             config.SampleRate = pcm16.SampleRate;
             config.SampleCount = pcm16.SampleCount;
@@ -42,7 +42,9 @@ namespace VGAudio.Formats.CriHca
             var pcmBuffer = encoder.PcmBuffer;
             var hcaBuffer = encoder.HcaBuffer;
 
-            for (int i = 0; i < encoder.Hca.FrameCount; i++)
+            var audio = Helpers.CreateJaggedArray<byte[][]>(encoder.Hca.FrameCount, encoder.Hca.FrameSize);
+
+            for (int i = 0; i < encoder.Hca.FrameCount - 10; i++)
             {
                 for (int c = 0; c < encoder.Hca.ChannelCount; c++)
                 {
@@ -50,8 +52,10 @@ namespace VGAudio.Formats.CriHca
                 }
 
                 encoder.EncodeFrame();
+                Array.Copy(hcaBuffer, audio[i], hcaBuffer.Length);
             }
-            return hcaFormat;
+            var builder = new CriHcaFormatBuilder(audio, encoder.Hca);
+            return builder.Build();
         }
 
         public override CriHcaFormat EncodeFromPcm16(Pcm16Format pcm16)

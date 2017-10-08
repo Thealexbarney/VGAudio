@@ -16,6 +16,7 @@ namespace VGAudio.Codecs.CriHca
         private CriHcaChannel[] Channels { get; set; }
         private int AcceptableNoiseLevel { get; set; }
         private int EvaluationBoundary { get; set; }
+        private Crc16 Crc { get; } = new Crc16(0x8005);
 
         private const int MinResolution = 1;
         private const int MaxResolution = 15;
@@ -83,20 +84,127 @@ namespace VGAudio.Codecs.CriHca
             CalculateScaleToResolution(Channels);
             AcceptableNoiseLevel = CalculateNoiseLevel(Channels, Hca);
             EvaluationBoundary = CalculateEvaluationBoundary(Channels, Hca, AcceptableNoiseLevel);
-            CalculateFrameResolutions(Channels, Hca);
+            CalculateFrameResolutions(Channels, AcceptableNoiseLevel, EvaluationBoundary);
+            QuantizeSpectra(Channels);
+            PackFrame(Channels);
         }
 
-        private void CalculateFrameResolutions(CriHcaChannel[] channels, HcaInfo hca)
+        private void PackFrame(CriHcaChannel[] channels)
+        {
+            var writer = new BitWriter(HcaBuffer);
+            writer.Write(0xffff, 16);
+            writer.Write(AcceptableNoiseLevel, 9);
+            writer.Write(EvaluationBoundary, 7);
+
+            foreach (CriHcaChannel channel in channels)
+            {
+                WriteScaleFactors(writer, channel);
+            }
+
+            for (int sf = 0; sf < 8; sf++)
+            {
+                foreach (CriHcaChannel channel in channels)
+                {
+                    WriteSpectra(writer, channel, sf);
+                }
+            }
+            WriteChecksum(writer);
+        }
+
+        private void WriteChecksum(BitWriter writer)
+        {
+            writer.Position = writer.LengthBits - 16;
+            var crc16 = Crc.Compute(HcaBuffer, HcaBuffer.Length - 2);
+            writer.Write(crc16, 16);
+        }
+
+        private void WriteSpectra(BitWriter writer, CriHcaChannel channel, int subFrame)
+        {
+            for (int i = 0; i < channel.CodedScaleFactorCount; i++)
+            {
+                int resolution = channel.Resolution[i];
+                int quantizedSpectra = channel.QuantizedSpectra[subFrame][i];
+                if (resolution == 0) continue;
+                if (resolution < 8)
+                {
+                    int bits = CriHcaTables.QuantizeSpectrumBits[resolution, quantizedSpectra + 8];
+                    writer.Write(CriHcaTables.QuantizeSpectrumValue[resolution, quantizedSpectra + 8], bits);
+                }
+                else if (resolution < 16)
+                {
+                    int bits = CriHcaTables.QuantizedSpectrumMaxBits[resolution] - 1;
+                    writer.Write(Math.Abs(quantizedSpectra), bits);
+                    if (quantizedSpectra != 0)
+                    {
+                        writer.Write(quantizedSpectra > 0 ? 0 : 1, 1);
+                    }
+                }
+            }
+        }
+
+        private void WriteScaleFactors(BitWriter writer, CriHcaChannel channel)
+        {
+            int deltaBits = channel.ScaleFactorDeltaBits;
+            var scales = channel.ScaleFactors;
+            writer.Write(deltaBits, 3);
+            if (deltaBits == 0) return;
+
+            if (deltaBits == 6)
+            {
+                for (int i = 0; i < channel.CodedScaleFactorCount; i++)
+                {
+                    writer.Write(scales[i], 6);
+                }
+                return;
+            }
+
+            writer.Write(scales[0], 6);
+            int maxDelta = (1 << (deltaBits - 1)) - 1;
+            int escapeValue = (1 << deltaBits) - 1;
+
+            for (int i = 1; i < channel.CodedScaleFactorCount; i++)
+            {
+                int delta = scales[i] - scales[i - 1];
+                if (Math.Abs(delta) > maxDelta)
+                {
+                    writer.Write(escapeValue, deltaBits);
+                    writer.Write(scales[i], 6);
+                }
+                else
+                {
+                    writer.Write(maxDelta + delta, deltaBits);
+                }
+            }
+        }
+
+        private void QuantizeSpectra(CriHcaChannel[] channels)
         {
             foreach (CriHcaChannel channel in channels)
             {
-                for (int i = 0; i < EvaluationBoundary; i++)
+                for (int i = 0; i < channel.CodedScaleFactorCount; i++)
                 {
-                    channel.Resolution[i] = CalculateResolution(channel.ScaleToResolution[i], AcceptableNoiseLevel - 1);
+                    int resolution = channel.Resolution[i];
+                    for (int sf = 0; sf < 8; sf++)
+                    {
+                        double value = channel.ScaledSpectra[sf][i] + 1;
+                        channel.QuantizedSpectra[sf][i] = (int)(value / CriHcaTables.DequantizerNormalizeTable[resolution]) -
+                                                          CriHcaTables.ResolutionLevelsTable[resolution] / 2;
+                    }
                 }
-                for (int i = EvaluationBoundary; i < channel.CodedScaleFactorCount; i++)
+            }
+        }
+
+        private static void CalculateFrameResolutions(CriHcaChannel[] channels, int noiseLevel, int evalBoundary)
+        {
+            foreach (CriHcaChannel channel in channels)
+            {
+                for (int i = 0; i < evalBoundary; i++)
                 {
-                    channel.Resolution[i] = CalculateResolution(channel.ScaleToResolution[i], AcceptableNoiseLevel);
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleToResolution[i], noiseLevel - 1);
+                }
+                for (int i = evalBoundary; i < channel.CodedScaleFactorCount; i++)
+                {
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleToResolution[i], noiseLevel);
                 }
                 Array.Clear(channel.Resolution, channel.CodedScaleFactorCount, channel.Resolution.Length - channel.CodedScaleFactorCount);
             }
