@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace VGAudio.Utilities
 {
@@ -23,6 +21,13 @@ namespace VGAudio.Utilities
             Position += bitCount;
         }
 
+        public void AlignPosition(int multiple)
+        {
+            int newPosition = Helpers.GetNextMultiple(Position, multiple);
+            int bits = newPosition - Position;
+            Write(0, bits);
+        }
+
         private void WriteFallback(int value, int bitCount)
         {
             int byteIndex = Position / 8;
@@ -43,7 +48,7 @@ namespace VGAudio.Utilities
                 int mask = ((1 << bitsToWrite) - 1) << 8 - bitIndex - bitsToWrite;
                 int outByte = Buffer[byteIndex] & ~mask;
                 outByte |= shifted & mask;
-                Buffer[byteIndex] = (byte) outByte;
+                Buffer[byteIndex] = (byte)outByte;
 
                 bitIndex += bitsToWrite;
                 bitCount -= bitsToWrite;

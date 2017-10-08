@@ -108,6 +108,13 @@ namespace VGAudio.Codecs.CriHca
                     WriteSpectra(writer, channel, sf);
                 }
             }
+
+            writer.AlignPosition(8);
+            for (int i = writer.Position / 8; i < Hca.FrameSize - 2; i++)
+            {
+                writer.Buffer[i] = 0;
+            }
+
             WriteChecksum(writer);
         }
 
@@ -247,7 +254,12 @@ namespace VGAudio.Codecs.CriHca
                 }
             } while (hi - lo > 1);
 
-            return hiValue > availableBits ? lo : hi;
+            if (hiValue > availableBits)
+            {
+                throw new NotImplementedException();
+            }
+
+            return loValue > availableBits ? hi : lo;
         }
 
         private static int BinarySearchBoundary(CriHcaChannel[] channels, int availableBits, int noiseLevel, int lo, int hi)
@@ -290,7 +302,7 @@ namespace VGAudio.Codecs.CriHca
                     {
                         double value = channel.ScaledSpectra[sf][i] + 1;
                         channel.QuantizedSpectra[sf][i] = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
-                                                                 CriHcaTables.ResolutionLevelsTable[resolution] / 2;
+                                                          CriHcaTables.ResolutionLevelsTable[resolution] / 2;
                         length += CalculateBitsUsedBySpectra(channel.QuantizedSpectra[sf][i], resolution);
                     }
                 }
