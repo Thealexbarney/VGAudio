@@ -6,6 +6,7 @@ namespace VGAudio.Codecs.CriHca
     {
         public static float[] DequantizerScalingTable { get; } = GenerateTable(64, DequantizerScalingFunction);
         public static float[] DequantizerNormalizeTable { get; } = GenerateTable(16, DequantizerNormalizeFunction);
+        public static int[] ResolutionLevelsTable { get; } = GenerateTable(16, ResolutionLevelsFunction);
         public static float[] IntensityRatioTable { get; } = GenerateTable(16, IntensityRatioFunction);
         public static float[] ScaleConversionTable { get; } = GenerateTable(128, ScaleConversionTableFunction);
 
@@ -19,6 +20,18 @@ namespace VGAudio.Codecs.CriHca
             0x08, 0x08, 0x08, 0x08, 0x07, 0x06, 0x06, 0x05,
             0x04, 0x04, 0x04, 0x03, 0x03, 0x03, 0x02, 0x02,
             0x02, 0x02, 0x01
+        };
+
+        public static byte[] ScaleToResolutionCurveEncode { get; } =
+        {
+            15, 15, 15, 15, 15, 15, 0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0D,
+            0x0D, 0x0D, 0x0D, 0x0D, 0x0D, 0x0C, 0x0C, 0x0C,
+            0x0C, 0x0C, 0x0C, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,
+            0x0B, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
+            0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x08, 0x08,
+            0x08, 0x08, 0x08, 0x08, 0x07, 0x06, 0x06, 0x05,
+            0x04, 0x04, 0x04, 0x03, 0x03, 0x03, 0x02, 0x02,
+            0x02, 0x02, 1, 1, 1, 1, 1, 1, 1, 1, 1
         };
 
         public static byte[] QuantizedSpectrumMaxBits { get; } =
@@ -48,6 +61,18 @@ namespace VGAudio.Codecs.CriHca
             {+0, +0, +1, +1, -1, -1, +2, +2, -2, -2, +3, -3, +4, -4, +5, -5},
             {+0, +0, +1, +1, -1, -1, +2, -2, +3, -3, +4, -4, +5, -5, +6, -6},
             {+0, +0, +1, -1, +2, -2, +3, -3, +4, -4, +5, -5, +6, -6, +7, -7}
+        };
+
+        public static byte[,] QuantizeSpectrumBits { get; } =
+        {
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 3, 2, 2, 2, 3, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 3, 3, 3, 2, 3, 3, 3, 0, 0, 0, 0},
+            {0, 0, 0, 0, 4, 3, 3, 3, 3, 3, 3, 3, 4, 0, 0, 0},
+            {0, 0, 0, 4, 4, 4, 3, 3, 3, 3, 3, 4, 4, 4, 0, 0},
+            {0, 0, 4, 4, 4, 4, 4, 3, 3, 3, 4, 4, 4, 4, 4, 0},
+            {0, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4}
         };
 
         // Don't know what the window function is.
@@ -134,6 +159,12 @@ namespace VGAudio.Codecs.CriHca
             if (x == 0) return 0;
             if (x < 8) return 2f / (2 * x + 1);
             return 2f / ((1 << (x - 3)) - 1);
+        }
+
+        private static int ResolutionLevelsFunction(int x)
+        {
+            if (x < 8) return 2 * x + 1;
+            return (1 << (x - 3)) - 1;
         }
 
         private static T[] GenerateTable<T>(int count, Func<int, T> elementGenerator)

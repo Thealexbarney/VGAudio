@@ -14,6 +14,11 @@ namespace VGAudio.Codecs.CriHca
         public short[][] PcmBuffer { get; private set; }
         public byte[] HcaBuffer { get; private set; }
         private CriHcaChannel[] Channels { get; set; }
+        private int AcceptableNoiseLevel { get; set; }
+        private int EvaluationBoundary { get; set; }
+
+        private const int MinResolution = 1;
+        private const int MaxResolution = 15;
 
         public static CriHcaEncoder InitializeNew(CriHcaParameters config)
         {
@@ -75,6 +80,134 @@ namespace VGAudio.Codecs.CriHca
             CalculateScaleFactors(Channels, Hca);
             ScaleSpectra(Channels, Hca);
             CalculateScaleFactorLength(Channels);
+            CalculateScaleToResolution(Channels);
+            AcceptableNoiseLevel = CalculateNoiseLevel(Channels, Hca);
+            EvaluationBoundary = CalculateEvaluationBoundary(Channels, Hca, AcceptableNoiseLevel);
+        }
+
+        private static int CalculateNoiseLevel(CriHcaChannel[] channels, HcaInfo hca)
+        {
+            int availableBits = hca.FrameSize * 8;
+            int maxLevel = 511;
+            int minLevel = 0;
+            return BinarySearchLevel(channels, availableBits, minLevel, maxLevel);
+        }
+
+        private static int CalculateEvaluationBoundary(CriHcaChannel[] channels, HcaInfo hca, int noiseLevel)
+        {
+            int availableBits = hca.FrameSize * 8;
+            int maxLevel = 127;
+            int minLevel = 0;
+            return BinarySearchBoundary(channels, availableBits, noiseLevel, minLevel, maxLevel);
+        }
+
+        private static int BinarySearchLevel(CriHcaChannel[] channels, int availableBits, int lo, int hi)
+        {
+            int hiValue = CalculateUsedBits(channels, hi, 0);
+            int loValue = CalculateUsedBits(channels, lo, 0);
+
+            do
+            {
+                int mid = (lo + hi) / 2;
+                int midValue = CalculateUsedBits(channels, mid, 0);
+                if (midValue < availableBits)
+                {
+                    hi = mid;
+                    hiValue = midValue;
+                }
+                else
+                {
+                    lo = mid;
+                    loValue = midValue;
+                }
+            } while (hi - lo > 1);
+
+            return hiValue > availableBits ? lo : hi;
+        }
+
+        private static int BinarySearchBoundary(CriHcaChannel[] channels, int availableBits, int noiseLevel, int lo, int hi)
+        {
+            int hiValue = CalculateUsedBits(channels, noiseLevel, hi);
+            int loValue = CalculateUsedBits(channels, noiseLevel, lo);
+
+            do
+            {
+                int mid = (lo + hi) / 2;
+                int midValue = CalculateUsedBits(channels, noiseLevel, mid);
+                if (midValue > availableBits)
+                {
+                    hi = mid;
+                    hiValue = midValue;
+                }
+                else
+                {
+                    lo = mid;
+                    loValue = midValue;
+                }
+            } while (hi - lo > 1);
+
+            return hiValue > availableBits ? lo : hi;
+        }
+
+        private static int CalculateUsedBits(CriHcaChannel[] channels, int noiseLevel, int evalBoundary)
+        {
+            int length = 16 + 16 + 16; // Sync word, noise level and checksum
+
+            foreach (CriHcaChannel channel in channels)
+            {
+                length += channel.ScaleFactorBits;
+                for (int i = 0; i < channel.CodedScaleFactorCount; i++)
+                {
+                    int noise = i < evalBoundary ? noiseLevel - 1 : noiseLevel;
+                    int resolution = CalculateResolution(channel.ScaleToResolution[i], noise);
+
+                    for (int sf = 0; sf < 8; sf++)
+                    {
+                        double value = channel.ScaledSpectra[sf][i] + 1;
+                        channel.QuantizedSpectra[sf][i] = (int)(value / CriHcaTables.DequantizerNormalizeTable[resolution]) -
+                                                                 CriHcaTables.ResolutionLevelsTable[resolution] / 2;
+                        length += CalculateBitsUsedBySpectra(channel.QuantizedSpectra[sf][i], resolution);
+                    }
+                }
+            }
+
+            return length;
+        }
+
+        private static int CalculateBitsUsedBySpectra(int quantizedSpectra, int resolution)
+        {
+            if (resolution >= 8)
+            {
+                return CriHcaTables.QuantizedSpectrumMaxBits[resolution] - (quantizedSpectra == 0 ? 1 : 0);
+            }
+            return CriHcaTables.QuantizeSpectrumBits[resolution, quantizedSpectra + 8];
+        }
+
+        private static int CalculateResolution(int resolution, int noiseLevel)
+        {
+            if (resolution < 4)
+            {
+                return 0;
+            }
+            var res = Helpers.Clamp(noiseLevel - resolution + 9, 0, 71);
+            return CriHcaTables.ScaleToResolutionCurveEncode[res];
+        }
+
+
+        private static void CalculateScaleToResolution(CriHcaChannel[] channels)
+        {
+            foreach (CriHcaChannel channel in channels)
+            {
+                for (int i = 0; i < channel.CodedScaleFactorCount; i++)
+                {
+                    channel.ScaleToResolution[i] = (5 * channel.ScaleFactors[i] >> 1) + 2;
+                }
+
+                for (int i = channel.CodedScaleFactorCount; i < 128; i++)
+                {
+                    channel.ScaleToResolution[i] = 0;
+                }
+            }
         }
 
         private static void CalculateScaleFactorLength(CriHcaChannel[] channels)
