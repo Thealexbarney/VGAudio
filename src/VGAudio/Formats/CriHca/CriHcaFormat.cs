@@ -35,12 +35,15 @@ namespace VGAudio.Formats.CriHca
             config.ChannelCount = pcm16.ChannelCount;
             config.SampleRate = pcm16.SampleRate;
             config.SampleCount = pcm16.SampleCount;
+            var progress = config.Progress;
 
             var encoder = CriHcaEncoder.InitializeNew(config);
             const int frameSamples = 1024;
             var pcm = pcm16.Channels;
             var pcmBuffer = encoder.PcmBuffer;
             var hcaBuffer = encoder.HcaBuffer;
+
+            progress?.SetTotal(encoder.Hca.FrameCount);
 
             var audio = Helpers.CreateJaggedArray<byte[][]>(encoder.Hca.FrameCount, encoder.Hca.FrameSize);
 
@@ -53,6 +56,7 @@ namespace VGAudio.Formats.CriHca
 
                 encoder.EncodeFrame();
                 Array.Copy(hcaBuffer, audio[i], hcaBuffer.Length);
+                progress?.ReportAdd(1);
             }
             var builder = new CriHcaFormatBuilder(audio, encoder.Hca);
             return builder.Build();
