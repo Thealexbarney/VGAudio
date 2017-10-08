@@ -83,6 +83,23 @@ namespace VGAudio.Codecs.CriHca
             CalculateScaleToResolution(Channels);
             AcceptableNoiseLevel = CalculateNoiseLevel(Channels, Hca);
             EvaluationBoundary = CalculateEvaluationBoundary(Channels, Hca, AcceptableNoiseLevel);
+            CalculateFrameResolutions(Channels, Hca);
+        }
+
+        private void CalculateFrameResolutions(CriHcaChannel[] channels, HcaInfo hca)
+        {
+            foreach (CriHcaChannel channel in channels)
+            {
+                for (int i = 0; i < EvaluationBoundary; i++)
+                {
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleToResolution[i], AcceptableNoiseLevel - 1);
+                }
+                for (int i = EvaluationBoundary; i < channel.CodedScaleFactorCount; i++)
+                {
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleToResolution[i], AcceptableNoiseLevel);
+                }
+                Array.Clear(channel.Resolution, channel.CodedScaleFactorCount, channel.Resolution.Length - channel.CodedScaleFactorCount);
+            }
         }
 
         private static int CalculateNoiseLevel(CriHcaChannel[] channels, HcaInfo hca)

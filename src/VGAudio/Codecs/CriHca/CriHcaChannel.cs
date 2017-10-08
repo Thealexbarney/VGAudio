@@ -14,6 +14,7 @@ namespace VGAudio.Codecs.CriHca
         public Mdct Mdct { get; } = new Mdct(7, CriHcaTables.MdctWindow, Math.Sqrt(2.0 / 128));
         public int[] ScaleToResolution { get; } = new int[128];
         public int[] ScaleFactors { get; } = new int[128];
+        public int[] Resolution { get; } = new int[128];
         public int ScaleFactorBits { get; set; }
         public int ScaleFactorDeltaBits { get; set; }
     }
