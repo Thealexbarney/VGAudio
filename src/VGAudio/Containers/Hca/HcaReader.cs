@@ -97,6 +97,10 @@ namespace VGAudio.Containers.Hca
                     case "vbr\0":
                         ReadVbrChunk(reader, structure);
                         break;
+                    case "comm":
+                        ReadCommChunk(reader, structure);
+                        reader.BaseStream.Position = structure.HeaderSize;
+                        break;
                     case "pad\0":
                         reader.BaseStream.Position = structure.HeaderSize;
                         break;
@@ -211,6 +215,12 @@ namespace VGAudio.Containers.Hca
         private static void ReadRvaChunk(BinaryReader reader, HcaStructure structure)
         {
             structure.Hca.Volume = reader.ReadSingle();
+        }
+
+        private static void ReadCommChunk(BinaryReader reader, HcaStructure structure)
+        {
+            reader.BaseStream.Position++;
+            structure.Hca.Comment = reader.ReadUTF8Z();
         }
 
         private static string ReadChunkId(BinaryReader reader)

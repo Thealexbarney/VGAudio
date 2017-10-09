@@ -40,7 +40,16 @@ namespace VGAudio.Containers.Hca
             WriteFmtChunk(writer);
             WriteCompChunk(writer);
             WriteCiphChunk(writer);
-            WritePadChunk(writer);
+            WriteRvaChunk(writer);
+
+            if (string.IsNullOrWhiteSpace(Hca.Comment))
+            {
+                WritePadChunk(writer);
+            }
+            else
+            {
+                WriteCommChunk(writer);
+            }
 
             writer.BaseStream.Position = 0;
             var header = new byte[HeaderSize - 2];
@@ -89,6 +98,23 @@ namespace VGAudio.Containers.Hca
         {
             writer.WriteUTF8("ciph");
             writer.Write((short)Hca.EncryptionType);
+        }
+
+        private void WriteRvaChunk(BinaryWriter writer)
+        {
+            float volume = Hca.Volume;
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (volume != 1)
+            {
+                writer.WriteUTF8("rva\0");
+                writer.Write(volume);
+            }
+        }
+
+        private void WriteCommChunk(BinaryWriter writer)
+        {
+            writer.WriteUTF8("comm\0");
+            writer.WriteUTF8Z(Hca.Comment);
         }
 
         private void WritePadChunk(BinaryWriter writer)

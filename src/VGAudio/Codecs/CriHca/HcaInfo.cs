@@ -39,6 +39,8 @@
 
         public int EncryptionType { get; set; }
 
-        public float Volume { get; set; }
+        public float Volume { get; set; } = 1;
+
+        public string Comment { get; set; }
     }
 }

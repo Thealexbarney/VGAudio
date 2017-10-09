@@ -47,11 +47,12 @@ namespace VGAudio.Formats.CriHca
 
             var audio = Helpers.CreateJaggedArray<byte[][]>(encoder.Hca.FrameCount, encoder.Hca.FrameSize);
 
-            for (int i = 0; i < encoder.Hca.FrameCount - 10; i++)
+            for (int i = 0; i < encoder.Hca.FrameCount; i++)
             {
+                int samplesToCopy = Math.Min(pcm16.SampleCount - i * frameSamples, frameSamples);
                 for (int c = 0; c < encoder.Hca.ChannelCount; c++)
                 {
-                    Array.Copy(pcm[c], frameSamples * i, pcmBuffer[c], 0, frameSamples);
+                    Array.Copy(pcm[c], frameSamples * i, pcmBuffer[c], 0, samplesToCopy);
                 }
 
                 encoder.EncodeFrame();
