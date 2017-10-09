@@ -81,7 +81,6 @@ namespace VGAudio.Codecs.CriHca
             CalculateScaleFactors(Channels, Hca);
             ScaleSpectra(Channels, Hca);
             CalculateScaleFactorLength(Channels);
-            CalculateScaleToResolution(Channels);
             AcceptableNoiseLevel = CalculateNoiseLevel(Channels, Hca);
             EvaluationBoundary = CalculateEvaluationBoundary(Channels, Hca, AcceptableNoiseLevel);
             CalculateFrameResolutions(Channels, AcceptableNoiseLevel, EvaluationBoundary);
@@ -207,11 +206,11 @@ namespace VGAudio.Codecs.CriHca
             {
                 for (int i = 0; i < evalBoundary; i++)
                 {
-                    channel.Resolution[i] = CalculateResolution(channel.ScaleToResolution[i], noiseLevel - 1);
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], noiseLevel - 1);
                 }
                 for (int i = evalBoundary; i < channel.CodedScaleFactorCount; i++)
                 {
-                    channel.Resolution[i] = CalculateResolution(channel.ScaleToResolution[i], noiseLevel);
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], noiseLevel);
                 }
                 Array.Clear(channel.Resolution, channel.CodedScaleFactorCount, channel.Resolution.Length - channel.CodedScaleFactorCount);
             }
@@ -296,7 +295,7 @@ namespace VGAudio.Codecs.CriHca
                 for (int i = 0; i < channel.CodedScaleFactorCount; i++)
                 {
                     int noise = i < evalBoundary ? noiseLevel - 1 : noiseLevel;
-                    int resolution = CalculateResolution(channel.ScaleToResolution[i], noise);
+                    int resolution = CalculateResolution(channel.ScaleFactors[i], noise);
 
                     for (int sf = 0; sf < 8; sf++)
                     {
@@ -320,31 +319,15 @@ namespace VGAudio.Codecs.CriHca
             return CriHcaTables.QuantizeSpectrumBits[resolution, quantizedSpectra + 8];
         }
 
-        private static int CalculateResolution(int resolution, int noiseLevel)
+        private static int CalculateResolution(int scaleFactor, int noiseLevel)
         {
-            if (resolution < 4)
+            if (scaleFactor == 0)
             {
                 return 0;
             }
-            var res = Helpers.Clamp(noiseLevel - resolution + 9, 0, 71);
-            return CriHcaTables.ScaleToResolutionCurveEncode[res];
-        }
-
-
-        private static void CalculateScaleToResolution(CriHcaChannel[] channels)
-        {
-            foreach (CriHcaChannel channel in channels)
-            {
-                for (int i = 0; i < channel.CodedScaleFactorCount; i++)
-                {
-                    channel.ScaleToResolution[i] = (5 * channel.ScaleFactors[i] >> 1) + 2;
-                }
-
-                for (int i = channel.CodedScaleFactorCount; i < 128; i++)
-                {
-                    channel.ScaleToResolution[i] = 0;
-                }
-            }
+            int curvePosition = noiseLevel - 5 * scaleFactor / 2 + 2;
+            curvePosition = Helpers.Clamp(curvePosition, 0, 58);
+            return CriHcaTables.ScaleToResolutionCurve[curvePosition];
         }
 
         private static void CalculateScaleFactorLength(CriHcaChannel[] channels)
