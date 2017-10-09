@@ -219,9 +219,10 @@ namespace VGAudio.Codecs.CriHca
         private static int CalculateNoiseLevel(CriHcaChannel[] channels, HcaInfo hca)
         {
             int availableBits = hca.FrameSize * 8;
-            int maxLevel = 511;
+            int maxLevel = 255;
             int minLevel = 0;
-            return BinarySearchLevel(channels, availableBits, minLevel, maxLevel);
+            int level = BinarySearchLevel(channels, availableBits, minLevel, maxLevel);
+            return level >= 0 ? level : throw new NotImplementedException();
         }
 
         private static int CalculateEvaluationBoundary(CriHcaChannel[] channels, HcaInfo hca, int noiseLevel)
@@ -229,60 +230,60 @@ namespace VGAudio.Codecs.CriHca
             int availableBits = hca.FrameSize * 8;
             int maxLevel = 127;
             int minLevel = 0;
-            return BinarySearchBoundary(channels, availableBits, noiseLevel, minLevel, maxLevel);
+            int level = BinarySearchBoundary(channels, availableBits, noiseLevel, minLevel, maxLevel);
+            return level >= 0 ? level : throw new NotImplementedException();
         }
 
-        private static int BinarySearchLevel(CriHcaChannel[] channels, int availableBits, int lo, int hi)
+        private static int BinarySearchLevel(CriHcaChannel[] channels, int availableBits, int low, int high)
         {
-            int hiValue = CalculateUsedBits(channels, hi, 0);
-            int loValue = CalculateUsedBits(channels, lo, 0);
+            int max = high;
+            int midValue = 0;
 
-            do
+            while (low != high)
             {
-                int mid = (lo + hi) / 2;
-                int midValue = CalculateUsedBits(channels, mid, 0);
-                if (midValue < availableBits)
-                {
-                    hi = mid;
-                    hiValue = midValue;
-                }
-                else
-                {
-                    lo = mid;
-                    loValue = midValue;
-                }
-            } while (hi - lo > 1);
+                int mid = (low + high) / 2;
+                midValue = CalculateUsedBits(channels, mid, 0);
 
-            if (hiValue > availableBits)
-            {
-                throw new NotImplementedException();
-            }
-
-            return loValue > availableBits ? hi : lo;
-        }
-
-        private static int BinarySearchBoundary(CriHcaChannel[] channels, int availableBits, int noiseLevel, int lo, int hi)
-        {
-            int hiValue = CalculateUsedBits(channels, noiseLevel, hi);
-            int loValue = CalculateUsedBits(channels, noiseLevel, lo);
-
-            do
-            {
-                int mid = (lo + hi) / 2;
-                int midValue = CalculateUsedBits(channels, noiseLevel, mid);
                 if (midValue > availableBits)
                 {
-                    hi = mid;
-                    hiValue = midValue;
+                    low = mid + 1;
                 }
-                else
+                else if (midValue <= availableBits)
                 {
-                    lo = mid;
-                    loValue = midValue;
+                    high = mid;
                 }
-            } while (hi - lo > 1);
+            }
 
-            return hiValue > availableBits ? lo : hi;
+            return low == max && midValue > availableBits ? -1 : low;
+        }
+
+        private static int BinarySearchBoundary(CriHcaChannel[] channels, int availableBits, int noiseLevel, int low, int high)
+        {
+            int max = high;
+
+            while (Math.Abs(high - low) > 1)
+            {
+                int mid = (low + high) / 2;
+                int midValue = CalculateUsedBits(channels, noiseLevel, mid);
+
+                if (availableBits < midValue)
+                {
+                    high = mid - 1;
+                }
+                else if (availableBits >= midValue)
+                {
+                    low = mid;
+                }
+            }
+
+            if (low == high)
+            {
+                return low < max ? low : -1;
+            }
+
+            int hiValue = CalculateUsedBits(channels, noiseLevel, high);
+
+            return hiValue > availableBits ? low : high;
         }
 
         private static int CalculateUsedBits(CriHcaChannel[] channels, int noiseLevel, int evalBoundary)
