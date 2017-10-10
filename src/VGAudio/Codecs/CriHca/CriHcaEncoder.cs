@@ -189,10 +189,11 @@ namespace VGAudio.Codecs.CriHca
             {
                 for (int i = 0; i < channel.CodedScaleFactorCount; i++)
                 {
+                    var scaled = channel.ScaledSpectra[i];
                     int resolution = channel.Resolution[i];
-                    for (int sf = 0; sf < 8; sf++)
+                    for (int sf = 0; sf < scaled.Length; sf++)
                     {
-                        double value = channel.ScaledSpectra[sf][i] + 1;
+                        double value = scaled[sf] + 1;
                         channel.QuantizedSpectra[sf][i] = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
                                                           CriHcaTables.ResolutionLevelsTable[resolution] / 2;
                     }
@@ -298,12 +299,12 @@ namespace VGAudio.Codecs.CriHca
                     int noise = i < evalBoundary ? noiseLevel - 1 : noiseLevel;
                     int resolution = CalculateResolution(channel.ScaleFactors[i], noise);
 
-                    for (int sf = 0; sf < 8; sf++)
+                    foreach (double scaledSpectra in channel.ScaledSpectra[i])
                     {
-                        double value = channel.ScaledSpectra[sf][i] + 1;
-                        channel.QuantizedSpectra[sf][i] = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
-                                                          CriHcaTables.ResolutionLevelsTable[resolution] / 2;
-                        length += CalculateBitsUsedBySpectra(channel.QuantizedSpectra[sf][i], resolution);
+                        double value = scaledSpectra + 1;
+                        int quantizedSpectra = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
+                                               CriHcaTables.ResolutionLevelsTable[resolution] / 2;
+                        length += CalculateBitsUsedBySpectra(quantizedSpectra, resolution);
                     }
                 }
             }
@@ -385,16 +386,17 @@ namespace VGAudio.Codecs.CriHca
         {
             foreach (CriHcaChannel channel in channels)
             {
-                var bands = channel.Type == ChannelType.StereoSecondary ? hca.BaseBandCount : hca.TotalBandCount;
+                int bands = channel.Type == ChannelType.StereoSecondary ? hca.BaseBandCount : hca.TotalBandCount;
 
                 for (int b = 0; b < bands; b++)
                 {
-                    var scaleFactor = channel.ScaleFactors[b];
-                    for (int sf = 0; sf < 8; sf++)
+                    double[] scaledSpectra = channel.ScaledSpectra[b];
+                    int scaleFactor = channel.ScaleFactors[b];
+                    for (int sf = 0; sf < scaledSpectra.Length; sf++)
                     {
-                        var coeff = channel.Spectra[sf][b];
-                        channel.ScaledSpectra[sf][b] = scaleFactor == 0 ? 0 :
-                            coeff / CriHcaTables.DequantizerScalingTable[scaleFactor];
+                        double coeff = channel.Spectra[sf][b];
+                        scaledSpectra[sf] = scaleFactor == 0 ? 0 :
+                            coeff * CriHcaTables.QuantizerScalingTable[scaleFactor];
                     }
                 }
             }

@@ -9,7 +9,7 @@ namespace VGAudio.Codecs.CriHca
         public int CodedScaleFactorCount { get; set; }
         public double[][] PcmFloat { get; } = Helpers.CreateJaggedArray<double[][]>(8, 128);
         public double[][] Spectra { get; } = Helpers.CreateJaggedArray<double[][]>(8, 128);
-        public double[][] ScaledSpectra { get; } = Helpers.CreateJaggedArray<double[][]>(8, 128);
+        public double[][] ScaledSpectra { get; } = Helpers.CreateJaggedArray<double[][]>(128, 8);
         public int[][] QuantizedSpectra { get; } = Helpers.CreateJaggedArray<int[][]>(8, 128);
         public Mdct Mdct { get; } = new Mdct(7, CriHcaTables.MdctWindow, Math.Sqrt(2.0 / 128));
         public int[] ScaleFactors { get; } = new int[128];
