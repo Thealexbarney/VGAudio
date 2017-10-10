@@ -133,8 +133,8 @@ namespace VGAudio.Codecs.CriHca
                 if (resolution == 0) continue;
                 if (resolution < 8)
                 {
-                    int bits = CriHcaTables.QuantizeSpectrumBits[resolution, quantizedSpectra + 8];
-                    writer.Write(CriHcaTables.QuantizeSpectrumValue[resolution, quantizedSpectra + 8], bits);
+                    int bits = CriHcaTables.QuantizeSpectrumBits[resolution][quantizedSpectra + 8];
+                    writer.Write(CriHcaTables.QuantizeSpectrumValue[resolution][quantizedSpectra + 8], bits);
                 }
                 else if (resolution < 16)
                 {
@@ -318,7 +318,7 @@ namespace VGAudio.Codecs.CriHca
             {
                 return CriHcaTables.QuantizedSpectrumMaxBits[resolution] - (quantizedSpectra == 0 ? 1 : 0);
             }
-            return CriHcaTables.QuantizeSpectrumBits[resolution, quantizedSpectra + 8];
+            return CriHcaTables.QuantizeSpectrumBits[resolution][quantizedSpectra + 8];
         }
 
         private static int CalculateResolution(int scaleFactor, int noiseLevel)

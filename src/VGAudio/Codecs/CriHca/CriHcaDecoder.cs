@@ -224,8 +224,8 @@ namespace VGAudio.Codecs.CriHca
                         int code = reader.PeekInt(bits);
                         if (resolution < 8)
                         {
-                            bits = QuantizedSpectrumBits[resolution, code];
-                            frame.QuantizedSpectra[sf][c][s] = QuantizedSpectrumValue[resolution, code];
+                            bits = QuantizedSpectrumBits[resolution][code];
+                            frame.QuantizedSpectra[sf][c][s] = QuantizedSpectrumValue[resolution][code];
                         }
                         else
                         {
