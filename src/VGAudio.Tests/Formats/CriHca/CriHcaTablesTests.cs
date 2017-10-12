@@ -34,5 +34,53 @@ namespace VGAudio.Tests.Formats.CriHca
         {
             Assert.Equal(CriHcaTables.ResolutionLevelsTable, CriHcaTablesPrebuilt.ResolutionLevels);
         }
+
+        [Fact]
+        public void UnpackedQuantizedSpectrumMaxBitsMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.QuantizedSpectrumMaxBits, CriHcaTablesPrebuilt.QuantizedSpectrumMaxBits);
+        }
+
+        [Fact]
+        public void UnpackedQuantizedSpectrumBitsMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.QuantizedSpectrumBits, CriHcaTablesPrebuilt.QuantizedSpectrumBits);
+        }
+
+        [Fact]
+        public void UnpackedQuantizedSpectrumValueMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.QuantizedSpectrumValue, CriHcaTablesPrebuilt.QuantizedSpectrumValue);
+        }
+
+        [Fact]
+        public void UnpackedQuantizeSpectrumBitsMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.QuantizeSpectrumBits, CriHcaTablesPrebuilt.QuantizeSpectrumBits);
+        }
+
+        [Fact]
+        public void UnpackedQuantizeSpectrumValueMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.QuantizeSpectrumValue, CriHcaTablesPrebuilt.QuantizeSpectrumValue);
+        }
+
+        [Fact]
+        public void UnpackedScaleToResolutionCurveMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.ScaleToResolutionCurve, CriHcaTablesPrebuilt.ScaleToResolutionCurve);
+        }
+
+        [Fact]
+        public void UnpackedAthCurveMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.AthCurve, CriHcaTablesPrebuilt.AthCurve);
+        }
+
+        [Fact]
+        public void UnpackedMdctWindowMatchesOriginal()
+        {
+           Assert.Equal(CriHcaTables.MdctWindow, CriHcaTablesPrebuilt.MdctWindow);
+        }
     }
 }
