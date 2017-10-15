@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using VGAudio.Utilities;
@@ -13,23 +14,41 @@ namespace VGAudio.Tests.Utilities
         private const byte EvenNdMode = 1;
         private const byte Uneven2DMode = 2;
         private static readonly bool StoreSmallestType = true;
-        private List<byte[]> Items { get; } = new List<byte[]>();
+        public List<byte[]> Items { get; } = new List<byte[]>();
         public void Add(Array array, Type baseType = null) => Items.Add(PackArray(array, Items.Count, baseType));
 
         public byte[] Pack()
+        {
+            return Pack(Items);
+        }
+
+        public static byte[] Pack(IList<byte[]> items)
         {
             using (var stream = new MemoryStream())
             using (var writer = new BinaryWriter(stream))
             {
                 writer.Write((byte)0);
                 writer.Write((byte)0);
-                writer.Write((ushort)Items.Count);
+                writer.Write((ushort)items.Count);
 
-                foreach (byte[] item in Items)
+                foreach (byte[] item in items)
                 {
                     writer.Write(item);
                 }
 
+                return stream.ToArray();
+            }
+        }
+
+        public static byte[] PackCompress(IList<byte[]> items)
+        {
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream))
+            {
+                byte[] packed = Pack(items);
+                writer.Write((byte)1);
+                writer.Write(packed.Length);
+                writer.Write(Deflate(packed));
                 return stream.ToArray();
             }
         }
@@ -190,7 +209,7 @@ namespace VGAudio.Tests.Utilities
             for (int i = 0; i < inArray.Length; i++)
             {
                 object inValue = inArray.GetValue(i);
-                var outValue = Convert.ChangeType(inValue, outType);
+                object outValue = Convert.ChangeType(inValue, outType);
                 outArray.SetValue(outValue, i);
             }
             return outArray;
@@ -316,6 +335,16 @@ namespace VGAudio.Tests.Utilities
             var bytes = new byte[lengthBytes];
             Buffer.BlockCopy(array, 0, bytes, 0, lengthBytes);
             return bytes;
+        }
+
+        public static byte[] Deflate(byte[] data)
+        {
+            using (var stream = new MemoryStream())
+            using (var deflate = new DeflateStream(stream, CompressionLevel.Optimal))
+            {
+                deflate.Write(data, 0, data.Length);
+                return stream.ToArray();
+            }
         }
 
         private static readonly Type[] TypeLookup =
