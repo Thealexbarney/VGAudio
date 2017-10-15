@@ -16,46 +16,112 @@ namespace VGAudio.Utilities
             {
                 int compressed = reader.ReadByte();
                 int version = reader.ReadByte();
-                if(compressed != 0 || version != 0) throw new InvalidDataException();
+                if (compressed != 0 || version != 0) throw new InvalidDataException();
 
-                int position = reader.ReadUInt16();
                 int count = reader.ReadUInt16();
                 var arrays = new Array[count];
 
                 for (int i = 0; i < count; i++)
                 {
-                    byte packedType = reader.ReadByte();
-                    Type elementType = TypeLookup[Helpers.GetHighNibble(packedType)];
-                    byte rank = Helpers.GetLowNibble(packedType);
-                    int elementSize = Marshal.SizeOf(elementType);
-                    Type type = Arrays.MakeJaggedArrayType(elementType, rank);
-                    int byteCount = elementSize;
-
-                    var dimensions = new int[rank];
-                    var levelSizes = new int[rank];
-
-                    for (int d = 0; d < dimensions.Length; d++)
-                    {
-                        dimensions[d] = reader.ReadUInt16();
-                        byteCount *= dimensions[d];
-                    }
-
-                    for (int d = 0; d < dimensions.Length; d++)
-                    {
-                        levelSizes[d] = elementSize;
-                        for (int j = rank - 1; j >= d; j--)
-                        {
-                            levelSizes[d] *= dimensions[j];
-                        }
-                    }
-
-                    Array array = UnpackInternal(type.GetElementType(), elementSize, packedArrays, position, 0, dimensions);
-                    position += byteCount;
-                    arrays[i] = array;
+                    byte id = reader.ReadByte();
+                    byte type = reader.ReadByte();
+                    Type outType = TypeLookup[Helpers.GetHighNibble(type)];
+                    byte rank = Helpers.GetLowNibble(type);
+                    arrays[id] = UnpackArray(reader, outType, rank);
                 }
 
                 return arrays;
             }
+        }
+
+        private static Array UnpackArray(BinaryReader reader, Type outType, int rank)
+        {
+            byte modeType = reader.ReadByte();
+            if (modeType == byte.MaxValue) return null;
+
+            byte mode = Helpers.GetHighNibble(modeType);
+            Type storedType = TypeLookup[Helpers.GetLowNibble(modeType)];
+            Type elementType = Arrays.MakeJaggedArrayType(outType, rank - 1);
+
+            switch (mode)
+            {
+                case 0:
+                    {
+                        int length = reader.ReadUInt16();
+
+                        if (rank == 1)
+                        {
+                            return ReadArray(reader, storedType, elementType, length);
+                        }
+
+                        Array array = Array.CreateInstance(elementType, length);
+
+                        for (int i = 0; i < length; i++)
+                        {
+                            array.SetValue(UnpackArray(reader, outType, rank - 1), i);
+                        }
+
+                        return array;
+                    }
+                case 1:
+                    {
+                        var dimensions = new int[rank];
+
+                        for (int d = 0; d < dimensions.Length; d++)
+                        {
+                            dimensions[d] = reader.ReadUInt16();
+                        }
+
+                        return UnpackInternal(elementType, storedType, reader, 0, dimensions);
+                    }
+                case 2:
+                    {
+                        int length = reader.ReadUInt16();
+                        var lengths = new int[length];
+
+                        for (int i = 0; i < length; i++)
+                        {
+                            lengths[i] = reader.ReadUInt16();
+                        }
+
+                        Array array = Array.CreateInstance(elementType, length);
+
+                        for (int i = 0; i < length; i++)
+                        {
+                            array.SetValue(ReadArray(reader, storedType, outType, lengths[i]), i);
+                        }
+
+                        return array;
+                    }
+
+                default:
+                    throw new InvalidDataException();
+            }
+        }
+
+        private static Array ReadArray(BinaryReader reader, Type storedType, Type outType, int length)
+        {
+            if (length == ushort.MaxValue) return null;
+
+            int lengthBytes = length * Marshal.SizeOf(storedType);
+            Array array = Array.CreateInstance(storedType, length);
+            byte[] bytes = reader.ReadBytes(lengthBytes);
+            Buffer.BlockCopy(bytes, 0, array, 0, lengthBytes);
+
+            return storedType == outType ? array : CastArray(array, outType);
+        }
+
+        private static Array CastArray(Array inArray, Type outType)
+        {
+            Array outArray = Array.CreateInstance(outType, inArray.Length);
+
+            for (int i = 0; i < inArray.Length; i++)
+            {
+                object inValue = inArray.GetValue(i);
+                object outValue = Convert.ChangeType(inValue, outType);
+                outArray.SetValue(outValue, i);
+            }
+            return outArray;
         }
 
         private static byte[] TryDecompress(byte[] data)
@@ -84,29 +150,19 @@ namespace VGAudio.Utilities
             return inflatedBytes;
         }
 
-        private static Array UnpackInternal(Type type, int elementSize, byte[] data, int dataIndex, int depth, params int[] dimensions)
+        private static Array UnpackInternal(Type outType, Type storedType, BinaryReader reader, int depth, int[] dimensions)
         {
             if (depth >= dimensions.Length) return null;
-            Array array = Array.CreateInstance(type, dimensions[depth]);
-
-            Type elementType = type.GetElementType();
-            if (elementType == null)
+            if (depth == dimensions.Length - 1)
             {
-                int elementCount = dimensions[depth];
-                int byteCount = elementCount * elementSize;
-                Buffer.BlockCopy(data, dataIndex, array, 0, byteCount);
-                return array;
+                return ReadArray(reader, storedType, outType, dimensions[depth]);
             }
 
-            int length = elementSize;
-            for (int i = depth + 1; i < dimensions.Length; i++)
-            {
-                length *= dimensions[i];
-            }
+            Array array = Array.CreateInstance(outType, dimensions[depth]);
 
             for (int i = 0; i < dimensions[depth]; i++)
             {
-                array.SetValue(UnpackInternal(elementType, elementSize, data, dataIndex + i * length, depth + 1, dimensions), i);
+                array.SetValue(UnpackInternal(outType.GetElementType(), storedType, reader, depth + 1, dimensions), i);
             }
 
             return array;
