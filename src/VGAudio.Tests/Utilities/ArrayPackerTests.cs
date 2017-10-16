@@ -41,14 +41,14 @@ namespace VGAudio.Tests.Utilities
 
         public static readonly object[][] CriHcaArrays =
         {
-            new object[] { CriHcaTablesPrebuilt.QuantizeSpectrumBits, null, null},
-            new object[] { CriHcaTablesPrebuilt.QuantizeSpectrumValue, null, null},
-            new object[] { CriHcaTablesPrebuilt.QuantizedSpectrumBits, null, null},
-            new object[] { CriHcaTablesPrebuilt.QuantizedSpectrumMaxBits, null, null},
-            new object[] { CriHcaTablesPrebuilt.QuantizedSpectrumValue, null, null},
-            new object[] { CriHcaTablesPrebuilt.ScaleToResolutionCurve, null, null},
-            new object[] { CriHcaTablesPrebuilt.AthCurve, null, null},
-            new object[] { CriHcaTablesPrebuilt.MdctWindowF, CriHcaTablesPrebuilt.MdctWindow, typeof(double) }
+            new object[] { UnpackedTables.QuantizeSpectrumBits, null, null},
+            new object[] { UnpackedTables.QuantizeSpectrumValue, null, null},
+            new object[] { UnpackedTables.QuantizedSpectrumBits, null, null},
+            new object[] { UnpackedTables.QuantizedSpectrumMaxBits, null, null},
+            new object[] { UnpackedTables.QuantizedSpectrumValue, null, null},
+            new object[] { UnpackedTables.ScaleToResolutionCurve, null, null},
+            new object[] { UnpackedTables.AthCurve, null, null},
+            new object[] { UnpackedTables.MdctWindowF, UnpackedTables.MdctWindow, typeof(double) }
         };
 
         public static readonly object[][] AllArraySets =
