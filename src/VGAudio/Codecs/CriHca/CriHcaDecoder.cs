@@ -191,7 +191,7 @@ namespace VGAudio.Codecs.CriHca
         {
             for (int i = 0; i < scaleCount; i++)
             {
-                gain[i] = DequantizerScalingTable[scale[i]] * DequantizerNormalizeTable[resolution[i]];
+                gain[i] = DequantizerScalingTable[scale[i]] * DequantizerRangeTable[resolution[i]];
             }
         }
 

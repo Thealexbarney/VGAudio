@@ -18,9 +18,6 @@ namespace VGAudio.Codecs.CriHca
         private int EvaluationBoundary { get; set; }
         private Crc16 Crc { get; } = new Crc16(0x8005);
 
-        private const int MinResolution = 1;
-        private const int MaxResolution = 15;
-
         public static CriHcaEncoder InitializeNew(CriHcaParameters config)
         {
             var encoder = new CriHcaEncoder();
@@ -195,7 +192,7 @@ namespace VGAudio.Codecs.CriHca
                     {
                         double value = scaled[sf] + 1;
                         channel.QuantizedSpectra[sf][i] = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
-                                                          CriHcaTables.ResolutionLevelsTable[resolution] / 2;
+                                                          CriHcaTables.ResolutionMaxValues[resolution];
                     }
                 }
             }
@@ -303,7 +300,7 @@ namespace VGAudio.Codecs.CriHca
                     {
                         double value = scaledSpectra + 1;
                         int quantizedSpectra = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
-                                               CriHcaTables.ResolutionLevelsTable[resolution] / 2;
+                                               CriHcaTables.ResolutionMaxValues[resolution];
                         length += CalculateBitsUsedBySpectra(quantizedSpectra, resolution);
                     }
                 }

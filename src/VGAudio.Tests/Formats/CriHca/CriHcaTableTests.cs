@@ -12,9 +12,21 @@ namespace VGAudio.Tests.Formats.CriHca
         }
 
         [Fact]
-        public void GeneratedDequantizerNormalizeTableMatchesOriginal()
+        public void GeneratedDequantizerRangeTableMatchesOriginal()
         {
-            Assert.Equal(CriHcaTables.DequantizerNormalizeTable, GeneratedTables.DequantizerNormalizeTable);
+            Assert.Equal(CriHcaTables.DequantizerRangeTable, GeneratedTables.DequantizerRangeTable);
+        }
+
+        [Fact]
+        public void GeneratedQuantizerScalingTableMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.QuantizerScalingTable, GeneratedTables.QuantizerScalingTable);
+        }
+
+        [Fact]
+        public void GeneratedQuantizerRangeTableMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.QuantizerRangeTable, GeneratedTables.QuantizerRangeTable);
         }
 
         [Fact]
@@ -32,7 +44,7 @@ namespace VGAudio.Tests.Formats.CriHca
         [Fact]
         public void GeneratedResolutionLevelsTableMatchesOriginal()
         {
-            Assert.Equal(CriHcaTables.ResolutionLevelsTable, GeneratedTables.ResolutionLevels);
+            Assert.Equal(CriHcaTables.ResolutionMaxValues, GeneratedTables.ResolutionMaxValue);
         }
 
         [Fact]

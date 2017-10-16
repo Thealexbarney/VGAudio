@@ -19,10 +19,10 @@ namespace VGAudio.Codecs.CriHca
         }
 
         public static float[] DequantizerScalingTable { get; } = Arrays.Generate(64, DequantizerScalingFunction);
-        public static float[] DequantizerNormalizeTable { get; } = Arrays.Generate(16, DequantizerNormalizeFunction);
+        public static float[] DequantizerRangeTable { get; } = Arrays.Generate(16, DequantizerRangeFunction);
         public static float[] QuantizerScalingTable { get; } = Arrays.Generate(64, i => 1 / DequantizerScalingFunction(i));
         public static float[] QuantizerRangeTable { get; } = Arrays.Generate(16, QuantizerRangeFunction);
-        public static int[] ResolutionLevelsTable { get; } = Arrays.Generate(16, ResolutionLevelsFunction);
+        public static int[] ResolutionMaxValues { get; } = Arrays.Generate(16, ResolutionMaxValueFunction);
         public static float[] IntensityRatioTable { get; } = Arrays.Generate(16, IntensityRatioFunction);
         public static float[] ScaleConversionTable { get; } = Arrays.Generate(128, ScaleConversionTableFunction);
 
@@ -47,22 +47,15 @@ namespace VGAudio.Codecs.CriHca
         public static byte[] AthCurve { get; }
 
         private static float DequantizerScalingFunction(int x) => (float)(Math.Sqrt(128) * Math.Pow(Math.Pow(2, 53f / 128), x - 63));
+        private static float DequantizerRangeFunction(int x) => x == 0 ? 0 : 1 / QuantizerRangeFunction(x);
+        private static float QuantizerRangeFunction(int x) => ResolutionMaxValueFunction(x) + 0.5f;
         private static float ScaleConversionTableFunction(int x) => x > 1 && x < 127 ? (float)Math.Pow(Math.Pow(2, 53f / 128), x - 64) : 0;
         private static float IntensityRatioFunction(int x) => x <= 14 ? (14 - x) / 7f : 0;
 
-        private static float DequantizerNormalizeFunction(int x)
+        private static int ResolutionMaxValueFunction(int x)
         {
-            if (x == 0) return 0;
-            if (x < 8) return 2f / (2 * x + 1);
-            return 2f / ((1 << (x - 3)) - 1);
-        }
-
-        private static float QuantizerRangeFunction(int x) => ResolutionLevelsFunction(x) / 2f;
-
-        private static int ResolutionLevelsFunction(int x)
-        {
-            if (x < 8) return 2 * x + 1;
-            return (1 << (x - 3)) - 1;
+            if (x < 8) return x;
+            return (1 << (x - 4)) - 1;
         }
 
         private static readonly byte[] PackedTables =
