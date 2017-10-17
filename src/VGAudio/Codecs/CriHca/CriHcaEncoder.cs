@@ -1,5 +1,6 @@
 ﻿using System;
 using VGAudio.Utilities;
+using static VGAudio.Codecs.CriHca.CriHcaConstants;
 using static VGAudio.Codecs.CriHca.CriHcaPacking;
 
 namespace VGAudio.Codecs.CriHca
@@ -15,8 +16,7 @@ namespace VGAudio.Codecs.CriHca
         public short[][] PcmBuffer { get; private set; }
         public byte[] HcaBuffer { get; private set; }
         private CriHcaChannel[] Channels { get; set; }
-        private int AcceptableNoiseLevel { get; set; }
-        private int EvaluationBoundary { get; set; }
+        private CriHcaFrame Frame { get; set; }
         private Crc16 Crc { get; } = new Crc16(0x8005);
 
         public static CriHcaEncoder InitializeNew(CriHcaParameters config)
@@ -36,32 +36,35 @@ namespace VGAudio.Codecs.CriHca
                 SampleRate = config.SampleRate,
                 MinResolution = 1,
                 MaxResolution = 15,
-                InsertedSamples = 128
+                InsertedSamples = SamplesPerSubFrame
             };
+            Hca.FrameCount = ((Hca.SampleCount + Hca.InsertedSamples + 1023) / 1024 << 10) / 1024;
 
             CutoffFrequency = config.SampleRate / 2;
             Quality = config.Quality;
 
             Bitrate = CalculateBitrate(Hca, Quality, config.LimitBitrate);
-            CalculateBandCounts(Hca, Bitrate);
+            CalculateBandCounts(Hca, Bitrate, CutoffFrequency);
 
-            Hca.FrameCount = ((Hca.SampleCount + Hca.InsertedSamples + 1023) / 1024 << 10) / 1024;
+            Frame = new CriHcaFrame(Hca);
+            Channels = Frame.Channels;
 
             PcmBuffer = Helpers.CreateJaggedArray<short[][]>(Hca.ChannelCount, 1024);
             HcaBuffer = new byte[Hca.FrameSize];
+        }
 
-            var channelTypes = CriHcaFrame.GetChannelTypes(Hca);
-            Channels = new CriHcaChannel[Hca.ChannelCount];
-            for (int i = 0; i < Channels.Length; i++)
-            {
-                Channels[i] = new CriHcaChannel
-                {
-                    Type = channelTypes[i],
-                    CodedScaleFactorCount = channelTypes[i] == ChannelType.StereoPrimary
-                        ? Hca.BaseBandCount + Hca.StereoBandCount
-                        : Hca.BaseBandCount
-                };
-            }
+        public void EncodeFrame()
+        {
+            PcmToFloat(PcmBuffer, Channels);
+            RunMdct(Channels);
+            CalculateScaleFactors(Channels);
+            ScaleSpectra(Channels);
+            CalculateFrameHeaderLength(Frame);
+            CalculateNoiseLevel(Frame);
+            CalculateEvaluationBoundary(Frame);
+            CalculateFrameResolutions(Frame);
+            QuantizeSpectra(Channels);
+            PackFrame(Frame, Crc, HcaBuffer);
         }
 
         private int CalculateBitrate(HcaInfo hca, CriHcaQuality quality, bool limitBitrate)
@@ -89,7 +92,7 @@ namespace VGAudio.Codecs.CriHca
                     compressionRatio = hca.ChannelCount == 1 ? 12 : 16;
                     break;
             }
-            
+
             int bitrate = pcmBitrate / compressionRatio;
 
             if (limitBitrate)
@@ -102,12 +105,11 @@ namespace VGAudio.Codecs.CriHca
             return Helpers.Clamp(bitrate, minBitrate, maxBitrate);
         }
 
-        private void CalculateBandCounts(HcaInfo hca, int bitrate)
+        private static void CalculateBandCounts(HcaInfo hca, int bitrate, int cutoffFreq)
         {
             hca.FrameSize = bitrate * 1024 / hca.SampleRate / 8;
-            int cutoffFreq = CutoffFrequency;
             int numGroups = 0;
-            int pcmBitrate = Hca.SampleRate * Hca.ChannelCount * 16;
+            int pcmBitrate = hca.SampleRate * hca.ChannelCount * 16;
             int hfrRatio; // HFR is used at bitrates below (pcmBitrate / hfrRatio)
             int cutoffRatio; // The cutoff frequency is lowered at bitrates below (pcmBitrate / cutoffRatio)
 
@@ -147,21 +149,7 @@ namespace VGAudio.Codecs.CriHca
             hca.BandsPerHfrGroup = bandsPerGroup;
         }
 
-        public void EncodeFrame()
-        {
-            PcmToFloat(PcmBuffer, Channels);
-            RunMdct(Channels);
-            CalculateScaleFactors(Channels, Hca);
-            ScaleSpectra(Channels, Hca);
-            CalculateScaleFactorLength(Channels, Hca);
-            AcceptableNoiseLevel = CalculateNoiseLevel(Channels, Hca);
-            EvaluationBoundary = CalculateEvaluationBoundary(Channels, Hca, AcceptableNoiseLevel);
-            CalculateFrameResolutions(Channels, AcceptableNoiseLevel, EvaluationBoundary);
-            QuantizeSpectra(Channels);
-            PackFrame(Channels, Hca, Crc, AcceptableNoiseLevel, EvaluationBoundary, HcaBuffer);
-        }
-
-        private void QuantizeSpectra(CriHcaChannel[] channels)
+        private static void QuantizeSpectra(CriHcaChannel[] channels)
         {
             foreach (CriHcaChannel channel in channels)
             {
@@ -179,40 +167,44 @@ namespace VGAudio.Codecs.CriHca
             }
         }
 
-        private static void CalculateFrameResolutions(CriHcaChannel[] channels, int noiseLevel, int evalBoundary)
+        private static void CalculateFrameResolutions(CriHcaFrame frame)
         {
-            foreach (CriHcaChannel channel in channels)
+            foreach (CriHcaChannel channel in frame.Channels)
             {
-                for (int i = 0; i < evalBoundary; i++)
+                for (int i = 0; i < frame.EvaluationBoundary; i++)
                 {
-                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], noiseLevel - 1);
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], frame.AcceptableNoiseLevel - 1);
                 }
-                for (int i = evalBoundary; i < channel.CodedScaleFactorCount; i++)
+                for (int i = frame.EvaluationBoundary; i < channel.CodedScaleFactorCount; i++)
                 {
-                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], noiseLevel);
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], frame.AcceptableNoiseLevel);
                 }
                 Array.Clear(channel.Resolution, channel.CodedScaleFactorCount, channel.Resolution.Length - channel.CodedScaleFactorCount);
             }
         }
 
-        private static int CalculateNoiseLevel(CriHcaChannel[] channels, HcaInfo hca)
+        private static void CalculateNoiseLevel(CriHcaFrame frame)
         {
-            int availableBits = hca.FrameSize * 8;
+            int availableBits = frame.Hca.FrameSize * 8;
             int maxLevel = 255;
             int minLevel = 0;
-            int level = BinarySearchLevel(channels, availableBits, minLevel, maxLevel);
-            return level >= 0 ? level : throw new NotImplementedException();
+            int level = BinarySearchLevel(frame.Channels, availableBits, minLevel, maxLevel);
+            frame.AcceptableNoiseLevel = level >= 0 ? level : throw new NotImplementedException();
         }
 
-        private static int CalculateEvaluationBoundary(CriHcaChannel[] channels, HcaInfo hca, int noiseLevel)
+        private static void CalculateEvaluationBoundary(CriHcaFrame frame)
         {
-            if (noiseLevel == 0) return 0;
+            if (frame.AcceptableNoiseLevel == 0)
+            {
+                frame.EvaluationBoundary = 0;
+                return;
+            }
 
-            int availableBits = hca.FrameSize * 8;
+            int availableBits = frame.Hca.FrameSize * 8;
             int maxLevel = 127;
             int minLevel = 0;
-            int level = BinarySearchBoundary(channels, availableBits, noiseLevel, minLevel, maxLevel);
-            return level >= 0 ? level : throw new NotImplementedException();
+            int level = BinarySearchBoundary(frame.Channels, availableBits, frame.AcceptableNoiseLevel, minLevel, maxLevel);
+            frame.EvaluationBoundary = level >= 0 ? level : throw new NotImplementedException();
         }
 
         private static int BinarySearchLevel(CriHcaChannel[] channels, int availableBits, int low, int high)
@@ -301,13 +293,13 @@ namespace VGAudio.Codecs.CriHca
             return CriHcaTables.QuantizeSpectrumBits[resolution][quantizedSpectra + 8];
         }
 
-        private static void CalculateScaleFactorLength(CriHcaChannel[] channels, HcaInfo hca)
+        private static void CalculateFrameHeaderLength(CriHcaFrame frame)
         {
-            foreach (CriHcaChannel channel in channels)
+            foreach (CriHcaChannel channel in frame.Channels)
             {
                 CalculateOptimalDeltaLength(channel);
                 if (channel.Type == ChannelType.StereoSecondary) channel.ScaleFactorBits += 32;
-                else if (hca.HfrGroupCount > 0) channel.ScaleFactorBits += 6 * hca.HfrGroupCount;
+                else if (frame.Hca.HfrGroupCount > 0) channel.ScaleFactorBits += 6 * frame.Hca.HfrGroupCount;
             }
         }
 
@@ -353,13 +345,11 @@ namespace VGAudio.Codecs.CriHca
             channel.ScaleFactorDeltaBits = minDeltaBits;
         }
 
-        private static void ScaleSpectra(CriHcaChannel[] channels, HcaInfo hca)
+        private static void ScaleSpectra(CriHcaChannel[] channels)
         {
             foreach (CriHcaChannel channel in channels)
             {
-                int bands = channel.Type == ChannelType.StereoSecondary ? hca.BaseBandCount : hca.TotalBandCount;
-
-                for (int b = 0; b < bands; b++)
+                for (int b = 0; b < channel.CodedScaleFactorCount; b++)
                 {
                     double[] scaledSpectra = channel.ScaledSpectra[b];
                     int scaleFactor = channel.ScaleFactors[b];
@@ -373,29 +363,27 @@ namespace VGAudio.Codecs.CriHca
             }
         }
 
-        private static void CalculateScaleFactors(CriHcaChannel[] channels, HcaInfo hca)
+        private static void CalculateScaleFactors(CriHcaChannel[] channels)
         {
             foreach (CriHcaChannel channel in channels)
             {
-                var bands = channel.Type == ChannelType.StereoSecondary ? hca.BaseBandCount : hca.TotalBandCount;
-
-                for (int b = 0; b < bands; b++)
+                for (int b = 0; b < channel.CodedScaleFactorCount; b++)
                 {
                     double max = 0;
-                    for (int sf = 0; sf < 8; sf++)
+                    for (int sf = 0; sf < SubframesPerFrame; sf++)
                     {
                         var coeff = Math.Abs(channel.Spectra[sf][b]);
                         max = Math.Max(coeff, max);
                     }
                     channel.ScaleFactors[b] = FindScaleFactor(max);
                 }
-                Array.Clear(channel.ScaleFactors, bands, channel.ScaleFactors.Length - bands);
+                Array.Clear(channel.ScaleFactors, channel.CodedScaleFactorCount, channel.ScaleFactors.Length - channel.CodedScaleFactorCount);
             }
         }
 
         private static int FindScaleFactor(double value)
         {
-            var sf = CriHcaTables.DequantizerScalingTable;
+            float[] sf = CriHcaTables.DequantizerScalingTable;
             for (int i = 0; i < sf.Length; i++)
             {
                 if (sf[i] > value) return i;
@@ -403,25 +391,25 @@ namespace VGAudio.Codecs.CriHca
             return 63;
         }
 
-        private void RunMdct(CriHcaChannel[] channels)
+        private static void RunMdct(CriHcaChannel[] channels)
         {
-            for (int c = 0; c < channels.Length; c++)
+            foreach (CriHcaChannel channel in channels)
             {
-                for (int sf = 0; sf < 8; sf++)
+                for (int sf = 0; sf < SubframesPerFrame; sf++)
                 {
-                    channels[c].Mdct.RunMdct(channels[c].PcmFloat[sf], channels[c].Spectra[sf]);
+                    channel.Mdct.RunMdct(channel.PcmFloat[sf], channel.Spectra[sf]);
                 }
             }
         }
 
-        private void PcmToFloat(short[][] pcm, CriHcaChannel[] channels)
+        private static void PcmToFloat(short[][] pcm, CriHcaChannel[] channels)
         {
             for (int c = 0; c < channels.Length; c++)
             {
                 int pcmIdx = 0;
-                for (int sf = 0; sf < 8; sf++)
+                for (int sf = 0; sf < SubframesPerFrame; sf++)
                 {
-                    for (int i = 0; i < 128; i++)
+                    for (int i = 0; i < SamplesPerSubFrame; i++)
                     {
                         channels[c].PcmFloat[sf][i] = pcm[c][pcmIdx++] * (1f / 32768f);
                     }

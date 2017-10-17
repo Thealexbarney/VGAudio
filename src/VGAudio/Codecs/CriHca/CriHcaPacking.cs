@@ -1,13 +1,12 @@
 ﻿using System;
 using System.IO;
 using VGAudio.Utilities;
+using static VGAudio.Codecs.CriHca.CriHcaConstants;
 
 namespace VGAudio.Codecs.CriHca
 {
     internal static class CriHcaPacking
     {
-        private const int SubframesPerFrame = 8;
-
         public static bool UnpackFrame(CriHcaFrame frame, BitReader reader)
         {
             if (!UnpackFrameHeader(frame, reader)) return false;
@@ -20,47 +19,47 @@ namespace VGAudio.Codecs.CriHca
                    FrameEmpty(reader.Buffer, 2, reader.Buffer.Length - 4);
         }
 
-        public static void PackFrame(CriHcaChannel[] channels, HcaInfo hca, Crc16 crc, int noiseLevel, int evalBoundary, byte[] hcaBuffer)
+        public static void PackFrame(CriHcaFrame frame, Crc16 crc, byte[] outBuffer)
         {
-            var writer = new BitWriter(hcaBuffer);
+            var writer = new BitWriter(outBuffer);
             writer.Write(0xffff, 16);
-            writer.Write(noiseLevel, 9);
-            writer.Write(evalBoundary, 7);
+            writer.Write(frame.AcceptableNoiseLevel, 9);
+            writer.Write(frame.EvaluationBoundary, 7);
 
-            foreach (CriHcaChannel channel in channels)
+            foreach (CriHcaChannel channel in frame.Channels)
             {
                 WriteScaleFactors(writer, channel);
                 if (channel.Type == ChannelType.StereoSecondary)
                 {
-                    for (int i = 0; i < 8; i++)
+                    for (int i = 0; i < SubframesPerFrame; i++)
                     {
                         writer.Write(channel.Intensity[i], 4);
                     }
                 }
-                else if (hca.HfrGroupCount > 0)
+                else if (frame.Hca.HfrGroupCount > 0)
                 {
-                    for (int i = 0; i < hca.HfrGroupCount; i++)
+                    for (int i = 0; i < frame.Hca.HfrGroupCount; i++)
                     {
                         writer.Write(channel.HfrScales[i], 6);
                     }
                 }
             }
 
-            for (int sf = 0; sf < 8; sf++)
+            for (int sf = 0; sf < SubframesPerFrame; sf++)
             {
-                foreach (CriHcaChannel channel in channels)
+                foreach (CriHcaChannel channel in frame.Channels)
                 {
                     WriteSpectra(writer, channel, sf);
                 }
             }
 
             writer.AlignPosition(8);
-            for (int i = writer.Position / 8; i < hca.FrameSize - 2; i++)
+            for (int i = writer.Position / 8; i < frame.Hca.FrameSize - 2; i++)
             {
                 writer.Buffer[i] = 0;
             }
 
-            WriteChecksum(writer, crc, hcaBuffer);
+            WriteChecksum(writer, crc, outBuffer);
         }
 
         public static int CalculateResolution(int scaleFactor, int noiseLevel)
@@ -83,30 +82,30 @@ namespace VGAudio.Codecs.CriHca
             }
 
             byte[] athCurve = frame.AthCurve;
-            int acceptableNoiseLevel = reader.ReadInt(9);
-            int evaluationBoundary = reader.ReadInt(7);
+            frame.AcceptableNoiseLevel = reader.ReadInt(9);
+            frame.EvaluationBoundary = reader.ReadInt(7);
 
-            for (int i = 0; i < frame.ChannelCount; i++)
+            foreach (CriHcaChannel channel in frame.Channels)
             {
-                if (!ReadScaleFactors(reader, frame.Scale[i], frame.ScaleLength[i])) return false;
+                if (!ReadScaleFactors(reader, channel.ScaleFactors, channel.CodedScaleFactorCount)) return false;
 
-                for (int j = 0; j < evaluationBoundary; j++)
+                for (int i = 0; i < frame.EvaluationBoundary; i++)
                 {
-                    frame.Resolution[i][j] = CalculateResolution(frame.Scale[i][j], athCurve[j] + acceptableNoiseLevel - 1);
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], athCurve[i] + frame.AcceptableNoiseLevel - 1);
                 }
 
-                for (int j = evaluationBoundary; j < frame.ScaleLength[i]; j++)
+                for (int i = frame.EvaluationBoundary; i < channel.CodedScaleFactorCount; i++)
                 {
-                    frame.Resolution[i][j] = CalculateResolution(frame.Scale[i][j], athCurve[j] + acceptableNoiseLevel);
+                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], athCurve[i] + frame.AcceptableNoiseLevel);
                 }
 
-                if (frame.ChannelType[i] == ChannelType.StereoSecondary)
+                if (channel.Type == ChannelType.StereoSecondary)
                 {
-                    ReadIntensity(reader, frame.Intensity[i]);
+                    ReadIntensity(reader, channel.Intensity);
                 }
                 else if (frame.Hca.HfrGroupCount > 0)
                 {
-                    ReadHfrScaleFactors(reader, frame.Hca.HfrGroupCount, frame.HfrScale[i]);
+                    ReadHfrScaleFactors(reader, frame.Hca.HfrGroupCount, channel.HfrScales);
                 }
             }
             return true;
@@ -153,17 +152,17 @@ namespace VGAudio.Codecs.CriHca
         {
             for (int sf = 0; sf < SubframesPerFrame; sf++)
             {
-                for (int c = 0; c < frame.ChannelCount; c++)
+                foreach (CriHcaChannel channel in frame.Channels)
                 {
-                    for (int s = 0; s < frame.ScaleLength[c]; s++)
+                    for (int s = 0; s < channel.CodedScaleFactorCount; s++)
                     {
-                        int resolution = frame.Resolution[c][s];
+                        int resolution = channel.Resolution[s];
                         int bits = CriHcaTables.QuantizedSpectrumMaxBits[resolution];
                         int code = reader.PeekInt(bits);
                         if (resolution < 8)
                         {
                             bits = CriHcaTables.QuantizedSpectrumBits[resolution][code];
-                            frame.QuantizedSpectra[sf][c][s] = CriHcaTables.QuantizedSpectrumValue[resolution][code];
+                            channel.QuantizedSpectra[sf][s] = CriHcaTables.QuantizedSpectrumValue[resolution][code];
                         }
                         else
                         {
@@ -173,12 +172,12 @@ namespace VGAudio.Codecs.CriHca
                             {
                                 bits--;
                             }
-                            frame.QuantizedSpectra[sf][c][s] = quantizedCoefficient;
+                            channel.QuantizedSpectra[sf][s] = quantizedCoefficient;
                         }
                         reader.Position += bits;
                     }
 
-                    Array.Clear(frame.Spectra[sf][c], frame.ScaleLength[c], 0x80 - frame.ScaleLength[c]);
+                    Array.Clear(channel.Spectra[sf], channel.CodedScaleFactorCount, 0x80 - channel.CodedScaleFactorCount);
                 }
             }
         }
