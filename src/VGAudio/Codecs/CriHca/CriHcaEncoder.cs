@@ -1,5 +1,6 @@
 ﻿using System;
 using VGAudio.Utilities;
+using static VGAudio.Codecs.CriHca.CriHcaPacking;
 
 namespace VGAudio.Codecs.CriHca
 {
@@ -157,116 +158,7 @@ namespace VGAudio.Codecs.CriHca
             EvaluationBoundary = CalculateEvaluationBoundary(Channels, Hca, AcceptableNoiseLevel);
             CalculateFrameResolutions(Channels, AcceptableNoiseLevel, EvaluationBoundary);
             QuantizeSpectra(Channels);
-            PackFrame(Channels, Hca);
-        }
-
-        private void PackFrame(CriHcaChannel[] channels, HcaInfo hca)
-        {
-            var writer = new BitWriter(HcaBuffer);
-            writer.Write(0xffff, 16);
-            writer.Write(AcceptableNoiseLevel, 9);
-            writer.Write(EvaluationBoundary, 7);
-
-            foreach (CriHcaChannel channel in channels)
-            {
-                WriteScaleFactors(writer, channel);
-                if (channel.Type == ChannelType.StereoSecondary)
-                {
-                    for (int i = 0; i < 8; i++)
-                    {
-                        writer.Write(channel.Intensity[i], 4);
-                    }
-                }
-                else if (hca.HfrGroupCount > 0)
-                {
-                    for (int i = 0; i < hca.HfrGroupCount; i++)
-                    {
-                        writer.Write(channel.HfrScales[i], 6);
-                    }
-                }
-            }
-
-            for (int sf = 0; sf < 8; sf++)
-            {
-                foreach (CriHcaChannel channel in channels)
-                {
-                    WriteSpectra(writer, channel, sf);
-                }
-            }
-
-            writer.AlignPosition(8);
-            for (int i = writer.Position / 8; i < Hca.FrameSize - 2; i++)
-            {
-                writer.Buffer[i] = 0;
-            }
-
-            WriteChecksum(writer);
-        }
-
-        private void WriteChecksum(BitWriter writer)
-        {
-            writer.Position = writer.LengthBits - 16;
-            var crc16 = Crc.Compute(HcaBuffer, HcaBuffer.Length - 2);
-            writer.Write(crc16, 16);
-        }
-
-        private void WriteSpectra(BitWriter writer, CriHcaChannel channel, int subFrame)
-        {
-            for (int i = 0; i < channel.CodedScaleFactorCount; i++)
-            {
-                int resolution = channel.Resolution[i];
-                int quantizedSpectra = channel.QuantizedSpectra[subFrame][i];
-                if (resolution == 0) continue;
-                if (resolution < 8)
-                {
-                    int bits = CriHcaTables.QuantizeSpectrumBits[resolution][quantizedSpectra + 8];
-                    writer.Write(CriHcaTables.QuantizeSpectrumValue[resolution][quantizedSpectra + 8], bits);
-                }
-                else if (resolution < 16)
-                {
-                    int bits = CriHcaTables.QuantizedSpectrumMaxBits[resolution] - 1;
-                    writer.Write(Math.Abs(quantizedSpectra), bits);
-                    if (quantizedSpectra != 0)
-                    {
-                        writer.Write(quantizedSpectra > 0 ? 0 : 1, 1);
-                    }
-                }
-            }
-        }
-
-        private void WriteScaleFactors(BitWriter writer, CriHcaChannel channel)
-        {
-            int deltaBits = channel.ScaleFactorDeltaBits;
-            var scales = channel.ScaleFactors;
-            writer.Write(deltaBits, 3);
-            if (deltaBits == 0) return;
-
-            if (deltaBits == 6)
-            {
-                for (int i = 0; i < channel.CodedScaleFactorCount; i++)
-                {
-                    writer.Write(scales[i], 6);
-                }
-                return;
-            }
-
-            writer.Write(scales[0], 6);
-            int maxDelta = (1 << (deltaBits - 1)) - 1;
-            int escapeValue = (1 << deltaBits) - 1;
-
-            for (int i = 1; i < channel.CodedScaleFactorCount; i++)
-            {
-                int delta = scales[i] - scales[i - 1];
-                if (Math.Abs(delta) > maxDelta)
-                {
-                    writer.Write(escapeValue, deltaBits);
-                    writer.Write(scales[i], 6);
-                }
-                else
-                {
-                    writer.Write(maxDelta + delta, deltaBits);
-                }
-            }
+            PackFrame(Channels, Hca, Crc, AcceptableNoiseLevel, EvaluationBoundary, HcaBuffer);
         }
 
         private void QuantizeSpectra(CriHcaChannel[] channels)
@@ -314,6 +206,8 @@ namespace VGAudio.Codecs.CriHca
 
         private static int CalculateEvaluationBoundary(CriHcaChannel[] channels, HcaInfo hca, int noiseLevel)
         {
+            if (noiseLevel == 0) return 0;
+
             int availableBits = hca.FrameSize * 8;
             int maxLevel = 127;
             int minLevel = 0;
@@ -407,17 +301,6 @@ namespace VGAudio.Codecs.CriHca
             return CriHcaTables.QuantizeSpectrumBits[resolution][quantizedSpectra + 8];
         }
 
-        private static int CalculateResolution(int scaleFactor, int noiseLevel)
-        {
-            if (scaleFactor == 0)
-            {
-                return 0;
-            }
-            int curvePosition = noiseLevel - 5 * scaleFactor / 2 + 2;
-            curvePosition = Helpers.Clamp(curvePosition, 0, 58);
-            return CriHcaTables.ScaleToResolutionCurve[curvePosition];
-        }
-
         private static void CalculateScaleFactorLength(CriHcaChannel[] channels, HcaInfo hca)
         {
             foreach (CriHcaChannel channel in channels)
@@ -430,10 +313,10 @@ namespace VGAudio.Codecs.CriHca
 
         private static void CalculateOptimalDeltaLength(CriHcaChannel channel)
         {
-            var emptyChannel = true;
+            bool emptyChannel = true;
             for (int i = 0; i < channel.CodedScaleFactorCount; i++)
             {
-                if (i != 0)
+                if (channel.ScaleFactors[i] != 0)
                 {
                     emptyChannel = false;
                     break;
@@ -444,6 +327,7 @@ namespace VGAudio.Codecs.CriHca
             {
                 channel.ScaleFactorBits = 3;
                 channel.ScaleFactorDeltaBits = 0;
+                return;
             }
 
             int minDeltaBits = 6;

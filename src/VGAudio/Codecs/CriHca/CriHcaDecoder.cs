@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using VGAudio.Utilities;
+using static VGAudio.Codecs.CriHca.CriHcaPacking;
 using static VGAudio.Codecs.CriHca.CriHcaTables;
 
 namespace VGAudio.Codecs.CriHca
@@ -83,18 +83,7 @@ namespace VGAudio.Codecs.CriHca
             PcmFloatToShort(frame, pcmOut);
         }
 
-        public static bool UnpackFrame(CriHcaFrame frame, BitReader reader)
-        {
-            if (!UnpackFrameHeader(frame, reader)) return false;
-            ReadSpectralCoefficients(frame, reader);
-            // Todo: I've found 2 HCA files from Jojo's Bizarre Adventure - All Star Battle
-            // that don't use all the available bits in frames at the beginning of the file.
-            // Come up with a method of verifying if a frame unpacks successfully or not
-            // that accounts for frames like these.
-            return reader.Remaining >= 16 && reader.Remaining <= 40 ||
-                   FrameEmpty(reader.Buffer, 2, reader.Buffer.Length - 4);
-        }
-
+        
         private static void DequantizeFrame(CriHcaFrame frame)
         {
             for (int i = 0; i < frame.ChannelCount; i++)
@@ -120,128 +109,11 @@ namespace VGAudio.Codecs.CriHca
             ApplyIntensityStereo(frame);
         }
 
-        private static bool UnpackFrameHeader(CriHcaFrame frame, BitReader reader)
-        {
-            int syncWord = reader.ReadInt(16);
-            if (syncWord != 0xffff)
-            {
-                throw new InvalidDataException("Invalid frame header");
-            }
-
-            int acceptableNoiseLevel = reader.ReadInt(9);
-            // The sample at which the resolution moves up to the next value in the table
-            int evaluationBoundary = reader.ReadInt(7);
-            int r = acceptableNoiseLevel * 256 - evaluationBoundary;
-            for (int i = 0; i < frame.ChannelCount; i++)
-            {
-                if (!ReadScaleFactors(reader, frame.Scale[i], frame.ScaleLength[i])) return false;
-                CalculateResolution(frame.Scale[i], frame.Resolution[i], r, frame.ScaleLength[i], frame.AthCurve);
-
-                if (frame.ChannelType[i] == ChannelType.StereoSecondary)
-                {
-                    ReadIntensity(reader, frame.Intensity[i]);
-                }
-                else if (frame.Hca.HfrGroupCount > 0)
-                {
-                    ReadHfrScaleFactors(reader, frame.Hca.HfrGroupCount, frame.HfrScale[i]);
-                }
-            }
-            return true;
-        }
-
-        private static bool ReadScaleFactors(BitReader reader, int[] scale, int scaleCount)
-        {
-            int deltaBits = reader.ReadInt(3);
-            if (deltaBits == 0)
-            {
-                Array.Clear(scale, 0, scale.Length);
-                return true;
-            }
-
-            if (deltaBits >= 6)
-            {
-                for (int i = 0; i < scaleCount; i++)
-                {
-                    scale[i] = reader.ReadInt(6);
-                }
-                return true;
-            }
-
-            return DeltaDecode(reader, deltaBits, 6, scaleCount, scale);
-        }
-
-        private static void CalculateResolution(int[] scales, int[] resolutions, int r, int scaleCount, byte[] athCurve)
-        {
-            for (int i = 0; i < scaleCount; i++)
-            {
-                if (scales[i] == 0)
-                {
-                    resolutions[i] = 0;
-                }
-                else
-                {
-                    int a = athCurve[i] + ((r + i) / 256) - (5 * scales[i] / 2) + 2;
-                    a = Helpers.Clamp(a, 0, 58);
-                    resolutions[i] = ScaleToResolutionCurve[a];
-                }
-            }
-        }
-
         private static void CalculateGain(int[] scale, int[] resolution, float[] gain, int scaleCount)
         {
             for (int i = 0; i < scaleCount; i++)
             {
                 gain[i] = DequantizerScalingTable[scale[i]] * DequantizerRangeTable[resolution[i]];
-            }
-        }
-
-        private static void ReadIntensity(BitReader reader, int[] intensity)
-        {
-            for (int i = 0; i < SubframesPerFrame; i++)
-            {
-                intensity[i] = reader.ReadInt(4);
-            }
-        }
-
-        private static void ReadHfrScaleFactors(BitReader reader, int groupCount, int[] hfrScale)
-        {
-            for (int i = 0; i < groupCount; i++)
-            {
-                hfrScale[i] = reader.ReadInt(6);
-            }
-        }
-
-        private static void ReadSpectralCoefficients(CriHcaFrame frame, BitReader reader)
-        {
-            for (int sf = 0; sf < SubframesPerFrame; sf++)
-            {
-                for (int c = 0; c < frame.ChannelCount; c++)
-                {
-                    for (int s = 0; s < frame.ScaleLength[c]; s++)
-                    {
-                        int resolution = frame.Resolution[c][s];
-                        int bits = QuantizedSpectrumMaxBits[resolution];
-                        int code = reader.PeekInt(bits);
-                        if (resolution < 8)
-                        {
-                            bits = QuantizedSpectrumBits[resolution][code];
-                            frame.QuantizedSpectra[sf][c][s] = QuantizedSpectrumValue[resolution][code];
-                        }
-                        else
-                        {
-                            // Read the sign-magnitude value. The low bit is the sign
-                            int quantizedCoefficient = code / 2 * (1 - (code % 2 * 2));
-                            if (quantizedCoefficient == 0)
-                            {
-                                bits--;
-                            }
-                            frame.QuantizedSpectra[sf][c][s] = quantizedCoefficient;
-                        }
-                        reader.Position += bits;
-                    }
-
-                    Array.Clear(frame.Spectra[sf][c], frame.ScaleLength[c], 0x80 - frame.ScaleLength[c]);
-                }
             }
         }
 
@@ -295,33 +167,6 @@ namespace VGAudio.Codecs.CriHca
             }
         }
 
-        private static bool DeltaDecode(BitReader reader, int deltaBits, int dataBits, int count, int[] output)
-        {
-            output[0] = reader.ReadInt(dataBits);
-            int maxDelta = 1 << (deltaBits - 1);
-            int maxValue = (1 << dataBits) - 1;
-
-            for (int i = 1; i < count; i++)
-            {
-                int delta = reader.ReadOffsetBinary(deltaBits);
-
-                if (delta < maxDelta)
-                {
-                    int value = output[i - 1] + delta;
-                    if (value < 0 || value > maxValue)
-                    {
-                        return false;
-                    }
-                    output[i] = value;
-                }
-                else
-                {
-                    output[i] = reader.ReadInt(dataBits);
-                }
-            }
-            return true;
-        }
-
         private static void RunImdct(CriHcaFrame frame)
         {
             for (int sf = 0; sf < 8; sf++)
@@ -346,19 +191,6 @@ namespace VGAudio.Codecs.CriHca
                     }
                 }
             }
-        }
-
-        private static bool FrameEmpty(byte[] bytes, int start, int length)
-        {
-            int end = start + length;
-            for (int i = start; i < end; i++)
-            {
-                if (bytes[i] != 0)
-                {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 }
