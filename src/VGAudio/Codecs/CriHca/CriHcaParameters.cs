@@ -4,7 +4,8 @@
     {
         public CriHcaParameters() { }
         public CriHcaParameters(CodecParameters source) : base(source) { }
-        public int Quality { get; set; } = 0;
+        public CriHcaQuality Quality { get; set; } = CriHcaQuality.High;
+        public bool LimitBitrate { get; set; }
         public int ChannelCount { get; set; }
         public int SampleRate { get; set; }
     }

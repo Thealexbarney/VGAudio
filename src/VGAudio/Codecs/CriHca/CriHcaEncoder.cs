@@ -8,7 +8,7 @@ namespace VGAudio.Codecs.CriHca
         private CriHcaEncoder() { }
 
         public HcaInfo Hca { get; private set; }
-        public int Quality { get; private set; }
+        public CriHcaQuality Quality { get; private set; }
         public int Bitrate { get; private set; }
         public int CutoffFrequency { get; private set; }
         public short[][] PcmBuffer { get; private set; }
@@ -30,7 +30,7 @@ namespace VGAudio.Codecs.CriHca
             Hca = new HcaInfo
             {
                 ChannelCount = config.ChannelCount,
-                TrackCount = config.ChannelCount,
+                TrackCount = 1,
                 SampleCount = config.SampleCount,
                 SampleRate = config.SampleRate,
                 MinResolution = 1,
@@ -41,8 +41,7 @@ namespace VGAudio.Codecs.CriHca
             CutoffFrequency = config.SampleRate / 2;
             Quality = config.Quality;
 
-            int pcmBitrate = Hca.SampleRate * Hca.ChannelCount * 16;
-            Bitrate = pcmBitrate / 6;
+            Bitrate = CalculateBitrate(Hca, Quality, config.LimitBitrate);
             CalculateBandCounts(Hca, Bitrate);
 
             Hca.FrameCount = ((Hca.SampleCount + Hca.InsertedSamples + 1023) / 1024 << 10) / 1024;
@@ -57,18 +56,94 @@ namespace VGAudio.Codecs.CriHca
                 Channels[i] = new CriHcaChannel
                 {
                     Type = channelTypes[i],
-                    CodedScaleFactorCount = channelTypes[i] == ChannelType.StereoSecondary
+                    CodedScaleFactorCount = channelTypes[i] == ChannelType.StereoPrimary
                         ? Hca.BaseBandCount + Hca.StereoBandCount
                         : Hca.BaseBandCount
                 };
             }
         }
 
+        private int CalculateBitrate(HcaInfo hca, CriHcaQuality quality, bool limitBitrate)
+        {
+            int pcmBitrate = Hca.SampleRate * Hca.ChannelCount * 16;
+            int maxBitrate = pcmBitrate / 4;
+            int minBitrate = 0;
+
+            int compressionRatio = 6;
+            switch (quality)
+            {
+                case CriHcaQuality.Highest:
+                    compressionRatio = 4;
+                    break;
+                case CriHcaQuality.High:
+                    compressionRatio = 6;
+                    break;
+                case CriHcaQuality.Middle:
+                    compressionRatio = 8;
+                    break;
+                case CriHcaQuality.Low:
+                    compressionRatio = hca.ChannelCount == 1 ? 10 : 12;
+                    break;
+                case CriHcaQuality.Lowest:
+                    compressionRatio = hca.ChannelCount == 1 ? 12 : 16;
+                    break;
+            }
+            
+            int bitrate = pcmBitrate / compressionRatio;
+
+            if (limitBitrate)
+            {
+                minBitrate = Math.Min(
+                    hca.ChannelCount == 1 ? 42666 : 32000 * hca.ChannelCount,
+                    pcmBitrate / 6);
+            }
+
+            return Helpers.Clamp(bitrate, minBitrate, maxBitrate);
+        }
+
         private void CalculateBandCounts(HcaInfo hca, int bitrate)
         {
             hca.FrameSize = bitrate * 1024 / hca.SampleRate / 8;
-            hca.TotalBandCount = 128;
-            hca.BaseBandCount = 128;
+            int cutoffFreq = CutoffFrequency;
+            int numGroups = 0;
+            int pcmBitrate = Hca.SampleRate * Hca.ChannelCount * 16;
+            int hfrRatio; // HFR is used at bitrates below (pcmBitrate / hfrRatio)
+            int cutoffRatio; // The cutoff frequency is lowered at bitrates below (pcmBitrate / cutoffRatio)
+
+            if (hca.ChannelCount <= 1 || pcmBitrate / bitrate <= 6)
+            {
+                hfrRatio = 6;
+                cutoffRatio = 12;
+            }
+            else
+            {
+                hfrRatio = 8;
+                cutoffRatio = 16;
+            }
+
+            if (bitrate < pcmBitrate / cutoffRatio)
+            {
+                cutoffFreq = Math.Min(cutoffFreq, cutoffRatio * bitrate / (32 * hca.ChannelCount));
+            }
+
+            int totalBandCount = (int)Math.Round(cutoffFreq * 256d / hca.SampleRate);
+
+            int hfrStartBand = (int)Math.Min(totalBandCount, Math.Round((hfrRatio * bitrate * 128d) / pcmBitrate));
+            int stereoStartBand = hfrRatio == 6 ? hfrStartBand : (hfrStartBand + 1) / 2;
+
+            int hfrBandCount = totalBandCount - hfrStartBand;
+            int bandsPerGroup = hfrBandCount.DivideByRoundUp(8);
+
+            if (bandsPerGroup > 0)
+            {
+                numGroups = hfrBandCount.DivideByRoundUp(bandsPerGroup);
+            }
+
+            hca.TotalBandCount = totalBandCount;
+            hca.BaseBandCount = stereoStartBand;
+            hca.StereoBandCount = hfrStartBand - stereoStartBand;
+            hca.HfrGroupCount = numGroups;
+            hca.BandsPerHfrGroup = bandsPerGroup;
         }
 
         public void EncodeFrame()
@@ -77,15 +152,15 @@ namespace VGAudio.Codecs.CriHca
             RunMdct(Channels);
             CalculateScaleFactors(Channels, Hca);
             ScaleSpectra(Channels, Hca);
-            CalculateScaleFactorLength(Channels);
+            CalculateScaleFactorLength(Channels, Hca);
             AcceptableNoiseLevel = CalculateNoiseLevel(Channels, Hca);
             EvaluationBoundary = CalculateEvaluationBoundary(Channels, Hca, AcceptableNoiseLevel);
             CalculateFrameResolutions(Channels, AcceptableNoiseLevel, EvaluationBoundary);
             QuantizeSpectra(Channels);
-            PackFrame(Channels);
+            PackFrame(Channels, Hca);
         }
 
-        private void PackFrame(CriHcaChannel[] channels)
+        private void PackFrame(CriHcaChannel[] channels, HcaInfo hca)
         {
             var writer = new BitWriter(HcaBuffer);
             writer.Write(0xffff, 16);
@@ -95,6 +170,20 @@ namespace VGAudio.Codecs.CriHca
             foreach (CriHcaChannel channel in channels)
             {
                 WriteScaleFactors(writer, channel);
+                if (channel.Type == ChannelType.StereoSecondary)
+                {
+                    for (int i = 0; i < 8; i++)
+                    {
+                        writer.Write(channel.Intensity[i], 4);
+                    }
+                }
+                else if (hca.HfrGroupCount > 0)
+                {
+                    for (int i = 0; i < hca.HfrGroupCount; i++)
+                    {
+                        writer.Write(channel.HfrScales[i], 6);
+                    }
+                }
             }
 
             for (int sf = 0; sf < 8; sf++)
@@ -329,12 +418,13 @@ namespace VGAudio.Codecs.CriHca
             return CriHcaTables.ScaleToResolutionCurve[curvePosition];
         }
 
-        private static void CalculateScaleFactorLength(CriHcaChannel[] channels)
+        private static void CalculateScaleFactorLength(CriHcaChannel[] channels, HcaInfo hca)
         {
             foreach (CriHcaChannel channel in channels)
             {
                 CalculateOptimalDeltaLength(channel);
                 if (channel.Type == ChannelType.StereoSecondary) channel.ScaleFactorBits += 32;
+                else if (hca.HfrGroupCount > 0) channel.ScaleFactorBits += 6 * hca.HfrGroupCount;
             }
         }
 

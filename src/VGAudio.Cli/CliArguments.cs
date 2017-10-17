@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using VGAudio.Codecs.CriAdx;
+using VGAudio.Codecs.CriHca;
 
 namespace VGAudio.Cli
 {
@@ -232,6 +233,44 @@ namespace VGAudio.Cli
 
                             options.KeyCode = keycode;
                             i++;
+                            continue;
+                        case "-HCAQUALITY":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --hcaquality.");
+                                return null;
+                            }
+
+                            string quality = args[i + 1];
+                            CriHcaQuality hcaQuality;
+
+                            switch (quality.ToUpper())
+                            {
+                                case "HIGHEST":
+                                    hcaQuality = CriHcaQuality.Highest;
+                                    break;
+                                case "HIGH":
+                                    hcaQuality = CriHcaQuality.High;
+                                    break;
+                                case "MIDDLE":
+                                    hcaQuality = CriHcaQuality.Middle;
+                                    break;
+                                case "LOW":
+                                    hcaQuality = CriHcaQuality.Low;
+                                    break;
+                                case "LOWEST":
+                                    hcaQuality = CriHcaQuality.Lowest;
+                                    break;
+                                default:
+                                    Console.WriteLine("Valid qualities are Highest, High, Middle, Low, or Lowest.");
+                                    return null;
+                            }
+
+                            options.HcaQuality = hcaQuality;
+                            i++;
+                            continue;
+                        case "-LIMIT-BITRATE":
+                            options.LimitBitrate = true;
                             continue;
                     }
                 }

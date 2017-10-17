@@ -20,7 +20,17 @@ namespace VGAudio.Containers.Hca
         protected override int FileSize => HeaderSize + Hca.FrameSize * Hca.FrameCount;
         protected override void SetupWriter(AudioData audio)
         {
-            var hca = audio.GetFormat<CriHcaFormat>(new CriHcaParameters { Progress = Configuration.Progress });
+            var encodingConfig = new CriHcaParameters
+            {
+                Progress = Configuration.Progress,
+                LimitBitrate = Configuration.LimitBitrate
+            };
+            if (Configuration.Quality != CriHcaQuality.NotSet)
+            {
+                encodingConfig.Quality = Configuration.Quality;
+            }
+
+            var hca = audio.GetFormat<CriHcaFormat>(encodingConfig);
             Hca = hca.Hca;
             AudioData = hca.AudioData;
         }
