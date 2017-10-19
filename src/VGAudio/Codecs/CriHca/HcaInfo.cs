@@ -1,4 +1,6 @@
-﻿namespace VGAudio.Codecs.CriHca
+﻿using VGAudio.Utilities;
+
+namespace VGAudio.Codecs.CriHca
 {
     public class HcaInfo
     {
@@ -42,5 +44,13 @@
         public float Volume { get; set; } = 1;
 
         public string Comment { get; set; }
+
+        public void CalculateHfrValues()
+        {
+            if (BandsPerHfrGroup <= 0) return;
+
+            HfrBandCount = TotalBandCount - BaseBandCount - StereoBandCount;
+            HfrGroupCount = HfrBandCount.DivideByRoundUp(BandsPerHfrGroup);
+        }
     }
 }

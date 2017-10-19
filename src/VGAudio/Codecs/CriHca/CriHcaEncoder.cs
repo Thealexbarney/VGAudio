@@ -45,6 +45,7 @@ namespace VGAudio.Codecs.CriHca
 
             Bitrate = CalculateBitrate(Hca, Quality, config.LimitBitrate);
             CalculateBandCounts(Hca, Bitrate, CutoffFrequency);
+            Hca.CalculateHfrValues();
 
             Frame = new CriHcaFrame(Hca);
             Channels = Frame.Channels;
@@ -57,8 +58,11 @@ namespace VGAudio.Codecs.CriHca
         {
             PcmToFloat(PcmBuffer, Channels);
             RunMdct(Channels);
+            EncodeIntensityStereo(Frame);
             CalculateScaleFactors(Channels);
             ScaleSpectra(Channels);
+            CalculateHfrGroupAverages(Frame);
+            CalculateHfrScale(Frame);
             CalculateFrameHeaderLength(Frame);
             CalculateNoiseLevel(Frame);
             CalculateEvaluationBoundary(Frame);
@@ -265,7 +269,7 @@ namespace VGAudio.Codecs.CriHca
 
             foreach (CriHcaChannel channel in channels)
             {
-                length += channel.ScaleFactorBits;
+                length += channel.HeaderLengthBits;
                 for (int i = 0; i < channel.CodedScaleFactorCount; i++)
                 {
                     int noise = i < evalBoundary ? noiseLevel - 1 : noiseLevel;
@@ -298,8 +302,8 @@ namespace VGAudio.Codecs.CriHca
             foreach (CriHcaChannel channel in frame.Channels)
             {
                 CalculateOptimalDeltaLength(channel);
-                if (channel.Type == ChannelType.StereoSecondary) channel.ScaleFactorBits += 32;
-                else if (frame.Hca.HfrGroupCount > 0) channel.ScaleFactorBits += 6 * frame.Hca.HfrGroupCount;
+                if (channel.Type == ChannelType.StereoSecondary) channel.HeaderLengthBits += 32;
+                else if (frame.Hca.HfrGroupCount > 0) channel.HeaderLengthBits += 6 * frame.Hca.HfrGroupCount;
             }
         }
 
@@ -317,7 +321,7 @@ namespace VGAudio.Codecs.CriHca
 
             if (emptyChannel)
             {
-                channel.ScaleFactorBits = 3;
+                channel.HeaderLengthBits = 3;
                 channel.ScaleFactorDeltaBits = 0;
                 return;
             }
@@ -341,7 +345,7 @@ namespace VGAudio.Codecs.CriHca
                 }
             }
 
-            channel.ScaleFactorBits = minLength;
+            channel.HeaderLengthBits = minLength;
             channel.ScaleFactorDeltaBits = minDeltaBits;
         }
 
@@ -389,6 +393,132 @@ namespace VGAudio.Codecs.CriHca
                 if (sf[i] > value) return i;
             }
             return 63;
+        }
+
+        private static void EncodeIntensityStereo(CriHcaFrame frame)
+        {
+            if (frame.Hca.StereoBandCount <= 0) return;
+
+            for (int c = 0; c < frame.Channels.Length; c++)
+            {
+                if (frame.Channels[c].Type != ChannelType.StereoPrimary) continue;
+
+                for (int sf = 0; sf < SubframesPerFrame; sf++)
+                {
+                    double[] l = frame.Channels[c].Spectra[sf];
+                    double[] r = frame.Channels[c + 1].Spectra[sf];
+
+                    double energyL = 0;
+                    double energyR = 0;
+                    double energyTotal = 0;
+
+                    for (int b = frame.Hca.BaseBandCount; b < frame.Hca.TotalBandCount; b++)
+                    {
+                        energyL += Math.Abs(l[b]);
+                        energyR += Math.Abs(r[b]);
+                        energyTotal += Math.Abs(l[b] + r[b]);
+                    }
+                    energyTotal *= 2;
+
+                    double energyLR = energyR + energyL;
+                    double storedValue = 2 * energyL / energyLR;
+                    double energyRatio = energyLR / energyTotal;
+                    energyRatio = Helpers.Clamp(energyRatio, 0.5, Math.Sqrt(2) / 2);
+
+                    int quantized = 1;
+                    if (energyR > 0 || energyL > 0)
+                    {
+                        while (quantized < 13 && CriHcaTables.IntensityRatioBoundsTable[quantized] >= storedValue)
+                        {
+                            quantized++;
+                        }
+                    }
+                    else
+                    {
+                        quantized = 0;
+                        energyRatio = 1;
+                    }
+
+                    frame.Channels[c + 1].Intensity[sf] = quantized;
+
+                    for (int b = frame.Hca.BaseBandCount; b < frame.Hca.TotalBandCount; b++)
+                    {
+                        l[b] = (l[b] + r[b]) * energyRatio;
+                        r[b] = 0;
+                    }
+                }
+            }
+        }
+
+        private static void CalculateHfrGroupAverages(CriHcaFrame frame)
+        {
+            HcaInfo hca = frame.Hca;
+            if (hca.HfrGroupCount == 0) return;
+
+            int hfrStartBand = hca.StereoBandCount + hca.BaseBandCount;
+            foreach (CriHcaChannel channel in frame.Channels)
+            {
+                if (channel.Type == ChannelType.StereoSecondary) continue;
+
+                for (int group = 0; group < hca.HfrGroupCount; group++)
+                {
+                    int startBand = hfrStartBand + hca.BandsPerHfrGroup * group;
+                    int endBand = Math.Min(startBand + hca.BandsPerHfrGroup, 128);
+
+                    double sum = 0.0;
+                    int count = (endBand - startBand) * SubframesPerFrame;
+
+                    for (int sf = 0; sf < SubframesPerFrame; ++sf)
+                    {
+                        for (int b = startBand; b < endBand; ++b)
+                        {
+                            sum += Math.Abs(channel.Spectra[sf][b]);
+                        }
+                    }
+
+                    channel.HfrGroupAverageSpectra[group] = sum / count;
+                }
+            }
+        }
+
+        private static void CalculateHfrScale(CriHcaFrame frame)
+        {
+            HcaInfo hca = frame.Hca;
+            if (hca.HfrGroupCount == 0) return;
+
+            int hfrStartBand = hca.StereoBandCount + hca.BaseBandCount;
+
+            foreach (CriHcaChannel channel in frame.Channels)
+            {
+                if (channel.Type == ChannelType.StereoSecondary) continue;
+
+                double[] groupSpectra = channel.HfrGroupAverageSpectra;
+                int lowBand = hfrStartBand - 1;
+                int highBand = hfrStartBand;
+                for (int group = 0; group < hca.HfrGroupCount; ++group)
+                {
+                    double sum = 0.0;
+                    int count = 0;
+                    for (int band = 0; band < hca.BandsPerHfrGroup && highBand < hca.TotalBandCount; ++band)
+                    {
+                        for (int subframe = 0; subframe < 8; ++subframe)
+                        {
+                            sum += Math.Abs(channel.ScaledSpectra[lowBand][subframe]);
+                            count++;
+                        }
+                        --lowBand;
+                        ++highBand;
+                    }
+
+                    double averageSpectra = sum / count;
+                    if (averageSpectra > 0.0)
+                    {
+                        groupSpectra[group] *= Math.Min(1.0 / averageSpectra, Math.Sqrt(2));
+                    }
+
+                    channel.HfrScales[group] = FindScaleFactor(groupSpectra[group]);
+                }
+            }
         }
 
         private static void RunMdct(CriHcaChannel[] channels)

@@ -23,7 +23,8 @@ namespace VGAudio.Codecs.CriHca
         public static float[] QuantizerScalingTable { get; } = Arrays.Generate(64, i => 1 / DequantizerScalingFunction(i));
         public static float[] QuantizerRangeTable { get; } = Arrays.Generate(16, QuantizerRangeFunction);
         public static int[] ResolutionMaxValues { get; } = Arrays.Generate(16, ResolutionMaxValueFunction);
-        public static float[] IntensityRatioTable { get; } = Arrays.Generate(16, IntensityRatioFunction);
+        public static float[] IntensityRatioTable { get; } = Arrays.Generate(15, IntensityRatioFunction);
+        public static float[] IntensityRatioBoundsTable { get; } = Arrays.Generate(14, IntensityRatioBoundsFunction);
         public static float[] ScaleConversionTable { get; } = Arrays.Generate(128, ScaleConversionTableFunction);
 
         public static byte[] ScaleToResolutionCurve { get; }
@@ -50,7 +51,8 @@ namespace VGAudio.Codecs.CriHca
         private static float DequantizerRangeFunction(int x) => x == 0 ? 0 : 1 / QuantizerRangeFunction(x);
         private static float QuantizerRangeFunction(int x) => ResolutionMaxValueFunction(x) + 0.5f;
         private static float ScaleConversionTableFunction(int x) => x > 1 && x < 127 ? (float)Math.Pow(Math.Pow(2, 53f / 128), x - 64) : 0;
-        private static float IntensityRatioFunction(int x) => x <= 14 ? (14 - x) / 7f : 0;
+        private static float IntensityRatioFunction(int x) => (28 - x * 2) / 14f;
+        private static float IntensityRatioBoundsFunction(int x) => (27 - x * 2) / 14f;
 
         private static int ResolutionMaxValueFunction(int x)
         {

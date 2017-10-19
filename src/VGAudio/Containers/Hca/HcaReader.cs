@@ -56,6 +56,7 @@ namespace VGAudio.Containers.Hca
 
         private static void ReadHcaHeader(BinaryReader reader, HcaStructure structure)
         {
+            HcaInfo hca = structure.Hca;
             string signature = ReadChunkId(reader);
             structure.Version = reader.ReadInt16();
             structure.HeaderSize = reader.ReadInt16();
@@ -109,15 +110,11 @@ namespace VGAudio.Containers.Hca
                 }
             }
 
-            if (structure.Version < 0x0200 && !hasAthChunk) structure.Hca.UseAthCurve = true;
+            if (structure.Version < 0x0200 && !hasAthChunk) hca.UseAthCurve = true;
 
-            if (structure.Hca.TrackCount < 1) structure.Hca.TrackCount = 1;
+            if (hca.TrackCount < 1) hca.TrackCount = 1;
 
-            if (structure.Hca.BandsPerHfrGroup > 0)
-            {
-                structure.Hca.HfrBandCount = structure.Hca.TotalBandCount - structure.Hca.BaseBandCount - structure.Hca.StereoBandCount;
-                structure.Hca.HfrGroupCount = structure.Hca.HfrBandCount.DivideByRoundUp(structure.Hca.BandsPerHfrGroup);
-            }
+            hca.CalculateHfrValues();
         }
 
         private static void ReadHcaData(BinaryReader reader, HcaStructure structure)

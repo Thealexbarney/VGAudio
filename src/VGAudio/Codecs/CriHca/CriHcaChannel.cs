@@ -14,11 +14,12 @@ namespace VGAudio.Codecs.CriHca
         public int[][] QuantizedSpectra { get; } = Helpers.CreateJaggedArray<int[][]>(SubframesPerFrame, SamplesPerSubFrame);
         public double[] Gain { get; } = new double[SamplesPerSubFrame];
         public int[] Intensity { get; } = new int[SubframesPerFrame];
-        public int[] HfrScales { get; } = new int[16];
+        public int[] HfrScales { get; } = new int[8];
+        public double[] HfrGroupAverageSpectra { get; } = new double[8];
         public Mdct Mdct { get; } = new Mdct(SubFrameSamplesBits, CriHcaTables.MdctWindow, Math.Sqrt(2.0 / SamplesPerSubFrame));
         public int[] ScaleFactors { get; } = new int[SamplesPerSubFrame];
         public int[] Resolution { get; } = new int[SamplesPerSubFrame];
-        public int ScaleFactorBits { get; set; }
+        public int HeaderLengthBits { get; set; }
         public int ScaleFactorDeltaBits { get; set; }
     }
 }

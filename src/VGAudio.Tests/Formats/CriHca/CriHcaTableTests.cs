@@ -36,6 +36,12 @@ namespace VGAudio.Tests.Formats.CriHca
         }
 
         [Fact]
+        public void GeneratedIntensityRatioBoundsTableMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.IntensityRatioBoundsTable, GeneratedTables.IntensityRatioBoundsTable);
+        }
+
+        [Fact]
         public void GeneratedScaleConversionTableMatchesOriginal()
         {
             Assert.Equal(CriHcaTables.ScaleConversionTable, GeneratedTables.ScaleConversionTable);

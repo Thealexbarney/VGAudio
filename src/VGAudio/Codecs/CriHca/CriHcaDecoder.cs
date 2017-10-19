@@ -144,12 +144,11 @@ namespace VGAudio.Codecs.CriHca
         private static void ApplyIntensityStereo(CriHcaFrame frame)
         {
             if (frame.Hca.StereoBandCount <= 0) return;
-            for (int sf = 0; sf < SubframesPerFrame; sf++)
+            for (int c = 0; c < frame.Channels.Length; c++)
             {
-                for (int c = 0; c < frame.Channels.Length; c++)
+                if (frame.Channels[c].Type != ChannelType.StereoPrimary) continue;
+                for (int sf = 0; sf < SubframesPerFrame; sf++)
                 {
-                    if (frame.Channels[c].Type != ChannelType.StereoPrimary) continue;
-
                     double[] l = frame.Channels[c].Spectra[sf];
                     double[] r = frame.Channels[c + 1].Spectra[sf];
                     float ratioL = IntensityRatioTable[frame.Channels[c + 1].Intensity[sf]];
