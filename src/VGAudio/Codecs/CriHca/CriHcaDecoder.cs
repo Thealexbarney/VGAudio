@@ -128,7 +128,7 @@ namespace VGAudio.Codecs.CriHca
                     for (int group = 0; group < frame.Hca.HfrGroupCount; group++)
                     {
                         for (int band = 0;
-                            band < frame.Hca.BandsPerHfrGroup && destBand < frame.Hca.TotalBandCount;
+                            band < frame.Hca.BandsPerHfrGroup && destBand < frame.Hca.TotalBandCount && sourceBand >= 0;
                             band++, sourceBand--)
                         {
                             channel.Spectra[sf][destBand++] =
