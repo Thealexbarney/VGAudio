@@ -46,6 +46,7 @@ namespace VGAudio.Codecs.CriHca
             Bitrate = CalculateBitrate(Hca, Quality, config.LimitBitrate);
             CalculateBandCounts(Hca, Bitrate, CutoffFrequency);
             Hca.CalculateHfrValues();
+            SetChannelConfiguration(Hca);
 
             Frame = new CriHcaFrame(Hca);
             Channels = Frame.Channels;
@@ -151,6 +152,19 @@ namespace VGAudio.Codecs.CriHca
             hca.StereoBandCount = hfrStartBand - stereoStartBand;
             hca.HfrGroupCount = numGroups;
             hca.BandsPerHfrGroup = bandsPerGroup;
+        }
+
+        private static void SetChannelConfiguration(HcaInfo hca, int channelConfig = -1)
+        {
+            int channelsPerTrack = hca.ChannelCount / hca.TrackCount;
+            if (channelConfig == -1) channelConfig = CriHcaTables.DefaultChannelMapping[channelsPerTrack];
+
+            if (CriHcaTables.ValidChannelMappings[channelsPerTrack - 1][channelConfig] != 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(channelConfig), "Channel mapping is not valid.");
+            }
+
+            hca.ChannelConfig = channelConfig;
         }
 
         private static void QuantizeSpectra(CriHcaChannel[] channels)

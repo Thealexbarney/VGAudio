@@ -47,6 +47,20 @@ namespace VGAudio.Codecs.CriHca
         /// <remarks>This curve seems to be a slight modification of the standard Painter & Spanias ATH curve formula</remarks>
         public static byte[] AthCurve { get; }
 
+        public static byte[] DefaultChannelMapping { get; } = { 0, 1, 0, 4, 0, 1, 3, 7, 3 };
+
+        public static byte[][] ValidChannelMappings { get; } =
+        {
+            new byte[] {0, 1, 0, 0, 0, 0, 0, 0},
+            new byte[] {1, 0, 0, 0, 0, 0, 0, 0},
+            new byte[] {0, 1, 1, 0, 1, 0, 0, 0},
+            new byte[] {1, 0, 0, 1, 0, 1, 0, 0},
+            new byte[] {0, 1, 1, 0, 0, 0, 0, 1},
+            new byte[] {0, 0, 0, 1, 0, 0, 0, 0},
+            new byte[] {0, 0, 0, 0, 0, 0, 0, 1},
+            new byte[] {0, 0, 0, 1, 0, 0, 0, 0}
+        };
+
         private static float DequantizerScalingFunction(int x) => (float)(Math.Sqrt(128) * Math.Pow(Math.Pow(2, 53f / 128), x - 63));
         private static float DequantizerRangeFunction(int x) => x == 0 ? 0 : 1 / QuantizerRangeFunction(x);
         private static float QuantizerRangeFunction(int x) => ResolutionMaxValueFunction(x) + 0.5f;

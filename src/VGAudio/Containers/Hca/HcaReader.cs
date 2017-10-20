@@ -169,8 +169,8 @@ namespace VGAudio.Containers.Hca
             structure.Hca.BaseBandCount = reader.ReadByte() + 1;
 
             byte a = reader.ReadByte();
-            structure.Hca.TrackCount = a >> 4 & 0xf;
-            structure.Hca.ChannelConfig = a & 0xf;
+            structure.Hca.TrackCount = GetHighNibble(a);
+            structure.Hca.ChannelConfig = GetLowNibble(a);
             structure.Hca.DecStereoType = reader.ReadByte();
 
             if (structure.Hca.DecStereoType == 0)
