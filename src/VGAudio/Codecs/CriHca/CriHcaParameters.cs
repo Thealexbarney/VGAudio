@@ -8,5 +8,8 @@
         public bool LimitBitrate { get; set; }
         public int ChannelCount { get; set; }
         public int SampleRate { get; set; }
+        public bool Looping { get; set; }
+        public int LoopStart { get; set; }
+        public int LoopEnd { get; set; }
     }
 }

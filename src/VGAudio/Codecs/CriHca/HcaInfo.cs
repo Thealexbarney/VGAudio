@@ -10,6 +10,7 @@ namespace VGAudio.Codecs.CriHca
         public int FrameCount { get; set; }
         public int InsertedSamples { get; set; }
         public int AppendedSamples { get; set; }
+        public int HeaderSize { get; set; }
 
         public int FrameSize { get; set; }
         public int MinResolution { get; set; }
@@ -44,6 +45,7 @@ namespace VGAudio.Codecs.CriHca
         public float Volume { get; set; } = 1;
 
         public string Comment { get; set; }
+        public int CommentLength => Comment?.Length ?? 0;
 
         public void CalculateHfrValues()
         {

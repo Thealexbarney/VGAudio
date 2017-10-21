@@ -15,7 +15,7 @@ namespace VGAudio.Containers.Hca
 
         private Crc16 Crc { get; } = new Crc16(0x8005);
 
-        private int HeaderSize => 96;
+        private int HeaderSize => Hca.HeaderSize;
 
         protected override int FileSize => HeaderSize + Hca.FrameSize * Hca.FrameCount;
         protected override void SetupWriter(AudioData audio)
@@ -30,9 +30,9 @@ namespace VGAudio.Containers.Hca
                 encodingConfig.Quality = Configuration.Quality;
             }
 
-            var hca = audio.GetFormat<CriHcaFormat>(encodingConfig);
-            Hca = hca.Hca;
-            AudioData = hca.AudioData;
+            var hcaFormat = audio.GetFormat<CriHcaFormat>(encodingConfig);
+            Hca = hcaFormat.Hca;
+            AudioData = hcaFormat.AudioData;
         }
 
         protected override void WriteStream(Stream stream)
@@ -49,6 +49,7 @@ namespace VGAudio.Containers.Hca
             WriteHcaChunk(writer);
             WriteFmtChunk(writer);
             WriteCompChunk(writer);
+            WriteLoopChunk(writer);
             WriteCiphChunk(writer);
             WriteRvaChunk(writer);
 
@@ -102,6 +103,17 @@ namespace VGAudio.Containers.Hca
             writer.Write((byte)Hca.StereoBandCount);
             writer.Write((byte)Hca.BandsPerHfrGroup);
             writer.Write((short)0);
+        }
+
+        private void WriteLoopChunk(BinaryWriter writer)
+        {
+            if (!Hca.Looping) return;
+
+            writer.WriteUTF8("loop");
+            writer.Write(Hca.LoopStartFrame);
+            writer.Write(Hca.LoopEndFrame);
+            writer.Write((short)Hca.PreLoopSamples);
+            writer.Write((short)Hca.PostLoopSamples);
         }
 
         private void WriteCiphChunk(BinaryWriter writer)

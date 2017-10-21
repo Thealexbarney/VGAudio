@@ -2,6 +2,7 @@
 using VGAudio.Utilities;
 using static VGAudio.Codecs.CriHca.CriHcaConstants;
 using static VGAudio.Codecs.CriHca.CriHcaPacking;
+using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Codecs.CriHca
 {
@@ -28,6 +29,9 @@ namespace VGAudio.Codecs.CriHca
 
         public void Initialize(CriHcaParameters config)
         {
+            CutoffFrequency = config.SampleRate / 2;
+            Quality = config.Quality;
+
             Hca = new HcaInfo
             {
                 ChannelCount = config.ChannelCount,
@@ -38,20 +42,31 @@ namespace VGAudio.Codecs.CriHca
                 MaxResolution = 15,
                 InsertedSamples = SamplesPerSubFrame
             };
-            Hca.FrameCount = ((Hca.SampleCount + Hca.InsertedSamples + 1023) / 1024 << 10) / 1024;
-
-            CutoffFrequency = config.SampleRate / 2;
-            Quality = config.Quality;
 
             Bitrate = CalculateBitrate(Hca, Quality, config.LimitBitrate);
             CalculateBandCounts(Hca, Bitrate, CutoffFrequency);
             Hca.CalculateHfrValues();
             SetChannelConfiguration(Hca);
 
+            if (config.Looping)
+            {
+                Hca.Looping = true;
+                Hca.SampleCount = Math.Min(config.LoopEnd, config.SampleCount);
+                Hca.InsertedSamples += GetNextMultiple(config.LoopStart, SamplesPerFrame) - config.LoopStart;
+                CalculateLoopInfo(Hca, config.LoopStart, config.LoopEnd);
+            }
+
+            CalculateHeaderSize(Hca);
+
+            int inputSampleCount = GetNextMultiple(Hca.SampleCount, SamplesPerSubFrame) + SamplesPerSubFrame * 2;
+            int totalSamples = inputSampleCount + Hca.InsertedSamples;
+            Hca.FrameCount = totalSamples.DivideByRoundUp(SamplesPerFrame);
+            Hca.AppendedSamples = Hca.FrameCount * SamplesPerFrame - Hca.InsertedSamples - inputSampleCount;
+
             Frame = new CriHcaFrame(Hca);
             Channels = Frame.Channels;
 
-            PcmBuffer = Helpers.CreateJaggedArray<short[][]>(Hca.ChannelCount, 1024);
+            PcmBuffer = CreateJaggedArray<short[][]>(Hca.ChannelCount, SamplesPerFrame);
             HcaBuffer = new byte[Hca.FrameSize];
         }
 
@@ -107,7 +122,7 @@ namespace VGAudio.Codecs.CriHca
                     pcmBitrate / 6);
             }
 
-            return Helpers.Clamp(bitrate, minBitrate, maxBitrate);
+            return Clamp(bitrate, minBitrate, maxBitrate);
         }
 
         private static void CalculateBandCounts(HcaInfo hca, int bitrate, int cutoffFreq)
@@ -165,6 +180,43 @@ namespace VGAudio.Codecs.CriHca
             }
 
             hca.ChannelConfig = channelConfig;
+        }
+
+        private static void CalculateLoopInfo(HcaInfo hca, int loopStart, int loopEnd)
+        {
+            loopStart += hca.InsertedSamples;
+            loopEnd += hca.InsertedSamples;
+
+            hca.LoopStartFrame = loopStart / SamplesPerFrame;
+            hca.PreLoopSamples = loopStart % SamplesPerFrame;
+            hca.LoopEndFrame = loopEnd / SamplesPerFrame;
+            hca.PostLoopSamples = SamplesPerFrame - loopEnd % SamplesPerFrame;
+
+            if (hca.PostLoopSamples == SamplesPerFrame)
+            {
+                hca.LoopEndFrame--;
+                hca.PostLoopSamples = 0;
+            }
+        }
+
+        private static void CalculateHeaderSize(HcaInfo hca)
+        {
+            const int baseHeaderSize = 96;
+            const int baseHeaderAlignment = 32;
+            const int loopFrameAlignment = 2048;
+
+            hca.HeaderSize = GetNextMultiple(baseHeaderSize + hca.CommentLength, baseHeaderAlignment);
+            if (hca.Looping)
+            {
+                int loopFrameOffset = hca.HeaderSize + hca.FrameSize * hca.LoopStartFrame;
+                int paddingBytes = GetNextMultiple(loopFrameOffset, loopFrameAlignment) - loopFrameOffset;
+                int paddingFrames = paddingBytes / hca.FrameSize;
+
+                hca.InsertedSamples += paddingFrames * SamplesPerFrame;
+                hca.LoopStartFrame += paddingFrames;
+                hca.LoopEndFrame += paddingFrames;
+                hca.HeaderSize += paddingBytes % hca.FrameSize;
+            }
         }
 
         private static void QuantizeSpectra(CriHcaChannel[] channels)
@@ -437,7 +489,7 @@ namespace VGAudio.Codecs.CriHca
                     double energyLR = energyR + energyL;
                     double storedValue = 2 * energyL / energyLR;
                     double energyRatio = energyLR / energyTotal;
-                    energyRatio = Helpers.Clamp(energyRatio, 0.5, Math.Sqrt(2) / 2);
+                    energyRatio = Clamp(energyRatio, 0.5, Math.Sqrt(2) / 2);
 
                     int quantized = 1;
                     if (energyR > 0 || energyL > 0)

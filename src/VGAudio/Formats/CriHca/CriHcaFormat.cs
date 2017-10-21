@@ -35,6 +35,9 @@ namespace VGAudio.Formats.CriHca
             config.ChannelCount = pcm16.ChannelCount;
             config.SampleRate = pcm16.SampleRate;
             config.SampleCount = pcm16.SampleCount;
+            config.Looping = pcm16.Looping;
+            config.LoopStart = pcm16.LoopStart;
+            config.LoopEnd = pcm16.LoopEnd;
             var progress = config.Progress;
 
             var encoder = CriHcaEncoder.InitializeNew(config);
