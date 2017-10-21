@@ -12,6 +12,7 @@ namespace VGAudio.Codecs.CriHca
          */
         private static readonly ulong[] KeyCodes =
         {
+            1224,
             2424,
             8910,
             12345,
@@ -29,6 +30,7 @@ namespace VGAudio.Codecs.CriHca
             30260840980773,
             59751358413602,
             165521992944278,
+            621561580448882,
             765765765765765,
             5027916581011272,
             9101518402445063,

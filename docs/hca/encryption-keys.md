@@ -8,6 +8,7 @@ CRI's tools accept the key as a decimal string. Keys are often represented as a 
 
 |Key                 |Key (Hex)               |Source|
 |:------------------:|:----------------------:|:-----|
+|1224                |``0x00000000000004C8``|One Piece Treasure Cruise (iOS/Android)|
 |2424                |``0x0000000000000978``|Idol Connect (iOS/Android)|
 |8910                |``0x00000000000022CE``|BanG Dream! Girls Band Party! (iOS/Android)|
 |12345               |``0x0000000000003039``|Fate/Grand Order (iOS/Android) base assets|
@@ -25,6 +26,7 @@ CRI's tools accept the key as a decimal string. Keys are often represented as a 
 |30260840980773      |``0x00001B85A6AD6125``|SD Gundam Strikers (iOS/Android)|
 |59751358413602      |``0x00003657F27E3B22``|Idolm@ster Cinderella Stage (iOS/Android)|
 |165521992944278     |``0x0000968A97978A96``|Super Robot Wars X-Omega (iOS/Android)|
+|621561580448882     |``0x0002354E95356C72``|Azur Lane (iOS/Android)|
 |765765765765765     |``0x0002B875BC731A85``|Idolm@ster Million Live (iOS/Android)|
 |5027916581011272    |``0x0011DCDD0DC57F48``|Grimoire - Shiritsu Grimoire Mahou Gakuen (iOS/Android)|
 |9101518402445063    |``0x002055C8634B5F07``|The Tower of Princess (iOS/Android)|
