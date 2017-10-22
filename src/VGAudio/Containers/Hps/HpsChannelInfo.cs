@@ -7,6 +7,6 @@ namespace VGAudio.Containers.Hps
     {
         public int MaxBlockSize { get; set; }
         public int EndAddress { get; set; }
-        public int SampleCount => GcAdpcmHelpers.NibbleToSample(EndAddress) + 1;
+        public int SampleCount => GcAdpcmMath.NibbleToSample(EndAddress) + 1;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 using VGAudio.Utilities;
-using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmMath;
 
 namespace VGAudio.Codecs.GcAdpcm
 {

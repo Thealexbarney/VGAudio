@@ -1,5 +1,5 @@
-﻿using VGAudio.Codecs.GcAdpcm;
-using Xunit;
+﻿using Xunit;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmMath;
 
 namespace VGAudio.Tests.Formats.GcAdpcm
 {
@@ -14,7 +14,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(100010, 87508)]
         public void NibbleToSampleTest(int nibble, int expected)
         {
-            int actual = GcAdpcmHelpers.NibbleToSample(nibble);
+            int actual = NibbleToSample(nibble);
             Assert.Equal(expected, actual);
         }
 
@@ -27,7 +27,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(87508, 100010)]
         public void SampleToNibbleTest(int sample, int expected)
         {
-            int actual = GcAdpcmHelpers.SampleToNibble(sample);
+            int actual = SampleToNibble(sample);
             Assert.Equal(expected, actual);
         }
 
@@ -44,7 +44,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(100000, 87500)]
         public void NibbleCountToSampleCountTest(int nibbleCount, int expected)
         {
-            int actual = GcAdpcmHelpers.NibbleCountToSampleCount(nibbleCount);
+            int actual = NibbleCountToSampleCount(nibbleCount);
             Assert.Equal(expected, actual);
         }
 
@@ -58,7 +58,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(87500, 100000)]
         public void SampleCountToNibbleCountTest(int sampleCount, int expected)
         {
-            int actual = GcAdpcmHelpers.SampleCountToNibbleCount(sampleCount);
+            int actual = SampleCountToNibbleCount(sampleCount);
             Assert.Equal(expected, actual);
         }
 
@@ -73,7 +73,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(87500, 50000)]
         public void SampleCountToByteCountTest(int sampleCount, int expected)
         {
-            int actual = GcAdpcmHelpers.SampleCountToByteCount(sampleCount);
+            int actual = SampleCountToByteCount(sampleCount);
             Assert.Equal(expected, actual);
         }
 
@@ -82,8 +82,8 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         {
             for (int i = 1; i < 10000; i++)
             {
-                int nibble = GcAdpcmHelpers.SampleToNibble(i);
-                int sample = GcAdpcmHelpers.NibbleToSample(nibble);
+                int nibble = SampleToNibble(i);
+                int sample = NibbleToSample(nibble);
                 Assert.Equal(i, sample);
             }
         }
@@ -93,8 +93,8 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         {
             for (int i = 1; i < 10000; i++)
             {
-                int nibbleCount = GcAdpcmHelpers.SampleCountToNibbleCount(i);
-                int sampleCount = GcAdpcmHelpers.NibbleCountToSampleCount(nibbleCount);
+                int nibbleCount = SampleCountToNibbleCount(i);
+                int sampleCount = NibbleCountToSampleCount(nibbleCount);
                 Assert.Equal(i, sampleCount);
             }
         }

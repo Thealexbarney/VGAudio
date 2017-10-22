@@ -77,7 +77,7 @@ namespace VGAudio.Tests
             for (int i = 0; i < channelCount; i++)
             {
                 channels[i] =
-                    new GcAdpcmChannelBuilder(new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)], new short[16], sampleCount)
+                    new GcAdpcmChannelBuilder(new byte[GcAdpcmMath.SampleCountToByteCount(sampleCount)], new short[16], sampleCount)
                         .WithSeekTable(new short[sampleCount.DivideByRoundUp(samplesPerSeekTableEntry) * 2], samplesPerSeekTableEntry, true)
                         .Build();
             }
@@ -89,7 +89,7 @@ namespace VGAudio.Tests
 
         public static (byte[] adpcm, short[] coefs) GenerateAdpcmEmpty(int sampleCount)
         {
-            var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            var adpcm = new byte[GcAdpcmMath.SampleCountToByteCount(sampleCount)];
             var coefs = new short[16];
             return (adpcm, coefs);
         }
@@ -99,7 +99,7 @@ namespace VGAudio.Tests
             var channels = new GcAdpcmChannel[channelCount];
             for (int i = 0; i < channelCount; i++)
             {
-                var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+                var adpcm = new byte[GcAdpcmMath.SampleCountToByteCount(sampleCount)];
                 var coefs = new short[16];
                 channels[i] = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount).Build();
             }

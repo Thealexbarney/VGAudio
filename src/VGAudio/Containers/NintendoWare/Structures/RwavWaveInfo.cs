@@ -21,8 +21,8 @@ namespace VGAudio.Containers.NintendoWare.Structures
             reader.BaseStream.Position++;
             info.SampleRate = reader.ReadUInt16();
             reader.BaseStream.Position += 2;
-            info.LoopStart = GcAdpcmHelpers.NibbleToSample(reader.ReadInt32());
-            info.SampleCount = GcAdpcmHelpers.NibbleToSample(reader.ReadInt32());
+            info.LoopStart = GcAdpcmMath.NibbleToSample(reader.ReadInt32());
+            info.SampleCount = GcAdpcmMath.NibbleToSample(reader.ReadInt32());
             info.ChannelInfoOffset = reader.ReadInt32();
             info.InfoStructureLength = reader.ReadInt32();
 

@@ -2,7 +2,7 @@
 
 namespace VGAudio.Codecs.GcAdpcm
 {
-    public static class GcAdpcmHelpers
+    public static class GcAdpcmMath
     {
         public static readonly int BytesPerFrame = 8;
         public static readonly int SamplesPerFrame = 14;

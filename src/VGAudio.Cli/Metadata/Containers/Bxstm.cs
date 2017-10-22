@@ -37,7 +37,7 @@ namespace VGAudio.Cli.Metadata.Containers
             builder.AppendLine();
 
             var calculatedSamples = (info.InterleaveCount - 1) * info.SamplesPerInterleave +
-                                    GcAdpcmHelpers.ByteCountToSampleCount(info.LastBlockSizeWithoutPadding);
+                                    GcAdpcmMath.ByteCountToSampleCount(info.LastBlockSizeWithoutPadding);
 
             builder.AppendLine($"Interleave Count: {info.InterleaveCount}");
             builder.AppendLine($"Interleave Size: 0x{info.InterleaveSize:X}");
