@@ -9,7 +9,7 @@ namespace VGAudio.Codecs.GcAdpcm
     {
         public static short[] Decode(byte[] adpcm, short[] coefficients, GcAdpcmParameters config = null)
         {
-            config = config ?? new GcAdpcmParameters { SampleCount = NibbleCountToSampleCount(adpcm.Length * 2) };
+            config = config ?? new GcAdpcmParameters { SampleCount = ByteCountToSampleCount(adpcm.Length) };
             var pcm = new short[config.SampleCount];
 
             if (config.SampleCount == 0)

@@ -65,7 +65,7 @@ namespace VGAudio.Cli
 
             if (options.BlockSize > 0)
             {
-                config.BytesPerInterleave = options.BlockSize;
+                config.BlockSize = options.BlockSize;
             }
 
             return config;

@@ -59,7 +59,7 @@ namespace VGAudio.Containers.Idsp
         {
             return new IdspConfiguration
             {
-                BytesPerInterleave = structure.InterleaveSize
+                BlockSize = structure.InterleaveSize
             };
         }
 

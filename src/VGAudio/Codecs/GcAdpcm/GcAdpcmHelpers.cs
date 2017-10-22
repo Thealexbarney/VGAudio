@@ -44,5 +44,6 @@ namespace VGAudio.Codecs.GcAdpcm
         }
 
         public static int SampleCountToByteCount(int sampleCount) => SampleCountToNibbleCount(sampleCount).DivideBy2RoundUp();
+        public static int ByteCountToSampleCount(int byteCount) => NibbleCountToSampleCount(byteCount * 2);
     }
 }
