@@ -18,6 +18,7 @@ namespace VGAudio.Cli
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
         public int LoopAlignment { get; set; }
+        public int BlockSize { get; set; }
         public AudioFormat OutFormat { get; set; }
         public int Version { get; set; } // ADX
         public int FrameSize { get; set; } // ADX

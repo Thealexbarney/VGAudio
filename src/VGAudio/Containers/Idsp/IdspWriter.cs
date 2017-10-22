@@ -44,6 +44,10 @@ namespace VGAudio.Containers.Idsp
         protected override void SetupWriter(AudioData audio)
         {
             Adpcm = audio.GetFormat<GcAdpcmFormat>(new GcAdpcmParameters { Progress = Configuration.Progress });
+            if (Configuration.BytesPerInterleave != 0)
+            {
+                Adpcm = Adpcm.WithAlignment(NibbleCountToSampleCount(Configuration.BytesPerInterleave * 2));
+            }
         }
 
         protected override void WriteStream(Stream stream)
