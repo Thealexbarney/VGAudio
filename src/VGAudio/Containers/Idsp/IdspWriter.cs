@@ -5,7 +5,7 @@ using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
-using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmMath;
 using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.Idsp
@@ -29,8 +29,8 @@ namespace VGAudio.Containers.Idsp
         private int EndAddr => SampleToNibble(Adpcm.Looping ? LoopEnd : SampleCount - 1);
         private static int CurAddr => SampleToNibble(0);
 
-        private int InterleaveSize => Configuration.BytesPerInterleave == 0 ?
-            AudioDataSize : Configuration.BytesPerInterleave;
+        private int InterleaveSize => Configuration.BlockSize == 0 ?
+            AudioDataSize : Configuration.BlockSize;
         private const int StreamInfoSize = 0x40;
         private int ChannelInfoSize => 0x60;
         private int HeaderSize => StreamInfoSize + ChannelCount * ChannelInfoSize;
@@ -39,14 +39,14 @@ namespace VGAudio.Containers.Idsp
         /// Size of a single channel's ADPCM audio data with padding when written to a file
         /// </summary>
         private int AudioDataSize => GetNextMultiple(SampleCountToByteCount(SampleCount),
-            Configuration.BytesPerInterleave == 0 ? BytesPerFrame : InterleaveSize);
+            Configuration.BlockSize == 0 ? BytesPerFrame : InterleaveSize);
 
         protected override void SetupWriter(AudioData audio)
         {
             Adpcm = audio.GetFormat<GcAdpcmFormat>(new GcAdpcmParameters { Progress = Configuration.Progress });
-            if (Configuration.BytesPerInterleave != 0)
+            if (Configuration.BlockSize != 0)
             {
-                Adpcm = Adpcm.WithAlignment(NibbleCountToSampleCount(Configuration.BytesPerInterleave * 2));
+                Adpcm = Adpcm.WithAlignment(ByteCountToSampleCount(Configuration.BlockSize));
             }
         }
 
@@ -69,7 +69,7 @@ namespace VGAudio.Containers.Idsp
             writer.Write(SampleCount);
             writer.Write(LoopStart);
             writer.Write(LoopEnd);
-            writer.Write(Configuration.BytesPerInterleave);
+            writer.Write(Configuration.BlockSize);
             writer.Write(StreamInfoSize);
             writer.Write(ChannelInfoSize);
             writer.Write(HeaderSize);

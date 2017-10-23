@@ -10,7 +10,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(100)]
         public void ConstructorAssignmentWorks(int sampleCount)
         {
-            var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            var adpcm = new byte[GcAdpcmMath.SampleCountToByteCount(sampleCount)];
             var coefs = new short[16];
             var builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount);
             Assert.Equal(adpcm, builder.Adpcm);
@@ -348,7 +348,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
 
         private static GcAdpcmChannelBuilder GetBuilder(int sampleCount = 100)
         {
-            var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            var adpcm = new byte[GcAdpcmMath.SampleCountToByteCount(sampleCount)];
             var coefs = new short[16];
             return new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount);
         }

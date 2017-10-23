@@ -146,7 +146,7 @@ namespace VGAudio.Containers.Hps
                 if (block.Offset == startOffset)
                 {
                     structure.Looping = true;
-                    structure.LoopStart = GcAdpcmHelpers.NibbleCountToSampleCount(currentNibble);
+                    structure.LoopStart = GcAdpcmMath.NibbleCountToSampleCount(currentNibble);
 
                     for (int i = 0; i < structure.Channels.Count; i++)
                     {

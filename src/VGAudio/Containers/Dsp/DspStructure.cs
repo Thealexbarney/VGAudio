@@ -65,11 +65,11 @@ namespace VGAudio.Containers.Dsp
         /// <summary>
         /// The start loop point in samples.
         /// </summary>
-        public int LoopStart => GcAdpcmHelpers.NibbleToSample(StartAddress);
+        public int LoopStart => GcAdpcmMath.NibbleToSample(StartAddress);
         /// <summary>
         /// The end loop point in samples.
         /// </summary>
-        public int LoopEnd => GcAdpcmHelpers.NibbleToSample(EndAddress);
+        public int LoopEnd => GcAdpcmMath.NibbleToSample(EndAddress);
         internal byte[][] AudioData { get; set; }
     }
 }

@@ -2,10 +2,10 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Containers;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmMath;
 
 namespace VGAudio.Tools.GcAdpcm
 {
@@ -82,27 +82,27 @@ namespace VGAudio.Tools.GcAdpcm
             }
 
             int sampleCount = pcm.Length;
-            var adpcmA = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
-            var adpcmB = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            var adpcmA = new byte[SampleCountToByteCount(sampleCount)];
+            var adpcmB = new byte[SampleCountToByteCount(sampleCount)];
 
             /* Execute encoding-predictor for each frame */
-            var pcmBufferA = new short[2 + GcAdpcmHelpers.SamplesPerFrame];
-            var pcmBufferB = new short[2 + GcAdpcmHelpers.SamplesPerFrame];
-            var adpcmBufferA = new byte[GcAdpcmHelpers.BytesPerFrame];
-            var adpcmBufferB = new byte[GcAdpcmHelpers.BytesPerFrame];
+            var pcmBufferA = new short[2 + SamplesPerFrame];
+            var pcmBufferB = new short[2 + SamplesPerFrame];
+            var adpcmBufferA = new byte[BytesPerFrame];
+            var adpcmBufferB = new byte[BytesPerFrame];
 
-            int frameCount = DivideByRoundUp(sampleCount, GcAdpcmHelpers.SamplesPerFrame);
+            int frameCount = DivideByRoundUp(sampleCount, SamplesPerFrame);
 
             for (int frame = 0; frame < frameCount; frame++)
             {
-                int samplesToCopy = Math.Min(sampleCount - frame * GcAdpcmHelpers.SamplesPerFrame, GcAdpcmHelpers.SamplesPerFrame);
-                Array.Copy(pcm, frame * GcAdpcmHelpers.SamplesPerFrame, pcmBufferA, 2, samplesToCopy);
-                Array.Copy(pcm, frame * GcAdpcmHelpers.SamplesPerFrame, pcmBufferB, 2, samplesToCopy);
-                Array.Clear(pcmBufferA, 2 + samplesToCopy, GcAdpcmHelpers.SamplesPerFrame - samplesToCopy);
-                Array.Clear(pcmBufferB, 2 + samplesToCopy, GcAdpcmHelpers.SamplesPerFrame - samplesToCopy);
+                int samplesToCopy = Math.Min(sampleCount - frame * SamplesPerFrame, SamplesPerFrame);
+                Array.Copy(pcm, frame * SamplesPerFrame, pcmBufferA, 2, samplesToCopy);
+                Array.Copy(pcm, frame * SamplesPerFrame, pcmBufferB, 2, samplesToCopy);
+                Array.Clear(pcmBufferA, 2 + samplesToCopy, SamplesPerFrame - samplesToCopy);
+                Array.Clear(pcmBufferB, 2 + samplesToCopy, SamplesPerFrame - samplesToCopy);
 
-                dllA.DspEncodeFrame(pcmBufferA, GcAdpcmHelpers.SamplesPerFrame, adpcmBufferA, coefsA);
-                dllB.DspEncodeFrame(pcmBufferB, GcAdpcmHelpers.SamplesPerFrame, adpcmBufferB, coefsB);
+                dllA.DspEncodeFrame(pcmBufferA, SamplesPerFrame, adpcmBufferA, coefsA);
+                dllB.DspEncodeFrame(pcmBufferB, SamplesPerFrame, adpcmBufferB, coefsB);
 
                 int encodeEqual = ArraysEqual(adpcmBufferA, adpcmBufferB);
                 if (encodeEqual != -1)
@@ -110,12 +110,12 @@ namespace VGAudio.Tools.GcAdpcm
                     int differentSample = ArraysEqual(pcmBufferA, pcmBufferB) - 2;
 
                     //Get the input PCM that resulted in different encodings
-                    short[] history = new short[2 + GcAdpcmHelpers.SamplesPerFrame];
-                    Array.Copy(pcm, frame * GcAdpcmHelpers.SamplesPerFrame, history, 2, samplesToCopy);
+                    short[] history = new short[2 + SamplesPerFrame];
+                    Array.Copy(pcm, frame * SamplesPerFrame, history, 2, samplesToCopy);
                     Array.Copy(pcmBufferA, 0, history, 0, 2);
 
-                    short[] pcmA = new short[GcAdpcmHelpers.SamplesPerFrame];
-                    short[] pcmB = new short[GcAdpcmHelpers.SamplesPerFrame];
+                    short[] pcmA = new short[SamplesPerFrame];
+                    short[] pcmB = new short[SamplesPerFrame];
                     Array.Copy(pcmBufferA, 2, pcmA, 0, samplesToCopy);
                     Array.Copy(pcmBufferB, 2, pcmB, 0, samplesToCopy);
 
@@ -128,7 +128,7 @@ namespace VGAudio.Tools.GcAdpcm
                         CoefsB = coefsB,
                         Frame = frame,
                         FrameSample = differentSample,
-                        Sample = frame * GcAdpcmHelpers.SamplesPerFrame + differentSample,
+                        Sample = frame * SamplesPerFrame + differentSample,
                         PcmIn = history,
                         PcmOutA = pcmA,
                         PcmOutB = pcmB,
@@ -137,8 +137,8 @@ namespace VGAudio.Tools.GcAdpcm
                     };
                 }
 
-                Array.Copy(adpcmBufferA, 0, adpcmA, frame * GcAdpcmHelpers.BytesPerFrame, GcAdpcmHelpers.SampleCountToByteCount(samplesToCopy));
-                Array.Copy(adpcmBufferB, 0, adpcmB, frame * GcAdpcmHelpers.BytesPerFrame, GcAdpcmHelpers.SampleCountToByteCount(samplesToCopy));
+                Array.Copy(adpcmBufferA, 0, adpcmA, frame * BytesPerFrame, SampleCountToByteCount(samplesToCopy));
+                Array.Copy(adpcmBufferB, 0, adpcmB, frame * BytesPerFrame, SampleCountToByteCount(samplesToCopy));
 
                 pcmBufferA[0] = pcmBufferA[14];
                 pcmBufferA[1] = pcmBufferA[15];

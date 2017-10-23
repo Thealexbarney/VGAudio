@@ -28,7 +28,7 @@ namespace VGAudio.Tests.Containers
             GcAdpcmFormat audio = GenerateAudio.GenerateAdpcmSineWave(BuildParseTestOptions.Samples, 2, BuildParseTestOptions.SampleRate);
             audio = audio.WithLoop(loops, startIn, endIn);
 
-            var config = new IdspConfiguration { BytesPerInterleave = blockSize };
+            var config = new IdspConfiguration { BlockSize = blockSize };
 
             byte[] idsp = new IdspWriter().GetFile(audio, config);
             var decoded = (GcAdpcmFormat)new IdspReader().ReadFormat(idsp);

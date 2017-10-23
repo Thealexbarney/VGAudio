@@ -2,7 +2,7 @@
 using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Utilities;
 using static VGAudio.Containers.NintendoWare.Common;
-using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmMath;
 
 namespace VGAudio.Containers.NintendoWare
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Utilities;
-using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmMath;
 
 namespace VGAudio.Formats.GcAdpcm
 {

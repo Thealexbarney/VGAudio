@@ -43,7 +43,7 @@ namespace VGAudio.Tools.GcAdpcm
         public unsafe GcAdpcmChannel EncodeChannel(short[] pcm)
         {
             int sampleCount = pcm.Length;
-            byte[] adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            byte[] adpcm = new byte[GcAdpcmMath.SampleCountToByteCount(sampleCount)];
             var info = new ADPCMINFO();
 
             Encode(pcm, adpcm, ref info, (uint)sampleCount);

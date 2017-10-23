@@ -10,7 +10,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [Fact]
         public void ReturnsSameDataAfterCreation()
         {
-            var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(100)];
+            var adpcm = new byte[GcAdpcmMath.SampleCountToByteCount(100)];
             var coefs = new short[16];
             var channel = new GcAdpcmChannelBuilder(adpcm, coefs, 100).Build();
 
@@ -101,14 +101,14 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void AdpcmLengthIsCorrectAfterBuilding()
         {
             var channel = GetBuilder(100).WithLoop(true, 10, 100).Build();
-            Assert.Equal(GcAdpcmHelpers.SampleCountToByteCount(100), channel.GetAdpcmAudio().Length);
+            Assert.Equal(GcAdpcmMath.SampleCountToByteCount(100), channel.GetAdpcmAudio().Length);
         }
 
         [Fact]
         public void AdpcmLengthIsCorrectAfterAlignment()
         {
             var channel = GetBuilder(100).WithLoop(true, 10, 100).WithLoopAlignment(15).Build();
-            Assert.Equal(GcAdpcmHelpers.SampleCountToByteCount(105), channel.GetAdpcmAudio().Length);
+            Assert.Equal(GcAdpcmMath.SampleCountToByteCount(105), channel.GetAdpcmAudio().Length);
         }
 
         [Fact]
@@ -116,7 +116,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         {
             var channel = GetBuilder(100).WithLoop(true, 10, 100).WithLoopAlignment(15).Build();
             var channel2 = channel.GetCloneBuilder().WithLoopAlignment(20).Build();
-            Assert.Equal(GcAdpcmHelpers.SampleCountToByteCount(110), channel2.GetAdpcmAudio().Length);
+            Assert.Equal(GcAdpcmMath.SampleCountToByteCount(110), channel2.GetAdpcmAudio().Length);
         }
 
         [Fact]
@@ -155,7 +155,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         
         private static GcAdpcmChannelBuilder GetBuilder(int sampleCount = 100)
         {
-            var adpcm = new byte[GcAdpcmHelpers.SampleCountToByteCount(sampleCount)];
+            var adpcm = new byte[GcAdpcmMath.SampleCountToByteCount(sampleCount)];
             var coefs = new short[16];
             return new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount);
         }

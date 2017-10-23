@@ -92,7 +92,7 @@ namespace VGAudio.Tests.Formats
         public void BuildSeekTableOneChannel(Endianness endianness)
         {
             short[] expected = { 0, 0, 50, 49, 100, 99 };
-            GcAdpcmFormat adpcm = GetAccendingAdpcm(50, 112, 0);
+            GcAdpcmFormat adpcm = GetAscendingAdpcm(50, 112, 0);
 
             Assert.Equal(expected.ToByteArray(endianness), adpcm.BuildSeekTable(3, endianness));
         }
@@ -103,7 +103,7 @@ namespace VGAudio.Tests.Formats
         public void BuildSeekTableTwoChannels(Endianness endianness)
         {
             short[] expected = { 0, 0, 0, 0, 50, 49, 100, 99, 100, 99, 150, 149 };
-            GcAdpcmFormat adpcm = GetAccendingAdpcm(50, 112, 0, 50);
+            GcAdpcmFormat adpcm = GetAscendingAdpcm(50, 112, 0, 50);
 
             Assert.Equal(expected.ToByteArray(endianness), adpcm.BuildSeekTable(3, endianness));
         }
@@ -119,7 +119,7 @@ namespace VGAudio.Tests.Formats
                 50, 49, 100, 99, 250, 249, 150, 149,
                 100, 99, 150, 149, 300, 299, 200, 199
             };
-            GcAdpcmFormat adpcm = GetAccendingAdpcm(50, 112, 0, 50, 200, 100);
+            GcAdpcmFormat adpcm = GetAscendingAdpcm(50, 112, 0, 50, 200, 100);
 
             Assert.Equal(expected.ToByteArray(endianness), adpcm.BuildSeekTable(3, endianness));
         }
@@ -134,14 +134,14 @@ namespace VGAudio.Tests.Formats
                 0, 0, 0, 0, 0, 0, 0, 0,
                 50, 49, 100, 99, 250, 249, 150, 149
             };
-            GcAdpcmFormat adpcm = GetAccendingAdpcm(50, 112, 0, 50, 200, 100);
+            GcAdpcmFormat adpcm = GetAscendingAdpcm(50, 112, 0, 50, 200, 100);
 
             Assert.Equal(expected.ToByteArray(endianness), adpcm.BuildSeekTable(2, endianness));
         }
 
-        private GcAdpcmFormat GetAccendingAdpcm(int samplesPerEntry, int count, params int[] starts)
+        private GcAdpcmFormat GetAscendingAdpcm(int samplesPerEntry, int count, params int[] starts)
         {
-            short[][] pcm = starts.Select(start => GenerateAudio.GenerateAccendingShorts(start, count)).ToArray();
+            short[][] pcm = starts.Select(start => GenerateAudio.GenerateAscendingShorts(start, count)).ToArray();
             Pcm16Format pcmFormat = Pcm16Format.GetBuilder(pcm, 48000).Build();
             GcAdpcmFormat adpcm = new GcAdpcmFormat().EncodeFromPcm16(pcmFormat);
 
