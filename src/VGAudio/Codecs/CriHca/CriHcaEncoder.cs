@@ -14,8 +14,7 @@ namespace VGAudio.Codecs.CriHca
         public CriHcaQuality Quality { get; private set; }
         public int Bitrate { get; private set; }
         public int CutoffFrequency { get; private set; }
-        public short[][] PcmBuffer { get; private set; }
-        public byte[] HcaBuffer { get; private set; }
+
         private CriHcaChannel[] Channels { get; set; }
         private CriHcaFrame Frame { get; set; }
         private Crc16 Crc { get; } = new Crc16(0x8005);
@@ -65,14 +64,16 @@ namespace VGAudio.Codecs.CriHca
 
             Frame = new CriHcaFrame(Hca);
             Channels = Frame.Channels;
-
-            PcmBuffer = CreateJaggedArray<short[][]>(Hca.ChannelCount, SamplesPerFrame);
-            HcaBuffer = new byte[Hca.FrameSize];
         }
 
-        public void EncodeFrame()
+        public void Encode(short[][] pcm, byte[] hcaOut)
         {
-            PcmToFloat(PcmBuffer, Channels);
+            EncodeFrame(pcm, hcaOut);
+        }
+
+        private void EncodeFrame(short[][] pcm, byte[] hcaOut)
+        {
+            PcmToFloat(pcm, Channels);
             RunMdct(Channels);
             EncodeIntensityStereo(Frame);
             CalculateScaleFactors(Channels);
@@ -84,7 +85,7 @@ namespace VGAudio.Codecs.CriHca
             CalculateEvaluationBoundary(Frame);
             CalculateFrameResolutions(Frame);
             QuantizeSpectra(Channels);
-            PackFrame(Frame, Crc, HcaBuffer);
+            PackFrame(Frame, Crc, hcaOut);
         }
 
         private int CalculateBitrate(HcaInfo hca, CriHcaQuality quality, bool limitBitrate)

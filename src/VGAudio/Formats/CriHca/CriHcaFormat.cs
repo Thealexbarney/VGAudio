@@ -3,6 +3,7 @@ using VGAudio.Codecs;
 using VGAudio.Codecs.CriHca;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
+using static VGAudio.Codecs.CriHca.CriHcaConstants;
 
 namespace VGAudio.Formats.CriHca
 {
@@ -38,13 +39,11 @@ namespace VGAudio.Formats.CriHca
             config.Looping = pcm16.Looping;
             config.LoopStart = pcm16.LoopStart;
             config.LoopEnd = pcm16.LoopEnd;
-            var progress = config.Progress;
+            IProgressReport progress = config.Progress;
 
-            var encoder = CriHcaEncoder.InitializeNew(config);
-            const int frameSamples = 1024;
-            var pcm = pcm16.Channels;
-            var pcmBuffer = encoder.PcmBuffer;
-            var hcaBuffer = encoder.HcaBuffer;
+            CriHcaEncoder encoder = CriHcaEncoder.InitializeNew(config);
+            short[][] pcm = pcm16.Channels;
+            var pcmBuffer = Helpers.CreateJaggedArray<short[][]>(pcm16.ChannelCount, SamplesPerFrame);
 
             progress?.SetTotal(encoder.Hca.FrameCount);
 
@@ -52,14 +51,13 @@ namespace VGAudio.Formats.CriHca
 
             for (int i = 0; i < encoder.Hca.FrameCount; i++)
             {
-                int samplesToCopy = Math.Min(pcm16.SampleCount - i * frameSamples, frameSamples);
-                for (int c = 0; c < encoder.Hca.ChannelCount; c++)
+                int samplesToCopy = Math.Min(pcm16.SampleCount - i * SamplesPerFrame, SamplesPerFrame);
+                for (int c = 0; c < pcm.Length; c++)
                 {
-                    Array.Copy(pcm[c], frameSamples * i, pcmBuffer[c], 0, samplesToCopy);
+                    Array.Copy(pcm[c], SamplesPerFrame * i, pcmBuffer[c], 0, samplesToCopy);
                 }
 
-                encoder.EncodeFrame();
-                Array.Copy(hcaBuffer, audio[i], hcaBuffer.Length);
+                encoder.Encode(pcmBuffer, audio[i]);
                 progress?.ReportAdd(1);
             }
             var builder = new CriHcaFormatBuilder(audio, encoder.Hca);
