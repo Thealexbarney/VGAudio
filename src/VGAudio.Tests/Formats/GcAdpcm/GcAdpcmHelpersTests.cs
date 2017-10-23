@@ -78,7 +78,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         }
 
         [Fact]
-        public void SampleToNibbleConversionIsReversable()
+        public void SampleToNibbleConversionIsReversible()
         {
             for (int i = 1; i < 10000; i++)
             {
@@ -89,7 +89,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         }
 
         [Fact]
-        public void SampleCountToNibbleCountConversionIsReversable()
+        public void SampleCountToNibbleCountConversionIsReversible()
         {
             for (int i = 1; i < 10000; i++)
             {

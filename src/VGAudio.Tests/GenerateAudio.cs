@@ -106,7 +106,7 @@ namespace VGAudio.Tests
             return channels;
         }
 
-        public static short[] GenerateAccendingShorts(int start, int count)
+        public static short[] GenerateAscendingShorts(int start, int count)
         {
             var pcm = new short[count];
             for (int i = 0; i < count; i++)
