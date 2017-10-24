@@ -47,7 +47,7 @@ namespace VGAudio.Formats.CriHca
 
             progress?.SetTotal(encoder.Hca.FrameCount);
 
-            var audio = Helpers.CreateJaggedArray<byte[][]>(encoder.Hca.FrameCount, encoder.Hca.FrameSize);
+            var audio = Helpers.CreateJaggedArray<byte[][]>(encoder.Hca.FrameCount, encoder.FrameSize);
 
             int frameNum = 0;
             for (int i = 0; frameNum < encoder.Hca.FrameCount; i++)

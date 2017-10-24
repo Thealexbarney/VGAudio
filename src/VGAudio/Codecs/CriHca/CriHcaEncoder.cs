@@ -15,7 +15,15 @@ namespace VGAudio.Codecs.CriHca
         public CriHcaQuality Quality { get; private set; }
         public int Bitrate { get; private set; }
         public int CutoffFrequency { get; private set; }
+        /// <summary>
+        /// The number of buffered frames waiting to be read.
+        /// All buffered frames must be read before calling <see cref="Encode"/> again.
+        /// </summary>
         public int PendingFrameCount => HcaOutputBuffer.Count;
+        /// <summary>
+        /// The size, in bytes, of one frame of HCA audio data.
+        /// </summary>
+        public int FrameSize => Hca.FrameSize;
 
         private CriHcaChannel[] Channels { get; set; }
         private CriHcaFrame Frame { get; set; }
@@ -31,6 +39,11 @@ namespace VGAudio.Codecs.CriHca
 
         private Queue<byte[]> HcaOutputBuffer { get; set; }
 
+        /// <summary>
+        /// Creates and initializes a new <see cref="CriHcaEncoder"/>. The encoder
+        /// will be ready to accept PCM audio via <see cref="Encode"/>.
+        /// </summary>
+        /// <param name="config">The configuration to be used when creating the HCA file.</param>
         public static CriHcaEncoder InitializeNew(CriHcaParameters config)
         {
             var encoder = new CriHcaEncoder();
@@ -38,6 +51,11 @@ namespace VGAudio.Codecs.CriHca
             return encoder;
         }
 
+        /// <summary>
+        /// Initializes this <see cref="CriHcaEncoder"/>. Any preexisting state is reset, and the encoder
+        /// will be ready to accept PCM audio via <see cref="Encode"/>.
+        /// </summary>
+        /// <param name="config">The configuration to be used when creating the HCA file.</param>
         public void Initialize(CriHcaParameters config)
         {
             CutoffFrequency = config.SampleRate / 2;
@@ -84,6 +102,16 @@ namespace VGAudio.Codecs.CriHca
             BufferPreSamples = Hca.InsertedSamples - 128;
         }
 
+        /// <summary>
+        /// Encodes one frame of PCM audio into the HCA format.
+        /// </summary>
+        /// <param name="pcm">The PCM audio to encode. The array must be a jagged array
+        /// of the size [ChannelCount][1024] or larger.</param>
+        /// <param name="hcaOut">The buffer that the encoded HCA frame will be placed in.
+        /// Must be at least <see cref="FrameSize"/> bytes long.</param>
+        /// <returns>The number of HCA frames that were output by the encoder.
+        /// The first frame is output to <paramref name="hcaOut"/>. Any additional frames must be retrieved
+        /// by calling <see cref="GetPendingFrame"/> before <see cref="Encode"/> can be called again.</returns>
         public int Encode(short[][] pcm, byte[] hcaOut)
         {
             int framesOutput = 0;
@@ -110,6 +138,18 @@ namespace VGAudio.Codecs.CriHca
             }
 
             return framesOutput;
+        }
+
+        /// <summary>
+        /// Returns the next HCA frame awaiting output.
+        /// </summary>
+        /// <returns>Byte array containing the HCA frame data. The caller is given ownership of this array.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when there are no frames awaiting output.</exception>
+        public byte[] GetPendingFrame()
+        {
+            if (PendingFrameCount == 0) throw new InvalidOperationException("There are no pending frames");
+
+            return HcaOutputBuffer.Dequeue();
         }
 
         private int EncodePreAudio(short[][] pcm, byte[] hcaOut, int framesOutput)
@@ -204,13 +244,6 @@ namespace VGAudio.Codecs.CriHca
             }
             BufferPosition = 0;
             return framesOutput + 1;
-        }
-
-        public byte[] GetPendingFrame()
-        {
-            if (PendingFrameCount == 0) throw new InvalidOperationException("There are no pending frames");
-
-            return HcaOutputBuffer.Dequeue();
         }
 
         private void EncodeFrame(short[][] pcm, byte[] hcaOut)
