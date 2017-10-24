@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using VGAudio.Utilities;
 using static VGAudio.Codecs.CriHca.CriHcaConstants;
 using static VGAudio.Codecs.CriHca.CriHcaPacking;
@@ -14,10 +15,21 @@ namespace VGAudio.Codecs.CriHca
         public CriHcaQuality Quality { get; private set; }
         public int Bitrate { get; private set; }
         public int CutoffFrequency { get; private set; }
+        public int PendingFrameCount => HcaOutputBuffer.Count;
 
         private CriHcaChannel[] Channels { get; set; }
         private CriHcaFrame Frame { get; set; }
         private Crc16 Crc { get; } = new Crc16(0x8005);
+        
+        private short[][] PcmBuffer { get; set; }
+        private int BufferPosition { get; set; }
+        private int BufferRemaining => SamplesPerFrame - BufferPosition;
+        private int BufferPreSamples { get; set; }
+        private int SamplesProcessed { get; set; }
+        private int LoopSamples { get; set; }
+        private short[][] LoopAudio { get; set; }
+
+        private Queue<byte[]> HcaOutputBuffer { get; set; }
 
         public static CriHcaEncoder InitializeNew(CriHcaParameters config)
         {
@@ -59,16 +71,146 @@ namespace VGAudio.Codecs.CriHca
 
             int inputSampleCount = GetNextMultiple(Hca.SampleCount, SamplesPerSubFrame) + SamplesPerSubFrame * 2;
             int totalSamples = inputSampleCount + Hca.InsertedSamples;
+
+            LoopSamples = inputSampleCount - Hca.SampleCount;
             Hca.FrameCount = totalSamples.DivideByRoundUp(SamplesPerFrame);
             Hca.AppendedSamples = Hca.FrameCount * SamplesPerFrame - Hca.InsertedSamples - inputSampleCount;
 
             Frame = new CriHcaFrame(Hca);
             Channels = Frame.Channels;
+            PcmBuffer = CreateJaggedArray<short[][]>(Hca.ChannelCount, SamplesPerFrame);
+            LoopAudio = CreateJaggedArray<short[][]>(Hca.ChannelCount, LoopSamples);
+            HcaOutputBuffer = new Queue<byte[]>();
+            BufferPreSamples = Hca.InsertedSamples - 128;
         }
 
-        public void Encode(short[][] pcm, byte[] hcaOut)
+        public int Encode(short[][] pcm, byte[] hcaOut)
         {
-            EncodeFrame(pcm, hcaOut);
+            int framesOutput = 0;
+            int pcmPosition = 0;
+
+            if (BufferPreSamples > 0)
+            {
+                framesOutput = EncodePreAudio(pcm, hcaOut, framesOutput);
+            }
+
+            if (Hca.LoopStartSample + LoopSamples >= SamplesProcessed && Hca.LoopStartSample < SamplesProcessed + SamplesPerFrame)
+            {
+                SaveLoopAudio(pcm);
+            }
+
+            while (SamplesPerFrame - pcmPosition > 0 && Hca.SampleCount > SamplesProcessed)
+            {
+                framesOutput = EncodeMainAudio(pcm, hcaOut, framesOutput, ref pcmPosition);
+            }
+
+            if (Hca.SampleCount == SamplesProcessed)
+            {
+                framesOutput = EncodePostAudio(pcm, hcaOut, framesOutput);
+            }
+
+            return framesOutput;
+        }
+
+        private int EncodePreAudio(short[][] pcm, byte[] hcaOut, int framesOutput)
+        {
+            while (BufferPreSamples > SamplesPerFrame)
+            {
+                BufferPosition = SamplesPerFrame;
+                framesOutput = OutputFrame(framesOutput, hcaOut);
+                BufferPreSamples -= SamplesPerFrame;
+            }
+
+            for (int j = 0; j < BufferPreSamples; j++)
+            {
+                for (int i = 0; i < pcm.Length; i++)
+                {
+                    PcmBuffer[i][j] = pcm[i][0];
+                }
+            }
+
+            BufferPosition = BufferPreSamples;
+            BufferPreSamples = 0;
+            return framesOutput;
+        }
+
+        private int EncodeMainAudio(short[][] pcm, byte[] hcaOut, int framesOutput, ref int pcmPosition)
+        {
+            int toCopy = Math.Min(BufferRemaining, SamplesPerFrame - pcmPosition);
+            toCopy = Math.Min(toCopy, Hca.SampleCount - SamplesProcessed);
+
+            for (int i = 0; i < pcm.Length; i++)
+            {
+                Array.Copy(pcm[i], pcmPosition, PcmBuffer[i], BufferPosition, toCopy);
+            }
+            BufferPosition += toCopy;
+            SamplesProcessed += toCopy;
+            pcmPosition += toCopy;
+
+            framesOutput = OutputFrame(framesOutput, hcaOut);
+            return framesOutput;
+        }
+
+        private int EncodePostAudio(short[][] pcm, byte[] hcaOut, int framesOutput)
+        {
+            int loopPos = 0;
+            int loopCopy = LoopSamples;
+
+            while (loopPos < loopCopy)
+            {
+                int toCopy = Math.Min(BufferRemaining, loopCopy - loopPos);
+                for (int i = 0; i < pcm.Length; i++)
+                {
+                    Array.Copy(LoopAudio[i], loopPos, PcmBuffer[i], BufferPosition, toCopy);
+                }
+
+                BufferPosition += toCopy;
+                loopPos += toCopy;
+
+                framesOutput = OutputFrame(framesOutput, hcaOut);
+            }
+
+            for (int i = 0; i < pcm.Length; i++)
+            {
+                Array.Clear(PcmBuffer[i], BufferPosition, BufferRemaining);
+            }
+            BufferPosition = SamplesPerFrame;
+
+            framesOutput = OutputFrame(framesOutput, hcaOut);
+            return framesOutput;
+        }
+
+        private void SaveLoopAudio(short[][] pcm)
+        {
+            int startPos = Math.Max(Hca.LoopStartSample - SamplesProcessed, 0);
+            int loopPos = Math.Max(SamplesProcessed - Hca.LoopStartSample, 0);
+            int endPos = Math.Min(Hca.LoopStartSample - SamplesProcessed + LoopSamples, SamplesPerFrame);
+            int length = endPos - startPos;
+            for (int i = 0; i < pcm.Length; i++)
+            {
+                Array.Copy(pcm[i], startPos, LoopAudio[i], loopPos, length);
+            }
+        }
+
+        private int OutputFrame(int framesOutput, byte[] hcaOut)
+        {
+            if (BufferRemaining != 0) return framesOutput;
+
+            byte[] hca = framesOutput == 0 ? hcaOut : new byte[Hca.FrameSize];
+            EncodeFrame(PcmBuffer, hca);
+            if (framesOutput > 0)
+            {
+                HcaOutputBuffer.Enqueue(hca);
+            }
+            BufferPosition = 0;
+            return framesOutput + 1;
+        }
+
+        public byte[] GetPendingFrame()
+        {
+            if (PendingFrameCount == 0) throw new InvalidOperationException("There are no pending frames");
+
+            return HcaOutputBuffer.Dequeue();
         }
 
         private void EncodeFrame(short[][] pcm, byte[] hcaOut)

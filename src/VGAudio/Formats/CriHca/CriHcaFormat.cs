@@ -49,7 +49,8 @@ namespace VGAudio.Formats.CriHca
 
             var audio = Helpers.CreateJaggedArray<byte[][]>(encoder.Hca.FrameCount, encoder.Hca.FrameSize);
 
-            for (int i = 0; i < encoder.Hca.FrameCount; i++)
+            int frameNum = 0;
+            for (int i = 0; frameNum < encoder.Hca.FrameCount; i++)
             {
                 int samplesToCopy = Math.Min(pcm16.SampleCount - i * SamplesPerFrame, SamplesPerFrame);
                 for (int c = 0; c < pcm.Length; c++)
@@ -57,8 +58,26 @@ namespace VGAudio.Formats.CriHca
                     Array.Copy(pcm[c], SamplesPerFrame * i, pcmBuffer[c], 0, samplesToCopy);
                 }
 
-                encoder.Encode(pcmBuffer, audio[i]);
-                progress?.ReportAdd(1);
+                int framesWritten = encoder.Encode(pcmBuffer, audio[frameNum]);
+                if (framesWritten == 0)
+                {
+                    throw new NotSupportedException("Encoder returned no audio. This should not happen.");
+                }
+
+                if (framesWritten > 0)
+                {
+                    frameNum++;
+                    framesWritten--;
+                    progress?.ReportAdd(1);
+                }
+
+                while (framesWritten > 0)
+                {
+                    audio[frameNum] = encoder.GetPendingFrame();
+                    frameNum++;
+                    framesWritten--;
+                    progress?.ReportAdd(1);
+                }
             }
             var builder = new CriHcaFormatBuilder(audio, encoder.Hca);
             return builder.Build();
