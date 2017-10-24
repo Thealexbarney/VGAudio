@@ -28,14 +28,14 @@ namespace VGAudio.Codecs.CriHca
         private CriHcaChannel[] Channels { get; set; }
         private CriHcaFrame Frame { get; set; }
         private Crc16 Crc { get; } = new Crc16(0x8005);
-        
+
         private short[][] PcmBuffer { get; set; }
         private int BufferPosition { get; set; }
         private int BufferRemaining => SamplesPerFrame - BufferPosition;
         private int BufferPreSamples { get; set; }
         private int SamplesProcessed { get; set; }
-        private int LoopSamples { get; set; }
-        private short[][] LoopAudio { get; set; }
+        private int PostSamples { get; set; }
+        private short[][] PostAudio { get; set; }
 
         private Queue<byte[]> HcaOutputBuffer { get; set; }
 
@@ -60,6 +60,7 @@ namespace VGAudio.Codecs.CriHca
         {
             CutoffFrequency = config.SampleRate / 2;
             Quality = config.Quality;
+            PostSamples = 128;
 
             Hca = new HcaInfo
             {
@@ -77,27 +78,29 @@ namespace VGAudio.Codecs.CriHca
             Hca.CalculateHfrValues();
             SetChannelConfiguration(Hca);
 
+            int inputSampleCount = Hca.SampleCount;
+
             if (config.Looping)
             {
                 Hca.Looping = true;
                 Hca.SampleCount = Math.Min(config.LoopEnd, config.SampleCount);
                 Hca.InsertedSamples += GetNextMultiple(config.LoopStart, SamplesPerFrame) - config.LoopStart;
                 CalculateLoopInfo(Hca, config.LoopStart, config.LoopEnd);
+                inputSampleCount = GetNextMultiple(Hca.SampleCount, SamplesPerSubFrame) + SamplesPerSubFrame * 2;
+                PostSamples = inputSampleCount - Hca.SampleCount;
             }
 
             CalculateHeaderSize(Hca);
 
-            int inputSampleCount = GetNextMultiple(Hca.SampleCount, SamplesPerSubFrame) + SamplesPerSubFrame * 2;
             int totalSamples = inputSampleCount + Hca.InsertedSamples;
 
-            LoopSamples = inputSampleCount - Hca.SampleCount;
             Hca.FrameCount = totalSamples.DivideByRoundUp(SamplesPerFrame);
             Hca.AppendedSamples = Hca.FrameCount * SamplesPerFrame - Hca.InsertedSamples - inputSampleCount;
 
             Frame = new CriHcaFrame(Hca);
             Channels = Frame.Channels;
             PcmBuffer = CreateJaggedArray<short[][]>(Hca.ChannelCount, SamplesPerFrame);
-            LoopAudio = CreateJaggedArray<short[][]>(Hca.ChannelCount, LoopSamples);
+            PostAudio = CreateJaggedArray<short[][]>(Hca.ChannelCount, PostSamples);
             HcaOutputBuffer = new Queue<byte[]>();
             BufferPreSamples = Hca.InsertedSamples - 128;
         }
@@ -122,7 +125,7 @@ namespace VGAudio.Codecs.CriHca
                 framesOutput = EncodePreAudio(pcm, hcaOut, framesOutput);
             }
 
-            if (Hca.LoopStartSample + LoopSamples >= SamplesProcessed && Hca.LoopStartSample < SamplesProcessed + SamplesPerFrame)
+            if (Hca.Looping && Hca.LoopStartSample + PostSamples >= SamplesProcessed && Hca.LoopStartSample < SamplesProcessed + SamplesPerFrame)
             {
                 SaveLoopAudio(pcm);
             }
@@ -193,22 +196,24 @@ namespace VGAudio.Codecs.CriHca
 
         private int EncodePostAudio(short[][] pcm, byte[] hcaOut, int framesOutput)
         {
-            int loopPos = 0;
-            int loopCopy = LoopSamples;
+            int postPos = 0;
+            int remaining = PostSamples;
 
-            while (loopPos < loopCopy)
+            while (postPos < remaining)
             {
-                int toCopy = Math.Min(BufferRemaining, loopCopy - loopPos);
+                int toCopy = Math.Min(BufferRemaining, remaining - postPos);
                 for (int i = 0; i < pcm.Length; i++)
                 {
-                    Array.Copy(LoopAudio[i], loopPos, PcmBuffer[i], BufferPosition, toCopy);
+                    Array.Copy(PostAudio[i], postPos, PcmBuffer[i], BufferPosition, toCopy);
                 }
 
                 BufferPosition += toCopy;
-                loopPos += toCopy;
+                postPos += toCopy;
 
                 framesOutput = OutputFrame(framesOutput, hcaOut);
             }
+
+            if (BufferPosition == 0) return framesOutput;
 
             for (int i = 0; i < pcm.Length; i++)
             {
@@ -224,11 +229,11 @@ namespace VGAudio.Codecs.CriHca
         {
             int startPos = Math.Max(Hca.LoopStartSample - SamplesProcessed, 0);
             int loopPos = Math.Max(SamplesProcessed - Hca.LoopStartSample, 0);
-            int endPos = Math.Min(Hca.LoopStartSample - SamplesProcessed + LoopSamples, SamplesPerFrame);
+            int endPos = Math.Min(Hca.LoopStartSample - SamplesProcessed + PostSamples, SamplesPerFrame);
             int length = endPos - startPos;
             for (int i = 0; i < pcm.Length; i++)
             {
-                Array.Copy(pcm[i], startPos, LoopAudio[i], loopPos, length);
+                Array.Copy(pcm[i], startPos, PostAudio[i], loopPos, length);
             }
         }
 
