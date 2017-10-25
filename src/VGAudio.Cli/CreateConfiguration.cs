@@ -140,6 +140,7 @@ namespace VGAudio.Cli
 
             if (options.HcaQuality != CriHcaQuality.NotSet) config.Quality = options.HcaQuality;
             config.LimitBitrate = options.LimitBitrate;
+            if (options.Bitrate != 0) config.Bitrate = options.Bitrate;
 
             return config;
         }

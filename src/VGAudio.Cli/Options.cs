@@ -28,6 +28,7 @@ namespace VGAudio.Cli
         public ulong KeyCode { get; set; } //ADX
 
         public CriHcaQuality HcaQuality { get; set; }
+        public int Bitrate { get; set; }
         public bool LimitBitrate { get; set; }
     }
 

@@ -73,7 +73,7 @@ namespace VGAudio.Codecs.CriHca
                 InsertedSamples = SamplesPerSubFrame
             };
 
-            Bitrate = CalculateBitrate(Hca, Quality, config.LimitBitrate);
+            Bitrate = CalculateBitrate(Hca, Quality, config.Bitrate, config.LimitBitrate);
             CalculateBandCounts(Hca, Bitrate, CutoffFrequency);
             Hca.CalculateHfrValues();
             SetChannelConfiguration(Hca);
@@ -268,7 +268,7 @@ namespace VGAudio.Codecs.CriHca
             PackFrame(Frame, Crc, hcaOut);
         }
 
-        private int CalculateBitrate(HcaInfo hca, CriHcaQuality quality, bool limitBitrate)
+        private int CalculateBitrate(HcaInfo hca, CriHcaQuality quality, int bitrate, bool limitBitrate)
         {
             int pcmBitrate = Hca.SampleRate * Hca.ChannelCount * 16;
             int maxBitrate = pcmBitrate / 4;
@@ -294,7 +294,7 @@ namespace VGAudio.Codecs.CriHca
                     break;
             }
 
-            int bitrate = pcmBitrate / compressionRatio;
+            bitrate = bitrate != 0 ? bitrate : pcmBitrate / compressionRatio;
 
             if (limitBitrate)
             {

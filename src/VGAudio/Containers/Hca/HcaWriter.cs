@@ -23,6 +23,7 @@ namespace VGAudio.Containers.Hca
             var encodingConfig = new CriHcaParameters
             {
                 Progress = Configuration.Progress,
+                Bitrate = Configuration.Bitrate,
                 LimitBitrate = Configuration.LimitBitrate
             };
             if (Configuration.Quality != CriHcaQuality.NotSet)
