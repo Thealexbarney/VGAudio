@@ -1,6 +1,6 @@
 ﻿namespace VGAudio.Codecs.CriHca
 {
-    internal static class CriHcaConstants
+    public static class CriHcaConstants
     {
         public const int SubframesPerFrame = 8;
         public const int SubFrameSamplesBits = 7;
