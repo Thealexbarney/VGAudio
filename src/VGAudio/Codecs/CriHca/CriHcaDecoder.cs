@@ -115,28 +115,31 @@ namespace VGAudio.Codecs.CriHca
 
         private static void ReconstructHighFrequency(CriHcaFrame frame)
         {
-            if (frame.Hca.HfrGroupCount <= 0) return;
-            int storedBands = frame.Hca.BaseBandCount + frame.Hca.StereoBandCount;
-            for (int sf = 0; sf < SubframesPerFrame; sf++)
-            {
-                foreach (CriHcaChannel channel in frame.Channels)
-                {
-                    if (channel.Type == ChannelType.StereoSecondary) continue;
+            HcaInfo hca = frame.Hca;
+            if (hca.HfrGroupCount == 0) return;
 
-                    int destBand = storedBands;
-                    int sourceBand = storedBands - 1;
-                    for (int group = 0; group < frame.Hca.HfrGroupCount; group++)
+            // The last spectral coefficient should always be 0;
+            int totalBandCount = Math.Min(hca.TotalBandCount, 127);
+
+            int hfrStartBand = hca.BaseBandCount + hca.StereoBandCount;
+            int hfrBandCount = Math.Min(hca.HfrBandCount, totalBandCount - hca.HfrBandCount);
+
+            foreach (CriHcaChannel channel in frame.Channels)
+            {
+                if (channel.Type == ChannelType.StereoSecondary) continue;
+
+                for (int group = 0, band = 0; group < hca.HfrGroupCount; group++)
+                {
+                    for (int i = 0; i < hca.BandsPerHfrGroup && band < hfrBandCount; band++, i++)
                     {
-                        for (int band = 0;
-                            band < frame.Hca.BandsPerHfrGroup && destBand < frame.Hca.TotalBandCount && sourceBand >= 0;
-                            band++, sourceBand--)
+                        int highBand = hfrStartBand + band;
+                        int lowBand = hfrStartBand - band - 1;
+                        int index = channel.HfrScales[group] - channel.ScaleFactors[lowBand] + 64;
+                        for (int sf = 0; sf < SubframesPerFrame; sf++)
                         {
-                            channel.Spectra[sf][destBand++] =
-                                ScaleConversionTable[channel.HfrScales[group] - channel.ScaleFactors[sourceBand] + 64] *
-                                channel.Spectra[sf][sourceBand];
+                            channel.Spectra[sf][highBand] = ScaleConversionTable[index] * channel.Spectra[sf][lowBand];
                         }
                     }
-                    channel.Spectra[sf][0x7f] = 0;
                 }
             }
         }

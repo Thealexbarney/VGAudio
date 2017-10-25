@@ -447,7 +447,7 @@ namespace VGAudio.Codecs.CriHca
             while (level < 0)
             {
                 highestBand -= 2;
-                if (highestBand <= 0)
+                if (highestBand < 0)
                 {
                     throw new InvalidDataException("Bitrate is set too low.");
                 }
@@ -729,20 +729,18 @@ namespace VGAudio.Codecs.CriHca
             {
                 if (channel.Type == ChannelType.StereoSecondary) continue;
 
-                for (int group = 0; group < hca.HfrGroupCount; group++)
+                for (int group = 0, band = hfrStartBand; group < hca.HfrGroupCount; group++)
                 {
-                    int startBand = hfrStartBand + hca.BandsPerHfrGroup * group;
-                    int endBand = Math.Min(startBand + hca.BandsPerHfrGroup, 128);
-
                     double sum = 0.0;
-                    int count = (endBand - startBand) * SubframesPerFrame;
+                    int count = 0;
 
-                    for (int sf = 0; sf < SubframesPerFrame; ++sf)
+                    for (int i = 0; i < hca.BandsPerHfrGroup && band < SamplesPerSubFrame; band++, i++)
                     {
-                        for (int b = startBand; b < endBand; ++b)
+                        for (int subframe = 0; subframe < SubframesPerFrame; subframe++)
                         {
-                            sum += Math.Abs(channel.Spectra[sf][b]);
+                            sum += Math.Abs(channel.Spectra[subframe][band]);
                         }
+                        count += SubframesPerFrame;
                     }
 
                     channel.HfrGroupAverageSpectra[group] = sum / count;
@@ -756,27 +754,26 @@ namespace VGAudio.Codecs.CriHca
             if (hca.HfrGroupCount == 0) return;
 
             int hfrStartBand = hca.StereoBandCount + hca.BaseBandCount;
+            int hfrBandCount = Math.Min(hca.HfrBandCount, hca.TotalBandCount - hca.HfrBandCount);
 
             foreach (CriHcaChannel channel in frame.Channels)
             {
                 if (channel.Type == ChannelType.StereoSecondary) continue;
 
                 double[] groupSpectra = channel.HfrGroupAverageSpectra;
-                int lowBand = hfrStartBand - 1;
-                int highBand = hfrStartBand;
-                for (int group = 0; group < hca.HfrGroupCount; ++group)
+
+                for (int group = 0, band = 0; group < hca.HfrGroupCount; group++)
                 {
                     double sum = 0.0;
                     int count = 0;
-                    for (int band = 0; band < hca.BandsPerHfrGroup && highBand < hca.TotalBandCount && lowBand > 0; ++band)
+
+                    for (int i = 0; i < hca.BandsPerHfrGroup && band < hfrBandCount; band++, i++)
                     {
-                        for (int subframe = 0; subframe < 8; ++subframe)
+                        for (int subframe = 0; subframe < SubframesPerFrame; subframe++)
                         {
-                            sum += Math.Abs(channel.ScaledSpectra[lowBand][subframe]);
-                            count++;
+                            sum += Math.Abs(channel.ScaledSpectra[hfrStartBand - band - 1][subframe]);
                         }
-                        --lowBand;
-                        ++highBand;
+                        count += SubframesPerFrame;
                     }
 
                     double averageSpectra = sum / count;
