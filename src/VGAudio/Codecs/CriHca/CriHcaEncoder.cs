@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using VGAudio.Utilities;
 using static VGAudio.Codecs.CriHca.CriHcaConstants;
 using static VGAudio.Codecs.CriHca.CriHcaPacking;
@@ -436,11 +437,32 @@ namespace VGAudio.Codecs.CriHca
 
         private static void CalculateNoiseLevel(CriHcaFrame frame)
         {
+            int highestBand = frame.Hca.BaseBandCount + frame.Hca.StereoBandCount - 1;
             int availableBits = frame.Hca.FrameSize * 8;
             int maxLevel = 255;
             int minLevel = 0;
             int level = BinarySearchLevel(frame.Channels, availableBits, minLevel, maxLevel);
-            frame.AcceptableNoiseLevel = level >= 0 ? level : throw new NotImplementedException();
+
+            // If there aren't enough available bits, remove bands until there are.
+            while (level < 0)
+            {
+                highestBand -= 2;
+                if (highestBand <= 0)
+                {
+                    throw new InvalidDataException("Bitrate is set too low.");
+                }
+
+                foreach (CriHcaChannel channel in frame.Channels)
+                {
+                    channel.ScaleFactors[highestBand + 1] = 0;
+                    channel.ScaleFactors[highestBand + 2] = 0;
+                }
+
+                CalculateFrameHeaderLength(frame);
+                level = BinarySearchLevel(frame.Channels, availableBits, minLevel, maxLevel);
+            }
+
+            frame.AcceptableNoiseLevel = level;
         }
 
         private static void CalculateEvaluationBoundary(CriHcaFrame frame)
@@ -746,7 +768,7 @@ namespace VGAudio.Codecs.CriHca
                 {
                     double sum = 0.0;
                     int count = 0;
-                    for (int band = 0; band < hca.BandsPerHfrGroup && highBand < hca.TotalBandCount; ++band)
+                    for (int band = 0; band < hca.BandsPerHfrGroup && highBand < hca.TotalBandCount && lowBand > 0; ++band)
                     {
                         for (int subframe = 0; subframe < 8; ++subframe)
                         {
