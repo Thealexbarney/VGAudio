@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using VGAudio.Cli.Metadata;
 
 namespace VGAudio.Cli
@@ -31,7 +30,7 @@ namespace VGAudio.Cli
                         return false;
                     }
                 }
-                catch (InvalidDataException ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
                 }
