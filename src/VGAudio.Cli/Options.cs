@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using VGAudio.Codecs.CriAdx;
+using VGAudio.Codecs.CriHca;
 using VGAudio.Formats;
 
 namespace VGAudio.Cli
@@ -26,6 +27,10 @@ namespace VGAudio.Cli
         public CriAdxType AdxType { get; set; } // ADX
         public string KeyString { get; set; } //ADX
         public ulong KeyCode { get; set; } //ADX
+
+        public CriHcaQuality HcaQuality { get; set; }
+        public int Bitrate { get; set; }
+        public bool LimitBitrate { get; set; }
     }
 
     internal class AudioFile

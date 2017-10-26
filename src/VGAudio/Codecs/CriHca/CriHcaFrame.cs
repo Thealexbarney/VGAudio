@@ -1,57 +1,34 @@
-﻿using System;
-using VGAudio.Utilities;
-using static VGAudio.Codecs.CriHca.ChannelType;
+﻿using static VGAudio.Codecs.CriHca.ChannelType;
+using static VGAudio.Codecs.CriHca.CriHcaConstants;
 
 namespace VGAudio.Codecs.CriHca
 {
     public class CriHcaFrame
     {
-        private const int SubframesPerFrame = 8;
-        private const int FrameSizeBits = 7;
-        private const int FrameSize = 1 << FrameSizeBits;
-
         public HcaInfo Hca { get; }
-        public int ChannelCount { get; }
-        public int[] ScaleLength { get; }
-        public ChannelType[] ChannelType { get; }
-        public int[][] Scale { get; }
-        public int[][] Intensity { get; }
-        public int[][] Resolution { get; }
-        public int[][] HfrScale { get; }
-        public float[][] Gain { get; }
-        public int[][][] QuantizedSpectra { get; }
-        public double[][][] Spectra { get; }
-        public double[][][] PcmFloat { get; }
-        public Mdct[] Mdct { get; }
-        public byte[] AthCurve { get; } = new byte[128];
+        public CriHcaChannel[] Channels { get; }
+        public byte[] AthCurve { get; }
+        public int AcceptableNoiseLevel { get; set; }
+        public int EvaluationBoundary { get; set; }
 
         public CriHcaFrame(HcaInfo hca)
         {
             Hca = hca;
-            ChannelCount = hca.ChannelCount;
-            ChannelType = GetChannelTypes(hca);
-            ScaleLength = new int[hca.ChannelCount];
-            Mdct = new Mdct[hca.ChannelCount];
-            Scale = Helpers.CreateJaggedArray<int[][]>(ChannelCount, FrameSize);
-            Intensity = Helpers.CreateJaggedArray<int[][]>(ChannelCount, 8);
-            Resolution = Helpers.CreateJaggedArray<int[][]>(ChannelCount, FrameSize);
-            HfrScale = Helpers.CreateJaggedArray<int[][]>(ChannelCount, FrameSize);
-            Gain = Helpers.CreateJaggedArray<float[][]>(ChannelCount, FrameSize);
-            QuantizedSpectra = Helpers.CreateJaggedArray<int[][][]>(SubframesPerFrame, ChannelCount, FrameSize);
-            Spectra = Helpers.CreateJaggedArray<double[][][]>(SubframesPerFrame, ChannelCount, FrameSize);
-            PcmFloat = Helpers.CreateJaggedArray<double[][][]>(SubframesPerFrame, ChannelCount, FrameSize);
+            ChannelType[] channelTypes = GetChannelTypes(hca);
+            Channels = new CriHcaChannel[hca.ChannelCount];
 
-            for (int i = 0; i < hca.ChannelCount; i++)
+            for (int i = 0; i < Channels.Length; i++)
             {
-                ScaleLength[i] = hca.BaseBandCount;
-                if (ChannelType[i] != StereoSecondary) ScaleLength[i] += hca.StereoBandCount;
-                Mdct[i] = new Mdct(FrameSizeBits, CriHcaTables.MdctWindow, Math.Sqrt(2.0 / FrameSize));
+                Channels[i] = new CriHcaChannel
+                {
+                    Type = channelTypes[i],
+                    CodedScaleFactorCount = channelTypes[i] == StereoSecondary
+                        ? hca.BaseBandCount
+                        : hca.BaseBandCount + hca.StereoBandCount
+                };
             }
 
-            if (hca.UseAthCurve)
-            {
-                AthCurve = ScaleAthCurve(hca.SampleRate);
-            }
+            AthCurve = hca.UseAthCurve ? ScaleAthCurve(hca.SampleRate) : new byte[SamplesPerSubFrame];
         }
 
         private static ChannelType[] GetChannelTypes(HcaInfo hca)
@@ -82,7 +59,7 @@ namespace VGAudio.Codecs.CriHca
         /// <remarks>The original ATH curve is for a frequency of 41856 Hz.</remarks>
         private static byte[] ScaleAthCurve(int frequency)
         {
-            var ath = new byte[128];
+            var ath = new byte[SamplesPerSubFrame];
 
             int acc = 0;
             int i;
@@ -90,7 +67,7 @@ namespace VGAudio.Codecs.CriHca
             {
                 acc += frequency;
                 int index = acc >> 13;
-                
+
                 if (index >= CriHcaTables.AthCurve.Length)
                 {
                     break;

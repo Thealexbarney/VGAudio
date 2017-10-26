@@ -26,7 +26,7 @@ namespace VGAudio.Uwp.Audio
             [FileType.Bfstm] = new ContainerType("BFSTM", new[] { "bfstm" }, "BFSTM Audio File", () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Cafe)),
             [FileType.Hps] = new ContainerType("HPS", new[] { "hps" }, "HPS Audio File", () => new HpsReader(), () => new HpsWriter()),
             [FileType.Adx] = new ContainerType("ADX", new[] { "adx" }, "CRI ADX Audio File", () => new AdxReader(), () => new AdxWriter()),
-            [FileType.Hca] = new ContainerType("HCA", new[] { "hca" }, "CRI HCA Audio File", () => new HcaReader(), null),
+            [FileType.Hca] = new ContainerType("HCA", new[] { "hca" }, "CRI HCA Audio File", () => new HcaReader(), () => new HcaWriter()),
             [FileType.Genh] = new ContainerType("GENH", new[] { "genh" }, "GENH Audio File", () => new GenhReader(), null)
         };
 

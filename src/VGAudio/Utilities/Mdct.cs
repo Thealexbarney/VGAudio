@@ -15,10 +15,12 @@ namespace VGAudio.Utilities
         private static readonly List<double[]> CosTables = new List<double[]>();
         private static readonly List<int[]> ShuffleTables = new List<int[]>();
 
-        private readonly double[] _previous;
-        private readonly double[] _dctOut;
+        private readonly double[] _mdctPrevious;
+        private readonly double[] _imdctPrevious;
         private readonly double[] _imdctWindow;
-        private readonly double[] _work;
+
+        private readonly double[] _scratchMdct;
+        private readonly double[] _scratchDct;
 
         public Mdct(int mdctBits, double[] window, double scale = 1)
         {
@@ -36,9 +38,10 @@ namespace VGAudio.Utilities
                 throw new ArgumentException("Window must be as long as the MDCT size.", nameof(window));
             }
 
-            _previous = new double[MdctSize];
-            _dctOut = new double[MdctSize];
-            _work = new double[MdctSize];
+            _mdctPrevious = new double[MdctSize];
+            _imdctPrevious = new double[MdctSize];
+            _scratchMdct = new double[MdctSize];
+            _scratchDct = new double[MdctSize];
             _imdctWindow = window;
         }
 
@@ -57,6 +60,37 @@ namespace VGAudio.Utilities
             }
         }
 
+        public void RunMdct(double[] input, double[] output)
+        {
+            if (input.Length < MdctSize)
+            {
+                throw new ArgumentException("Input must be as long as the MDCT size.", nameof(input));
+            }
+
+            if (output.Length < MdctSize)
+            {
+                throw new ArgumentException("Output must be as long as the MDCT size.", nameof(output));
+            }
+
+            int size = MdctSize;
+            int half = size / 2;
+            double[] dctIn = _scratchMdct;
+
+            for (int i = 0; i < half; i++)
+            {
+                double a = _imdctWindow[half - i - 1] * -input[half + i];
+                double b = _imdctWindow[half + i] * input[half - i - 1];
+                double c = _imdctWindow[i] * _mdctPrevious[i];
+                double d = _imdctWindow[size - i - 1] * _mdctPrevious[size - i - 1];
+
+                dctIn[i] = a - b;
+                dctIn[half + i] = c - d;
+            }
+
+            Dct4(dctIn, output);
+            Array.Copy(input, _mdctPrevious, input.Length);
+        }
+
         public void RunImdct(double[] input, double[] output)
         {
             if (input.Length < MdctSize)
@@ -71,15 +105,16 @@ namespace VGAudio.Utilities
 
             int size = MdctSize;
             int half = size / 2;
+            double[] dctOut = _scratchMdct;
 
-            Dct4(input, _dctOut);
+            Dct4(input, dctOut);
 
             for (int i = 0; i < half; i++)
             {
-                output[i] = _imdctWindow[i] * _dctOut[i + half] + _previous[i];
-                output[i + half] = _imdctWindow[i + half] * -_dctOut[size - 1 - i] - _previous[i + half];
-                _previous[i] = _imdctWindow[size - 1 - i] * -_dctOut[half - i - 1];
-                _previous[i + half] = _imdctWindow[half - i - 1] * _dctOut[i];
+                output[i] = _imdctWindow[i] * dctOut[i + half] + _imdctPrevious[i];
+                output[i + half] = _imdctWindow[i + half] * -dctOut[size - 1 - i] - _imdctPrevious[i + half];
+                _imdctPrevious[i] = _imdctWindow[size - 1 - i] * -dctOut[half - i - 1];
+                _imdctPrevious[i + half] = _imdctWindow[half - i - 1] * dctOut[i];
             }
         }
 
@@ -93,7 +128,7 @@ namespace VGAudio.Utilities
             var shuffleTable = ShuffleTables[MdctBits];
             var sinTable = SinTables[MdctBits];
             var cosTable = CosTables[MdctBits];
-            double[] dctTemp = _work;
+            double[] dctTemp = _scratchDct;
 
             int size = MdctSize;
             int lastIndex = size - 1;
