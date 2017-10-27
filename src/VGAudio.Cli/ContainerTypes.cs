@@ -35,6 +35,21 @@ namespace VGAudio.Cli
         public static readonly Dictionary<string, FileType> Extensions =
             Containers.SelectMany(x => x.Value.Names.Select(y => new { y, x.Key }))
             .ToDictionary(x => x.y, x => x.Key);
+
+        public static readonly string[] ExtensionList = Extensions.Select(x => x.Key).ToArray();
+
+        public static readonly Dictionary<string, ContainerType> Names =
+            Containers.SelectMany(x => x.Value.Names.Select(y => new { y, x.Value }))
+            .ToDictionary(x => x.y, x => x.Value);
+
+        public static readonly Dictionary<string, ContainerType> Writable =
+            Containers.Where(x => x.Value.GetWriter != null)
+            .ToDictionary(x => x.Value.Names.First(), x => x.Value);
+
+        public static readonly string[] WritableList =
+            Containers.Where(x => x.Value.GetWriter != null)
+            .Select(x => x.Value.Names.First())
+            .ToArray();
     }
 
     internal class ContainerType

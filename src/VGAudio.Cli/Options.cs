@@ -11,6 +11,11 @@ namespace VGAudio.Cli
         public List<AudioFile> InFiles { get; } = new List<AudioFile>();
         public List<AudioFile> OutFiles { get; } = new List<AudioFile>();
 
+        public string InDir { get; set; }
+        public string OutDir { get; set; }
+        public bool Recurse { get; set; }
+        public string OutTypeName { get; set; }
+
         public bool KeepConfiguration { get; set; }
 
         public bool Loop { get; set; }

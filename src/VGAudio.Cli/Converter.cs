@@ -41,6 +41,23 @@ namespace VGAudio.Cli
                 Console.Write(Print.PrintMetadata(options));
             }
 
+            if (options.Job == JobType.Batch)
+            {
+                Stopwatch watch = Stopwatch.StartNew();
+                bool success = Batch.BatchConvert(options);
+                watch.Stop();
+
+                if (success)
+                {
+                    Console.WriteLine("Finished");
+                    Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
     }
