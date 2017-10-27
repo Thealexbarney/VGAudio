@@ -21,11 +21,13 @@ namespace VGAudio.Cli
             [FileType.Dsp] = new ContainerType(new[] { "dsp" }, () => new DspReader(), () => new DspWriter(), CreateConfiguration.Dsp),
             [FileType.Idsp] = new ContainerType(new[] { "idsp" }, () => new IdspReader(), () => new IdspWriter(), CreateConfiguration.Idsp),
             [FileType.Brstm] = new ContainerType(new[] { "brstm" }, () => new BrstmReader(), () => new BrstmWriter(), CreateConfiguration.Bxstm),
-            [FileType.Bcstm] = new ContainerType(new[] { "bcstm", "bcstp" }, () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Ctr), CreateConfiguration.Bxstm),
-            [FileType.Bfstm] = new ContainerType(new[] { "bfstm", "bfstp" }, () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Cafe), CreateConfiguration.Bxstm),
+            [FileType.Bcstm] = new ContainerType(new[] { "bcstm" }, () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Ctr), CreateConfiguration.Bxstm),
+            [FileType.Bfstm] = new ContainerType(new[] { "bfstm" }, () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Cafe), CreateConfiguration.Bxstm),
             [FileType.Brwav] = new ContainerType(new[] { "brwav", "rwav" }, () => new BrwavReader(), null, CreateConfiguration.Bxstm),
             [FileType.Bcwav] = new ContainerType(new[] { "bcwav", "cwav" }, () => new BCFstmReader(), null, CreateConfiguration.Bxstm),
             [FileType.Bfwav] = new ContainerType(new[] { "bfwav" }, () => new BCFstmReader(), null, CreateConfiguration.Bxstm),
+            [FileType.Bcstp] = new ContainerType(new[] { "bcstp" }, () => new BCFstmReader(), null, CreateConfiguration.Bxstm),
+            [FileType.Bfstp] = new ContainerType(new[] { "bfstp" }, () => new BCFstmReader(), null, CreateConfiguration.Bxstm),
             [FileType.Hps] = new ContainerType(new[] { "hps" }, () => new HpsReader(), () => new HpsWriter(), CreateConfiguration.Hps),
             [FileType.Adx] = new ContainerType(new[] { "adx" }, () => new AdxReader(), () => new AdxWriter(), CreateConfiguration.Adx),
             [FileType.Hca] = new ContainerType(new[] { "hca" }, () => new HcaReader(), () => new HcaWriter(), CreateConfiguration.Hca),
@@ -38,17 +40,14 @@ namespace VGAudio.Cli
 
         public static readonly string[] ExtensionList = Extensions.Select(x => x.Key).ToArray();
 
-        public static readonly Dictionary<string, ContainerType> Names =
-            Containers.SelectMany(x => x.Value.Names.Select(y => new { y, x.Value }))
-            .ToDictionary(x => x.y, x => x.Value);
-
-        public static readonly Dictionary<string, ContainerType> Writable =
+        public static readonly Dictionary<string, FileType> Writable =
             Containers.Where(x => x.Value.GetWriter != null)
-            .ToDictionary(x => x.Value.Names.First(), x => x.Value);
+                .SelectMany(x => x.Value.Names.Select(y => new { y, x.Key }))
+                .ToDictionary(x => x.y, x => x.Key);
 
         public static readonly string[] WritableList =
             Containers.Where(x => x.Value.GetWriter != null)
-            .Select(x => x.Value.Names.First())
+            .SelectMany(x => x.Value.Names)
             .ToArray();
     }
 

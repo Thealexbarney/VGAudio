@@ -12,21 +12,24 @@ namespace VGAudio.Cli
         private AudioData Audio { get; set; }
         private Configuration Configuration { get; set; }
         private ContainerType OutType { get; set; }
+        private bool ShowProgress { get; set; }
 
-        public static bool ConvertFile(Options options)
+        public static bool ConvertFile(Options options) => ConvertFile(options, options.Files);
+
+        public static bool ConvertFile(Options options, JobFiles files, bool showProgress = true)
         {
-            if (options.Job != JobType.Convert) return false;
+            if (options.Job != JobType.Convert && options.Job != JobType.Batch) return false;
 
-            var converter = new Convert();
+            var converter = new Convert { ShowProgress = showProgress };
 
-            foreach (AudioFile file in options.InFiles)
+            foreach (AudioFile file in files.InFiles)
             {
                 converter.ReadFile(file);
             }
 
-            converter.EncodeFiles(options);
-            converter.SetConfiguration(options);
-            converter.WriteFile(options.OutFiles[0].Path);
+            converter.EncodeFiles(files, options);
+            converter.SetConfiguration(files.OutFiles[0].Type, options);
+            converter.WriteFile(files.OutFiles[0].Path);
 
             return true;
         }
@@ -53,20 +56,20 @@ namespace VGAudio.Cli
             using (var stream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
             using (var progress = new ProgressBar())
             {
-                Configuration.Progress = progress;
+                if (ShowProgress) Configuration.Progress = progress;
                 OutType.GetWriter().WriteToStream(Audio, stream, Configuration);
             }
         }
 
-        private void EncodeFiles(Options options)
+        private void EncodeFiles(JobFiles files, Options options)
         {
-            foreach (AudioFile file in options.InFiles.Where(x => x.Channels != null))
+            foreach (AudioFile file in files.InFiles.Where(x => x.Channels != null))
             {
                 IAudioFormat format = file.Audio.GetAllFormats().First();
                 file.Audio = new AudioData(format.GetChannels(file.Channels.ToArray()));
             }
 
-            AudioData[] toMerge = options.InFiles.Select(x => x.Audio).ToArray();
+            AudioData[] toMerge = files.InFiles.Select(x => x.Audio).ToArray();
 
             Audio = AudioData.Combine(toMerge);
 
@@ -81,14 +84,14 @@ namespace VGAudio.Cli
             }
         }
 
-        private void SetConfiguration(Options options)
+        private void SetConfiguration(FileType fileType, Options options)
         {
             if (!options.KeepConfiguration)
             {
                 Configuration = null;
             }
 
-            if (!ContainerTypes.Containers.TryGetValue(options.OutFiles[0].Type, out ContainerType type))
+            if (!ContainerTypes.Containers.TryGetValue(fileType, out ContainerType type))
             {
                 throw new ArgumentOutOfRangeException(nameof(type), "Output type not in type dictionary");
             }

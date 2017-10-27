@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using VGAudio.Containers;
+// ReSharper disable AccessToDisposedClosure
 
 namespace VGAudio.Cli
 {
     internal static class Batch
     {
-        [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         public static bool BatchConvert(Options options)
         {
             if (options.Job != JobType.Batch) return false;
 
             SearchOption searchOption = options.Recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            ContainerType outType = ContainerTypes.Writable[options.OutTypeName];
             string[] files = ContainerTypes.ExtensionList
                 .SelectMany(x => Directory.GetFiles(options.InDir, $"*.{x}", searchOption))
                 .ToArray();
@@ -28,30 +25,21 @@ namespace VGAudio.Cli
 
                 Parallel.ForEach(files, inPath =>
                 {
-                    string inName = Path.GetFileName(inPath);
-                    ContainerType inType = ContainerTypes.Containers[CliArguments.GetFileTypeFromName(inPath)];
                     string relativePath = inPath.Substring(options.InDir.Length).TrimStart('\\');
-                    string outName = Path.ChangeExtension(Path.Combine(options.OutDir, relativePath), options.OutTypeName);
+                    string outPath = Path.ChangeExtension(Path.Combine(options.OutDir, relativePath), options.OutTypeName);
+
+                    var jobFiles = new JobFiles();
+                    jobFiles.InFiles.Add(new AudioFile(inPath));
+                    jobFiles.OutFiles.Add(new AudioFile(outPath));
 
                     try
                     {
-                        progress.LogMessage(inName);
-
-                        AudioWithConfig inAudio;
-                        using (var stream = new FileStream(inPath, FileMode.Open, FileAccess.Read))
-                        {
-                            inAudio = inType.GetReader().ReadWithConfig(stream);
-                        }
-                        Configuration configuration = outType.GetConfiguration(options, inAudio.Configuration);
-
-                        using (var stream = new FileStream(outName, FileMode.Create, FileAccess.ReadWrite))
-                        {
-                            outType.GetWriter().WriteToStream(inAudio.Audio, stream, configuration);
-                        }
+                        progress.LogMessage(Path.GetFileName(inPath));
+                        Convert.ConvertFile(options, jobFiles, false);
                     }
                     catch (Exception ex)
                     {
-                        progress.LogMessage($"Error converting {inName}");
+                        progress.LogMessage($"Error converting {Path.GetFileName(inPath)}");
                         progress.LogMessage(ex.ToString());
                     }
 
