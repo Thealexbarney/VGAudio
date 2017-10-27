@@ -3,7 +3,7 @@ using System.Linq;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
-using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmMath;
 using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.Idsp
@@ -59,7 +59,7 @@ namespace VGAudio.Containers.Idsp
         {
             return new IdspConfiguration
             {
-                BytesPerInterleave = structure.InterleaveSize
+                BlockSize = structure.InterleaveSize
             };
         }
 

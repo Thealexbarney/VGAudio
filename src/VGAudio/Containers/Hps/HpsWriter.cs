@@ -5,7 +5,7 @@ using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Utilities;
-using static VGAudio.Codecs.GcAdpcm.GcAdpcmHelpers;
+using static VGAudio.Codecs.GcAdpcm.GcAdpcmMath;
 using static VGAudio.Utilities.Helpers;
 
 namespace VGAudio.Containers.Hps
@@ -28,7 +28,7 @@ namespace VGAudio.Containers.Hps
             Adpcm = audio.GetFormat<GcAdpcmFormat>(new GcAdpcmParameters { Progress = Configuration.Progress });
             int channelSize = GetNextMultiple(MaxBlockSize / ChannelCount - 0x20, 0x20);
             MaxBlockSizeActual = channelSize * ChannelCount;
-            int alignment = NibbleCountToSampleCount(channelSize * 2);
+            int alignment = ByteCountToSampleCount(channelSize);
             if (!LoopPointsAreAligned(Adpcm.LoopStart, alignment))
             {
                 Adpcm = Adpcm.GetCloneBuilder().WithAlignment(alignment).Build();

@@ -8,9 +8,15 @@ namespace VGAudio.Cli
     internal class Options
     {
         public JobType Job { get; set; }
+        public JobFiles Files { get; } = new JobFiles();
 
-        public List<AudioFile> InFiles { get; } = new List<AudioFile>();
-        public List<AudioFile> OutFiles { get; } = new List<AudioFile>();
+        public List<AudioFile> InFiles => Files.InFiles;
+        public List<AudioFile> OutFiles => Files.OutFiles;
+
+        public string InDir { get; set; }
+        public string OutDir { get; set; }
+        public bool Recurse { get; set; }
+        public string OutTypeName { get; set; }
 
         public bool KeepConfiguration { get; set; }
 
@@ -19,6 +25,7 @@ namespace VGAudio.Cli
         public int LoopStart { get; set; }
         public int LoopEnd { get; set; }
         public int LoopAlignment { get; set; }
+        public int BlockSize { get; set; }
         public AudioFormat OutFormat { get; set; }
         public int Version { get; set; } // ADX
         public int FrameSize { get; set; } // ADX
@@ -32,8 +39,21 @@ namespace VGAudio.Cli
         public bool LimitBitrate { get; set; }
     }
 
+    internal class JobFiles
+    {
+        public List<AudioFile> InFiles { get; } = new List<AudioFile>();
+        public List<AudioFile> OutFiles { get; } = new List<AudioFile>();
+    }
+
     internal class AudioFile
     {
+        public AudioFile() { }
+        public AudioFile(string path)
+        {
+            Path = path;
+            Type = CliArguments.GetFileTypeFromName(path);
+        }
+
         public string Path { get; set; }
         public FileType Type { get; set; }
         public AudioData Audio { get; set; }
@@ -59,6 +79,8 @@ namespace VGAudio.Cli
         Brwav,
         Bcwav,
         Bfwav,
+        Bcstp,
+        Bfstp,
         Hps,
         Adx,
         Hca,

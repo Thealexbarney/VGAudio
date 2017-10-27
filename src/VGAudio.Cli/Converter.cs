@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using VGAudio.Cli.Metadata;
 
 namespace VGAudio.Cli
@@ -31,7 +30,7 @@ namespace VGAudio.Cli
                         return false;
                     }
                 }
-                catch (InvalidDataException ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
                 }
@@ -40,6 +39,23 @@ namespace VGAudio.Cli
             if (options.Job == JobType.Metadata)
             {
                 Console.Write(Print.PrintMetadata(options));
+            }
+
+            if (options.Job == JobType.Batch)
+            {
+                Stopwatch watch = Stopwatch.StartNew();
+                bool success = Batch.BatchConvert(options);
+                watch.Stop();
+
+                if (success)
+                {
+                    Console.WriteLine("Finished");
+                    Console.WriteLine($"Time elapsed: {watch.Elapsed.TotalSeconds}");
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             return true;

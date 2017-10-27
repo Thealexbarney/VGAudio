@@ -65,9 +65,9 @@ namespace VGAudio.Cli
                     throw new InvalidDataException("Can't use format PCM8 with IDSP files");
             }
 
-            if (options.LoopAlignment > 0)
+            if (options.BlockSize > 0)
             {
-                config.LoopPointAlignment = options.LoopAlignment;
+                config.BlockSize = options.BlockSize;
             }
 
             return config;

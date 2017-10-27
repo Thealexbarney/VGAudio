@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -21,11 +21,33 @@ namespace VGAudio.Cli
                 {
                     switch (args[i].Split(':')[0].Substring(1).ToUpper())
                     {
-                        case "-VERSION" when args.Length == 1:
+                        case "C" when i == 0:
+                        case "-CONVERT" when i == 0:
+                            options.Job = JobType.Convert;
+                            continue;
+                        case "B" when i == 0:
+                        case "-BATCH" when i == 0:
+                            options.Job = JobType.Batch;
+                            continue;
+                        case "M" when i == 0:
+                        case "-METADATA" when i == 0:
+                            options.Job = JobType.Metadata;
+                            continue;
+                        case "H" when i == 0:
+                        case "-HELP" when i == 0:
+                            PrintUsage();
+                            return null;
+                        case "-VERSION" when i == 0:
                             Console.WriteLine($"VGAudio v{GetProgramVersion()}");
                             return null;
-                        case "M":
-                            options.Job = JobType.Metadata;
+                        case "I" when options.Job == JobType.Batch:
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after -i switch.");
+                                return null;
+                            }
+                            options.InDir = args[i + 1];
+                            i++;
                             continue;
                         case "I":
                             List<int> range = null;
@@ -41,7 +63,7 @@ namespace VGAudio.Cli
                             options.InFiles.Add(new AudioFile { Path = args[i + 1], Channels = range });
                             i++;
                             continue;
-                        case "O":
+                        case "O" when options.Job == JobType.Convert:
                             if (options.OutFiles.Count > 0)
                             {
                                 PrintWithUsage("Can't set multiple outputs.");
@@ -54,6 +76,18 @@ namespace VGAudio.Cli
                             }
                             options.OutFiles.Add(new AudioFile { Path = args[i + 1] });
                             i++;
+                            continue;
+                        case "O" when options.Job == JobType.Batch:
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after -o switch.");
+                                return null;
+                            }
+                            options.OutDir = args[i + 1];
+                            i++;
+                            continue;
+                        case "R":
+                            options.Recurse = true;
                             continue;
                         case "L":
                             if (options.NoLoop)
@@ -131,10 +165,6 @@ namespace VGAudio.Cli
                             options.OutFormat = format;
                             i++;
                             continue;
-                        case "-HELP":
-                        case "H":
-                            PrintUsage();
-                            return null;
                         case "-VERSION":
                             if (i + 1 >= args.Length)
                             {
@@ -217,6 +247,16 @@ namespace VGAudio.Cli
                             }
 
                             options.KeyString = args[i + 1];
+                            i++;
+                            continue;
+                        case "-OUT-FORMAT":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --out-format.");
+                                return null;
+                            }
+
+                            options.OutTypeName = args[i + 1];
                             i++;
                             continue;
                         case "-KEYCODE":
@@ -312,6 +352,36 @@ namespace VGAudio.Cli
 
         private static bool ValidateFileNameAndType(Options options)
         {
+            if (options.Job == JobType.Batch)
+            {
+                if (string.IsNullOrWhiteSpace(options.InDir))
+                {
+                    PrintWithUsage("Input directory must be specified.");
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(options.OutDir))
+                {
+                    PrintWithUsage("Output directory must be specified.");
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(options.OutTypeName))
+                {
+                    PrintWithUsage("Output file type must be specified.");
+                    return false;
+                }
+
+                if (!ContainerTypes.Writable.ContainsKey(options.OutTypeName))
+                {
+                    Console.WriteLine("Output type not available. Available types are:");
+                    Console.WriteLine(string.Join(", ", ContainerTypes.WritableList));
+                    return false;
+                }
+
+                return true;
+            }
+
             if (options.InFiles.Count == 0)
             {
                 PrintWithUsage("Input file must be specified.");
@@ -356,7 +426,7 @@ namespace VGAudio.Cli
             return true;
         }
 
-        private static FileType GetFileTypeFromName(string fileName)
+        public static FileType GetFileTypeFromName(string fileName)
         {
             string extension = Path.GetExtension(fileName)?.TrimStart('.').ToLower() ?? "";
             ContainerTypes.Extensions.TryGetValue(extension, out FileType fileType);
@@ -411,18 +481,32 @@ namespace VGAudio.Cli
 
         private static void PrintUsage()
         {
-            Console.WriteLine($"Usage: {GetProgramName()} [options] infile [-i infile2...] [outfile]\n");
+            Console.WriteLine($"Usage: {GetProgramName()} [mode] [options] infile [-i infile2...] [outfile]");
+            Console.WriteLine("\nAvailable Modes:");
+            Console.WriteLine("If no mode is specified, a single-file conversion is performed");
+            Console.WriteLine("  -c, --convert    Single-file conversion mode");
+            Console.WriteLine("  -b, --batch      Batch conversion mode");
+            Console.WriteLine("  -m, --metadata   Print file metadata");
+            Console.WriteLine("  -h, --help       Display this help and exit");
+            Console.WriteLine("      --version    Display version information and exit");
+
+            Console.WriteLine("\nCommon Options:");
             Console.WriteLine("  -i <file>        Specify an input file");
+            Console.WriteLine("  -l <start-end>   Set the start and end loop points");
+            Console.WriteLine("                   Loop points are given in zero-indexed samples");
+            Console.WriteLine("      --no-loop    Sets the audio to not loop");
+            Console.WriteLine("  -f               Specify the audio format to use in the output file");
+
+            Console.WriteLine("\nConvert Options:");
             Console.WriteLine("  -i:#,#-# <file>  Specify an input file and the channels to use");
             Console.WriteLine("                   The index for channels is zero-based");
             Console.WriteLine("  -o               Specify the output file");
-            Console.WriteLine("  -m               Print file metadata");
-            Console.WriteLine("  -l <start-end>   Set the start and end loop points");
-            Console.WriteLine("                   Loop points are given in zero-based samples");
-            Console.WriteLine("      --no-loop    Sets the audio to not loop");
-            Console.WriteLine("  -f               Specify the audio format to use in the output file");
-            Console.WriteLine("  -h, --help       Display this help and exit");
-            Console.WriteLine("      --version    Display version information and exit");
+
+            Console.WriteLine("\nBatch Options:");
+            Console.WriteLine("  -i  <dir>        Specify the input directory");
+            Console.WriteLine("  -o  <dir>        Specify the output directory");
+            Console.WriteLine("  -r               Recurse subdirectories");
+            Console.WriteLine("      --out-format The file type or container to save files as");
 
             Console.WriteLine("\nADX Options:");
             Console.WriteLine("      --adxtype    The ADX encoding type to use");
@@ -430,7 +514,7 @@ namespace VGAudio.Cli
             Console.WriteLine("      --keystring  String to use for ADX type 8 encryption");
             Console.WriteLine("      --keycode    Number to use for ADX type 9 encryption");
             Console.WriteLine("                   Between 1-18446744073709551615");
-            Console.WriteLine("      --filter     Filter to use for fixed coefficient ADX encoding [0-3]");
+            Console.WriteLine("      --filter     Filter to use for fixed-coefficient ADX encoding [0-3]");
             Console.WriteLine("      --version #  ADX header version to write [3,4]");
 
             Console.WriteLine("\nHCA Options:");

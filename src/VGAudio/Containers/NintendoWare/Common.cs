@@ -15,7 +15,7 @@ namespace VGAudio.Containers.NintendoWare
             switch (codec)
             {
                 case NwCodec.GcAdpcm:
-                    return GcAdpcmHelpers.SampleCountToByteCount(sampleCount);
+                    return GcAdpcmMath.SampleCountToByteCount(sampleCount);
                 case NwCodec.Pcm16Bit:
                     return sampleCount * 2;
                 case NwCodec.Pcm8Bit:
@@ -30,7 +30,7 @@ namespace VGAudio.Containers.NintendoWare
             switch (codec)
             {
                 case NwCodec.GcAdpcm:
-                    return GcAdpcmHelpers.NibbleCountToSampleCount(byteCount * 2);
+                    return GcAdpcmMath.ByteCountToSampleCount(byteCount);
                 case NwCodec.Pcm16Bit:
                     return byteCount / 2;
                 case NwCodec.Pcm8Bit:

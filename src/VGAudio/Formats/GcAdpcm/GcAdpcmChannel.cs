@@ -30,7 +30,7 @@ namespace VGAudio.Formats.GcAdpcm
 
         internal GcAdpcmChannel(GcAdpcmChannelBuilder b)
         {
-            if (b.AlignedAdpcm.Length < GcAdpcmHelpers.SampleCountToByteCount(b.SampleCount))
+            if (b.AlignedAdpcm.Length < GcAdpcmMath.SampleCountToByteCount(b.SampleCount))
             {
                 throw new ArgumentException("Audio array length is too short for the specified number of samples.");
             }
