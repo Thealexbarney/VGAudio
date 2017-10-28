@@ -18,14 +18,14 @@ namespace VGAudio.Codecs.CriHca
             MdctWindow = (double[])arrays[7];
         }
 
-        public static float[] DequantizerScalingTable { get; } = Arrays.Generate(64, DequantizerScalingFunction);
-        public static float[] DequantizerRangeTable { get; } = Arrays.Generate(16, DequantizerRangeFunction);
-        public static float[] QuantizerScalingTable { get; } = Arrays.Generate(64, i => 1 / DequantizerScalingFunction(i));
-        public static float[] QuantizerRangeTable { get; } = Arrays.Generate(16, QuantizerRangeFunction);
+        public static double[] DequantizerScalingTable { get; } = Arrays.Generate(64, DequantizerScalingFunction);
+        public static double[] DequantizerRangeTable { get; } = Arrays.Generate(16, DequantizerRangeFunction);
+        public static double[] QuantizerScalingTable { get; } = Arrays.Generate(64, i => 1 / DequantizerScalingFunction(i));
+        public static double[] QuantizerRangeTable { get; } = Arrays.Generate(16, QuantizerRangeFunction);
         public static int[] ResolutionMaxValues { get; } = Arrays.Generate(16, ResolutionMaxValueFunction);
-        public static float[] IntensityRatioTable { get; } = Arrays.Generate(15, IntensityRatioFunction);
-        public static float[] IntensityRatioBoundsTable { get; } = Arrays.Generate(14, IntensityRatioBoundsFunction);
-        public static float[] ScaleConversionTable { get; } = Arrays.Generate(128, ScaleConversionTableFunction);
+        public static double[] IntensityRatioTable { get; } = Arrays.Generate(15, IntensityRatioFunction);
+        public static double[] IntensityRatioBoundsTable { get; } = Arrays.Generate(14, IntensityRatioBoundsFunction);
+        public static double[] ScaleConversionTable { get; } = Arrays.Generate(128, ScaleConversionTableFunction);
 
         public static byte[] ScaleToResolutionCurve { get; }
         public static byte[] QuantizedSpectrumMaxBits { get; }
@@ -61,12 +61,12 @@ namespace VGAudio.Codecs.CriHca
             new byte[] {0, 0, 0, 1, 0, 0, 0, 0}
         };
 
-        private static float DequantizerScalingFunction(int x) => (float)(Math.Sqrt(128) * Math.Pow(Math.Pow(2, 53f / 128), x - 63));
-        private static float DequantizerRangeFunction(int x) => x == 0 ? 0 : 1 / QuantizerRangeFunction(x);
-        private static float QuantizerRangeFunction(int x) => ResolutionMaxValueFunction(x) + 0.5f;
-        private static float ScaleConversionTableFunction(int x) => x > 1 && x < 127 ? (float)Math.Pow(Math.Pow(2, 53f / 128), x - 64) : 0;
-        private static float IntensityRatioFunction(int x) => (28 - x * 2) / 14f;
-        private static float IntensityRatioBoundsFunction(int x) => (27 - x * 2) / 14f;
+        private static double DequantizerScalingFunction(int x) => Math.Sqrt(128) * Math.Pow(Math.Pow(2, 53.0 / 128), x - 63);
+        private static double DequantizerRangeFunction(int x) => x == 0 ? 0 : 1 / QuantizerRangeFunction(x);
+        private static double QuantizerRangeFunction(int x) => ResolutionMaxValueFunction(x) + 0.5;
+        private static double ScaleConversionTableFunction(int x) => x > 1 && x < 127 ? Math.Pow(Math.Pow(2, 53.0 / 128), x - 64) : 0;
+        private static double IntensityRatioFunction(int x) => (28 - x * 2) / 14.0;
+        private static double IntensityRatioBoundsFunction(int x) => (27 - x * 2) / 14.0;
 
         private static int ResolutionMaxValueFunction(int x)
         {

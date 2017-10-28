@@ -342,9 +342,9 @@ namespace VGAudio.Codecs.CriHca
                 cutoffFreq = Math.Min(cutoffFreq, cutoffRatio * bitrate / (32 * hca.ChannelCount));
             }
 
-            int totalBandCount = (int)Math.Round(cutoffFreq * 256d / hca.SampleRate);
+            int totalBandCount = (int)Math.Round(cutoffFreq * 256.0 / hca.SampleRate);
 
-            int hfrStartBand = (int)Math.Min(totalBandCount, Math.Round((hfrRatio * bitrate * 128d) / pcmBitrate));
+            int hfrStartBand = (int)Math.Min(totalBandCount, Math.Round((hfrRatio * bitrate * 128.0) / pcmBitrate));
             int stereoStartBand = hfrRatio == 6 ? hfrStartBand : (hfrStartBand + 1) / 2;
 
             int hfrBandCount = totalBandCount - hfrStartBand;
@@ -667,7 +667,7 @@ namespace VGAudio.Codecs.CriHca
 
         private static int FindScaleFactor(double value)
         {
-            float[] sf = CriHcaTables.DequantizerScalingTable;
+            double[] sf = CriHcaTables.DequantizerScalingTable;
             for (int i = 0; i < sf.Length; i++)
             {
                 if (sf[i] > value) return i;
@@ -818,7 +818,7 @@ namespace VGAudio.Codecs.CriHca
                 {
                     for (int i = 0; i < SamplesPerSubFrame; i++)
                     {
-                        channels[c].PcmFloat[sf][i] = pcm[c][pcmIdx++] * (1f / 32768f);
+                        channels[c].PcmFloat[sf][i] = pcm[c][pcmIdx++] * (1.0 / 32768.0);
                     }
                 }
             }

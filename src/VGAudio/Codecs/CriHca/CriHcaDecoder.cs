@@ -154,8 +154,8 @@ namespace VGAudio.Codecs.CriHca
                 {
                     double[] l = frame.Channels[c].Spectra[sf];
                     double[] r = frame.Channels[c + 1].Spectra[sf];
-                    float ratioL = IntensityRatioTable[frame.Channels[c + 1].Intensity[sf]];
-                    float ratioR = ratioL - 2.0f;
+                    double ratioL = IntensityRatioTable[frame.Channels[c + 1].Intensity[sf]];
+                    double ratioR = ratioL - 2.0;
                     for (int b = frame.Hca.BaseBandCount; b < frame.Hca.TotalBandCount; b++)
                     {
                         r[b] = l[b] * ratioR;
