@@ -35,6 +35,7 @@ namespace VGAudio.Codecs.CriHca
         private int BufferRemaining => SamplesPerFrame - BufferPosition;
         private int BufferPreSamples { get; set; }
         private int SamplesProcessed { get; set; }
+        public int FramesProcessed { get; private set; }
         private int PostSamples { get; set; }
         private short[][] PostAudio { get; set; }
 
@@ -87,7 +88,8 @@ namespace VGAudio.Codecs.CriHca
                 Hca.SampleCount = Math.Min(config.LoopEnd, config.SampleCount);
                 Hca.InsertedSamples += GetNextMultiple(config.LoopStart, SamplesPerFrame) - config.LoopStart;
                 CalculateLoopInfo(Hca, config.LoopStart, config.LoopEnd);
-                inputSampleCount = GetNextMultiple(Hca.SampleCount, SamplesPerSubFrame) + SamplesPerSubFrame * 2;
+                inputSampleCount = Math.Min(GetNextMultiple(Hca.SampleCount, SamplesPerSubFrame), config.SampleCount);
+                inputSampleCount += SamplesPerSubFrame * 2;
                 PostSamples = inputSampleCount - Hca.SampleCount;
             }
 
@@ -118,6 +120,10 @@ namespace VGAudio.Codecs.CriHca
         /// by calling <see cref="GetPendingFrame"/> before <see cref="Encode"/> can be called again.</returns>
         public int Encode(short[][] pcm, byte[] hcaOut)
         {
+            if (FramesProcessed >= Hca.FrameCount)
+            {
+                throw new InvalidOperationException("All audio frames have already been output by the encoder");
+            }
             int framesOutput = 0;
             int pcmPosition = 0;
 
@@ -200,6 +206,7 @@ namespace VGAudio.Codecs.CriHca
             int postPos = 0;
             int remaining = PostSamples;
 
+            // Add audio from the loop start
             while (postPos < remaining)
             {
                 int toCopy = Math.Min(BufferRemaining, remaining - postPos);
@@ -214,15 +221,18 @@ namespace VGAudio.Codecs.CriHca
                 framesOutput = OutputFrame(framesOutput, hcaOut);
             }
 
-            if (BufferPosition == 0) return framesOutput;
-
-            for (int i = 0; i < pcm.Length; i++)
+            // Output any remaining frames
+            while (FramesProcessed < Hca.FrameCount)
             {
-                Array.Clear(PcmBuffer[i], BufferPosition, BufferRemaining);
-            }
-            BufferPosition = SamplesPerFrame;
+                for (int i = 0; i < pcm.Length; i++)
+                {
+                    Array.Clear(PcmBuffer[i], BufferPosition, BufferRemaining);
+                }
+                BufferPosition = SamplesPerFrame;
 
-            framesOutput = OutputFrame(framesOutput, hcaOut);
+                framesOutput = OutputFrame(framesOutput, hcaOut);
+            }
+
             return framesOutput;
         }
 
@@ -249,6 +259,7 @@ namespace VGAudio.Codecs.CriHca
                 HcaOutputBuffer.Enqueue(hca);
             }
             BufferPosition = 0;
+            FramesProcessed++;
             return framesOutput + 1;
         }
 
