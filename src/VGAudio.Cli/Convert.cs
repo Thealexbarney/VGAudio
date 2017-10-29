@@ -53,6 +53,12 @@ namespace VGAudio.Cli
 
         private void WriteFile(string fileName)
         {
+            string directory = Path.GetDirectoryName(fileName);
+            if (!String.IsNullOrWhiteSpace(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             using (var stream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
             using (var progress = new ProgressBar())
             {

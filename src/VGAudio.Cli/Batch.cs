@@ -17,8 +17,6 @@ namespace VGAudio.Cli
                 .SelectMany(x => Directory.GetFiles(options.InDir, $"*.{x}", searchOption))
                 .ToArray();
 
-            Directory.CreateDirectory(options.OutDir);
-
             using (var progress = new ProgressBar())
             {
                 progress.SetTotal(files.Length);
@@ -34,7 +32,7 @@ namespace VGAudio.Cli
 
                     try
                     {
-                        progress.LogMessage(Path.GetFileName(inPath));
+                       progress.LogMessage(Path.GetFileName(inPath));
                         Convert.ConvertFile(options, jobFiles, false);
                     }
                     catch (Exception ex)
