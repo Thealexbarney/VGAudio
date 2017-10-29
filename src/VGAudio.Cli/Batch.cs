@@ -21,7 +21,7 @@ namespace VGAudio.Cli
             {
                 progress.SetTotal(files.Length);
 
-                Parallel.ForEach(files, inPath =>
+                Parallel.ForEach(files, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount - 1 }, inPath =>
                 {
                     string relativePath = inPath.Substring(options.InDir.Length).TrimStart('\\');
                     string outPath = Path.ChangeExtension(Path.Combine(options.OutDir, relativePath), options.OutTypeName);
@@ -32,7 +32,7 @@ namespace VGAudio.Cli
 
                     try
                     {
-                       progress.LogMessage(Path.GetFileName(inPath));
+                        progress.LogMessage(Path.GetFileName(inPath));
                         Convert.ConvertFile(options, jobFiles, false);
                     }
                     catch (Exception ex)
