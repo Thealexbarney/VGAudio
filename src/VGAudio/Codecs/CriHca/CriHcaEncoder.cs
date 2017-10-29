@@ -418,13 +418,15 @@ namespace VGAudio.Codecs.CriHca
             {
                 for (int i = 0; i < channel.CodedScaleFactorCount; i++)
                 {
-                    var scaled = channel.ScaledSpectra[i];
+                    double[] scaled = channel.ScaledSpectra[i];
                     int resolution = channel.Resolution[i];
+                    double rangeMult = CriHcaTables.QuantizerRangeTable[resolution];
+                    int max = CriHcaTables.ResolutionMaxValues[resolution];
                     for (int sf = 0; sf < scaled.Length; sf++)
                     {
                         double value = scaled[sf] + 1;
-                        channel.QuantizedSpectra[sf][i] = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
-                                                          CriHcaTables.ResolutionMaxValues[resolution];
+                        int quantizedSpectra = (int)(value * rangeMult) - max;
+                        channel.QuantizedSpectra[sf][i] = Clamp(quantizedSpectra, -max, max);
                     }
                 }
             }
@@ -554,12 +556,14 @@ namespace VGAudio.Codecs.CriHca
                 {
                     int noise = i < evalBoundary ? noiseLevel - 1 : noiseLevel;
                     int resolution = CalculateResolution(channel.ScaleFactors[i], noise);
+                    double rangeMult = CriHcaTables.QuantizerRangeTable[resolution];
+                    int max = CriHcaTables.ResolutionMaxValues[resolution];
 
                     foreach (double scaledSpectra in channel.ScaledSpectra[i])
                     {
                         double value = scaledSpectra + 1;
-                        int quantizedSpectra = (int)(value * CriHcaTables.QuantizerRangeTable[resolution]) -
-                                               CriHcaTables.ResolutionMaxValues[resolution];
+                        int quantizedSpectra = (int)(value * rangeMult) - max;
+                        quantizedSpectra = Clamp(quantizedSpectra, -max, max);
                         length += CalculateBitsUsedBySpectra(quantizedSpectra, resolution);
                     }
                 }
