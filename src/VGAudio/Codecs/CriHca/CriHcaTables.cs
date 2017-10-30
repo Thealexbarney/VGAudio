@@ -19,9 +19,9 @@ namespace VGAudio.Codecs.CriHca
         }
 
         public static double[] DequantizerScalingTable { get; } = Arrays.Generate(64, DequantizerScalingFunction);
-        public static double[] DequantizerRangeTable { get; } = Arrays.Generate(16, DequantizerRangeFunction);
+        public static double[] QuantizerStepSize { get; } = Arrays.Generate(16, QuantizerStepSizeFunction);
         public static double[] QuantizerScalingTable { get; } = Arrays.Generate(64, i => 1 / DequantizerScalingFunction(i));
-        public static double[] QuantizerRangeTable { get; } = Arrays.Generate(16, QuantizerRangeFunction);
+        public static double[] QuantizerInverseStepSize { get; } = Arrays.Generate(16, QuantizerInverseStepSizeFunction);
         public static int[] ResolutionMaxValues { get; } = Arrays.Generate(16, ResolutionMaxValueFunction);
         public static double[] IntensityRatioTable { get; } = Arrays.Generate(15, IntensityRatioFunction);
         public static double[] IntensityRatioBoundsTable { get; } = Arrays.Generate(14, IntensityRatioBoundsFunction);
@@ -62,8 +62,8 @@ namespace VGAudio.Codecs.CriHca
         };
 
         private static double DequantizerScalingFunction(int x) => Math.Sqrt(128) * Math.Pow(Math.Pow(2, 53.0 / 128), x - 63);
-        private static double DequantizerRangeFunction(int x) => x == 0 ? 0 : 1 / QuantizerRangeFunction(x);
-        private static double QuantizerRangeFunction(int x) => ResolutionMaxValueFunction(x) + 0.5;
+        private static double QuantizerStepSizeFunction(int x) => x == 0 ? 0 : 1 / QuantizerInverseStepSizeFunction(x);
+        private static double QuantizerInverseStepSizeFunction(int x) => ResolutionMaxValueFunction(x) + 0.5;
         private static double ScaleConversionTableFunction(int x) => x > 1 && x < 127 ? Math.Pow(Math.Pow(2, 53.0 / 128), x - 64) : 0;
         private static double IntensityRatioFunction(int x) => (28 - x * 2) / 14.0;
         private static double IntensityRatioBoundsFunction(int x) => (27 - x * 2) / 14.0;

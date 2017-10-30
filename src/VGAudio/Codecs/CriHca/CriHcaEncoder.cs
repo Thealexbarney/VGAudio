@@ -420,13 +420,12 @@ namespace VGAudio.Codecs.CriHca
                 {
                     double[] scaled = channel.ScaledSpectra[i];
                     int resolution = channel.Resolution[i];
-                    double rangeMult = CriHcaTables.QuantizerRangeTable[resolution];
-                    int max = CriHcaTables.ResolutionMaxValues[resolution];
+                    double stepSizeInv = CriHcaTables.QuantizerInverseStepSize[resolution];
+
                     for (int sf = 0; sf < scaled.Length; sf++)
                     {
-                        double value = scaled[sf] + 1;
-                        int quantizedSpectra = (int)(value * rangeMult) - max;
-                        channel.QuantizedSpectra[sf][i] = Clamp(quantizedSpectra, -max, max);
+                        int quantizedSpectra = (int)Math.Floor(scaled[sf] * stepSizeInv + 0.5);
+                        channel.QuantizedSpectra[sf][i] = quantizedSpectra;
                     }
                 }
             }
@@ -556,14 +555,11 @@ namespace VGAudio.Codecs.CriHca
                 {
                     int noise = i < evalBoundary ? noiseLevel - 1 : noiseLevel;
                     int resolution = CalculateResolution(channel.ScaleFactors[i], noise);
-                    double rangeMult = CriHcaTables.QuantizerRangeTable[resolution];
-                    int max = CriHcaTables.ResolutionMaxValues[resolution];
+                    double stepSizeInv = CriHcaTables.QuantizerInverseStepSize[resolution];
 
                     foreach (double scaledSpectra in channel.ScaledSpectra[i])
                     {
-                        double value = scaledSpectra + 1;
-                        int quantizedSpectra = (int)(value * rangeMult) - max;
-                        quantizedSpectra = Clamp(quantizedSpectra, -max, max);
+                        int quantizedSpectra = (int)Math.Floor(scaledSpectra * stepSizeInv + 0.5);
                         length += CalculateBitsUsedBySpectra(quantizedSpectra, resolution);
                     }
                 }
@@ -645,7 +641,7 @@ namespace VGAudio.Codecs.CriHca
                     {
                         double coeff = channel.Spectra[sf][b];
                         scaledSpectra[sf] = scaleFactor == 0 ? 0 :
-                            coeff * CriHcaTables.QuantizerScalingTable[scaleFactor];
+                         Clamp(coeff * CriHcaTables.QuantizerScalingTable[scaleFactor], -0.99999999999999989, 0.99999999999999989);
                     }
                 }
             }

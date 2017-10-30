@@ -109,7 +109,7 @@ namespace VGAudio.Codecs.CriHca
         {
             for (int i = 0; i < channel.CodedScaleFactorCount; i++)
             {
-                channel.Gain[i] = DequantizerScalingTable[channel.ScaleFactors[i]] * DequantizerRangeTable[channel.Resolution[i]];
+                channel.Gain[i] = DequantizerScalingTable[channel.ScaleFactors[i]] * QuantizerStepSize[channel.Resolution[i]];
             }
         }
 

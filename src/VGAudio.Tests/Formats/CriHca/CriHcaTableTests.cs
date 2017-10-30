@@ -14,7 +14,7 @@ namespace VGAudio.Tests.Formats.CriHca
         [Fact]
         public void GeneratedDequantizerRangeTableMatchesOriginal()
         {
-            Assert.Equal(CriHcaTables.DequantizerRangeTable, GeneratedTables.DequantizerRangeTable);
+            Assert.Equal(CriHcaTables.QuantizerStepSize, GeneratedTables.QuantizerStepSize);
         }
 
         [Fact]
@@ -26,7 +26,7 @@ namespace VGAudio.Tests.Formats.CriHca
         [Fact]
         public void GeneratedQuantizerRangeTableMatchesOriginal()
         {
-            Assert.Equal(CriHcaTables.QuantizerRangeTable, GeneratedTables.QuantizerRangeTable);
+            Assert.Equal(CriHcaTables.QuantizerInverseStepSize, GeneratedTables.QuantizerInverseStepSize);
         }
 
         [Fact]
