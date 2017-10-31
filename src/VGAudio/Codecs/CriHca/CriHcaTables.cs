@@ -20,6 +20,7 @@ namespace VGAudio.Codecs.CriHca
 
         public static double[] DequantizerScalingTable { get; } = Arrays.Generate(64, DequantizerScalingFunction);
         public static double[] QuantizerStepSize { get; } = Arrays.Generate(16, QuantizerStepSizeFunction);
+        public static double[] QuantizerDeadZone { get; } = Arrays.Generate(16, QuantizerDeadZoneFunction);
         public static double[] QuantizerScalingTable { get; } = Arrays.Generate(64, i => 1 / DequantizerScalingFunction(i));
         public static double[] QuantizerInverseStepSize { get; } = Arrays.Generate(16, QuantizerInverseStepSizeFunction);
         public static int[] ResolutionMaxValues { get; } = Arrays.Generate(16, ResolutionMaxValueFunction);
@@ -72,6 +73,18 @@ namespace VGAudio.Codecs.CriHca
         {
             if (x < 8) return x;
             return (1 << (x - 4)) - 1;
+        }
+
+        private static double QuantizerDeadZoneFunction(int i)
+        {
+            // Adjusts the dead zone value by the amount of precision lost
+            // due to calculating the floor function by shifting.
+            // Hacky, but the floor function is a major hotspot, and doing it slightly 
+            // less accurately results in a 30-50% reduction in total encode time.
+            int steps = ResolutionMaxValueFunction(i) + 1;
+            double boundary = QuantizerStepSizeFunction(i) / 2;
+
+            return BitConverter.Int64BitsToDouble(BitConverter.DoubleToInt64Bits(boundary) - steps);
         }
 
         private static readonly byte[] PackedTables =

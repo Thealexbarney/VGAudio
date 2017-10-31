@@ -421,10 +421,12 @@ namespace VGAudio.Codecs.CriHca
                     double[] scaled = channel.ScaledSpectra[i];
                     int resolution = channel.Resolution[i];
                     double stepSizeInv = CriHcaTables.QuantizerInverseStepSize[resolution];
+                    double shiftUp = stepSizeInv + 1;
+                    int shiftDown = (int)(stepSizeInv + 0.5);
 
                     for (int sf = 0; sf < scaled.Length; sf++)
                     {
-                        int quantizedSpectra = (int)Math.Floor(scaled[sf] * stepSizeInv + 0.5);
+                        int quantizedSpectra = (int)(scaled[sf] * stepSizeInv + shiftUp) - shiftDown;
                         channel.QuantizedSpectra[sf][i] = quantizedSpectra;
                     }
                 }
@@ -555,26 +557,38 @@ namespace VGAudio.Codecs.CriHca
                 {
                     int noise = i < evalBoundary ? noiseLevel - 1 : noiseLevel;
                     int resolution = CalculateResolution(channel.ScaleFactors[i], noise);
-                    double stepSizeInv = CriHcaTables.QuantizerInverseStepSize[resolution];
 
-                    foreach (double scaledSpectra in channel.ScaledSpectra[i])
+                    if (resolution >= 8)
                     {
-                        int quantizedSpectra = (int)Math.Floor(scaledSpectra * stepSizeInv + 0.5);
-                        length += CalculateBitsUsedBySpectra(quantizedSpectra, resolution);
+                        // To determine the bit count, we only need to know if the value
+                        // falls in the quantizer's dead zone.
+                        int bits = CriHcaTables.QuantizedSpectrumMaxBits[resolution] - 1;
+                        double deadZone = CriHcaTables.QuantizerDeadZone[resolution];
+                        foreach (double scaledSpectra in channel.ScaledSpectra[i])
+                        {
+                            length += bits;
+                            if (Math.Abs(scaledSpectra) >= deadZone) length++;
+                        }
+                    }
+                    else
+                    {
+                        // To determine the bit count, we need to quantize the value and check
+                        // the number of bits its prefix code uses.
+                        // Compute the floor function by shifting the numbers to be above 0,
+                        // truncating them, then shifting them back down to their original range.
+                        double stepSizeInv = CriHcaTables.QuantizerInverseStepSize[resolution];
+                        double shiftUp = stepSizeInv + 1;
+                        int shiftDown = (int)(stepSizeInv + 0.5 - 8);
+                        foreach (double scaledSpectra in channel.ScaledSpectra[i])
+                        {
+                            int quantizedSpectra = (int)(scaledSpectra * stepSizeInv + shiftUp) - shiftDown;
+                            length += CriHcaTables.QuantizeSpectrumBits[resolution][quantizedSpectra];
+                        }
                     }
                 }
             }
 
             return length;
-        }
-
-        private static int CalculateBitsUsedBySpectra(int quantizedSpectra, int resolution)
-        {
-            if (resolution >= 8)
-            {
-                return CriHcaTables.QuantizedSpectrumMaxBits[resolution] - (quantizedSpectra == 0 ? 1 : 0);
-            }
-            return CriHcaTables.QuantizeSpectrumBits[resolution][quantizedSpectra + 8];
         }
 
         private static void CalculateFrameHeaderLength(CriHcaFrame frame)
@@ -641,7 +655,11 @@ namespace VGAudio.Codecs.CriHca
                     {
                         double coeff = channel.Spectra[sf][b];
                         scaledSpectra[sf] = scaleFactor == 0 ? 0 :
-                         Clamp(coeff * CriHcaTables.QuantizerScalingTable[scaleFactor], -0.99999999999999989, 0.99999999999999989);
+                            Clamp(coeff * CriHcaTables.QuantizerScalingTable[scaleFactor], -0.999999999999, 0.999999999999);
+                        // Precision loss when rounding affects the floating point values just below 1.
+                        // We avoid this by having clamp values that are about 9000 steps below 1.0.
+                        // The number is slightly arbitrary. I just picked one that's far enough from 1
+                        // to not cause any issues.
                     }
                 }
             }
