@@ -686,11 +686,21 @@ namespace VGAudio.Codecs.CriHca
         private static int FindScaleFactor(double value)
         {
             double[] sf = CriHcaTables.DequantizerScalingTable;
-            for (int i = 0; i < sf.Length; i++)
+            uint low = 0;
+            uint high = 63;
+            while (low < high)
             {
-                if (sf[i] > value) return i;
+                uint mid = (low + high) / 2;
+                if (sf[mid] <= value)
+                {
+                    low = mid + 1;
+                }
+                else
+                {
+                    high = mid;
+                }
             }
-            return 63;
+            return (int) low;
         }
 
         private static void EncodeIntensityStereo(CriHcaFrame frame)
