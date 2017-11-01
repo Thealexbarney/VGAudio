@@ -60,6 +60,11 @@ namespace VGAudio.Codecs.CriHca
         /// <param name="config">The configuration to be used when creating the HCA file.</param>
         public void Initialize(CriHcaParameters config)
         {
+            if (config.ChannelCount > 8)
+            {
+                throw new ArgumentOutOfRangeException(nameof(config.ChannelCount), "HCA channel count must be 8 or below");
+            }
+
             CutoffFrequency = config.SampleRate / 2;
             Quality = config.Quality;
             PostSamples = 128;
