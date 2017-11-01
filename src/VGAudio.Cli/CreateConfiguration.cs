@@ -1,8 +1,10 @@
 ﻿using System.IO;
 using VGAudio.Codecs.CriAdx;
+using VGAudio.Codecs.CriHca;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
 using VGAudio.Containers.Dsp;
+using VGAudio.Containers.Hca;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
 using VGAudio.Containers.NintendoWare;
@@ -134,7 +136,13 @@ namespace VGAudio.Cli
 
         public static Configuration Hca(Options options, Configuration inConfig = null)
         {
-            return inConfig;
+            HcaConfiguration config = inConfig as HcaConfiguration ?? new HcaConfiguration();
+
+            if (options.HcaQuality != CriHcaQuality.NotSet) config.Quality = options.HcaQuality;
+            config.LimitBitrate = options.LimitBitrate;
+            if (options.Bitrate != 0) config.Bitrate = options.Bitrate;
+
+            return config;
         }
     }
 }

@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using VGAudio.Codecs.CriAdx;
+using VGAudio.Codecs.CriHca;
 
 namespace VGAudio.Cli
 {
@@ -202,7 +203,7 @@ namespace VGAudio.Cli
                             }
                             if (!int.TryParse(args[i + 1], out int filter))
                             {
-                                PrintWithUsage("Error parsing frame size.");
+                                PrintWithUsage("Error parsing filter value.");
                                 return null;
                             }
 
@@ -272,6 +273,59 @@ namespace VGAudio.Cli
 
                             options.KeyCode = keycode;
                             i++;
+                            continue;
+                        case "-HCAQUALITY":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --hcaquality.");
+                                return null;
+                            }
+
+                            string quality = args[i + 1];
+                            CriHcaQuality hcaQuality;
+
+                            switch (quality.ToUpper())
+                            {
+                                case "HIGHEST":
+                                    hcaQuality = CriHcaQuality.Highest;
+                                    break;
+                                case "HIGH":
+                                    hcaQuality = CriHcaQuality.High;
+                                    break;
+                                case "MIDDLE":
+                                    hcaQuality = CriHcaQuality.Middle;
+                                    break;
+                                case "LOW":
+                                    hcaQuality = CriHcaQuality.Low;
+                                    break;
+                                case "LOWEST":
+                                    hcaQuality = CriHcaQuality.Lowest;
+                                    break;
+                                default:
+                                    Console.WriteLine("Valid qualities are Highest, High, Middle, Low, or Lowest.");
+                                    return null;
+                            }
+
+                            options.HcaQuality = hcaQuality;
+                            i++;
+                            continue;
+                        case "-BITRATE":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --bitrate.");
+                                return null;
+                            }
+                            if (!int.TryParse(args[i + 1], out int bitrate))
+                            {
+                                PrintWithUsage("Error parsing bitrate.");
+                                return null;
+                            }
+
+                            options.Bitrate = bitrate;
+                            i++;
+                            continue;
+                        case "-LIMIT-BITRATE":
+                            options.LimitBitrate = true;
                             continue;
                     }
                 }
@@ -462,6 +516,13 @@ namespace VGAudio.Cli
             Console.WriteLine("                   Between 1-18446744073709551615");
             Console.WriteLine("      --filter     Filter to use for fixed-coefficient ADX encoding [0-3]");
             Console.WriteLine("      --version #  ADX header version to write [3,4]");
+
+            Console.WriteLine("\nHCA Options:");
+            Console.WriteLine("      --hcaquality     The quality level to use for the HCA file");
+            Console.WriteLine("      --bitrate        The bitrate in bps of the output HCA file");
+            Console.WriteLine("                       --bitrate takes precedence over --hcaquality");
+            Console.WriteLine("      --limit-bitrate  This flag sets a limit on how low the bitrate can go");
+            Console.WriteLine("                       This limit depends on the properties of the input file");
         }
 
         private static string GetProgramName() => Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly()?.Location ?? "");

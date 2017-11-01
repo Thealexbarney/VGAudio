@@ -45,6 +45,9 @@ namespace VGAudio.Cli.Metadata.Containers
             builder.AppendLine($"Joint stereo band count: {hca.StereoBandCount}");
             builder.AppendLine($"HFR band count: {hca.HfrBandCount}");
             builder.AppendLine($"Total band count: {hca.TotalBandCount}");
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (hca.Volume != 1) builder.AppendLine($"Volume: {hca.Volume}");
+            if (!string.IsNullOrWhiteSpace(hca.Comment)) builder.AppendLine($"Comment: {hca.Comment}");
         }
     }
 }

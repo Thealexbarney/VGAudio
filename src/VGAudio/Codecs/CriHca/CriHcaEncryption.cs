@@ -46,7 +46,7 @@ namespace VGAudio.Codecs.CriHca
                 Array.Copy(audio[i], buffer, audio[i].Length);
                 DecryptFrame(frame.Hca, buffer, key);
                 var reader = new BitReader(buffer);
-                if (!CriHcaDecoder.UnpackFrame(frame, reader))
+                if (!CriHcaPacking.UnpackFrame(frame, reader))
                 {
                     return false;
                 }

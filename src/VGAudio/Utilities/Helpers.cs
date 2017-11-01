@@ -19,6 +19,16 @@ namespace VGAudio.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Clamp(double value, double min, double max)
+        {
+            if (value < min)
+                return min;
+            if (value > max)
+                return max;
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short Clamp16(int value)
         {
             if (value > short.MaxValue)

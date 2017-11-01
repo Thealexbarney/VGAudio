@@ -56,6 +56,7 @@ namespace VGAudio.Containers.Hca
 
         private static void ReadHcaHeader(BinaryReader reader, HcaStructure structure)
         {
+            HcaInfo hca = structure.Hca;
             string signature = ReadChunkId(reader);
             structure.Version = reader.ReadInt16();
             structure.HeaderSize = reader.ReadInt16();
@@ -97,6 +98,10 @@ namespace VGAudio.Containers.Hca
                     case "vbr\0":
                         ReadVbrChunk(reader, structure);
                         break;
+                    case "comm":
+                        ReadCommChunk(reader, structure);
+                        reader.BaseStream.Position = structure.HeaderSize;
+                        break;
                     case "pad\0":
                         reader.BaseStream.Position = structure.HeaderSize;
                         break;
@@ -105,15 +110,11 @@ namespace VGAudio.Containers.Hca
                 }
             }
 
-            if (structure.Version < 0x0200 && !hasAthChunk) structure.Hca.UseAthCurve = true;
+            if (structure.Version < 0x0200 && !hasAthChunk) hca.UseAthCurve = true;
 
-            if (structure.Hca.TrackCount < 1) structure.Hca.TrackCount = 1;
+            if (hca.TrackCount < 1) hca.TrackCount = 1;
 
-            if (structure.Hca.BandsPerHfrGroup > 0)
-            {
-                structure.Hca.HfrBandCount = structure.Hca.TotalBandCount - structure.Hca.BaseBandCount - structure.Hca.StereoBandCount;
-                structure.Hca.HfrGroupCount = structure.Hca.HfrBandCount.DivideByRoundUp(structure.Hca.BandsPerHfrGroup);
-            }
+            hca.CalculateHfrValues();
         }
 
         private static void ReadHcaData(BinaryReader reader, HcaStructure structure)
@@ -168,8 +169,8 @@ namespace VGAudio.Containers.Hca
             structure.Hca.BaseBandCount = reader.ReadByte() + 1;
 
             byte a = reader.ReadByte();
-            structure.Hca.TrackCount = a >> 4 & 0xf;
-            structure.Hca.ChannelConfig = a & 0xf;
+            structure.Hca.TrackCount = GetHighNibble(a);
+            structure.Hca.ChannelConfig = GetLowNibble(a);
             structure.Hca.DecStereoType = reader.ReadByte();
 
             if (structure.Hca.DecStereoType == 0)
@@ -211,6 +212,12 @@ namespace VGAudio.Containers.Hca
         private static void ReadRvaChunk(BinaryReader reader, HcaStructure structure)
         {
             structure.Hca.Volume = reader.ReadSingle();
+        }
+
+        private static void ReadCommChunk(BinaryReader reader, HcaStructure structure)
+        {
+            reader.BaseStream.Position++;
+            structure.Hca.Comment = reader.ReadUTF8Z();
         }
 
         private static string ReadChunkId(BinaryReader reader)

@@ -17,13 +17,11 @@ namespace VGAudio.Cli
                 .SelectMany(x => Directory.GetFiles(options.InDir, $"*.{x}", searchOption))
                 .ToArray();
 
-            Directory.CreateDirectory(options.OutDir);
-
             using (var progress = new ProgressBar())
             {
                 progress.SetTotal(files.Length);
 
-                Parallel.ForEach(files, inPath =>
+                Parallel.ForEach(files, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount - 1 }, inPath =>
                 {
                     string relativePath = inPath.Substring(options.InDir.Length).TrimStart('\\');
                     string outPath = Path.ChangeExtension(Path.Combine(options.OutDir, relativePath), options.OutTypeName);

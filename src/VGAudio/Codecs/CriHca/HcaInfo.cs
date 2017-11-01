@@ -1,4 +1,6 @@
-﻿namespace VGAudio.Codecs.CriHca
+﻿using VGAudio.Utilities;
+
+namespace VGAudio.Codecs.CriHca
 {
     public class HcaInfo
     {
@@ -8,6 +10,7 @@
         public int FrameCount { get; set; }
         public int InsertedSamples { get; set; }
         public int AppendedSamples { get; set; }
+        public int HeaderSize { get; set; }
 
         public int FrameSize { get; set; }
         public int MinResolution { get; set; }
@@ -39,6 +42,17 @@
 
         public int EncryptionType { get; set; }
 
-        public float Volume { get; set; }
+        public float Volume { get; set; } = 1;
+
+        public string Comment { get; set; }
+        public int CommentLength => Comment?.Length ?? 0;
+
+        public void CalculateHfrValues()
+        {
+            if (BandsPerHfrGroup <= 0) return;
+
+            HfrBandCount = TotalBandCount - BaseBandCount - StereoBandCount;
+            HfrGroupCount = HfrBandCount.DivideByRoundUp(BandsPerHfrGroup);
+        }
     }
 }

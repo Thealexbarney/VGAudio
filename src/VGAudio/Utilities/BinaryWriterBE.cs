@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 
 namespace VGAudio.Utilities
@@ -9,38 +10,29 @@ namespace VGAudio.Utilities
 
         public BinaryWriterBE(Stream output, Encoding encoding, bool leaveOpen) : base(output, encoding, leaveOpen) { }
 
-        private readonly byte[] _buffer = new byte[16];
+        private readonly byte[] _buffer = new byte[8];
 
-        public override void Write(short value)
-        {
-            _buffer[0] = (byte)(value >> 8);
-            _buffer[1] = (byte)value;
-            OutStream.Write(_buffer, 0, 2);
-        }
+        public override void Write(short value) => base.Write(Byte.ByteSwap(value));
+        public override void Write(ushort value) => base.Write(Byte.ByteSwap(value));
 
-        public override void Write(ushort value)
-        {
-            _buffer[0] = (byte)(value >> 8);
-            _buffer[1] = (byte)value;
-            OutStream.Write(_buffer, 0, 2);
-        }
+        public override void Write(int value) => base.Write(Byte.ByteSwap(value));
+        public override void Write(uint value) => base.Write(Byte.ByteSwap(value));
 
-        public override void Write(int value)
+        public override void Write(long value) => base.Write(Byte.ByteSwap(value));
+        public override void Write(ulong value) => base.Write(Byte.ByteSwap(value));
+
+        public override void Write(float value)
         {
-            _buffer[0] = (byte)(value >> 24);
-            _buffer[1] = (byte)(value >> 16);
-            _buffer[2] = (byte)(value >> 8);
-            _buffer[3] = (byte)value;
+            byte[] valueBytes = BitConverter.GetBytes(value);
+
+            _buffer[0] = valueBytes[3];
+            _buffer[1] = valueBytes[2];
+            _buffer[2] = valueBytes[1];
+            _buffer[3] = valueBytes[0];
+
             OutStream.Write(_buffer, 0, 4);
         }
 
-        public override void Write(uint value)
-        {
-            _buffer[0] = (byte)(value >> 24);
-            _buffer[1] = (byte)(value >> 16);
-            _buffer[2] = (byte)(value >> 8);
-            _buffer[3] = (byte)value;
-            OutStream.Write(_buffer, 0, 4);
-        }
+        public override void Write(double value) => Write(BitConverter.DoubleToInt64Bits(value));
     }
 }

@@ -57,6 +57,27 @@ namespace VGAudio.Utilities
             writer.Write(text);
         }
 
+        public static string ReadUTF8Z(this BinaryReader reader)
+        {
+            var start = reader.BaseStream.Position;
+
+            // Read until we hit the end of the stream (-1) or a zero
+            while (reader.BaseStream.ReadByte() - 1 > 0) { }
+
+            int size = (int)(reader.BaseStream.Position - start - 1);
+            reader.BaseStream.Position = start;
+
+            string text = reader.ReadUTF8(size);
+            reader.BaseStream.Position++; // Skip the null byte
+            return text;
+        }
+
+        public static void WriteUTF8Z(this BinaryWriter writer, string value)
+        {
+            writer.WriteUTF8(value);
+            writer.WriteUTF8("\0");
+        }
+
         public static bool Eof(this BinaryReader reader) => reader.BaseStream.Position >= reader.BaseStream.Length;
 
         public static void Expect(this BinaryReader reader, params int[] expected)
