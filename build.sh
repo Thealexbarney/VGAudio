@@ -26,7 +26,7 @@ while (($#)); do
     shift
 done
 
-dotnetCliVersion="2.0.0"
+dotnetCliVersion="2.0.2"
 
 # Define directories.
 basePath=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
