@@ -38,7 +38,10 @@ namespace Build
             {
                 context.Information($"Deleting {path}");
             }
-            context.DeleteDirectory(path, true);
+            context.DeleteDirectory(path, new DeleteDirectorySettings
+            {
+                Recursive = true
+            });
         }
 
         public static void DeleteFile(Context context, FilePath path, bool verbose)

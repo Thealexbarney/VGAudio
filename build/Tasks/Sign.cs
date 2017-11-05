@@ -55,7 +55,10 @@ namespace Build.Tasks
                 FilePathCollection toSign = context.GetFiles($"{extracted}/lib/**/VGAudio.dll");
                 SignFiles(context, toSign, context.ReleaseCertThumbprint);
                 context.Zip(extracted, context.LibraryBinDir.CombineWithFilePath(file.GetFilename()));
-                context.DeleteDirectory(extracted, true);
+                context.DeleteDirectory(extracted, new DeleteDirectorySettings
+                {
+                    Recursive = true
+                });
             }
         }
 
