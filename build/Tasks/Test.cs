@@ -1,46 +1,34 @@
-﻿using System;
+﻿using System.Linq;
+using Cake.Common.Tools.DotNetCore;
+using Cake.Common.Tools.DotNetCore.Build;
+using Cake.Core;
 using Cake.Frosting;
 using static Build.Utilities;
 
 namespace Build.Tasks
 {
-    [Dependency(typeof(Restore))]
-    [Dependency(typeof(BuildLibraryNetStandard))]
-    public sealed class TestLibraryNetStandard : FrostingTask<Context>
+    public sealed class TestLibrary : FrostingTask<Context>
     {
         public override void Run(Context context)
         {
-            TestNetCli(context, context.TestsCsproj.FullPath, context.LibBuilds["core"].TestFramework);
-            context.LibBuilds["core"].TestSuccess = true;
+            string[] testFrameworks = context.TestFrameworks.ToArray();
+
+            context.DotNetCoreBuild(context.TestsCsproj.FullPath, new DotNetCoreBuildSettings
+            {
+                Configuration = context.Configuration,
+                ArgumentCustomization = args =>
+                {
+                    args.Append($"/p:TargetFrameworks=\\\"{string.Join(";", testFrameworks)}\\\"");
+                    return args;
+                }
+            });
+
+            foreach (var framework in testFrameworks)
+            {
+                TestNetCli(context, context.TestsCsproj.FullPath, framework);
+            }
         }
 
-        public override bool ShouldRun(Context context) =>
-            context.LibBuilds["core"].LibSuccess == true;
-
-        public override void OnError(Exception exception, Context context)
-        {
-            DisplayError(context, exception.Message);
-            context.LibBuilds["core"].TestSuccess = false;
-        }
-    }
-
-    [Dependency(typeof(Restore))]
-    [Dependency(typeof(BuildLibraryNet45))]
-    public sealed class TestLibraryNet45 : FrostingTask<Context>
-    {
-        public override void Run(Context context)
-        {
-            TestNetCli(context, context.TestsCsproj.FullPath, context.LibBuilds["full"].TestFramework);
-            context.LibBuilds["full"].TestSuccess = true;
-        }
-
-        public override bool ShouldRun(Context context) =>
-            context.LibBuilds["full"].LibSuccess == true;
-
-        public override void OnError(Exception exception, Context context)
-        {
-            DisplayError(context, exception.Message);
-            context.LibBuilds["full"].TestSuccess = false;
-        }
+        public override bool ShouldRun(Context context) => context.RunTests && context.TestFrameworks.Any();
     }
 }

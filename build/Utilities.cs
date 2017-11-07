@@ -8,7 +8,6 @@ using System.Xml.Linq;
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
-using Cake.Common.Tools.DotNetCore.Build;
 using Cake.Common.Tools.SignTool;
 using Cake.Core.IO;
 
@@ -16,18 +15,9 @@ namespace Build
 {
     internal static class Utilities
     {
-        public static void BuildNetCli(Context context, string path, string framework)
-        {
-            context.DotNetCoreBuild(path, new DotNetCoreBuildSettings
-            {
-                Framework = framework,
-                Configuration = context.Configuration
-            });
-        }
-
         public static void TestNetCli(Context context, string csprojPath, string framework)
         {
-            context.DotNetCoreTool(csprojPath, "xunit", $"-c {context.Configuration} -f {framework}");
+            context.DotNetCoreTool(csprojPath, "xunit", $"-c {context.Configuration} -nobuild -f {framework}");
         }
 
         public static void DeleteDirectory(Context context, DirectoryPath path, bool verbose)
@@ -54,8 +44,6 @@ namespace Build
             }
             context.DeleteFile(path);
         }
-
-        public static void DisplayError(Context context, string message) => context.Error(message);
 
         public static bool CertificateExists(string thumbprint, bool validOnly)
         {

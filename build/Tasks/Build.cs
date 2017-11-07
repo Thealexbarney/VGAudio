@@ -1,140 +1,102 @@
-﻿using System;
+﻿using System.Linq;
+using System.Xml.Linq;
 using Cake.Common;
+using Cake.Common.IO;
+using Cake.Common.Tools.DotNetCore;
+using Cake.Common.Tools.DotNetCore.MSBuild;
 using Cake.Common.Tools.MSBuild;
+using Cake.Core;
 using Cake.Core.Diagnostics;
+using Cake.Core.IO;
 using Cake.Frosting;
+using ILRepacking;
 using static Build.Utilities;
 
 namespace Build.Tasks
 {
-    [Dependency(typeof(BuildLibraryNetStandard))]
-    [Dependency(typeof(BuildLibraryNet45))]
-    public sealed class BuildLibrary : FrostingTask<Context> { }
-
-    [Dependency(typeof(BuildCliNetCore))]
-    [Dependency(typeof(BuildCliNet45))]
-    public sealed class BuildCli : FrostingTask<Context> { }
-
-    [Dependency(typeof(BuildToolsNetCore))]
-    [Dependency(typeof(BuildToolsNet45))]
-    public sealed class BuildTools : FrostingTask<Context> { }
-
-    [Dependency(typeof(Restore))]
-    public sealed class BuildLibraryNetStandard : FrostingTask<Context>
+    public sealed class RunNonUwpBuild : FrostingTask<Context>
     {
         public override void Run(Context context)
         {
-            BuildNetCli(context, context.LibraryDir.FullPath, context.LibBuilds["core"].LibFramework);
-            context.LibBuilds["core"].LibSuccess = true;
-        }
+            BuildTasks.BuildNonUwp(context);
 
-        public override void OnError(Exception exception, Context context)
-        {
-            DisplayError(context, exception.Message);
-            context.LibBuilds["core"].LibSuccess = false;
-        }
-    }
+            if (context.RunNetFramework)
+            {
+                BuildTasks.IlMergeCli(context);
+            }
 
-    [Dependency(typeof(Restore))]
-    public sealed class BuildLibraryNet45 : FrostingTask<Context>
-    {
-        public override void Run(Context context)
-        {
-            BuildNetCli(context, context.LibraryDir.FullPath, context.LibBuilds["full"].LibFramework);
-            context.LibBuilds["full"].LibSuccess = true;
-        }
-
-        public override bool ShouldRun(Context context) => context.IsRunningOnWindows();
-
-        public override void OnError(Exception exception, Context context)
-        {
-            DisplayError(context, exception.Message);
-            context.LibBuilds["full"].LibSuccess = false;
-        }
-    }
-
-    [Dependency(typeof(BuildLibraryNetStandard))]
-    public sealed class BuildCliNetCore : FrostingTask<Context>
-    {
-        public override void Run(Context context)
-        {
-            BuildNetCli(context, context.CliDir.FullPath, context.LibBuilds["core"].CliFramework);
-            context.LibBuilds["core"].CliSuccess = true;
+            BuildTasks.PackageNonUwp(context);
         }
 
         public override bool ShouldRun(Context context) =>
-            context.LibBuilds["core"].LibSuccess == true;
-
-        public override void OnError(Exception exception, Context context)
-        {
-            DisplayError(context, exception.Message);
-            context.LibBuilds["core"].CliSuccess = false;
-        }
+           context.RunBuild && context.LibraryFrameworks.Any() && context.CliFrameworks.Any();
     }
 
-    [Dependency(typeof(BuildLibraryNet45))]
-    public sealed class BuildCliNet45 : FrostingTask<Context>
+    public sealed class RestoreUwp : FrostingTask<Context>
     {
-        public override void Run(Context context)
-        {
-            BuildNetCli(context, context.CliDir.FullPath, context.LibBuilds["full"].CliFramework);
-            context.LibBuilds["full"].CliSuccess = true;
-        }
+        public override void Run(Context context) =>
+            context.MSBuild(context.UwpDir.CombineWithFilePath("VGAudio.Uwp.csproj"), new MSBuildSettings
+            {
+                Targets = { "Restore" },
+                Verbosity = Verbosity.Minimal
+            });
 
-        public override bool ShouldRun(Context context) =>
-            context.LibBuilds["full"].LibSuccess == true &&
-            context.IsRunningOnWindows();
-
-        public override void OnError(Exception exception, Context context)
-        {
-            DisplayError(context, exception.Message);
-            context.LibBuilds["full"].CliSuccess = false;
-        }
-    }
-
-    [Dependency(typeof(BuildLibraryNetStandard))]
-    public sealed class BuildToolsNetCore : FrostingTask<Context>
-    {
-        public override void Run(Context context)
-        {
-            BuildNetCli(context, context.ToolsDir.FullPath, context.LibBuilds["core"].ToolsFramework);
-            context.LibBuilds["core"].ToolsSuccess = true;
-        }
-
-        public override bool ShouldRun(Context context) =>
-            context.LibBuilds["core"].LibSuccess == true;
-
-        public override void OnError(Exception exception, Context context)
-        {
-            DisplayError(context, exception.Message);
-            context.LibBuilds["core"].ToolsSuccess = false;
-        }
-    }
-
-    [Dependency(typeof(BuildLibraryNet45))]
-    public sealed class BuildToolsNet45 : FrostingTask<Context>
-    {
-        public override void Run(Context context)
-        {
-            BuildNetCli(context, context.ToolsDir.FullPath, context.LibBuilds["full"].ToolsFramework);
-            context.LibBuilds["full"].ToolsSuccess = true;
-        }
-
-        public override bool ShouldRun(Context context) =>
-            context.LibBuilds["full"].LibSuccess == true &&
-            context.IsRunningOnWindows();
-
-        public override void OnError(Exception exception, Context context)
-        {
-            DisplayError(context, exception.Message);
-            context.LibBuilds["full"].ToolsSuccess = false;
-        }
+        public override bool ShouldRun(Context context) => context.IsRunningOnWindows() && context.BuildUwp;
     }
 
     [Dependency(typeof(RestoreUwp))]
-    public sealed class BuildUwp : FrostingTask<Context>
+    public sealed class RunUwpBuild : FrostingTask<Context>
     {
         public override void Run(Context context)
+        {
+            BuildTasks.BuildUwp(context);
+            BuildTasks.PackageUwp(context);
+        }
+
+        public override bool ShouldRun(Context context) => context.IsRunningOnWindows() && context.BuildUwp;
+        public override void Finally(Context context) => DeleteFile(context, context.UwpSideloadManifest, false);
+    }
+
+    public static class BuildTasks
+    {
+        public static void BuildNonUwp(Context context)
+        {
+            string[] cliFrameworks = context.CliFrameworks.ToArray();
+            string[] libFrameworks = context.LibraryFrameworks.ToArray();
+            string[] testFrameworks = context.TestFrameworks.ToArray();
+
+            var settings = new DotNetCoreMSBuildSettings
+            {
+                Targets = { "BuildNonUwp" },
+                ArgumentCustomization = args =>
+                {
+                    args.Append($"/p:LibraryFrameworks=\\\"{string.Join(";", libFrameworks)}\\\"");
+                    args.Append($"/p:CliFrameworks=\\\"{string.Join(";", cliFrameworks)}\\\"");
+                    args.Append($"/p:TestFrameworks=\\\"{string.Join(";", testFrameworks)}\\\"");
+                    return args;
+                }
+            };
+
+            settings.Properties.Add("LibraryProjectFile", new[] { context.LibraryCsproj.FullPath });
+            settings.Properties.Add("CliProjectFile", new[] { context.CliCsproj.FullPath });
+            settings.Properties.Add("ToolsProjectFile", new[] { context.ToolsCsproj.FullPath });
+
+            settings.Properties.Add("CliOutputPath", new[] { context.CliBinDir.FullPath });
+            settings.Properties.Add("LibraryOutputPath", new[] { context.LibraryBinDir.FullPath });
+
+            settings.Properties.Add("IncludeSymbols", new[] { "true" });
+            settings.Properties.Add("IncludeSource", new[] { "true" });
+            settings.Properties.Add("Configuration", new[] { context.Configuration });
+            context.DotNetCoreMSBuild(context.LibraryCsproj.FullPath, settings);
+
+            DeleteFile(context, context.CliBinDir.Combine(context.LibBuilds["full"].ToolsFramework).CombineWithFilePath("VGAudioTools.runtimeconfig.json"), false);
+            DeleteFile(context,
+                context.CliBinDir.Combine(context.LibBuilds["full"].CliFramework)
+                    .CombineWithFilePath("VGAudioCli.runtimeconfig.json"), false);
+        }
+
+
+        public static void BuildUwp(Context context)
         {
             SetupUwpSigningCertificate(context);
 
@@ -152,19 +114,65 @@ namespace Build.Tasks
             //The second manifest MUST be written after the first build, otherwise incremental builds will mess stuff up
             CreateSideloadAppxmanifest(context);
             context.MSBuild(context.UwpCsproj, settings.WithProperty("AppxBuildType", "Sideload"));
-
-            context.OtherBuilds["uwp"] = true;
         }
 
-        public override bool ShouldRun(Context context) => context.IsRunningOnWindows();
-
-        public override void Finally(Context context) =>
-            DeleteFile(context, context.UwpSideloadManifest, false);
-
-        public override void OnError(Exception exception, Context context)
+        public static void PackageNonUwp(Context context)
         {
-            DisplayError(context, exception.Message);
-            context.OtherBuilds["uwp"] = false;
+            context.CopyDirectory(context.LibraryBinDir, context.PackageDir);
+
+            context.EnsureDirectoryExists(context.PackageDir);
+            context.Zip(context.CliBinDir, context.PackageDir.CombineWithFilePath("VGAudioCli.zip"));
+            context.CopyFiles(context.GetFiles($"{context.CliBinDir}/*.exe"), context.PackageDir);
+        }
+
+        public static void IlMergeCli(Context context)
+        {
+            string cliPath = context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].CliFramework}/VGAudioCli.exe").FullPath;
+            string libPath = context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].CliFramework}/VGAudio.dll").FullPath;
+            string toolsPath = context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].ToolsFramework}/VGAudioTools.exe").FullPath;
+
+            var cliOptions = new RepackOptions
+            {
+                OutputFile = context.CliBinDir.CombineWithFilePath("VGAudioCli.exe").FullPath,
+                InputAssemblies = new[] { cliPath, libPath },
+                SearchDirectories = new[] { "." }
+            };
+
+            var toolsOptions = new RepackOptions
+            {
+                OutputFile = context.CliBinDir.CombineWithFilePath("VGAudioTools.exe").FullPath,
+                InputAssemblies = new[] { toolsPath, libPath },
+                SearchDirectories = new[] { "." }
+            };
+
+            new ILRepack(cliOptions).Repack();
+            new ILRepack(toolsOptions).Repack();
+        }
+
+        public static void PackageUwp(Context context)
+        {
+            XDocument manifest = XDocument.Load(context.UwpDir.CombineWithFilePath("Package.appxmanifest").FullPath);
+            XNamespace ns = manifest.Root?.GetDefaultNamespace();
+            string packageVersion = manifest.Root?.Element(ns + "Identity")?.Attribute("Version")?.Value;
+
+            string debugSuffix = context.IsReleaseBuild ? "" : "_Debug";
+            string packageName = $"VGAudio_{packageVersion}_x86_x64_arm{debugSuffix}";
+            DirectoryPath packageDir = context.UwpDir.Combine($"AppPackages/VGAudio_{packageVersion}{debugSuffix}_Test");
+
+            FilePath appxbundle = packageDir.CombineWithFilePath($"{packageName}.appxbundle");
+            var toCopy = new FilePathCollection(new[] { appxbundle }, PathComparer.Default);
+            toCopy += packageDir.CombineWithFilePath($"{packageName}.cer");
+
+            if (context.IsReleaseBuild)
+            {
+                toCopy += packageDir.CombineWithFilePath($"../{packageName}_bundle.appxupload");
+            }
+
+            context.EnsureDirectoryExists(context.UwpBinDir);
+            context.CopyFiles(toCopy, context.UwpBinDir);
+
+            context.EnsureDirectoryExists(context.PackageDir);
+            context.CopyFiles(context.GetFiles($"{context.UwpBinDir}/*.appxbundle"), context.PackageDir);
         }
     }
 }

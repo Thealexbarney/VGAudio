@@ -2,4 +2,15 @@
   <PropertyGroup>
     <PathMap>$(MSBuildThisFileDirectory)=D:/VGAudio/</PathMap>
   </PropertyGroup>
+
+  <Target Name="BuildNonUwp">
+    <ItemGroup>
+      <_CliFramework Include="$(CliFrameworks)" />
+    </ItemGroup>
+
+    <MSBuild Projects="$(CliProjectFile);$(LibraryProjectFile);$(ToolsProjectFile)" Targets="Restore" />
+    <MSBuild Projects="$(LibraryProjectFile)" Targets="Pack" Properties="TargetFrameworks=$(LibraryFrameworks);PackageOutputPath=$(LibraryOutputPath)" />
+    <MSBuild Projects="$(CliProjectFile);$(ToolsProjectFile)" Targets="Publish" Properties="TargetFramework=%(_CliFramework.Identity);PublishDir=$(CliOutputPath)/%(_CliFramework.Identity)" BuildInParallel="true" />
+  </Target>
+
 </Project>

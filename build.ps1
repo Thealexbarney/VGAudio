@@ -27,6 +27,13 @@ Param(
     [ValidateSet("Quiet", "Minimal", "Normal", "Verbose", "Diagnostic")]
     [string]$Verbosity = "Normal",
     [switch]$WhatIf,
+    [switch]$NetCore,
+    [switch]$NetFramework,
+    [switch]$Uwp,
+    [switch]$Build,
+    [switch]$Test,
+    [switch]$Clean,
+    [switch]$CleanAll,
     [Parameter(Position=0,Mandatory=$false,ValueFromRemainingArguments=$true)]
     [string[]]$ScriptArgs
 )
@@ -100,16 +107,16 @@ try {
         configuration=$Configuration;
         verbosity=$Verbosity;
         dryrun=$WhatIf;
+        core=$NetCore;
+        full=$NetFramework;
+        uwp=$Uwp;
+        build=$Build;
+        test=$Test;
+        clean=$Clean;
+        cleanall=$CleanAll;
     }.GetEnumerator() | ForEach-Object {"--{0}=`"{1}`"" -f $_.key, $_.value };
 
     # Start Cake
-    Write-Output "Restoring build packages..."
-    & dotnet msbuild /t:restore /v:q /nologo
-    if($LASTEXITCODE -ne 0) {
-        Write-Output "Restore for build project failed"
-        exit $LASTEXITCODE;
-    }
-
     Write-Output "Running build..."
 	& dotnet publish /v:q /nologo
     & dotnet bin/Debug/netcoreapp2.0/publish/Build.dll $Arguments

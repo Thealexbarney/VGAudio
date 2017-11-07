@@ -5,9 +5,25 @@ using static Build.Utilities;
 
 namespace Build.Tasks
 {
-    public sealed class CleanBuild : FrostingTask<Context>
+    public sealed class Clean : FrostingTask<Context>
     {
         public override void Run(Context context)
+        {
+            context.CleanBuild();
+            context.CleanBin();
+            if (context.RunCleanAll)
+            {
+                context.CleanTopBin();
+                context.CleanPackage();
+            }
+        }
+
+        public override bool ShouldRun(Context context) => context.RunClean || context.RunCleanAll;
+    }
+
+    public static class CleanTasks
+    {
+        public static void CleanBuild(this Context context)
         {
             DirectoryPathCollection directories = context.GetDirectories($"{context.SourceDir}/**/obj");
             directories += context.GetDirectories($"{context.SourceDir}/**/bin");
@@ -29,20 +45,9 @@ namespace Build.Tasks
                 DeleteFile(context, file, true);
             }
         }
-    }
 
-    public sealed class CleanBin : FrostingTask<Context>
-    {
-        public override void Run(Context context) => DeleteDirectory(context, context.BinDir, true);
-    }
-
-    public sealed class CleanTopBin : FrostingTask<Context>
-    {
-        public override void Run(Context context) => DeleteDirectory(context, context.TopBinDir, true);
-    }
-
-    public sealed class CleanPackage : FrostingTask<Context>
-    {
-        public override void Run(Context context) => DeleteDirectory(context, context.PackageDir, true);
+        public static void CleanBin(this Context context) => DeleteDirectory(context, context.BinDir, true);
+        public static void CleanTopBin(this Context context) => DeleteDirectory(context, context.TopBinDir, true);
+        public static void CleanPackage(this Context context) => DeleteDirectory(context, context.PackageDir, true);
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Cake.Common.IO;
 using Cake.Core.IO;
@@ -8,42 +7,27 @@ using static Build.Utilities;
 
 namespace Build.Tasks
 {
-    [Dependency(typeof(PublishCli))]
-    [Dependency(typeof(Test))]
-    public sealed class SignCli : FrostingTask<Context>
+    public sealed class Sign : FrostingTask<Context>
     {
         public override void Run(Context context)
         {
-            var possibleNames = new[] { "VGAudio.dll", "VGAudioCli.exe", "VGAudioCli.dll", "VGAudioTools.exe", "VGAudioCli.dll" };
-
-            List<FilePath> toSign = context.LibBuilds.Values
-                .SelectMany(build => possibleNames
-                    .Select(file => context.CliBinDir
-                        .Combine(build.CliFramework)
-                        .CombineWithFilePath(file)))
-                .ToList();
-
-            //Add merged assembly
-            toSign.Add(context.CliBinDir.CombineWithFilePath("VGAudioCli.exe"));
-            toSign.Add(context.CliBinDir.CombineWithFilePath("VGAudioTools.exe"));
-
-            SignFiles(context, toSign.Where(context.FileExists), context.ReleaseCertThumbprint);
+            SignTasks.SignAll(context);
+            BuildTasks.PackageNonUwp(context);
         }
 
-        public override bool ShouldRun(Context context) =>
-            context.CliBuildsSucceeded &&
-            context.TestsSucceeded &&
-            CertificateExists(context.ReleaseCertThumbprint, true);
-
-        public override void OnError(Exception exception, Context context) =>
-            DisplayError(context, "Couldn't sign CLI assemblies:\n" + exception.Message);
+        public override bool ShouldRun(Context context) => CertificateExists(context.ReleaseCertThumbprint, true);
     }
 
-    [Dependency(typeof(PublishLibrary))]
-    [Dependency(typeof(Test))]
-    public sealed class SignLibrary : FrostingTask<Context>
+    public static class SignTasks
     {
-        public override void Run(Context context)
+        public static void SignAll(Context context)
+        {
+            SignLibrary(context);
+            SignCli(context);
+            SignUwp(context);
+        }
+
+        public static void SignLibrary(Context context)
         {
             FilePathCollection packages = context.GetFiles($"{context.LibraryBinDir}/*.nupkg");
 
@@ -62,28 +46,27 @@ namespace Build.Tasks
             }
         }
 
-        public override bool ShouldRun(Context context) =>
-            context.LibraryBuildsSucceeded &&
-            context.TestsSucceeded &&
-            CertificateExists(context.ReleaseCertThumbprint, true);
+        public static void SignCli(Context context)
+        {
+            var possibleNames = new[] { "VGAudio.dll", "VGAudioCli.exe", "VGAudioCli.dll", "VGAudioTools.exe", "VGAudioCli.dll" };
 
-        public override void OnError(Exception exception, Context context) =>
-            DisplayError(context, "Couldn't sign nupkg:\n" + exception.Message);
-    }
+            List<FilePath> toSign = context.LibBuilds.Values
+                .SelectMany(build => possibleNames
+                    .Select(file => context.CliBinDir
+                        .Combine(build.CliFramework)
+                        .CombineWithFilePath(file)))
+                .ToList();
 
-    [Dependency(typeof(PublishUwp))]
-    [Dependency(typeof(Test))]
-    public sealed class SignUwp : FrostingTask<Context>
-    {
-        public override void Run(Context context) =>
-            SignFiles(context, context.GetFiles($"{context.UwpBinDir}/*.appxbundle"), context.ReleaseCertThumbprint);
+            //Add merged assemblies
+            toSign.Add(context.CliBinDir.CombineWithFilePath("VGAudioCli.exe"));
+            toSign.Add(context.CliBinDir.CombineWithFilePath("VGAudioTools.exe"));
 
-        public override bool ShouldRun(Context context) =>
-            context.OtherBuilds["uwp"] == true &&
-            context.TestsSucceeded &&
-            CertificateExists(context.ReleaseCertThumbprint, true);
+            SignFiles(context, toSign.Where(context.FileExists), context.ReleaseCertThumbprint);
+        }
 
-        public override void OnError(Exception exception, Context context) =>
-            DisplayError(context, "Couldn't sign UWP app:\n" + exception.Message);
+        public static void SignUwp(Context context)
+        {
+            SignFiles(context, context.GetFiles($"{context.PackageDir}/*.appxbundle"), context.ReleaseCertThumbprint);
+        }
     }
 }

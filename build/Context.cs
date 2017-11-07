@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Cake.Common;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
@@ -48,20 +48,76 @@ namespace Build
 
         public string ReleaseCertThumbprint { get; set; }
 
+        public HashSet<string> LibraryFrameworks { get; } = new HashSet<string>();
+        public HashSet<string> CliFrameworks { get; } = new HashSet<string>();
+        public HashSet<string> TestFrameworks { get; } = new HashSet<string>();
+        public bool BuildUwp { get; private set; }
+        public bool RunNetFramework { get; private set; }
+        public bool RunBuild { get; private set; }
+        public bool RunTests { get; private set; }
+        public bool RunClean { get; private set; }
+        public bool RunCleanAll { get; private set; }
+
         public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>
         {
             ["core"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp2.0", "netcoreapp2.0", "netcoreapp2.0"),
             ["full"] = new LibraryBuildStatus("net45", "net451", "net451", "net46")
         };
 
-        public Dictionary<string, bool?> OtherBuilds { get; } = new Dictionary<string, bool?>
+        private void EnableCore()
         {
-            ["uwp"] = null
-        };
+            LibraryBuildStatus target = LibBuilds["core"];
+            LibraryFrameworks.Add(target.LibFramework);
+            CliFrameworks.Add(target.CliFramework);
+            TestFrameworks.Add(target.TestFramework);
+        }
 
-        public bool LibraryBuildsSucceeded => LibBuilds.Values.All(x => x.LibSuccess == true);
-        public bool CliBuildsSucceeded => LibBuilds.Values.All(x => x.CliSuccess == true);
-        public bool ToolsBuildsSucceeded => LibBuilds.Values.All(x => x.ToolsSuccess == true);
-        public bool TestsSucceeded => LibBuilds.Values.All(x => x.TestSuccess == true);
+        private void EnableFull()
+        {
+            LibraryBuildStatus target = LibBuilds["full"];
+            LibraryFrameworks.Add(target.LibFramework);
+            CliFrameworks.Add(target.CliFramework);
+            TestFrameworks.Add(target.TestFramework);
+            RunNetFramework = true;
+        }
+
+        public void ParseArguments()
+        {
+            bool core = this.Argument("core", false);
+            bool full = this.Argument("full", false);
+            bool uwp = this.Argument("uwp", false);
+            bool build = this.Argument("build", false);
+            bool test = this.Argument("test", false);
+            bool clean = this.Argument("clean", false);
+            bool cleanAll = this.Argument("cleanAll", false);
+
+            if (core) EnableCore();
+            if (full) EnableFull();
+            BuildUwp = uwp;
+            RunBuild = build;
+            RunTests = test;
+            RunClean = clean;
+            RunCleanAll = cleanAll;
+
+            if (!(build || test | clean | cleanAll))
+            {
+                throw new Exception("Must specify at least one of \"-Build\", \"-Test\", \"-Clean\", \"-CleanAll\"");
+            }
+
+            if ((build || test) && !(core || full || uwp))
+            {
+                throw new Exception("Must specify at least one of \"-NetCore\", \"-NetFramework\", \"-Uwp\"");
+            }
+        }
+
+        public void EnableAll()
+        {
+            EnableCore();
+            EnableFull();
+            BuildUwp = true;
+            RunBuild = true;
+            RunTests = true;
+            RunCleanAll = true;
+        }
     }
 }
