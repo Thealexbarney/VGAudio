@@ -280,6 +280,7 @@ BenchmarkDotNet.Artifacts/
 /build/tools/cake
 /tools/dotnet/cli
 Sideload.appxmanifest
+**/VGAudio.Uwp/Properties/VersionInfo.cs
 
 #Build output
 [Pp]ackage/
