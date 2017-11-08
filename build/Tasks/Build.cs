@@ -104,12 +104,14 @@ namespace Build.Tasks
             {
                 Verbosity = Verbosity.Minimal,
                 MSBuildPlatform = MSBuildPlatform.x86,
-                Configuration = context.Configuration
+                Configuration = context.Configuration,
+                Targets = { "Rebuild" }
             };
 
             settings.WithProperty("VisualStudioVersion", "15.0");
 
             context.MSBuild(context.UwpCsproj, settings.WithProperty("AppxBuildType", "Store"));
+            settings.Targets.Remove("Rebuild");
 
             //The second manifest MUST be written after the first build, otherwise incremental builds will mess stuff up
             CreateSideloadAppxmanifest(context);
