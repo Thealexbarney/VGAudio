@@ -19,9 +19,6 @@
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="4.3.0" />
   </ItemGroup>
 
-  <!-- Workaround for https://github.com/dotnet/sdk/issues/707 -->
-  <Target Name="GetPackagingOutputs" />
-  
   <!-- Workaround for https://github.com/dotnet/sdk/issues/955 -->
   <PropertyGroup Condition="'$(AppxBuildType)' == 'Store'">
     <DebugType>pdbonly</DebugType>
