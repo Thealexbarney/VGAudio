@@ -21,6 +21,8 @@
     <LibraryFrameworks Condition="'$(DoNetCore)' == 'true'" Include="netstandard1.1"/>
     <CliFrameworks Condition="'$(DoNetFramework)' == 'true'" Include="net451"/>
     <CliFrameworks Condition="'$(DoNetCore)' == 'true'" Include="netcoreapp2.0"/>
+    <TestFrameworks Condition="'$(DoNetFramework)' == 'true'" Include="net46"/>
+    <TestFrameworks Condition="'$(DoNetCore)' == 'true'" Include="netcoreapp2.0"/>
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Cake.Common;
 using Cake.Core;
 using Cake.Core.IO;
@@ -41,7 +40,6 @@ namespace Build
 
         public string ReleaseCertThumbprint { get; set; }
 
-        public HashSet<string> TestFrameworks { get; } = new HashSet<string>();
         public bool BuildUwp { get; private set; }
         public bool BuildUwpStore { get; private set; }
         public bool RunNetCore { get; private set; }
@@ -51,46 +49,21 @@ namespace Build
         public bool RunClean { get; private set; }
         public bool RunCleanAll { get; private set; }
 
-        public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>
-        {
-            ["core"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp2.0", "netcoreapp2.0", "netcoreapp2.0"),
-            ["full"] = new LibraryBuildStatus("net45", "net451", "net451", "net46")
-        };
-
-        private void EnableCore()
-        {
-            TestFrameworks.Add(LibBuilds["core"].TestFramework);
-            RunNetCore = true;
-        }
-
-        private void EnableFull()
-        {
-            TestFrameworks.Add(LibBuilds["full"].TestFramework);
-            RunNetFramework = true;
-        }
+        public LibraryBuildStatus FullBuilds { get; } = new LibraryBuildStatus("net45", "net451", "net451", "net46");
 
         public void ParseArguments()
         {
-            bool core = this.Argument("core", false);
-            bool full = this.Argument("full", false);
-            bool uwp = this.Argument("uwp", false);
-            bool uwpStore = this.Argument("uwpstore", false);
-            bool build = this.Argument("build", false);
-            bool test = this.Argument("test", false);
-            bool clean = this.Argument("clean", false);
-            bool cleanAll = this.Argument("cleanAll", false);
-            if (this.IsRunningOnUnix()) core = true;
+            RunNetCore = this.Argument("core", false);
+            RunNetFramework = this.Argument("full", false);
+            BuildUwp = this.Argument("uwp", false);
+            BuildUwpStore = this.Argument("uwpstore", false);
+            RunBuild = this.Argument("build", false);
+            RunTests = this.Argument("test", false);
+            RunClean = this.Argument("clean", false);
+            RunCleanAll = this.Argument("cleanAll", false);
+            if (this.IsRunningOnUnix()) RunNetCore = true;
 
-            if (core) EnableCore();
-            if (full) EnableFull();
-            BuildUwp = uwp;
-            BuildUwpStore = uwpStore;
-            RunBuild = build;
-            RunTests = test;
-            RunClean = clean;
-            RunCleanAll = cleanAll;
-
-            if (!(build || test | clean | cleanAll))
+            if (!(RunBuild || RunTests | RunClean | RunCleanAll))
             {
                 if (this.IsRunningOnUnix())
                     throw new Exception("Must specify at least one of \"--Build\", \"--Test\", \"--Clean\", \"--CleanAll\"");
@@ -98,7 +71,7 @@ namespace Build
                 throw new Exception("Must specify at least one of \"-Build\", \"-Test\", \"-Clean\", \"-CleanAll\"");
             }
 
-            if ((build || test) && !(core || full || uwp || uwpStore))
+            if ((RunBuild || RunTests) && !(RunNetCore || RunNetFramework || BuildUwp || BuildUwpStore))
             {
                 throw new Exception("Must specify at least one of \"-NetCore\", \"-NetFramework\", \"-Uwp\", \"-UwpStore\"");
             }
@@ -106,8 +79,8 @@ namespace Build
 
         public void EnableAll()
         {
-            EnableCore();
-            EnableFull();
+            RunNetCore = true;
+            RunNetFramework = true;
             BuildUwp = true;
             BuildUwpStore = true;
             RunBuild = true;

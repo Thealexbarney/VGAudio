@@ -19,6 +19,15 @@
     <Copy SourceFiles="@(LibraryFiles);@(CliFiles)" DestinationFolder="$(PackageDir)" />
   </Target>
 
+  <Target Name="TestLibrary">
+    <PropertyGroup>
+      <TestFrameworks>@(TestFrameworks)</TestFrameworks>
+    </PropertyGroup>
+    
+    <MSBuild Projects="$(TestsProjectFile)" Targets="Restore;Build" Properties="TargetFrameworks=$(TestFrameworks)"/>
+    <Exec Command="dotnet xunit -c $(Configuration) -nobuild -f %(TestFrameworks.Identity)"/>
+  </Target>
+
   <Target Name="BuildUwpStore" DependsOnTargets="CreateStoreManifest">
     <CallTarget Targets="DeletePackagingWrites"/>
     <MSBuild Projects="$(UwpProjectFile)" Targets="Rebuild" Properties="AppxBuildType=Store;AppxPackageDir=$(UwpStoreOutPath)" />

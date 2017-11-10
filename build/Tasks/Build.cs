@@ -80,7 +80,7 @@ namespace Build.Tasks
         public override void Run(Context context) => BuildTasks.BuildUwp(context, true);
         public override bool ShouldRun(Context context) => context.IsRunningOnWindows() && context.BuildUwpStore;
     }
-
+    
     public static class BuildTasks
     {
         public static void RunDotnetBuild(Context context)
@@ -90,13 +90,8 @@ namespace Build.Tasks
                 Targets = { "BuildDotnet", "PublishDotnet" }
             };
 
-            settings.Properties.Add("DoBuild", new[] { context.RunBuild ? "true" : "false" });
-            settings.Properties.Add("DoTest", new[] { context.RunTests ? "true" : "false" });
-            settings.Properties.Add("DoClean", new[] { context.RunClean ? "true" : "false" });
-            settings.Properties.Add("DoNetCore", new[] { context.RunNetCore ? "true" : "false" });
-            settings.Properties.Add("DoNetFramework", new[] { context.RunNetFramework ? "true" : "false" });
+            SetMsBuildProps(context, settings);
 
-            settings.Properties.Add("Configuration", new[] { context.Configuration });
             context.DotNetCoreMSBuild(context.LibraryCsproj.FullPath, settings);
         }
 
@@ -117,9 +112,9 @@ namespace Build.Tasks
 
         public static void IlMergeCli(Context context)
         {
-            string cliPath = context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].CliFramework}/VGAudioCli.exe").FullPath;
-            string libPath = context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].CliFramework}/VGAudio.dll").FullPath;
-            string toolsPath = context.CliBinDir.CombineWithFilePath($"{context.LibBuilds["full"].ToolsFramework}/VGAudioTools.exe").FullPath;
+            string cliPath = context.CliBinDir.CombineWithFilePath($"{context.FullBuilds.CliFramework}/VGAudioCli.exe").FullPath;
+            string libPath = context.CliBinDir.CombineWithFilePath($"{context.FullBuilds.CliFramework}/VGAudio.dll").FullPath;
+            string toolsPath = context.CliBinDir.CombineWithFilePath($"{context.FullBuilds.ToolsFramework}/VGAudioTools.exe").FullPath;
 
             var cliOptions = new RepackOptions
             {
@@ -137,6 +132,16 @@ namespace Build.Tasks
 
             new ILRepack(cliOptions).Repack();
             new ILRepack(toolsOptions).Repack();
+        }
+
+        public static void SetMsBuildProps(Context context, DotNetCoreMSBuildSettings settings)
+        {
+            settings.Properties.Add("DoBuild", new[] { context.RunBuild ? "true" : "false" });
+            settings.Properties.Add("DoTest", new[] { context.RunTests ? "true" : "false" });
+            settings.Properties.Add("DoClean", new[] { context.RunClean ? "true" : "false" });
+            settings.Properties.Add("DoNetCore", new[] { context.RunNetCore ? "true" : "false" });
+            settings.Properties.Add("DoNetFramework", new[] { context.RunNetFramework ? "true" : "false" });
+            settings.Properties.Add("Configuration", new[] { context.Configuration });
         }
     }
 }
