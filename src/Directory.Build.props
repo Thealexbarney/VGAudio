@@ -44,7 +44,8 @@
     <UwpOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), uwp))))</UwpOutPath>
     <UwpStoreOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), uwp-store))))</UwpStoreOutPath>
 
-    <UwpStoreManifest>Package.appxmanifest</UwpStoreManifest>
+    <UwpManifest>Package.appxmanifest</UwpManifest>
+    <UwpStoreManifest>obj/Store.appxmanifest</UwpStoreManifest>
     <UwpSideloadManifest>obj/Sideload.appxmanifest</UwpSideloadManifest>
   </PropertyGroup>
 </Project>

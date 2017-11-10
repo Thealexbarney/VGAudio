@@ -128,9 +128,14 @@
       <DependentUpon>Main.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup Condition="'$(AppxBuildType)' != 'Sideload' ">
+  <ItemGroup Condition="'$(AppxBuildType)' == '' ">
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
+    </AppxManifest>
+  </ItemGroup>
+  <ItemGroup Condition="'$(AppxBuildType)' == 'Store' ">
+    <AppxManifest Include="$(UwpStoreManifest)">
+      <Visible>false</Visible>
     </AppxManifest>
   </ItemGroup>
   <ItemGroup Condition="'$(AppxBuildType)' == 'Sideload' ">

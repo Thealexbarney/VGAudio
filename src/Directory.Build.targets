@@ -19,7 +19,7 @@
     <Copy SourceFiles="@(LibraryFiles);@(CliFiles)" DestinationFolder="$(PackageDir)" />
   </Target>
 
-  <Target Name="BuildUwpStore">
+  <Target Name="BuildUwpStore" DependsOnTargets="CreateStoreManifest">
     <CallTarget Targets="DeletePackagingWrites"/>
     <MSBuild Projects="$(UwpProjectFile)" Targets="Rebuild" Properties="AppxBuildType=Store;AppxPackageDir=$(UwpStoreOutPath)" />
     <CallTarget Targets="PublishUwp"/>
@@ -49,8 +49,20 @@
     <Delete Files="@(ToDelete)"/>
   </Target>
 
+  <Target Name="CreateStoreManifest">
+    <Copy SourceFiles="$(UwpManifest)" DestinationFiles="$(UwpStoreManifest)"/>
+    <XmlPoke Namespaces="&lt;Namespace Prefix='ns' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10'/&gt;"
+             XmlInputPath="$(UwpStoreManifest)"
+             Query="/ns:Package/ns:Identity/@Version"
+             Value="$(UwpVersion)"/>
+  </Target>
+
   <Target Name="CreateSideloadManifest">
-    <Copy SourceFiles="$(UwpStoreManifest)" DestinationFiles="$(UwpSideloadManifest)"/>
+    <Copy SourceFiles="$(UwpManifest)" DestinationFiles="$(UwpSideloadManifest)"/>
+    <XmlPoke Namespaces="&lt;Namespace Prefix='ns' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10'/&gt;"
+             XmlInputPath="$(UwpSideloadManifest)"
+             Query="/ns:Package/ns:Identity/@Version"
+             Value="$(UwpVersion)"/>
     <XmlPoke Namespaces="&lt;Namespace Prefix='ns' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10'/&gt;"
              XmlInputPath="$(UwpSideloadManifest)"
              Query="/ns:Package/ns:Identity/@Name"
