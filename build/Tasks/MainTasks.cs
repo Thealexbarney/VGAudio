@@ -1,7 +1,4 @@
-﻿using Cake.Common.Build;
-using Cake.Common.IO;
-using Cake.Core.IO;
-using Cake.Frosting;
+﻿using Cake.Frosting;
 
 namespace Build.Tasks
 {
@@ -18,11 +15,6 @@ namespace Build.Tasks
 
     [Dependency(typeof(SetupAll))]
     [Dependency(typeof(Build))]
-    [Dependency(typeof(UploadAppVeyorArtifacts))]
-    public sealed class AppVeyor : FrostingTask<Context> { }
-
-    [Dependency(typeof(SetupAll))]
-    [Dependency(typeof(Build))]
     [Dependency(typeof(Sign))]
     public sealed class Release : FrostingTask<Context> { }
 
@@ -34,18 +26,5 @@ namespace Build.Tasks
     public sealed class Setup : FrostingTask<Context>
     {
         public override void Run(Context context) => context.ParseArguments();
-    }
-
-    public sealed class UploadAppVeyorArtifacts : FrostingTask<Context>
-    {
-        public override void Run(Context context)
-        {
-            foreach (FilePath file in context.GetFiles($"{context.PackageDir}/*"))
-            {
-                context.AppVeyor().UploadArtifact(file);
-            }
-        }
-
-        public override bool ShouldRun(Context context) => context.BuildSystem().IsRunningOnAppVeyor;
     }
 }

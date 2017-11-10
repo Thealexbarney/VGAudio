@@ -79,6 +79,7 @@ namespace Build
             bool test = this.Argument("test", false);
             bool clean = this.Argument("clean", false);
             bool cleanAll = this.Argument("cleanAll", false);
+            if (this.IsRunningOnUnix()) core = true;
 
             if (core) EnableCore();
             if (full) EnableFull();
@@ -91,6 +92,9 @@ namespace Build
 
             if (!(build || test | clean | cleanAll))
             {
+                if (this.IsRunningOnUnix())
+                    throw new Exception("Must specify at least one of \"--Build\", \"--Test\", \"--Clean\", \"--CleanAll\"");
+
                 throw new Exception("Must specify at least one of \"-Build\", \"-Test\", \"-Clean\", \"-CleanAll\"");
             }
 
