@@ -1,6 +1,8 @@
 ﻿using System.IO;
+using System.Linq;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
+using Cake.Core.IO;
 using Cake.Frosting;
 
 namespace Build.SplitProject
@@ -9,11 +11,10 @@ namespace Build.SplitProject
     {
         public override void Run(Context context)
         {
-            var root = context.SourceDir;
+            DirectoryPath root = context.SourceDir;
             var projects = new Projects(root);
-            context.DotNetCoreTool(context.SolutionFile, "new -i Microsoft.DotNet.Common.ProjectTemplates.1.x::1.0.0-*");
 
-            foreach (var project in projects.ProjectList)
+            foreach (Project project in projects.ProjectList)
             {
                 context.EnsureDirectoryExists(project.Path);
                 foreach (var source in project.Sources)
@@ -22,24 +23,24 @@ namespace Build.SplitProject
                     context.EnsureDirectoryExists(source.Source);
                     context.MoveDirectory(source.Source, source.Dest);
                 }
-                context.DotNetCoreTool(context.SolutionFile, $"new classlib -f netstandard1.1 -o {project.Path}");
-                context.DeleteFiles(project.Path.CombineWithFilePath("Class1.cs").ToString());
 
-                context.DotNetCoreTool(project.Csproj, $"add reference {context.LibraryCsproj}");
-                context.DotNetCoreTool(context.CliCsproj, $"add reference {project.Csproj}");
-                context.DotNetCoreTool(context.ToolsCsproj, $"add reference {project.Csproj}");
-                context.DotNetCoreTool(context.TestsCsproj, $"add reference {project.Csproj}");
-                context.DotNetCoreTool(context.BenchmarkCsproj, $"add reference {project.Csproj}");
-                context.DotNetCoreTool(context.SolutionFile, $"sln add {project.Csproj}");
+                File.WriteAllText(project.Csproj.FullPath, DefaultProjectFile);
                 File.WriteAllText(project.Path.CombineWithFilePath("AssemblyInfo.cs").ToString(), InternalsVisibleTo);
             }
 
-            foreach (var project in projects.ProjectList)
+            string[] newProjects = projects.ProjectList.Select(x => x.Csproj.FullPath).ToArray();
+            string references = string.Join(' ', newProjects);
+            context.DotNetCoreTool(context.SolutionFile, $"sln add {references}");
+
+            foreach (string project in OldProjects)
             {
-                foreach (var dependency in project.Dependencies)
-                {
-                    context.DotNetCoreTool(project.Csproj, $"add reference {dependency.Csproj}");
-                }
+                context.DotNetCoreTool(context.SourceDir.CombineWithFilePath(project), $"add reference {references}");
+            }            
+
+            foreach (Project project in projects.ProjectList)
+            {
+                string dependencies = string.Join(' ', project.Dependencies.Select(x => x.Csproj.FullPath).ToArray());
+                context.DotNetCoreTool(project.Csproj, $"add reference {dependencies} {context.LibraryCsproj}");
             }
         }
 
@@ -47,5 +48,16 @@ namespace Build.SplitProject
             "using System.Runtime.CompilerServices;\n" +
             "[assembly: InternalsVisibleTo(\"VGAudio.Tests\")]\n" +
             "[assembly: InternalsVisibleTo(\"VGAudio.Benchmark\")]";
+
+        private static readonly string DefaultProjectFile =
+            @"<Project Sdk=""Microsoft.NET.Sdk""><PropertyGroup><TargetFrameworks>netstandard1.1;net45</TargetFrameworks></PropertyGroup></Project>";
+
+        private static readonly string[] OldProjects =
+        {
+            "VGAudio.Cli/VGAudio.Cli.csproj",
+            "VGAudio.Tools/VGAudio.Tools.csproj",
+            "VGAudio.Tests/VGAudio.Tests.csproj",
+            "VGAudio.Benchmark/VGAudio.Benchmark.csproj"
+        };
     }
 }
