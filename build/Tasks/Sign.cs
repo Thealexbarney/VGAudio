@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Cake.Common.IO;
 using Cake.Core.IO;
 using Cake.Frosting;
@@ -9,12 +8,7 @@ namespace Build.Tasks
 {
     public sealed class Sign : FrostingTask<Context>
     {
-        public override void Run(Context context)
-        {
-            SignTasks.SignAll(context);
-            BuildTasks.PackageNonUwp(context);
-        }
-
+        public override void Run(Context context) => SignTasks.SignAll(context);
         public override bool ShouldRun(Context context) => CertificateExists(context.ReleaseCertThumbprint, true);
     }
 
@@ -29,39 +23,36 @@ namespace Build.Tasks
 
         public static void SignLibrary(Context context)
         {
-            FilePathCollection packages = context.GetFiles($"{context.LibraryBinDir}/*.nupkg");
+            FilePathCollection packages = context.GetFiles($"{context.PackageDir}/*.nupkg");
 
             foreach (FilePath file in packages)
             {
-                DirectoryPath extracted = context.LibraryBinDir.Combine(file.GetFilenameWithoutExtension().ToString());
+                DirectoryPath extracted = context.PackageDir.Combine(file.GetFilenameWithoutExtension().ToString());
+                context.DeleteDirectory(extracted, false);
                 context.Unzip(file, extracted);
 
                 FilePathCollection toSign = context.GetFiles($"{extracted}/lib/**/VGAudio.dll");
                 SignFiles(context, toSign, context.ReleaseCertThumbprint);
-                context.Zip(extracted, context.LibraryBinDir.CombineWithFilePath(file.GetFilename()));
-                context.DeleteDirectory(extracted, new DeleteDirectorySettings
-                {
-                    Recursive = true
-                });
+                context.Zip(extracted, context.PackageDir.CombineWithFilePath(file.GetFilename()));
+                context.DeleteDirectory(extracted, false);
             }
         }
 
         public static void SignCli(Context context)
         {
-            var possibleNames = new[] { "VGAudio.dll", "VGAudioCli.exe", "VGAudioCli.dll", "VGAudioTools.exe", "VGAudioCli.dll" };
+            FilePath file = context.PackageDir.CombineWithFilePath("VGAudioCli.zip");
+            DirectoryPath extracted = context.PackageDir.Combine(file.GetFilenameWithoutExtension().ToString());
+            context.DeleteDirectory(extracted, false);
+            context.Unzip(file, extracted);
 
-            List<FilePath> toSign = context.LibBuilds.Values
-                .SelectMany(build => possibleNames
-                    .Select(file => context.CliBinDir
-                        .Combine(build.CliFramework)
-                        .CombineWithFilePath(file)))
-                .ToList();
-
-            //Add merged assemblies
-            toSign.Add(context.CliBinDir.CombineWithFilePath("VGAudioCli.exe"));
-            toSign.Add(context.CliBinDir.CombineWithFilePath("VGAudioTools.exe"));
+            FilePathCollection toSign = context.GetFiles($"{extracted}/**/VGAudio*.exe");
+            toSign.Add(context.GetFiles($"{extracted}/**/VGAudio*.dll"));
+            toSign.Add(context.PackageDir.CombineWithFilePath("VGAudioCli.exe"));
+            toSign.Add(context.PackageDir.CombineWithFilePath("VGAudioTools.exe"));
 
             SignFiles(context, toSign.Where(context.FileExists), context.ReleaseCertThumbprint);
+            context.Zip(extracted, context.PackageDir.CombineWithFilePath(file.GetFilename()));
+            context.DeleteDirectory(extracted, false);
         }
 
         public static void SignUwp(Context context)

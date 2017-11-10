@@ -10,9 +10,10 @@ namespace Build.Tasks
     public sealed class Default : FrostingTask<Context> { }
 
     [Dependency(typeof(Clean))]
-    [Dependency(typeof(RunNonUwpBuild))]
+    [Dependency(typeof(RunDotnetBuild))]
     [Dependency(typeof(TestLibrary))]
     [Dependency(typeof(RunUwpBuild))]
+    [Dependency(typeof(RunUwpStoreBuild))]
     public sealed class Build : FrostingTask<Context> { }
 
     [Dependency(typeof(SetupAll))]

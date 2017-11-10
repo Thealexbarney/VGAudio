@@ -11,8 +11,8 @@ namespace Build
 
             context.BaseDir = context.Environment.WorkingDirectory;
             context.SourceDir = context.BaseDir.Combine("src");
-            context.BuildDir = context.BaseDir.Combine("build");
-            context.CakeToolsDir = context.BaseDir.Combine("tools/cake");
+            context.BaseDir.Combine("build");
+            context.BaseDir.Combine("tools/cake");
             context.PackageDir = context.BaseDir.Combine("package");
 
             context.LibraryDir = context.SourceDir.Combine("VGAudio");
@@ -33,13 +33,13 @@ namespace Build
 
             context.TopBinDir = context.BaseDir.Combine("bin");
             context.BinDir = context.TopBinDir.Combine(context.IsReleaseBuild ? "release" : "debug");
-            context.LibraryBinDir = context.BinDir.Combine("NuGet");
+            context.BinDir.Combine("NuGet");
             context.CliBinDir = context.BinDir.Combine("cli");
-            context.UwpBinDir = context.BinDir.Combine("uwp");
+            context.BinDir.Combine("uwp");
+            context.BinDir.Combine("uwp-store");
 
-            context.UwpStoreManifest = context.UwpDir.CombineWithFilePath("Package.appxmanifest");
-            context.UwpSideloadManifest = context.UwpDir.CombineWithFilePath("Sideload.appxmanifest");
-            context.SideloadAppxName = "TheAlexBarney.VGAudio";
+            context.UwpDir.CombineWithFilePath("Package.appxmanifest");
+            context.UwpDir.CombineWithFilePath("Sideload.appxmanifest");
             context.AppxPublisher = "2E186599-2EB7-4677-93A5-C222C2F74D01";
 
             context.ReleaseCertThumbprint = "2043012AE523F7FA0F77A537387633BEB7A9F4DD";

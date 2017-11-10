@@ -30,6 +30,7 @@ Param(
     [switch]$NetCore,
     [switch]$NetFramework,
     [switch]$Uwp,
+    [switch]$UwpStore,
     [switch]$Build,
     [switch]$Test,
     [switch]$Clean,
@@ -110,6 +111,7 @@ try {
         core=$NetCore;
         full=$NetFramework;
         uwp=$Uwp;
+        uwpstore=$UwpStore;
         build=$Build;
         test=$Test;
         clean=$Clean;

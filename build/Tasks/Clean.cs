@@ -32,13 +32,12 @@ namespace Build.Tasks
 
             foreach (DirectoryPath path in directories)
             {
-                DeleteDirectory(context, path, true);
+                context.DeleteDirectory(path, true);
             }
 
             FilePathCollection files = context.GetFiles($"{context.UwpDir}/_scale-*.appx");
             files += context.GetFiles($"{context.UwpDir}/*.csproj.user");
             files += context.UwpDir.CombineWithFilePath("_pkginfo.txt");
-            files += context.UwpSideloadManifest;
 
             foreach (FilePath file in files)
             {
@@ -46,8 +45,8 @@ namespace Build.Tasks
             }
         }
 
-        public static void CleanBin(this Context context) => DeleteDirectory(context, context.BinDir, true);
-        public static void CleanTopBin(this Context context) => DeleteDirectory(context, context.TopBinDir, true);
-        public static void CleanPackage(this Context context) => DeleteDirectory(context, context.PackageDir, true);
+        public static void CleanBin(this Context context) => context.DeleteDirectory(context.BinDir, true);
+        public static void CleanTopBin(this Context context) => context.DeleteDirectory(context.TopBinDir, true);
+        public static void CleanPackage(this Context context) => context.DeleteDirectory(context.PackageDir, true);
     }
 }

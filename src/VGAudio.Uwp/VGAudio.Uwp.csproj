@@ -134,7 +134,7 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup Condition="'$(AppxBuildType)' == 'Sideload' ">
-    <AppxManifest Include="Sideload.appxmanifest">
+    <AppxManifest Include="$(UwpSideloadManifest)">
       <Visible>false</Visible>
     </AppxManifest>
   </ItemGroup>

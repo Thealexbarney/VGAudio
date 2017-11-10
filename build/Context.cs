@@ -15,8 +15,6 @@ namespace Build
         public bool IsReleaseBuild => Configuration.Equals("release", StringComparison.CurrentCultureIgnoreCase);
 
         public DirectoryPath BaseDir { get; set; }
-        public DirectoryPath BuildDir { get; set; }
-        public DirectoryPath CakeToolsDir { get; set; }
         public DirectoryPath PackageDir { get; set; }
 
         public DirectoryPath SourceDir { get; set; }
@@ -37,21 +35,16 @@ namespace Build
 
         public DirectoryPath TopBinDir { get; set; }
         public DirectoryPath BinDir { get; set; }
-        public DirectoryPath LibraryBinDir { get; set; }
         public DirectoryPath CliBinDir { get; set; }
-        public DirectoryPath UwpBinDir { get; set; }
 
-        public FilePath UwpStoreManifest { get; set; }
-        public FilePath UwpSideloadManifest { get; set; }
-        public string SideloadAppxName { get; set; }
         public string AppxPublisher { get; set; }
 
         public string ReleaseCertThumbprint { get; set; }
 
-        public HashSet<string> LibraryFrameworks { get; } = new HashSet<string>();
-        public HashSet<string> CliFrameworks { get; } = new HashSet<string>();
         public HashSet<string> TestFrameworks { get; } = new HashSet<string>();
         public bool BuildUwp { get; private set; }
+        public bool BuildUwpStore { get; private set; }
+        public bool RunNetCore { get; private set; }
         public bool RunNetFramework { get; private set; }
         public bool RunBuild { get; private set; }
         public bool RunTests { get; private set; }
@@ -66,18 +59,13 @@ namespace Build
 
         private void EnableCore()
         {
-            LibraryBuildStatus target = LibBuilds["core"];
-            LibraryFrameworks.Add(target.LibFramework);
-            CliFrameworks.Add(target.CliFramework);
-            TestFrameworks.Add(target.TestFramework);
+            TestFrameworks.Add(LibBuilds["core"].TestFramework);
+            RunNetCore = true;
         }
 
         private void EnableFull()
         {
-            LibraryBuildStatus target = LibBuilds["full"];
-            LibraryFrameworks.Add(target.LibFramework);
-            CliFrameworks.Add(target.CliFramework);
-            TestFrameworks.Add(target.TestFramework);
+            TestFrameworks.Add(LibBuilds["full"].TestFramework);
             RunNetFramework = true;
         }
 
@@ -86,6 +74,7 @@ namespace Build
             bool core = this.Argument("core", false);
             bool full = this.Argument("full", false);
             bool uwp = this.Argument("uwp", false);
+            bool uwpStore = this.Argument("uwpstore", false);
             bool build = this.Argument("build", false);
             bool test = this.Argument("test", false);
             bool clean = this.Argument("clean", false);
@@ -94,6 +83,7 @@ namespace Build
             if (core) EnableCore();
             if (full) EnableFull();
             BuildUwp = uwp;
+            BuildUwpStore = uwpStore;
             RunBuild = build;
             RunTests = test;
             RunClean = clean;
@@ -104,9 +94,9 @@ namespace Build
                 throw new Exception("Must specify at least one of \"-Build\", \"-Test\", \"-Clean\", \"-CleanAll\"");
             }
 
-            if ((build || test) && !(core || full || uwp))
+            if ((build || test) && !(core || full || uwp || uwpStore))
             {
-                throw new Exception("Must specify at least one of \"-NetCore\", \"-NetFramework\", \"-Uwp\"");
+                throw new Exception("Must specify at least one of \"-NetCore\", \"-NetFramework\", \"-Uwp\", \"-UwpStore\"");
             }
         }
 
@@ -115,6 +105,7 @@ namespace Build
             EnableCore();
             EnableFull();
             BuildUwp = true;
+            BuildUwpStore = true;
             RunBuild = true;
             RunTests = true;
             RunCleanAll = true;

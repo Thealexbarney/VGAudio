@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Xml.Linq;
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
@@ -20,7 +18,7 @@ namespace Build
             context.DotNetCoreTool(csprojPath, "xunit", $"-c {context.Configuration} -nobuild -f {framework}");
         }
 
-        public static void DeleteDirectory(Context context, DirectoryPath path, bool verbose)
+        public static void DeleteDirectory(this Context context, DirectoryPath path, bool verbose)
         {
             if (!context.DirectoryExists(path)) return;
 
@@ -65,17 +63,6 @@ namespace Build
                     TimeStampDigestAlgorithm = SignToolDigestAlgorithm.Sha256,
                     TimeStampUri = new Uri("http://timestamp.digicert.com")
                 });
-            }
-        }
-
-        public static void CreateSideloadAppxmanifest(Context context)
-        {
-            XDocument manifest = XDocument.Load(context.UwpStoreManifest.FullPath);
-            XNamespace ns = manifest.Root?.GetDefaultNamespace();
-            manifest.Root?.Element(ns + "Identity")?.SetAttributeValue("Name", context.SideloadAppxName);
-            using (var stream = new FileStream(context.UwpSideloadManifest.FullPath, FileMode.Create))
-            {
-                manifest.Save(stream);
             }
         }
 
