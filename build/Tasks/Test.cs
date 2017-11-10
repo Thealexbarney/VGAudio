@@ -10,7 +10,7 @@ namespace Build.Tasks
         {
             var settings = new DotNetCoreMSBuildSettings { Targets = { "TestLibrary" } };
             BuildTasks.SetMsBuildProps(context, settings);
-            context.DotNetCoreMSBuild(context.TestsCsproj.FullPath, settings);
+            context.DotNetCoreMSBuild(context.BuildTargetsFile.FullPath, settings);
         }
 
         public override bool ShouldRun(Context context) => context.RunTests && (context.RunNetCore || context.RunNetFramework);

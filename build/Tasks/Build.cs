@@ -46,9 +46,9 @@ namespace Build.Tasks
     public sealed class RestoreUwp : FrostingTask<Context>
     {
         public override void Run(Context context) =>
-            context.MSBuild(context.UwpCsproj, new MSBuildSettings
+            context.MSBuild(context.BuildTargetsFile, new MSBuildSettings
             {
-                Targets = { "Restore" },
+                Targets = { "RestoreUwp" },
                 Verbosity = Verbosity.Minimal
             });
 
@@ -92,7 +92,7 @@ namespace Build.Tasks
 
             SetMsBuildProps(context, settings);
 
-            context.DotNetCoreMSBuild(context.LibraryCsproj.FullPath, settings);
+            context.DotNetCoreMSBuild(context.BuildTargetsFile.FullPath, settings);
         }
 
         public static void BuildUwp(Context context, bool storeBuild = false)
@@ -107,7 +107,7 @@ namespace Build.Tasks
                 Targets = { storeBuild ? "BuildUwpStore" : "BuildUwpSideload" }
             };
 
-            context.MSBuild(context.UwpCsproj, settings);
+            context.MSBuild(context.BuildTargetsFile, settings);
         }
 
         public static void IlMergeCli(Context context)

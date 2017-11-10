@@ -32,13 +32,15 @@
     <PackageDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BaseDir), package))))</PackageDir>
     <TopBinDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BaseDir), bin))))</TopBinDir>
     <BinDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(TopBinDir), $(Configuration)))))</BinDir>
-
+    <TestsProjectDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(SourceDir), VGAudio.Tests))))</TestsProjectDir>
+    <UwpProjectDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(SourceDir), VGAudio.Uwp))))</UwpProjectDir>
+    
     <SolutionFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio.sln))</SolutionFile>
     <LibraryProjectFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio, VGAudio.csproj))</LibraryProjectFile>
     <CliProjectFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio.Cli, VGAudio.Cli.csproj))</CliProjectFile>
     <ToolsProjectFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio.Tools, VGAudio.Tools.csproj))</ToolsProjectFile>
-    <TestsProjectFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio.Tests, VGAudio.Tests.csproj))</TestsProjectFile>
-    <UwpProjectFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio.Uwp, VGAudio.Uwp.csproj))</UwpProjectFile>
+    <TestsProjectFile>$([System.IO.Path]::Combine($(TestsProjectDir), VGAudio.Tests.csproj))</TestsProjectFile>
+    <UwpProjectFile>$([System.IO.Path]::Combine($(UwpProjectDir), VGAudio.Uwp.csproj))</UwpProjectFile>
 
     <LibraryOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), NuGet))))</LibraryOutPath>
     <CliOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), cli))))</CliOutPath>
@@ -46,8 +48,8 @@
     <UwpOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), uwp))))</UwpOutPath>
     <UwpStoreOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), uwp-store))))</UwpStoreOutPath>
 
-    <UwpManifest>Package.appxmanifest</UwpManifest>
-    <UwpStoreManifest>obj/Store.appxmanifest</UwpStoreManifest>
-    <UwpSideloadManifest>obj/Sideload.appxmanifest</UwpSideloadManifest>
+    <UwpManifest>$([System.IO.Path]::Combine($(UwpProjectDir), Package.appxmanifest))</UwpManifest>
+    <UwpStoreManifest>$([System.IO.Path]::Combine($(UwpProjectDir), obj, Store.appxmanifest))</UwpStoreManifest>
+    <UwpSideloadManifest>$([System.IO.Path]::Combine($(UwpProjectDir), obj, Sideload.appxmanifest))</UwpSideloadManifest>
   </PropertyGroup>
 </Project>

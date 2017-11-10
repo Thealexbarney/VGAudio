@@ -25,6 +25,7 @@ namespace Build
         public DirectoryPath BenchmarkDir { get; set; }
 
         public FilePath SolutionFile { get; set; }
+        public FilePath BuildTargetsFile { get; set; }
         public FilePath LibraryCsproj { get; set; }
         public FilePath CliCsproj { get; set; }
         public FilePath ToolsCsproj { get; set; }
