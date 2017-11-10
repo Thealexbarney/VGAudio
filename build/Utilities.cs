@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
+using Cake.Common.Tools.DotNetCore.MSBuild;
 using Cake.Common.Tools.SignTool;
 using Cake.Core.IO;
 
@@ -13,9 +15,20 @@ namespace Build
 {
     internal static class Utilities
     {
-        public static void TestNetCli(Context context, string csprojPath, string framework)
+        public static void RunCoreMsBuild(Context context, params string[] targets)
         {
-            context.DotNetCoreTool(csprojPath, "xunit", $"-c {context.Configuration} -nobuild -f {framework}");
+            var settings = new DotNetCoreMSBuildSettings();
+            settings.Properties.Add("DoCleanAll", new[] { context.RunCleanAll ? "true" : "false" });
+            settings.Properties.Add("DoNetCore", new[] { context.RunNetCore ? "true" : "false" });
+            settings.Properties.Add("DoNetFramework", new[] { context.RunNetFramework ? "true" : "false" });
+            settings.Properties.Add("Configuration", new[] { context.Configuration });
+
+            foreach (string target in targets.Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                settings.Targets.Add(target);
+            }
+
+            context.DotNetCoreMSBuild(context.BuildTargetsFile.FullPath, settings);
         }
 
         public static void DeleteDirectory(this Context context, DirectoryPath path, bool verbose)
@@ -30,17 +43,6 @@ namespace Build
             {
                 Recursive = true
             });
-        }
-
-        public static void DeleteFile(Context context, FilePath path, bool verbose)
-        {
-            if (!context.FileExists(path)) return;
-
-            if (verbose)
-            {
-                context.Information($"Deleting {path}");
-            }
-            context.DeleteFile(path);
         }
 
         public static bool CertificateExists(string thumbprint, bool validOnly)

@@ -1,8 +1,6 @@
 ﻿using Cake.Common;
 using Cake.Common.Build;
 using Cake.Common.IO;
-using Cake.Common.Tools.DotNetCore;
-using Cake.Common.Tools.DotNetCore.MSBuild;
 using Cake.Common.Tools.MSBuild;
 using Cake.Core.Diagnostics;
 using Cake.Core.IO;
@@ -16,7 +14,7 @@ namespace Build.Tasks
     {
         public override void Run(Context context)
         {
-            BuildTasks.RunDotnetBuild(context);
+            RunCoreMsBuild(context, "BuildDotnet", "PublishDotnet");
 
             if (context.RunNetFramework)
             {
@@ -80,21 +78,9 @@ namespace Build.Tasks
         public override void Run(Context context) => BuildTasks.BuildUwp(context, true);
         public override bool ShouldRun(Context context) => context.IsRunningOnWindows() && context.BuildUwpStore;
     }
-    
+
     public static class BuildTasks
     {
-        public static void RunDotnetBuild(Context context)
-        {
-            var settings = new DotNetCoreMSBuildSettings
-            {
-                Targets = { "BuildDotnet", "PublishDotnet" }
-            };
-
-            SetMsBuildProps(context, settings);
-
-            context.DotNetCoreMSBuild(context.BuildTargetsFile.FullPath, settings);
-        }
-
         public static void BuildUwp(Context context, bool storeBuild = false)
         {
             SetupUwpSigningCertificate(context);
@@ -132,16 +118,6 @@ namespace Build.Tasks
 
             new ILRepack(cliOptions).Repack();
             new ILRepack(toolsOptions).Repack();
-        }
-
-        public static void SetMsBuildProps(Context context, DotNetCoreMSBuildSettings settings)
-        {
-            settings.Properties.Add("DoBuild", new[] { context.RunBuild ? "true" : "false" });
-            settings.Properties.Add("DoTest", new[] { context.RunTests ? "true" : "false" });
-            settings.Properties.Add("DoClean", new[] { context.RunClean ? "true" : "false" });
-            settings.Properties.Add("DoNetCore", new[] { context.RunNetCore ? "true" : "false" });
-            settings.Properties.Add("DoNetFramework", new[] { context.RunNetFramework ? "true" : "false" });
-            settings.Properties.Add("Configuration", new[] { context.Configuration });
         }
     }
 }

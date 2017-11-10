@@ -6,12 +6,11 @@
     <PathMap>$(MSBuildThisFileDirectory)=D:/VGAudio/</PathMap>
     <IncludeSymbols>true</IncludeSymbols>
     <IncludeSource>true</IncludeSource>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
   </PropertyGroup>
 
   <PropertyGroup>
-    <DoBuild Condition="'$(DoBuild)' == ''">false</DoBuild>
-    <DoTest Condition="'$(DoTest)' == ''">false</DoTest>
-    <DoClean Condition="'$(DoClean)' == ''">false</DoClean>
+    <DoCleanAll Condition="'$(DoCleanAll)' == ''">false</DoCleanAll>
     <DoNetCore Condition="'$(DoNetCore)' == ''">false</DoNetCore>
     <DoNetFramework Condition="'$(DoNetFramework)' == ''">false</DoNetFramework>
   </PropertyGroup>
@@ -28,14 +27,12 @@
   <PropertyGroup>
     <BaseDir>$([MSBuild]::EnsureTrailingSlash($([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), build.ps1))))</BaseDir>
     <SourceDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BaseDir), src))))</SourceDir>
-    <BuildDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BaseDir), build))))</BuildDir>
     <PackageDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BaseDir), package))))</PackageDir>
     <TopBinDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BaseDir), bin))))</TopBinDir>
     <BinDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(TopBinDir), $(Configuration)))))</BinDir>
     <TestsProjectDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(SourceDir), VGAudio.Tests))))</TestsProjectDir>
     <UwpProjectDir>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(SourceDir), VGAudio.Uwp))))</UwpProjectDir>
     
-    <SolutionFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio.sln))</SolutionFile>
     <LibraryProjectFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio, VGAudio.csproj))</LibraryProjectFile>
     <CliProjectFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio.Cli, VGAudio.Cli.csproj))</CliProjectFile>
     <ToolsProjectFile>$([System.IO.Path]::Combine($(SourceDir), VGAudio.Tools, VGAudio.Tools.csproj))</ToolsProjectFile>
@@ -44,7 +41,6 @@
 
     <LibraryOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), NuGet))))</LibraryOutPath>
     <CliOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), cli))))</CliOutPath>
-    <ToolsOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), cli))))</ToolsOutPath>
     <UwpOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), uwp))))</UwpOutPath>
     <UwpStoreOutPath>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::Combine($(BinDir), uwp-store))))</UwpStoreOutPath>
 

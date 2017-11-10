@@ -230,9 +230,9 @@
     <ItemGroup>
       <VersionInfo Include="[assembly:System.Reflection.AssemblyVersion(&quot;$(UwpVersion)&quot;)]" />
       <VersionInfo Include="[assembly:System.Reflection.AssemblyFileVersion(&quot;$(UwpVersion)&quot;)]" />
-      <Compile Include="Properties\VersionInfo.cs" />
+      <Compile Include="obj\VersionInfo.cs" />
     </ItemGroup>
-    <WriteLinesToFile File="Properties\VersionInfo.cs" Lines="@(VersionInfo)" Overwrite="true" />
+    <WriteLinesToFile File="obj\VersionInfo.cs" Lines="@(VersionInfo)" Overwrite="true" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

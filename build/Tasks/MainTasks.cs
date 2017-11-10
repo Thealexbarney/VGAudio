@@ -27,4 +27,16 @@ namespace Build.Tasks
     {
         public override void Run(Context context) => context.ParseArguments();
     }
+
+    public sealed class Clean : FrostingTask<Context>
+    {
+        public override void Run(Context context) => Utilities.RunCoreMsBuild(context, "CleanBuilds");
+        public override bool ShouldRun(Context context) => context.RunClean || context.RunCleanAll;
+    }
+
+    public sealed class TestLibrary : FrostingTask<Context>
+    {
+        public override void Run(Context context) => Utilities.RunCoreMsBuild(context, "TestLibrary");
+        public override bool ShouldRun(Context context) => context.RunTests && (context.RunNetCore || context.RunNetFramework);
+    }
 }

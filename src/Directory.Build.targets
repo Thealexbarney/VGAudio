@@ -24,7 +24,7 @@
     <PropertyGroup>
       <TestFrameworks>@(TestFrameworks)</TestFrameworks>
     </PropertyGroup>
-    
+
     <MSBuild Projects="$(TestsProjectFile)" Targets="Restore;Build" Properties="TargetFrameworks=$(TestFrameworks)"/>
     <Exec Command="dotnet xunit -c $(Configuration) -nobuild -f %(TestFrameworks.Identity)" WorkingDirectory="$(TestsProjectDir)" />
   </Target>
@@ -81,6 +81,23 @@
              XmlInputPath="$(UwpSideloadManifest)"
              Query="/ns:Package/ns:Identity/@Name"
              Value="$(SideloadAppxName)"/>
+  </Target>
+
+  <Target Name="CleanBuilds">
+    <ItemGroup>
+      <Files Include="$(UwpProjectDir)_pkginfo.txt" />
+      <Files Include="$(UwpProjectDir)*.csproj.user" />
+      <Dirs Include="$(UwpProjectDir)AppPackages" />
+      <Dirs Include="$(UwpProjectDir)BundleArtifacts" />
+      <Dirs Include="$([System.IO.Directory]::GetDirectories($(SourceDir), obj, SearchOption.AllDirectories))" />
+      <Dirs Include="$([System.IO.Directory]::GetDirectories($(SourceDir), bin, SearchOption.AllDirectories))" />
+      <Dirs Include="$(BinDir)" />
+      <Dirs Include="$(TopBinDir)" Condition="'$(DoCleanAll)' == 'true'" />
+      <Dirs Include="$(PackageDir)" Condition="'$(DoCleanAll)' == 'true'" />
+    </ItemGroup>
+
+    <Delete Files="%(Files.Identity)" ContinueOnError="true" />
+    <RemoveDir Directories="%(Dirs.Identity)" ContinueOnError="true" />
   </Target>
 
 </Project>
