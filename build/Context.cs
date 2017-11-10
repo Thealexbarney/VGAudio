@@ -11,34 +11,19 @@ namespace Build
         public Context(ICakeContext context) : base(context) { }
 
         public string Configuration { get; set; }
-        public bool IsReleaseBuild => Configuration.Equals("release", StringComparison.CurrentCultureIgnoreCase);
 
         public DirectoryPath BaseDir { get; set; }
         public DirectoryPath PackageDir { get; set; }
-
         public DirectoryPath SourceDir { get; set; }
-        public DirectoryPath LibraryDir { get; set; }
-        public DirectoryPath CliDir { get; set; }
-        public DirectoryPath TestsDir { get; set; }
-        public DirectoryPath ToolsDir { get; set; }
         public DirectoryPath UwpDir { get; set; }
-        public DirectoryPath BenchmarkDir { get; set; }
-
-        public FilePath SolutionFile { get; set; }
-        public FilePath BuildTargetsFile { get; set; }
-        public FilePath LibraryCsproj { get; set; }
-        public FilePath CliCsproj { get; set; }
-        public FilePath ToolsCsproj { get; set; }
-        public FilePath TestsCsproj { get; set; }
-        public FilePath UwpCsproj { get; set; }
-        public FilePath BenchmarkCsproj { get; set; }
 
         public DirectoryPath TopBinDir { get; set; }
         public DirectoryPath BinDir { get; set; }
         public DirectoryPath CliBinDir { get; set; }
 
-        public string AppxPublisher { get; set; }
+        public FilePath BuildTargetsFile { get; set; }
 
+        public string AppxPublisher { get; set; }
         public string ReleaseCertThumbprint { get; set; }
 
         public bool BuildUwp { get; private set; }

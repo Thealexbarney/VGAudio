@@ -12,6 +12,8 @@ namespace Build.SplitProject
         public override void Run(Context context)
         {
             DirectoryPath root = context.SourceDir;
+            FilePath libraryProject = context.SourceDir.CombineWithFilePath("VGAudio.sln");
+            FilePath solutionFile = context.SourceDir.CombineWithFilePath("VGAudio/VGAudio.csproj");
             var projects = new Projects(root);
 
             foreach (Project project in projects.ProjectList)
@@ -30,17 +32,17 @@ namespace Build.SplitProject
 
             string[] newProjects = projects.ProjectList.Select(x => x.Csproj.FullPath).ToArray();
             string references = string.Join(' ', newProjects);
-            context.DotNetCoreTool(context.SolutionFile, $"sln add {references}");
+            context.DotNetCoreTool(solutionFile, $"sln add {references}");
 
             foreach (string project in OldProjects)
             {
                 context.DotNetCoreTool(context.SourceDir.CombineWithFilePath(project), $"add reference {references}");
-            }            
+            }
 
             foreach (Project project in projects.ProjectList)
             {
                 string dependencies = string.Join(' ', project.Dependencies.Select(x => x.Csproj.FullPath).ToArray());
-                context.DotNetCoreTool(project.Csproj, $"add reference {dependencies} {context.LibraryCsproj}");
+                context.DotNetCoreTool(project.Csproj, $"add reference {dependencies} {libraryProject}");
             }
         }
 
