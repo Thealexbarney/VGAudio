@@ -16,11 +16,7 @@ namespace Build
         public DirectoryPath PackageDir { get; set; }
         public DirectoryPath SourceDir { get; set; }
         public DirectoryPath UwpDir { get; set; }
-
-        public DirectoryPath TopBinDir { get; set; }
-        public DirectoryPath BinDir { get; set; }
-        public DirectoryPath CliBinDir { get; set; }
-
+        public DirectoryPath CliPackageDir { get; set; }
         public FilePath BuildTargetsFile { get; set; }
 
         public string AppxPublisher { get; set; }

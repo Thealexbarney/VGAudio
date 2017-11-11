@@ -13,11 +13,14 @@
 
   <Target Name="PublishDotnet">
     <ItemGroup>
-      <LibraryFiles Include="$(LibraryOutPath)/*.nupkg" />
-      <CliFiles Include="$(CliOutPath)/VGAudio*.exe" />
+      <LibraryFiles Include="$(LibraryOutPath)*.nupkg" />
+      <CliFiles Include="$(CliOutPath)**/*" />
     </ItemGroup>
+
     <MakeDir Directories="$(PackageDir)" />
-    <Copy SourceFiles="@(LibraryFiles);@(CliFiles)" DestinationFolder="$(PackageDir)" />
+    <MakeDir Directories="$(PackageDir)VGAudioCli" />
+    <Copy SourceFiles="@(LibraryFiles)" DestinationFolder="$(PackageDir)" />
+    <Copy SourceFiles="@(CliFiles)" DestinationFolder="$(PackageDir)VGAudioCli\%(RecursiveDir)" />
   </Target>
 
   <Target Name="TestLibrary">

@@ -1,4 +1,5 @@
-﻿using Cake.Common;
+﻿using System.Linq;
+using Cake.Common;
 using Cake.Common.Build;
 using Cake.Common.IO;
 using Cake.Common.Tools.MSBuild;
@@ -21,8 +22,8 @@ namespace Build.Tasks
                 BuildTasks.IlMergeCli(context);
             }
 
-            context.CopyFiles(context.GetFiles($"{context.CliBinDir}/*.exe"), context.PackageDir);
-            context.Zip(context.CliBinDir, context.PackageDir.CombineWithFilePath("VGAudioCli.zip"));
+            context.Zip(context.CliPackageDir, context.PackageDir.CombineWithFilePath("VGAudioCli.zip"));
+            context.DeleteDirectory(context.CliPackageDir, false);
 
             if (context.BuildSystem().IsRunningOnAppVeyor)
             {
@@ -98,26 +99,32 @@ namespace Build.Tasks
 
         public static void IlMergeCli(Context context)
         {
-            string cliPath = context.CliBinDir.CombineWithFilePath($"{context.FullBuilds.CliFramework}/VGAudioCli.exe").FullPath;
-            string libPath = context.CliBinDir.CombineWithFilePath($"{context.FullBuilds.CliFramework}/VGAudio.dll").FullPath;
-            string toolsPath = context.CliBinDir.CombineWithFilePath($"{context.FullBuilds.ToolsFramework}/VGAudioTools.exe").FullPath;
+            var inDir = context.GetFiles($"{context.CliPackageDir}/**/*.exe").FirstOrDefault()?.GetDirectory();
+            if (inDir == null) return;
+            var outDir = context.CliPackageDir.Combine($"{inDir.GetDirectoryName()}_standalone");
+
+            string cliPath = inDir.CombineWithFilePath("VGAudioCli.exe").FullPath;
+            string libPath = inDir.CombineWithFilePath("VGAudio.dll").FullPath;
+            string toolsPath = inDir.CombineWithFilePath("VGAudioTools.exe").FullPath;
+            context.EnsureDirectoryExists(outDir);
 
             var cliOptions = new RepackOptions
             {
-                OutputFile = context.CliBinDir.CombineWithFilePath("VGAudioCli.exe").FullPath,
+                OutputFile = outDir.CombineWithFilePath("VGAudioCli.exe").FullPath,
                 InputAssemblies = new[] { cliPath, libPath },
                 SearchDirectories = new[] { "." }
             };
 
             var toolsOptions = new RepackOptions
             {
-                OutputFile = context.CliBinDir.CombineWithFilePath("VGAudioTools.exe").FullPath,
+                OutputFile = outDir.CombineWithFilePath("VGAudioTools.exe").FullPath,
                 InputAssemblies = new[] { toolsPath, libPath },
                 SearchDirectories = new[] { "." }
             };
 
             new ILRepack(cliOptions).Repack();
             new ILRepack(toolsOptions).Repack();
+            context.CopyFiles(context.GetFiles($"{outDir}/*.exe"), context.PackageDir);
         }
     }
 }
