@@ -31,8 +31,6 @@ namespace Build
         public bool RunClean { get; private set; }
         public bool RunCleanAll { get; private set; }
 
-        public LibraryBuildStatus FullBuilds { get; } = new LibraryBuildStatus("net45", "net451", "net451", "net46");
-
         public void ParseArguments()
         {
             RunNetCore = this.Argument("core", false);
