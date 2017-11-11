@@ -340,9 +340,11 @@ namespace VGAudio.Tests.Utilities
         public static byte[] Deflate(byte[] data)
         {
             using (var stream = new MemoryStream())
-            using (var deflate = new DeflateStream(stream, CompressionLevel.Optimal))
             {
-                deflate.Write(data, 0, data.Length);
+                using (var deflate = new DeflateStream(stream, CompressionLevel.Optimal))
+                {
+                    deflate.Write(data, 0, data.Length);
+                }
                 return stream.ToArray();
             }
         }

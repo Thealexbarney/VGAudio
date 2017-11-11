@@ -1,7 +1,7 @@
 ﻿using System;
-using VGAudio.Tests.Formats.CriHca;
 using VGAudio.Utilities;
 using Xunit;
+using CriHcaTables = VGAudio.Tests.Formats.CriHca.UnpackedTables;
 
 namespace VGAudio.Tests.Utilities
 {
@@ -41,14 +41,14 @@ namespace VGAudio.Tests.Utilities
 
         public static readonly object[][] CriHcaArrays =
         {
-            new object[] { UnpackedTables.QuantizeSpectrumBits, null, null},
-            new object[] { UnpackedTables.QuantizeSpectrumValue, null, null},
-            new object[] { UnpackedTables.QuantizedSpectrumBits, null, null},
-            new object[] { UnpackedTables.QuantizedSpectrumMaxBits, null, null},
-            new object[] { UnpackedTables.QuantizedSpectrumValue, null, null},
-            new object[] { UnpackedTables.ScaleToResolutionCurve, null, null},
-            new object[] { UnpackedTables.AthCurve, null, null},
-            new object[] { UnpackedTables.MdctWindowF, UnpackedTables.MdctWindow, typeof(double) }
+            new object[] { CriHcaTables.QuantizeSpectrumBits, null, null},
+            new object[] { CriHcaTables.QuantizeSpectrumValue, null, null},
+            new object[] { CriHcaTables.QuantizedSpectrumBits, null, null},
+            new object[] { CriHcaTables.QuantizedSpectrumMaxBits, null, null},
+            new object[] { CriHcaTables.QuantizedSpectrumValue, null, null},
+            new object[] { CriHcaTables.ScaleToResolutionCurve, null, null},
+            new object[] { CriHcaTables.AthCurve, null, null},
+            new object[] { CriHcaTables.MdctWindowF, CriHcaTables.MdctWindow, typeof(double) }
         };
 
         public static readonly object[][] AllArraySets =
