@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Cake.Common;
 using Cake.Common.Build;
 using Cake.Common.IO;
@@ -19,7 +20,7 @@ namespace Build.Tasks
 
             if (context.RunNetFramework)
             {
-                BuildTasks.IlMergeCli(context);
+                BuildTasks.IlRepackCli(context);
             }
 
             context.Zip(context.CliPackageDir, context.PackageDir.CombineWithFilePath("VGAudioCli.zip"));
@@ -97,34 +98,39 @@ namespace Build.Tasks
             context.MSBuild(context.BuildTargetsFile, settings);
         }
 
-        public static void IlMergeCli(Context context)
+        public static void IlRepackCli(Context context)
         {
-            var inDir = context.GetFiles($"{context.CliPackageDir}/**/*.exe").FirstOrDefault()?.GetDirectory();
-            if (inDir == null) return;
-            var outDir = context.CliPackageDir.Combine($"{inDir.GetDirectoryName()}_standalone");
+            var frameworks = context.GetSubDirectories(context.CliPackageDir)
+                .Where(x => context.FileExists(x.CombineWithFilePath("VGAudioCli.exe")));
 
-            string cliPath = inDir.CombineWithFilePath("VGAudioCli.exe").FullPath;
-            string libPath = inDir.CombineWithFilePath("VGAudio.dll").FullPath;
-            string toolsPath = inDir.CombineWithFilePath("VGAudioTools.exe").FullPath;
-            context.EnsureDirectoryExists(outDir);
-
-            var cliOptions = new RepackOptions
+            foreach (DirectoryPath tfm in frameworks)
             {
-                OutputFile = outDir.CombineWithFilePath("VGAudioCli.exe").FullPath,
-                InputAssemblies = new[] { cliPath, libPath },
-                SearchDirectories = new[] { "." }
-            };
+                DirectoryPath outDir = context.CliPackageDir.Combine($"{tfm.GetDirectoryName()}_standalone");
+                context.EnsureDirectoryExists(outDir);
+                var libraries = context.GetFiles($"{tfm}/VGAudio.*dll");
+                var cliList = new List<FilePath> { tfm.CombineWithFilePath("VGAudioCli.exe") };
+                var toolsList = new List<FilePath> { tfm.CombineWithFilePath("VGAudioTools.exe") };
+                cliList.AddRange(libraries);
+                toolsList.AddRange(libraries);
 
-            var toolsOptions = new RepackOptions
-            {
-                OutputFile = outDir.CombineWithFilePath("VGAudioTools.exe").FullPath,
-                InputAssemblies = new[] { toolsPath, libPath },
-                SearchDirectories = new[] { "." }
-            };
+                var cliOptions = new RepackOptions
+                {
+                    OutputFile = outDir.CombineWithFilePath("VGAudioCli.exe").FullPath,
+                    InputAssemblies = cliList.Select(x => x.FullPath).ToArray(),
+                    SearchDirectories = new[] { "." }
+                };
 
-            new ILRepack(cliOptions).Repack();
-            new ILRepack(toolsOptions).Repack();
-            context.CopyFiles(context.GetFiles($"{outDir}/*.exe"), context.PackageDir);
+                var toolsOptions = new RepackOptions
+                {
+                    OutputFile = outDir.CombineWithFilePath("VGAudioTools.exe").FullPath,
+                    InputAssemblies = toolsList.Select(x => x.FullPath).ToArray(),
+                    SearchDirectories = new[] { "." }
+                };
+
+                new ILRepack(cliOptions).Repack();
+                new ILRepack(toolsOptions).Repack();
+                context.CopyFiles(context.GetFiles($"{outDir}/*.exe"), context.PackageDir);
+            }
         }
     }
 }
