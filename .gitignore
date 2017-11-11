@@ -276,10 +276,11 @@ BenchmarkDotNet.Artifacts/
 
 #Build script tools
 /build/runbuild.txt
-/build/global.json
+/global.json
 /build/tools/cake
 /tools/dotnet/cli
 Sideload.appxmanifest
+**/VGAudio.Uwp/Properties/VersionInfo.cs
 
 #Build output
 [Pp]ackage/

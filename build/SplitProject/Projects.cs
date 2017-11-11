@@ -39,7 +39,7 @@ namespace Build.SplitProject
             [Hps] = new[] { GcAdpcmFormat },
             [Genh] = new[] { GcAdpcmFormat },
             [Adx] = new[] { CriAdxFormat },
-            [Hca] = new[] { CriHcaFormat },
+            [Hca] = new[] { CriHcaFormat }
 
         };
 

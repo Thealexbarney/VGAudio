@@ -12,7 +12,7 @@
     <ProjectName>VGAudio</ProjectName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.16299.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
@@ -128,13 +128,18 @@
       <DependentUpon>Main.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup Condition="'$(AppxBuildType)' != 'Sideload' ">
+  <ItemGroup Condition="'$(AppxBuildType)' == '' ">
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
   </ItemGroup>
+  <ItemGroup Condition="'$(AppxBuildType)' == 'Store' ">
+    <AppxManifest Include="$(UwpStoreManifest)">
+      <Visible>false</Visible>
+    </AppxManifest>
+  </ItemGroup>
   <ItemGroup Condition="'$(AppxBuildType)' == 'Sideload' ">
-    <AppxManifest Include="Sideload.appxmanifest">
+    <AppxManifest Include="$(UwpSideloadManifest)">
       <Visible>false</Visible>
     </AppxManifest>
   </ItemGroup>
@@ -209,7 +214,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.4.0" />
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.0.1" />
     <PackageReference Include="MvvmLightLibs" Version="5.3.0" />
     <PackageReference Include="PropertyChanged.Fody" Version="2.1.4" />
     <ProjectReference Include="..\VGAudio\VGAudio.csproj">
@@ -221,10 +226,16 @@
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+  <Target Name="BeforeBuild">
+    <ItemGroup>
+      <VersionInfo Include="[assembly:System.Reflection.AssemblyVersion(&quot;$(UwpVersion)&quot;)]" />
+      <VersionInfo Include="[assembly:System.Reflection.AssemblyFileVersion(&quot;$(UwpVersion)&quot;)]" />
+      <Compile Include="obj\VersionInfo.cs" />
+    </ItemGroup>
+    <WriteLinesToFile File="obj\VersionInfo.cs" Lines="@(VersionInfo)" Overwrite="true" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
   <Target Name="AfterBuild">
   </Target>
   -->

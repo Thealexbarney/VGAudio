@@ -1,0 +1,106 @@
+<Project>
+  <Import Project="Directory.Build.props" Condition="'$(BaseDir)' == ''" />
+
+  <Target Name="BuildDotnet">
+    <PropertyGroup>
+      <LibraryFrameworks>@(LibraryFrameworks)</LibraryFrameworks>
+    </PropertyGroup>
+
+    <MSBuild Projects="$(CliProjectFile);$(LibraryProjectFile);$(ToolsProjectFile)" Targets="Restore" />
+    <MSBuild Projects="$(LibraryProjectFile)" Targets="Pack" Properties="TargetFrameworks=$(LibraryFrameworks);PackageOutputPath=$(LibraryOutPath)" />
+    <MSBuild Projects="$(CliProjectFile);$(ToolsProjectFile)" Targets="Publish" Properties="TargetFramework=%(CliFrameworks.Identity);PublishDir=$(CliOutPath)/%(CliFrameworks.Identity)" BuildInParallel="true" />
+  </Target>
+
+  <Target Name="PublishDotnet">
+    <ItemGroup>
+      <LibraryFiles Include="$(LibraryOutPath)*.nupkg" />
+      <CliFiles Include="$(CliOutPath)**/*" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(PackageDir)" />
+    <MakeDir Directories="$(PackageDir)VGAudioCli" />
+    <Copy SourceFiles="@(LibraryFiles)" DestinationFolder="$(PackageDir)" />
+    <Copy SourceFiles="@(CliFiles)" DestinationFolder="$(PackageDir)VGAudioCli\%(RecursiveDir)" />
+  </Target>
+
+  <Target Name="TestLibrary">
+    <PropertyGroup>
+      <TestFrameworks>@(TestFrameworks)</TestFrameworks>
+    </PropertyGroup>
+
+    <MSBuild Projects="$(TestsProjectFile)" Targets="Restore;Build" Properties="TargetFrameworks=$(TestFrameworks)"/>
+    <Exec Command="dotnet xunit -c $(Configuration) -nobuild -f %(TestFrameworks.Identity)" WorkingDirectory="$(TestsProjectDir)" />
+  </Target>
+
+  <Target Name="RestoreUwp">
+    <MSBuild Projects="$(UwpProjectFile)" Targets="Restore" />
+  </Target>
+
+  <Target Name="BuildUwpStore" DependsOnTargets="CreateStoreManifest">
+    <CallTarget Targets="DeletePackagingWrites"/>
+    <MSBuild Projects="$(UwpProjectFile)" Targets="Rebuild" Properties="AppxBuildType=Store;AppxPackageDir=$(UwpStoreOutPath)" />
+    <CallTarget Targets="PublishUwp"/>
+  </Target>
+
+  <Target Name="BuildUwpSideload" DependsOnTargets="CreateSideloadManifest">
+    <CallTarget Targets="DeletePackagingWrites"/>
+    <MSBuild Projects="$(UwpProjectFile)" Targets="Rebuild" Properties="AppxBuildType=Sideload;AppxPackageTestDir=$(UwpOutPath)" />
+    <CallTarget Targets="PublishUwp"/>
+  </Target>
+
+  <Target Name="PublishUwp">
+    <ItemGroup>
+      <AppxFiles Include="$(UwpOutPath)/VGAudio*.appxbundle" />
+      <AppxFiles Include="$(UwpStoreOutPath)/VGAudio*.appxupload" />
+    </ItemGroup>
+    <MakeDir Directories="$(PackageDir)" />
+    <Copy SourceFiles="@(AppxFiles)" DestinationFolder="$(PackageDir)" />
+  </Target>
+
+  <!-- Deleting these files is needed to prevent MSBuild from deleting the packages from the previous build -->
+  <Target Name="DeletePackagingWrites">
+    <ItemGroup>
+      <ToDelete Include="$(UwpProjectDir)/**/PackagingFileWrites.log" />
+      <ToDelete Include="$(UwpProjectDir)/**/PackagingDirectoryWrites.log" />
+    </ItemGroup>
+    <Delete Files="@(ToDelete)"/>
+  </Target>
+
+  <Target Name="CreateStoreManifest">
+    <Copy SourceFiles="$(UwpManifest)" DestinationFiles="$(UwpStoreManifest)"/>
+    <XmlPoke Namespaces="&lt;Namespace Prefix='ns' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10'/&gt;"
+             XmlInputPath="$(UwpStoreManifest)"
+             Query="/ns:Package/ns:Identity/@Version"
+             Value="$(UwpVersion)"/>
+  </Target>
+
+  <Target Name="CreateSideloadManifest">
+    <Copy SourceFiles="$(UwpManifest)" DestinationFiles="$(UwpSideloadManifest)"/>
+    <XmlPoke Namespaces="&lt;Namespace Prefix='ns' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10'/&gt;"
+             XmlInputPath="$(UwpSideloadManifest)"
+             Query="/ns:Package/ns:Identity/@Version"
+             Value="$(UwpVersion)"/>
+    <XmlPoke Namespaces="&lt;Namespace Prefix='ns' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10'/&gt;"
+             XmlInputPath="$(UwpSideloadManifest)"
+             Query="/ns:Package/ns:Identity/@Name"
+             Value="$(SideloadAppxName)"/>
+  </Target>
+
+  <Target Name="CleanBuilds">
+    <ItemGroup>
+      <Files Include="$(UwpProjectDir)_pkginfo.txt" />
+      <Files Include="$(UwpProjectDir)*.csproj.user" />
+      <Dirs Include="$(UwpProjectDir)AppPackages" />
+      <Dirs Include="$(UwpProjectDir)BundleArtifacts" />
+      <Dirs Include="$([System.IO.Directory]::GetDirectories($(SourceDir), obj, SearchOption.AllDirectories))" />
+      <Dirs Include="$([System.IO.Directory]::GetDirectories($(SourceDir), bin, SearchOption.AllDirectories))" />
+      <Dirs Include="$(BinDir)" />
+      <Dirs Include="$(TopBinDir)" Condition="'$(DoCleanAll)' == 'true'" />
+      <Dirs Include="$(PackageDir)" Condition="'$(DoCleanAll)' == 'true'" />
+    </ItemGroup>
+
+    <Delete Files="%(Files.Identity)" ContinueOnError="true" />
+    <RemoveDir Directories="%(Dirs.Identity)" ContinueOnError="true" />
+  </Target>
+
+</Project>

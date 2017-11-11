@@ -11,22 +11,33 @@ TARGET="Default"
 CONFIGURATION="Release"
 VERBOSITY="normal"
 DRYRUN=
+CLEAN=
+CLEANALL=
+BUILD=
+TEST=
+CORE=
 SCRIPT_ARGUMENTS=()
 
 # Parse arguments.
+shopt -s extglob
 while (($#)); do
-    case $1 in
+    case ${1,,} in
         -t|--target) TARGET="$2"; shift ;;
         -c|--configuration) CONFIGURATION="$2"; shift ;;
         -v|--verbosity) VERBOSITY="$2"; shift ;;
         -d|--dryrun) DRYRUN="-dryrun" ;;
+           @(-|--)clean) CLEAN="-clean=true" ;;
+           @(-|--)cleanall) CLEANALL="-cleanall=true" ;;
+           @(-|--)build) BUILD="-build=true" ;;
+           @(-|--)test) TEST="-test=true" ;;
+           @(-|--)netcore) CORE="-core=true" ;;
         --) shift; SCRIPT_ARGUMENTS+=("$@"); break ;;
         *) SCRIPT_ARGUMENTS+=("$1") ;;
     esac
     shift
 done
 
-dotnetCliVersion="2.0.0"
+dotnetCliVersion=$(cat DotnetCLIVersion.txt)
 
 # Define directories.
 basePath=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
@@ -90,5 +101,5 @@ fi
 
 echo "Running build..."
 dotnet publish /v:q /nologo
-dotnet bin/Debug/netcoreapp2.0/publish/Build.dll --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN "${SCRIPT_ARGUMENTS[@]}"
+dotnet bin/Debug/netcoreapp2.0/publish/Build.dll --verbosity="$VERBOSITY" --configuration="$CONFIGURATION" --target="$TARGET" $DRYRUN $CLEAN $CLEANALL $BUILD $TEST $CORE "${SCRIPT_ARGUMENTS[@]}"
 exit $?

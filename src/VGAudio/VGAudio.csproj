@@ -4,7 +4,6 @@
     <TargetFrameworks>netstandard1.1;net45</TargetFrameworks>
 
     <AssemblyTitle>VGAudio</AssemblyTitle>
-    <VersionPrefix>2.0.0</VersionPrefix>
     <Authors>Alex Barney</Authors>
     <Copyright>Copyright © 2016 Alex Barney</Copyright>
     <Description>A library for encoding, decoding, and manipulating audio files from video games.</Description>
@@ -19,9 +18,6 @@
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="4.3.0" />
   </ItemGroup>
 
-  <!-- Workaround for https://github.com/dotnet/sdk/issues/707 -->
-  <Target Name="GetPackagingOutputs" />
-  
   <!-- Workaround for https://github.com/dotnet/sdk/issues/955 -->
   <PropertyGroup Condition="'$(AppxBuildType)' == 'Store'">
     <DebugType>pdbonly</DebugType>

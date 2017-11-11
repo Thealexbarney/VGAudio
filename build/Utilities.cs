@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Xml.Linq;
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
-using Cake.Common.Tools.DotNetCore.Build;
+using Cake.Common.Tools.DotNetCore.MSBuild;
 using Cake.Common.Tools.SignTool;
 using Cake.Core.IO;
 
@@ -16,21 +15,23 @@ namespace Build
 {
     internal static class Utilities
     {
-        public static void BuildNetCli(Context context, string path, string framework)
+        public static void RunCoreMsBuild(Context context, params string[] targets)
         {
-            context.DotNetCoreBuild(path, new DotNetCoreBuildSettings
+            var settings = new DotNetCoreMSBuildSettings();
+            settings.Properties.Add("DoCleanAll", new[] { context.RunCleanAll ? "true" : "false" });
+            settings.Properties.Add("DoNetCore", new[] { context.RunNetCore ? "true" : "false" });
+            settings.Properties.Add("DoNetFramework", new[] { context.RunNetFramework ? "true" : "false" });
+            settings.Properties.Add("Configuration", new[] { context.Configuration });
+
+            foreach (string target in targets.Where(x => !string.IsNullOrWhiteSpace(x)))
             {
-                Framework = framework,
-                Configuration = context.Configuration
-            });
+                settings.Targets.Add(target);
+            }
+
+            context.DotNetCoreMSBuild(context.BuildTargetsFile.FullPath, settings);
         }
 
-        public static void TestNetCli(Context context, string csprojPath, string framework)
-        {
-            context.DotNetCoreTool(csprojPath, "xunit", $"-c {context.Configuration} -f {framework}");
-        }
-
-        public static void DeleteDirectory(Context context, DirectoryPath path, bool verbose)
+        public static void DeleteDirectory(this Context context, DirectoryPath path, bool verbose)
         {
             if (!context.DirectoryExists(path)) return;
 
@@ -38,21 +39,11 @@ namespace Build
             {
                 context.Information($"Deleting {path}");
             }
-            context.DeleteDirectory(path, true);
-        }
-
-        public static void DeleteFile(Context context, FilePath path, bool verbose)
-        {
-            if (!context.FileExists(path)) return;
-
-            if (verbose)
+            context.DeleteDirectory(path, new DeleteDirectorySettings
             {
-                context.Information($"Deleting {path}");
-            }
-            context.DeleteFile(path);
+                Recursive = true
+            });
         }
-
-        public static void DisplayError(Context context, string message) => context.Error(message);
 
         public static bool CertificateExists(string thumbprint, bool validOnly)
         {
@@ -74,17 +65,6 @@ namespace Build
                     TimeStampDigestAlgorithm = SignToolDigestAlgorithm.Sha256,
                     TimeStampUri = new Uri("http://timestamp.digicert.com")
                 });
-            }
-        }
-
-        public static void CreateSideloadAppxmanifest(Context context)
-        {
-            XDocument manifest = XDocument.Load(context.UwpStoreManifest.FullPath);
-            XNamespace ns = manifest.Root?.GetDefaultNamespace();
-            manifest.Root?.Element(ns + "Identity")?.SetAttributeValue("Name", context.SideloadAppxName);
-            using (var stream = new FileStream(context.UwpSideloadManifest.FullPath, FileMode.Create))
-            {
-                manifest.Save(stream);
             }
         }
 

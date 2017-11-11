@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using Cake.Common;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
@@ -12,56 +11,63 @@ namespace Build
         public Context(ICakeContext context) : base(context) { }
 
         public string Configuration { get; set; }
-        public bool IsReleaseBuild => Configuration.Equals("release", StringComparison.CurrentCultureIgnoreCase);
 
         public DirectoryPath BaseDir { get; set; }
-        public DirectoryPath BuildDir { get; set; }
-        public DirectoryPath CakeToolsDir { get; set; }
         public DirectoryPath PackageDir { get; set; }
-
         public DirectoryPath SourceDir { get; set; }
-        public DirectoryPath LibraryDir { get; set; }
-        public DirectoryPath CliDir { get; set; }
-        public DirectoryPath TestsDir { get; set; }
-        public DirectoryPath ToolsDir { get; set; }
         public DirectoryPath UwpDir { get; set; }
-        public DirectoryPath BenchmarkDir { get; set; }
+        public DirectoryPath CliPackageDir { get; set; }
+        public FilePath BuildTargetsFile { get; set; }
 
-        public FilePath SolutionFile { get; set; }
-        public FilePath LibraryCsproj { get; set; }
-        public FilePath CliCsproj { get; set; }
-        public FilePath ToolsCsproj { get; set; }
-        public FilePath TestsCsproj { get; set; }
-        public FilePath UwpCsproj { get; set; }
-        public FilePath BenchmarkCsproj { get; set; }
-
-        public DirectoryPath TopBinDir { get; set; }
-        public DirectoryPath BinDir { get; set; }
-        public DirectoryPath LibraryBinDir { get; set; }
-        public DirectoryPath CliBinDir { get; set; }
-        public DirectoryPath UwpBinDir { get; set; }
-
-        public FilePath UwpStoreManifest { get; set; }
-        public FilePath UwpSideloadManifest { get; set; }
-        public string SideloadAppxName { get; set; }
         public string AppxPublisher { get; set; }
-
         public string ReleaseCertThumbprint { get; set; }
 
-        public Dictionary<string, LibraryBuildStatus> LibBuilds { get; } = new Dictionary<string, LibraryBuildStatus>
-        {
-            ["core"] = new LibraryBuildStatus("netstandard1.1", "netcoreapp2.0", "netcoreapp2.0", "netcoreapp2.0"),
-            ["full"] = new LibraryBuildStatus("net45", "net451", "net451", "net46")
-        };
+        public bool BuildUwp { get; private set; }
+        public bool BuildUwpStore { get; private set; }
+        public bool RunNetCore { get; private set; }
+        public bool RunNetFramework { get; private set; }
+        public bool RunBuild { get; private set; }
+        public bool RunTests { get; private set; }
+        public bool RunClean { get; private set; }
+        public bool RunCleanAll { get; private set; }
 
-        public Dictionary<string, bool?> OtherBuilds { get; } = new Dictionary<string, bool?>
-        {
-            ["uwp"] = null
-        };
+        public LibraryBuildStatus FullBuilds { get; } = new LibraryBuildStatus("net45", "net451", "net451", "net46");
 
-        public bool LibraryBuildsSucceeded => LibBuilds.Values.All(x => x.LibSuccess == true);
-        public bool CliBuildsSucceeded => LibBuilds.Values.All(x => x.CliSuccess == true);
-        public bool ToolsBuildsSucceeded => LibBuilds.Values.All(x => x.ToolsSuccess == true);
-        public bool TestsSucceeded => LibBuilds.Values.All(x => x.TestSuccess == true);
+        public void ParseArguments()
+        {
+            RunNetCore = this.Argument("core", false);
+            RunNetFramework = this.Argument("full", false);
+            BuildUwp = this.Argument("uwp", false);
+            BuildUwpStore = this.Argument("uwpstore", false);
+            RunBuild = this.Argument("build", false);
+            RunTests = this.Argument("test", false);
+            RunClean = this.Argument("clean", false);
+            RunCleanAll = this.Argument("cleanAll", false);
+            if (this.IsRunningOnUnix()) RunNetCore = true;
+
+            if (!(RunBuild || RunTests | RunClean | RunCleanAll))
+            {
+                if (this.IsRunningOnUnix())
+                    throw new Exception("Must specify at least one of \"--Build\", \"--Test\", \"--Clean\", \"--CleanAll\"");
+
+                throw new Exception("Must specify at least one of \"-Build\", \"-Test\", \"-Clean\", \"-CleanAll\"");
+            }
+
+            if ((RunBuild || RunTests) && !(RunNetCore || RunNetFramework || BuildUwp || BuildUwpStore))
+            {
+                throw new Exception("Must specify at least one of \"-NetCore\", \"-NetFramework\", \"-Uwp\", \"-UwpStore\"");
+            }
+        }
+
+        public void EnableAll()
+        {
+            RunNetCore = true;
+            RunNetFramework = true;
+            BuildUwp = true;
+            BuildUwpStore = true;
+            RunBuild = true;
+            RunTests = true;
+            RunCleanAll = true;
+        }
     }
 }

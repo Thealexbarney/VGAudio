@@ -14,9 +14,5 @@
         public string CliFramework { get; }
         public string ToolsFramework { get; }
         public string TestFramework { get; }
-        public bool? LibSuccess { get; set; }
-        public bool? CliSuccess { get; set; }
-        public bool? ToolsSuccess { get; set; }
-        public bool? TestSuccess { get; set; }
     }
 }
