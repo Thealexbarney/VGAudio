@@ -2,6 +2,20 @@
 {
     public static class UnpackedTables
     {
+        public static byte[] DefaultChannelMapping { get; } = { 0, 1, 0, 4, 0, 1, 3, 7, 3 };
+
+        public static byte[][] ValidChannelMappings { get; } =
+        {
+            new byte[] {0, 1, 0, 0, 0, 0, 0, 0},
+            new byte[] {1, 0, 0, 0, 0, 0, 0, 0},
+            new byte[] {0, 1, 1, 0, 1, 0, 0, 0},
+            new byte[] {1, 0, 0, 1, 0, 1, 0, 0},
+            new byte[] {0, 1, 1, 0, 0, 0, 0, 1},
+            new byte[] {0, 0, 0, 1, 0, 0, 0, 0},
+            new byte[] {0, 0, 0, 0, 0, 0, 0, 1},
+            new byte[] {0, 0, 0, 1, 0, 0, 0, 0}
+        };
+
         public static byte[] QuantizedSpectrumMaxBits { get; } =
         {
             0, 2, 3, 3, 4, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12
