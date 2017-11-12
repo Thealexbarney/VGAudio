@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Codecs.CriHca;
+using VGAudio.Utilities;
 
 namespace VGAudio.Cli
 {
@@ -327,6 +328,12 @@ namespace VGAudio.Cli
                         case "-LIMIT-BITRATE":
                             options.LimitBitrate = true;
                             continue;
+                        case "-BIG-ENDIAN":
+                            options.Endianness = Endianness.BigEndian;
+                            continue;
+                        case "-LITTLE-ENDIAN":
+                            options.Endianness = Endianness.LittleEndian;
+                            continue;
                     }
                 }
 
@@ -508,6 +515,10 @@ namespace VGAudio.Cli
             Console.WriteLine("  -o  <dir>        Specify the output directory");
             Console.WriteLine("  -r               Recurse subdirectories");
             Console.WriteLine("      --out-format The file type or container to save files as");
+
+            Console.WriteLine("\nBCSTM/BFSTM Options:");
+            Console.WriteLine("      --little-endian   Makes the output file little-endian");
+            Console.WriteLine("      --big-endian      Makes the output file big-endian");
 
             Console.WriteLine("\nADX Options:");
             Console.WriteLine("      --adxtype    The ADX encoding type to use");

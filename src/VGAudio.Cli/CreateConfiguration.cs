@@ -76,6 +76,7 @@ namespace VGAudio.Cli
         public static Configuration Bxstm(Options options, Configuration inConfig = null)
         {
             var config = inConfig as BxstmConfiguration ?? new BxstmConfiguration();
+            config.Endianness = options.Endianness;
 
             switch (options.OutFormat)
             {

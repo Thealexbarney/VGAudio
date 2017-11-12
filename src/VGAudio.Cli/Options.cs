@@ -2,6 +2,7 @@
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Codecs.CriHca;
 using VGAudio.Formats;
+using VGAudio.Utilities;
 
 namespace VGAudio.Cli
 {
@@ -33,6 +34,7 @@ namespace VGAudio.Cli
         public CriAdxType AdxType { get; set; } // ADX
         public string KeyString { get; set; } //ADX
         public ulong KeyCode { get; set; } //ADX
+        public Endianness? Endianness { get; set; }
 
         public CriHcaQuality HcaQuality { get; set; }
         public int Bitrate { get; set; }
