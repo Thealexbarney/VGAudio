@@ -78,17 +78,17 @@ Batch mode is used by inputting `-b` or `--batch` as the first command-line argu
 #### Examples 
 
 - Convert all the files in the `source` folder to HCA files, and save them in the `dest` folder:  
-`VGAudio -b -i source -o dest -f hca`
+`VGAudioCli -b -i source -o dest --out-format hca`
 
 - Convert all the files in the `source` folder and all its subfolders to HCA files, and save them in the `dest` folder:  
-`VGAudio -b -r -i source -o dest -f hca`
+`VGAudioCli -b -r -i source -o dest --out-format hca`
 
 - Other options can also be specified during batch conversion.  
 Remove the loop points from any converted files:  
-`VGAudio -b -i source -o dest -f hca --no-loop`
+`VGAudioCli -b -i source -o dest --out-format hca --no-loop`
 
 - Codec-specific options can be specified as well:  
-`VGAudio -b -i source -o dest -f hca --hcaquality low`
+`VGAudioCli -b -i source -o dest --out-format hca --hcaquality low`
 
 ### Lossless conversions
 
