@@ -32,9 +32,9 @@ namespace VGAudio.Utilities
 
         public bool ReadBool() => ReadInt(1) == 1;
 
-        public int ReadOffsetBinary(int bitCount)
+        public int ReadOffsetBinary(int bitCount, OffsetBias bias)
         {
-            int offset = (1 << (bitCount - 1)) - 1;
+            int offset = (1 << (bitCount - 1)) - (int)bias;
             int value = PeekInt(bitCount) - offset;
             Position += bitCount;
             return value;
@@ -115,6 +115,22 @@ namespace VGAudio.Utilities
                 bitCount -= bitsToRead;
             }
             return value;
+        }
+
+        /// <summary>
+        /// Specifies the bias of an offset binary value. A positive bias can represent one more
+        /// positive value than negative value, and a negative bias can represent one more
+        /// negative value than positive value.
+        /// </summary>
+        /// <remarks>Example:
+        /// A 4-bit offset binary value with a positive bias can store
+        /// the values 8 through -7 inclusive.
+        /// A 4-bit offset binary value with a positive bias can store
+        /// the values 7 through -8 inclusive.</remarks>
+        public enum OffsetBias
+        {
+            Positive = 1,
+            Negative = 0
         }
     }
 }

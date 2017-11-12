@@ -154,13 +154,7 @@ namespace VGAudio.Codecs.CriAdx
 
             if (exponential)
             {
-                int power = 0;
-                while (scaleToWrite > 0)
-                {
-                    power++;
-                    scaleToWrite >>= 1;
-                }
-
+                int power = scaleToWrite == 0 ? 0 : Log2(scaleToWrite) + 1;
                 scale = 1 << power;
                 scaleToWrite = 12 - power;
                 maxDistance = 8 * scale - 1;

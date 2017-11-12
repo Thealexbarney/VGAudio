@@ -9,6 +9,7 @@
 
         protected CodecParameters(CodecParameters source)
         {
+            if (source == null) return;
             Progress = source.Progress;
             SampleCount = source.SampleCount;
         }

@@ -190,7 +190,7 @@ namespace VGAudio.Codecs.CriHca
 
             for (int i = 1; i < count; i++)
             {
-                int delta = reader.ReadOffsetBinary(deltaBits);
+                int delta = reader.ReadOffsetBinary(deltaBits, BitReader.OffsetBias.Positive);
 
                 if (delta < maxDelta)
                 {
