@@ -21,15 +21,15 @@ The Universal Windows app can be found [in the Windows Store](https://www.micros
 |Container|Encode|Decode|Notes|
 |-|:-:|:-:|:-|
 |BCSTM|X|X||
-|BCSTP|X|X||
-|BCWAV|X|||
+|BCSTP||X||
+|BCWAV||X||
 |BFSTM|X|X||
-|BFSTP|X|X||
-|BFWAV|X|||
+|BFSTP||X||
+|BFWAV||X||
 |BRSTM|X|X||
-|BRWAV|X|||
+|BRWAV||X||
 |DSP (Nintendo)|X|X||
-|GENH|X||GC-ADPCM only|
+|GENH||X|GC-ADPCM only|
 |HCA|X|X||
 |HPS|X|X|HAL Laboratory "HALPST" container for GC-ADPCM audio|
 |IDSP (Interleaved Nintendo DSP)|X|X||
