@@ -405,7 +405,8 @@ namespace VGAudio.Cli
 
             if (options.OutFiles.Count == 0)
             {
-                options.OutFiles.Add(new AudioFile { Path = Path.GetFileNameWithoutExtension(options.InFiles[0].Path) + ".dsp" });
+                string ext = options.InFiles[0].Type != FileType.Wave ? ".wav" : ".dsp";
+                options.OutFiles.Add(new AudioFile { Path = Path.GetFileNameWithoutExtension(options.InFiles[0].Path) + ext });
             }
 
             foreach (AudioFile file in options.OutFiles)
