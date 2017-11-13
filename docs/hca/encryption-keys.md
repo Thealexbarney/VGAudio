@@ -19,7 +19,10 @@ CRI's tools accept the key as a decimal string. Keys are often represented as a 
 |19910623            |``0x00000000012FCFDF``|Sonic Runners (iOS/Android)|
 |20536401            |``0x0000000001395C51``|Puella Magi Madoka Magica Side Story: Magia Record (iOS/Android)<br/>Hortensia Saga (iOS/Android)|
 |45719322            |``0x0000000002B99F1A``|Raramagi (iOS/Android)|
+|241352432           |``0x000000000E62BEF0``|Bad Apple Wars (Vita)|
+|243812156           |``0x000000000E88473C``|Koi to Senkyo to Chocolate Portable (PSP)|
 |1234253142          |``0x0000000049913556``|Ro-Kyu-Bu! Naisho no Shutter Chance (Vita)|
+|2012062010          |``0x0000000077EDA13A``|Custom Drive (PSP)|
 |2012082716          |``0x0000000077EDF21C``|Ro-Kyu-Bu! Himitsu no Otoshimono (PSP)|
 |49160768297         |``0x0000000B7235CB29``|Skylock - Kamigami to Unmei no Itsutsuko (iOS)|
 |5047159794308       |``0x00000497222AAA84``|For Whom the Alchemist Exists (iOS/Android)|
@@ -30,7 +33,6 @@ CRI's tools accept the key as a decimal string. Keys are often represented as a 
 |765765765765765     |``0x0002B875BC731A85``|Idolm@ster Million Live (iOS/Android)|
 |5027916581011272    |``0x0011DCDD0DC57F48``|Grimoire - Shiritsu Grimoire Mahou Gakuen (iOS/Android)|
 |9101518402445063    |``0x002055C8634B5F07``|The Tower of Princess (iOS/Android)|
-|9621963164387704    |``0x00222F1FE0748978``|HCA Decoder default|
 |29423500797988784   |``0x00688884A11CCFB0``|Kamen Rider Battle Rush (iOS/Android)|
 |45152594117267709   |``0x00A06A0B8D0C10FD``|Ikemen Vampire - Ijin-tachi to Koi no Yuuwaku (iOS/Android)|
 |61891147883431481   |``0x00DBE1ABCC554639``|Old Phantasy Star Online 2|
@@ -41,5 +43,6 @@ CRI's tools accept the key as a decimal string. Keys are often represented as a 
 |9001712656335836006 |``0x7CEC81F7C3091366``|Diss World (iOS/Android)|
 |9117927877783581796 |``0x7E89631892EBF464``|Fate/Grand Order (iOS/Android) download assets *unconfirmed|
 |14723751768204501419|``0xCC55463930DBE1AB``|Phantasy Star Online 2|
+|14925543929015470456|``0xCF222F1FE0748978``|Default key from CRI|
 |18279639311550860193|``0xFDAE531AAB414BA1``|Tokyo 7th Sisters (iOS/Android) *unconfirmed|
 |18446744073709551615|``0xFFFFFFFFFFFFFFFF``|Tekken Mobile (iOS/Android)|
