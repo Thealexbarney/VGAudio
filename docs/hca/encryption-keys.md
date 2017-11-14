@@ -32,6 +32,7 @@ CRI's tools accept the key as a decimal string. Keys are often represented as a 
 |621561580448882     |``0x0002354E95356C72``|Azur Lane (iOS/Android)|
 |765765765765765     |``0x0002B875BC731A85``|Idolm@ster Million Live (iOS/Android)|
 |5027916581011272    |``0x0011DCDD0DC57F48``|Grimoire - Shiritsu Grimoire Mahou Gakuen (iOS/Android)|
+|6929101074247145    |``0x00189DFB1024ADE9``|Tokyo Ghoul: Re Invoke (iOS/Android)|
 |9101518402445063    |``0x002055C8634B5F07``|The Tower of Princess (iOS/Android)|
 |29423500797988784   |``0x00688884A11CCFB0``|Kamen Rider Battle Rush (iOS/Android)|
 |45152594117267709   |``0x00A06A0B8D0C10FD``|Ikemen Vampire - Ijin-tachi to Koi no Yuuwaku (iOS/Android)|
@@ -44,5 +45,6 @@ CRI's tools accept the key as a decimal string. Keys are often represented as a 
 |9117927877783581796 |``0x7E89631892EBF464``|Fate/Grand Order (iOS/Android) download assets *unconfirmed|
 |14723751768204501419|``0xCC55463930DBE1AB``|Phantasy Star Online 2|
 |14925543929015470456|``0xCF222F1FE0748978``|Default key from CRI|
+|15806334760965177344|``0xDB5B61B8343D0000``|Schoolgirl Strikers: Twinkle Melodies (iOS/Android)|
 |18279639311550860193|``0xFDAE531AAB414BA1``|Tokyo 7th Sisters (iOS/Android) *unconfirmed|
 |18446744073709551615|``0xFFFFFFFFFFFFFFFF``|Tekken Mobile (iOS/Android)|

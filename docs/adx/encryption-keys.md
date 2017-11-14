@@ -101,3 +101,4 @@ If given the game's executable, it will also try to recover the type 8 keystring
 |683461999|`0x0005, 0x0BCD, 0x1ADD`|Kisou Ryouhei Gunhound EX (PSP)|
 |268736153152|`0x07D2, 0x1EC5, 0x0C7F`|Phantasy Star Online 2|
 |145552191146490718|`0x5E4B, 0x190D, 0x76BB`|Fallen Princess (iOS/Android)|
+|4867249871962584729|`0x3F10, 0x3651, 0x6D31`|Yuuki Yuuna wa Yuusha de Aru - Hanayui no Kirameki (iOS/Android)|
