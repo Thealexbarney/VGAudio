@@ -11,12 +11,7 @@ namespace VGAudio.Codecs.CriHca
         {
             if (!UnpackFrameHeader(frame, reader)) return false;
             ReadSpectralCoefficients(frame, reader);
-            // Todo: I've found 2 HCA files from Jojo's Bizarre Adventure - All Star Battle
-            // that don't use all the available bits in frames at the beginning of the file.
-            // Come up with a method of verifying if a frame unpacks successfully or not
-            // that accounts for frames like these.
-            return reader.Remaining >= 16 && reader.Remaining <= 40 ||
-                   FrameEmpty(reader.Buffer, 2, reader.Buffer.Length - 4);
+            return UnpackingWasSuccessful(frame, reader);
         }
 
         public static void PackFrame(CriHcaFrame frame, Crc16 crc, byte[] outBuffer)
@@ -87,7 +82,7 @@ namespace VGAudio.Codecs.CriHca
 
             foreach (CriHcaChannel channel in frame.Channels)
             {
-                if (!ReadScaleFactors(reader, channel.ScaleFactors, channel.CodedScaleFactorCount)) return false;
+                if (!ReadScaleFactors(channel, reader)) return false;
 
                 for (int i = 0; i < frame.EvaluationBoundary; i++)
                 {
@@ -111,25 +106,25 @@ namespace VGAudio.Codecs.CriHca
             return true;
         }
 
-        private static bool ReadScaleFactors(BitReader reader, int[] scale, int scaleCount)
+        private static bool ReadScaleFactors(CriHcaChannel channel, BitReader reader)
         {
-            int deltaBits = reader.ReadInt(3);
-            if (deltaBits == 0)
+            channel.ScaleFactorDeltaBits = reader.ReadInt(3);
+            if (channel.ScaleFactorDeltaBits == 0)
             {
-                Array.Clear(scale, 0, scale.Length);
+                Array.Clear(channel.ScaleFactors, 0, channel.ScaleFactors.Length);
                 return true;
             }
 
-            if (deltaBits >= 6)
+            if (channel.ScaleFactorDeltaBits >= 6)
             {
-                for (int i = 0; i < scaleCount; i++)
+                for (int i = 0; i < channel.CodedScaleFactorCount; i++)
                 {
-                    scale[i] = reader.ReadInt(6);
+                    channel.ScaleFactors[i] = reader.ReadInt(6);
                 }
                 return true;
             }
 
-            return DeltaDecode(reader, deltaBits, 6, scaleCount, scale);
+            return DeltaDecode(reader, channel.ScaleFactorDeltaBits, 6, channel.CodedScaleFactorCount, channel.ScaleFactors);
         }
 
         private static void ReadIntensity(BitReader reader, int[] intensity)
@@ -209,12 +204,23 @@ namespace VGAudio.Codecs.CriHca
             return true;
         }
 
-        private static bool FrameEmpty(byte[] bytes, int start, int length)
+        private static bool UnpackingWasSuccessful(CriHcaFrame frame, BitReader reader)
         {
-            int end = start + length;
-            for (int i = start; i < end; i++)
+            // 128 leftover bits after unpacking should be high enough to get rid of false negatives,
+            // and low enough that false positives will be uncommon.
+            return reader.Remaining >= 16 && reader.Remaining <= 128
+                   || FrameEmpty(frame)
+                   || frame.AcceptableNoiseLevel == 0 && reader.Remaining >= 16;
+        }
+
+        private static bool FrameEmpty(CriHcaFrame frame)
+        {
+            if (frame.AcceptableNoiseLevel > 0) return false;
+
+            // If all the scale factors are 0, the frame is empty
+            foreach (CriHcaChannel channel in frame.Channels)
             {
-                if (bytes[i] != 0)
+                if (channel.ScaleFactorDeltaBits > 0)
                 {
                     return false;
                 }
