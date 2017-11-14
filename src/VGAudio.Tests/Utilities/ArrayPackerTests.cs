@@ -41,14 +41,16 @@ namespace VGAudio.Tests.Utilities
 
         public static readonly object[][] CriHcaArrays =
         {
-            new object[] { CriHcaTables.QuantizeSpectrumBits, null, null},
-            new object[] { CriHcaTables.QuantizeSpectrumValue, null, null},
-            new object[] { CriHcaTables.QuantizedSpectrumBits, null, null},
-            new object[] { CriHcaTables.QuantizedSpectrumMaxBits, null, null},
-            new object[] { CriHcaTables.QuantizedSpectrumValue, null, null},
-            new object[] { CriHcaTables.ScaleToResolutionCurve, null, null},
-            new object[] { CriHcaTables.AthCurve, null, null},
-            new object[] { CriHcaTables.MdctWindowF, CriHcaTables.MdctWindow, typeof(double) }
+            new object[] {CriHcaTables.QuantizeSpectrumBits, null, null},
+            new object[] {CriHcaTables.QuantizeSpectrumValue, null, null},
+            new object[] {CriHcaTables.QuantizedSpectrumBits, null, null},
+            new object[] {CriHcaTables.QuantizedSpectrumMaxBits, null, null},
+            new object[] {CriHcaTables.QuantizedSpectrumValue, null, null},
+            new object[] {CriHcaTables.ScaleToResolutionCurve, null, null},
+            new object[] {CriHcaTables.AthCurve, null, null},
+            new object[] {CriHcaTables.MdctWindowF, CriHcaTables.MdctWindow, typeof(double)},
+            new object[] {CriHcaTables.DefaultChannelMapping, null, null},
+            new object[] {CriHcaTables.ValidChannelMappings, null, null}
         };
 
         public static readonly object[][] AllArraySets =

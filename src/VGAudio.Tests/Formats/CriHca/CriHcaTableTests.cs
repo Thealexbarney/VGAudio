@@ -60,6 +60,18 @@ namespace VGAudio.Tests.Formats.CriHca
         }
 
         [Fact]
+        public void UnpackedDefaultChannelMappingMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.DefaultChannelMapping, UnpackedTables.DefaultChannelMapping);
+        }
+
+        [Fact]
+        public void UnpackedValidChannelMappingsMatchesOriginal()
+        {
+            Assert.Equal(CriHcaTables.DefaultChannelMapping, UnpackedTables.DefaultChannelMapping);
+        }
+
+        [Fact]
         public void UnpackedQuantizedSpectrumBitsMatchesOriginal()
         {
             Assert.Equal(CriHcaTables.QuantizedSpectrumBits, UnpackedTables.QuantizedSpectrumBits);
