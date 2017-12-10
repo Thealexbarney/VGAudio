@@ -12,8 +12,8 @@ namespace Build.SplitProject
         public override void Run(Context context)
         {
             DirectoryPath root = context.SourceDir;
-            FilePath libraryProject = context.SourceDir.CombineWithFilePath("VGAudio.sln");
-            FilePath solutionFile = context.SourceDir.CombineWithFilePath("VGAudio/VGAudio.csproj");
+            FilePath solutionFile = context.SourceDir.CombineWithFilePath("VGAudio.sln");
+            FilePath libraryProject = context.SourceDir.CombineWithFilePath("VGAudio/VGAudio.csproj");
             var projects = new Projects(root);
 
             foreach (Project project in projects.ProjectList)
