@@ -18,5 +18,11 @@
         {
             return (byte)(((value * 0x80200802ul) & 0x0884422110ul) * 0x0101010101ul >> 32);
         }
+
+        public static int SignExtend32(int value, int bits)
+        {
+            int shift = 8 * sizeof(int) - bits;
+            return (value << shift) >> shift;
+        }
     }
 }
