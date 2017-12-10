@@ -10,7 +10,7 @@ namespace VGAudio.Tools
 
             Console.WriteLine($"{type} is not a valid file type");
             Console.WriteLine("Valid file types are:");
-            Console.WriteLine("Wave, Dsp, Idsp, Brstm, Bcstm, Bfstm, Adx, Hca");
+            Console.WriteLine("Wave, Dsp, Idsp, Brstm, Bcstm, Bfstm, Adx, Hca, Atrac9");
             return FileType.NotSet;
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using VGAudio.Containers.Adx;
+using VGAudio.Containers.At9;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Genh;
 using VGAudio.Containers.Hca;
@@ -24,7 +25,8 @@ namespace VGAudio.Tools
             new FileTypeInfo(FileType.Hps, "*.hps", () => new HpsReader(), () => new HpsWriter()),
             new FileTypeInfo(FileType.Adx, "*.adx", () => new AdxReader(), () => new AdxWriter()),
             new FileTypeInfo(FileType.Genh, "*.genh", () => new GenhReader(), null),
-            new FileTypeInfo(FileType.Hca, "*.hca", () => new HcaReader(), null)
+            new FileTypeInfo(FileType.Hca, "*.hca", () => new HcaReader(), null),
+            new FileTypeInfo(FileType.Atrac9, "*.at9", () => new At9Reader(), null)
         }.ToDictionary(x => x.Type, x => x);
 
         public static int[] GetPrimes(int maxPrime)
