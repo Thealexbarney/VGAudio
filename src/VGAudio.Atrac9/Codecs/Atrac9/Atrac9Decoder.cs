@@ -9,16 +9,20 @@ namespace VGAudio.Codecs.Atrac9
 
         private Frame Frame { get; set; }
         private BitReader Reader { get; set; }
+        private bool _initialized;
 
         public void Initialize(byte[] configData)
         {
             Config = new Atrac9Config(configData);
             Frame = new Frame(Config);
             Reader = new BitReader(null);
+            _initialized = true;
         }
 
         public void Decode(byte[] atrac9Data, short[][] pcmOut)
         {
+            if (!_initialized) throw new InvalidOperationException("Decoder must be initialized before decoding.");
+
             ValidateBufferLength(pcmOut);
             Reader.SetBuffer(atrac9Data);
             DecodeSuperFrame(pcmOut);
