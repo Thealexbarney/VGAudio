@@ -82,6 +82,7 @@ namespace VGAudio.Codecs.Atrac9
         private static void ReadBandParams(BitReader reader, Block block)
         {
             int minBandCount = MinBandCount(block.Config.HighSampleRate);
+            int maxExtensionBand = MaxExtensionBand(block.Config.HighSampleRate);
             block.BandCount = reader.ReadInt(4);
             block.BandCount += minBandCount;
             block.QuantizationUnitCount = BandToQuantUnitCount[block.BandCount];
@@ -108,7 +109,7 @@ namespace VGAudio.Codecs.Atrac9
                 block.ExtensionBand = reader.ReadInt(4);
                 block.ExtensionBand += minBandCount;
 
-                if (block.ExtensionBand < block.BandCount)
+                if (block.ExtensionBand < block.BandCount || block.ExtensionBand > maxExtensionBand)
                 {
                     throw new InvalidDataException();
                 }

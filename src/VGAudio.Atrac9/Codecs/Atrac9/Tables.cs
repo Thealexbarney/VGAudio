@@ -35,7 +35,7 @@ namespace VGAudio.Codecs.Atrac9
 
         public static int MaxHuffPrecision(bool highSampleRate) => highSampleRate ? 1 : 7;
         public static int MinBandCount(bool highSampleRate) => highSampleRate ? 1 : 3;
-        public static int MinBandExtensionCount(bool highSampleRate) => highSampleRate ? 16 : 18;
+        public static int MaxExtensionBand(bool highSampleRate) => highSampleRate ? 16 : 18;
 
         public static readonly int[] SampleRates =
         {
