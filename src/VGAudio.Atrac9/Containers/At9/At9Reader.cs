@@ -20,7 +20,7 @@ namespace VGAudio.Containers.At9
 
             ValidateAt9File(parser);
 
-            WaveFmtChunk fmt = parser.GetSubChunk<WaveFmtChunk>("fmt ");
+            var fmt = parser.GetSubChunk<WaveFmtChunk>("fmt ");
             var ext = (At9WaveExtensible)fmt.Ext;
             var fact = parser.GetSubChunk<At9FactChunk>("fact");
             var data = parser.GetSubChunk<At9DataChunk>("data");

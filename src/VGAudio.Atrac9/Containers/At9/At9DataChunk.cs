@@ -5,7 +5,7 @@ using VGAudio.Utilities.Riff;
 
 namespace VGAudio.Containers.At9
 {
-    public class At9DataChunk : RiffSubChunk
+    internal class At9DataChunk : RiffSubChunk
     {
         public int FrameCount { get; set; }
         public byte[][] AudioData { get; set; }

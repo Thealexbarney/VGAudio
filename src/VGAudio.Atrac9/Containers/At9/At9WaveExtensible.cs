@@ -3,7 +3,7 @@ using VGAudio.Utilities.Riff;
 
 namespace VGAudio.Containers.At9
 {
-    public class At9WaveExtensible : WaveFormatExtensible
+    internal class At9WaveExtensible : WaveFormatExtensible
     {
         public int VersionInfo { get; set; }
         public byte[] ConfigData { get; set; }

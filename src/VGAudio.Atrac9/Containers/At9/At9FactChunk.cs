@@ -3,7 +3,7 @@ using VGAudio.Utilities.Riff;
 
 namespace VGAudio.Containers.At9
 {
-    public class At9FactChunk : WaveFactChunk
+    internal class At9FactChunk : WaveFactChunk
     {
         public int InputOverlapDelaySamples { get; set; }
         public int EncoderDelaySamples { get; set; }
