@@ -12,6 +12,8 @@
     <PackageLicenseUrl>https://raw.githubusercontent.com/Thealexbarney/VGAudio/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Thealexbarney/VGAudio</RepositoryUrl>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' ">

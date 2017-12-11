@@ -10,6 +10,7 @@
         CriAdx,
         CriAdxFixed,
         CriAdxExp,
-        CriHca
+        CriHca,
+        Atrac9
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
+using VGAudio.Containers.At9;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Genh;
 using VGAudio.Containers.Hca;
@@ -31,7 +32,8 @@ namespace VGAudio.Cli
             [FileType.Hps] = new ContainerType(new[] { "hps" }, () => new HpsReader(), () => new HpsWriter(), CreateConfiguration.Hps),
             [FileType.Adx] = new ContainerType(new[] { "adx" }, () => new AdxReader(), () => new AdxWriter(), CreateConfiguration.Adx),
             [FileType.Hca] = new ContainerType(new[] { "hca" }, () => new HcaReader(), () => new HcaWriter(), CreateConfiguration.Hca),
-            [FileType.Genh] = new ContainerType(new[] { "genh" }, () => new GenhReader(), null, null)
+            [FileType.Genh] = new ContainerType(new[] { "genh" }, () => new GenhReader(), null, null),
+            [FileType.Atrac9] = new ContainerType(new[] { "at9" }, () => new At9Reader(), null, null)
         };
 
         public static readonly Dictionary<string, FileType> Extensions =

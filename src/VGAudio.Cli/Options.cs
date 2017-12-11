@@ -86,6 +86,7 @@ namespace VGAudio.Cli
         Hps,
         Adx,
         Hca,
-        Genh
+        Genh,
+        Atrac9
     }
 }

@@ -15,7 +15,8 @@ namespace VGAudio.Tools
         Hps,
         Genh,
         Adx,
-        Hca
+        Hca,
+        Atrac9
     }
 
     internal class FileTypeInfo

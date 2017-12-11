@@ -54,7 +54,8 @@ namespace VGAudio.Cli.Metadata
             [AudioFormat.CriAdx] = "CRI ADX 4-bit ADPCM",
             [AudioFormat.CriAdxFixed] = "CRI ADX 4-bit ADPCM with fixed coefficients",
             [AudioFormat.CriAdxExp] = "CRI ADX 4-bit ADPCM with exponential scale",
-            [AudioFormat.CriHca] = "CRI HCA"
+            [AudioFormat.CriHca] = "CRI HCA",
+            [AudioFormat.Atrac9] = "Sony ATRAC9"
         };
 
         public static readonly Dictionary<FileType, MetadataReader> MetadataReaders = new Dictionary<FileType, MetadataReader>
@@ -71,7 +72,8 @@ namespace VGAudio.Cli.Metadata
             [FileType.Hps] = new Hps(),
             [FileType.Adx] = new Adx(),
             [FileType.Hca] = new Hca(),
-            [FileType.Genh] = new Genh()
+            [FileType.Genh] = new Genh(),
+            [FileType.Atrac9] = new Atrac9()
         };
 
         private static string GetSecondsString(int sampleCount, int sampleRate)

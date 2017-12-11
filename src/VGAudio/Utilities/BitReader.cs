@@ -5,15 +5,18 @@ namespace VGAudio.Utilities
 {
     public class BitReader
     {
-        public byte[] Buffer { get; }
-        public int LengthBits { get; }
+        public byte[] Buffer { get; private set; }
+        public int LengthBits { get; private set; }
         public int Position { get; set; }
         public int Remaining => LengthBits - Position;
 
-        public BitReader(byte[] buffer)
+        public BitReader(byte[] buffer) => SetBuffer(buffer);
+
+        public void SetBuffer(byte[] buffer)
         {
             Buffer = buffer;
-            LengthBits = Buffer.Length * 8;
+            LengthBits = Buffer?.Length * 8 ?? 0;
+            Position = 0;
         }
 
         public int ReadInt(int bitCount)
@@ -27,7 +30,7 @@ namespace VGAudio.Utilities
         {
             int value = PeekInt(bitCount);
             Position += bitCount;
-            return SignExtend32(value, bitCount);
+            return Bit.SignExtend32(value, bitCount);
         }
 
         public bool ReadBool() => ReadInt(1) == 1;
@@ -38,12 +41,6 @@ namespace VGAudio.Utilities
             int value = PeekInt(bitCount) - offset;
             Position += bitCount;
             return value;
-        }
-
-        public static int SignExtend32(int value, int bits)
-        {
-            int shift = 8 * sizeof(int) - bits;
-            return (value << shift) >> shift;
         }
 
         public void AlignPosition(int multiple)

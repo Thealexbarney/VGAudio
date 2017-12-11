@@ -24,10 +24,7 @@ namespace VGAudio.Utilities
 
         public Mdct(int mdctBits, double[] window, double scale = 1)
         {
-            if (mdctBits > _tableBits)
-            {
-                SetTables(mdctBits);
-            }
+            SetTables(mdctBits);
 
             MdctBits = mdctBits;
             MdctSize = 1 << mdctBits;
@@ -49,14 +46,17 @@ namespace VGAudio.Utilities
         {
             lock (TableLock)
             {
-                for (int i = _tableBits + 1; i <= maxBits; i++)
+                if (maxBits > _tableBits)
                 {
-                    GenerateTrigTables(i, out double[] sin, out double[] cos);
-                    SinTables.Add(sin);
-                    CosTables.Add(cos);
-                    ShuffleTables.Add(GenerateShuffleTable(i));
+                    for (int i = _tableBits + 1; i <= maxBits; i++)
+                    {
+                        GenerateTrigTables(i, out double[] sin, out double[] cos);
+                        SinTables.Add(sin);
+                        CosTables.Add(cos);
+                        ShuffleTables.Add(GenerateShuffleTable(i));
+                    }
+                    _tableBits = maxBits;
                 }
-                _tableBits = maxBits;
             }
         }
 

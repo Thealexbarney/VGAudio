@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
+using VGAudio.Containers.At9;
 using VGAudio.Containers.Dsp;
 using VGAudio.Containers.Genh;
 using VGAudio.Containers.Hca;
@@ -27,7 +28,8 @@ namespace VGAudio.Uwp.Audio
             [FileType.Hps] = new ContainerType("HPS", new[] { "hps" }, "HPS Audio File", () => new HpsReader(), () => new HpsWriter()),
             [FileType.Adx] = new ContainerType("ADX", new[] { "adx" }, "CRI ADX Audio File", () => new AdxReader(), () => new AdxWriter()),
             [FileType.Hca] = new ContainerType("HCA", new[] { "hca" }, "CRI HCA Audio File", () => new HcaReader(), () => new HcaWriter()),
-            [FileType.Genh] = new ContainerType("GENH", new[] { "genh" }, "GENH Audio File", () => new GenhReader(), null)
+            [FileType.Genh] = new ContainerType("GENH", new[] { "genh" }, "GENH Audio File", () => new GenhReader(), null),
+            [FileType.Atrac9] = new ContainerType("ATRAC9", new[] { "at9" }, "ATRAC9 Audio File", () => new At9Reader(), null)
         };
 
         public static readonly Dictionary<string, FileType> Extensions =
@@ -54,7 +56,8 @@ namespace VGAudio.Uwp.Audio
         Hps,
         Adx,
         Hca,
-        Genh
+        Genh,
+        Atrac9
     }
 
     public class ContainerType

@@ -20,6 +20,9 @@ namespace VGAudio.Tools
                 case "gcadpcm":
                     GcAdpcm.Runner.Run(args);
                     break;
+                case "atrac9":
+                    Atrac9.Runner.Run(args);
+                    break;
                 case "crackadx":
                     CrackAdx.Runner.Run(args);
                     break;
@@ -40,6 +43,7 @@ namespace VGAudio.Tools
             Console.WriteLine("GcAdpcm\t\tCompares GcAdpcm encoding with the official implementation");
             Console.WriteLine("CrackAdx\tAttempts to crack the decryption key of a folder of ADX files");
             Console.WriteLine("CrackHca\tIncomplete, experimental HCA decryption cracker");
+            Console.WriteLine("Atrac9\t\tCompares ATRAC9 decoding with the official implementation");
         }
     }
 }
