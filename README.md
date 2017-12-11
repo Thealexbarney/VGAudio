@@ -10,6 +10,7 @@ The Universal Windows app can be found [in the Windows Store](https://www.micros
 
 |Format|Encode|Decode|Notes|
 |:-:|:-:|:-:|:-|
+|ATRAC9||X|MDCT-based codec from Sony|
 |CRI ADX|X|X|4-bit ADPCM codec from CRI|
 |CRI HCA|X|X|MDCT-based codec from CRI|
 |Nintendo GC-ADPCM|X|X|4-bit ADPCM codec from Nintendo|
@@ -18,8 +19,9 @@ The Universal Windows app can be found [in the Windows Store](https://www.micros
 
 ### Container Formats
 
-|Container|Encode|Decode|Notes|
+|Container|Write|Read|Notes|
 |-|:-:|:-:|:-|
+|AT9|X|X||
 |BCSTM|X|X||
 |BCSTP||X||
 |BCWAV||X||
