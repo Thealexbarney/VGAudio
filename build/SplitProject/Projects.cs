@@ -9,11 +9,13 @@ namespace Build.SplitProject
         private const string GcAdpcmCodec = nameof(GcAdpcmCodec);
         private const string CriAdxCodec = nameof(CriAdxCodec);
         private const string CriHcaCodec = nameof(CriHcaCodec);
+        private const string Atrac9Codec = nameof(Atrac9Codec);
 
         private const string Pcm8Format = nameof(Pcm8Format);
         private const string GcAdpcmFormat = nameof(GcAdpcmFormat);
         private const string CriAdxFormat = nameof(CriAdxFormat);
         private const string CriHcaFormat = nameof(CriHcaFormat);
+        private const string Atrac9Format = nameof(Atrac9Format);
 
         private const string Wave = nameof(Wave);
         private const string Dsp = nameof(Dsp);
@@ -23,6 +25,7 @@ namespace Build.SplitProject
         private const string Genh = nameof(Genh);
         private const string Adx = nameof(Adx);
         private const string Hca = nameof(Hca);
+        private const string At9 = nameof(At9);
 
         public List<Project> ProjectList { get; } = new List<Project>();
 
@@ -31,6 +34,7 @@ namespace Build.SplitProject
             [GcAdpcmFormat] = new[] { GcAdpcmCodec },
             [CriAdxFormat] = new[] { CriAdxCodec },
             [CriHcaFormat] = new[] { CriHcaCodec },
+            [Atrac9Format] = new[] { Atrac9Codec },
 
             [Wave] = new[] { Pcm8Format },
             [Dsp] = new[] { GcAdpcmFormat },
@@ -39,8 +43,8 @@ namespace Build.SplitProject
             [Hps] = new[] { GcAdpcmFormat },
             [Genh] = new[] { GcAdpcmFormat },
             [Adx] = new[] { CriAdxFormat },
-            [Hca] = new[] { CriHcaFormat }
-
+            [Hca] = new[] { CriHcaFormat },
+            [At9] = new[] { Atrac9Format }
         };
 
         private static readonly Dictionary<string, string[]> Directories = new Dictionary<string, string[]>
@@ -48,11 +52,13 @@ namespace Build.SplitProject
             [GcAdpcmCodec] = new[] { "Codecs/GcAdpcm" },
             [CriAdxCodec] = new[] { "Codecs/CriAdx" },
             [CriHcaCodec] = new[] { "Codecs/CriHca" },
+            [Atrac9Codec] = new[] { "Codecs/Atrac9" },
 
             [Pcm8Format] = new[] { "Formats/Pcm8", "Codecs/Pcm8" },
             [GcAdpcmFormat] = new[] { "Formats/GcAdpcm" },
             [CriAdxFormat] = new[] { "Formats/CriAdx" },
             [CriHcaFormat] = new[] { "Formats/CriHca" },
+            [Atrac9Format] = new[] { "Formats/Atrac9" },
 
             [Wave] = new[] { "Containers/Wave" },
             [Dsp] = new[] { "Containers/Dsp" },
@@ -61,7 +67,8 @@ namespace Build.SplitProject
             [Hps] = new[] { "Containers/Hps" },
             [Genh] = new[] { "Containers/Genh" },
             [Adx] = new[] { "Containers/Adx" },
-            [Hca] = new[] { "Containers/Hca" }
+            [Hca] = new[] { "Containers/Hca" },
+            [At9] = new[] { "Containers/At9" }
         };
 
         public Projects(DirectoryPath root)
