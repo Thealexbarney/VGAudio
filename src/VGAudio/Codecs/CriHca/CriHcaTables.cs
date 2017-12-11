@@ -49,7 +49,7 @@ namespace VGAudio.Codecs.CriHca
         /// This curve is used when deriving resolutions from scale factors in very old HCA versions.
         /// </summary>
         /// <seealso cref="CriHcaFrame.ScaleAthCurve"/>
-        /// <remarks>This curve seems to be a slight modification of the standard Painter & Spanias ATH curve formula</remarks>
+        /// <remarks>This curve seems to be a slight modification of the standard Painter &amp; Spanias ATH curve formula</remarks>
         public static byte[] AthCurve { get; }
 
         private static double DequantizerScalingFunction(int x) => Math.Sqrt(128) * Math.Pow(Math.Pow(2, 53.0 / 128), x - 63);
