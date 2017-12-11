@@ -3,6 +3,9 @@ using VGAudio.Utilities;
 
 namespace VGAudio.Codecs.Atrac9
 {
+    /// <summary>
+    /// Decodes an ATRAC9 stream into 16-bit PCM.
+    /// </summary>
     public class Atrac9Decoder
     {
         public Atrac9Config Config { get; private set; }
@@ -11,6 +14,10 @@ namespace VGAudio.Codecs.Atrac9
         private BitReader Reader { get; set; }
         private bool _initialized;
 
+        /// <summary>
+        /// Sets up the decoder to decode an ATRAC9 stream based on the information in <paramref name="configData"/>.
+        /// </summary>
+        /// <param name="configData">A 4-byte value containing information about the ATRAC9 stream.</param>
         public void Initialize(byte[] configData)
         {
             Config = new Atrac9Config(configData);
@@ -19,25 +26,41 @@ namespace VGAudio.Codecs.Atrac9
             _initialized = true;
         }
 
+        /// <summary>
+        /// Decodes one superframe of ATRAC9 data.
+        /// </summary>
+        /// <param name="atrac9Data">The ATRAC9 data to decode. Must be at least as long as one superframe
+        /// as indicated in <see cref="Config"/></param>
+        /// <param name="pcmOut">A buffer that the decoded PCM data will be placed in.
+        /// The length of the array for each channel must be at least the number of samples per superframe
+        /// as indicated in <see cref="Config"/></param>
         public void Decode(byte[] atrac9Data, short[][] pcmOut)
         {
             if (!_initialized) throw new InvalidOperationException("Decoder must be initialized before decoding.");
 
-            ValidateBufferLength(pcmOut);
+            ValidateDecodeBuffers(atrac9Data, pcmOut);
             Reader.SetBuffer(atrac9Data);
             DecodeSuperFrame(pcmOut);
         }
 
-        private void ValidateBufferLength(short[][] buffer)
+        private void ValidateDecodeBuffers(byte[] atrac9Buffer, short[][] pcmBuffer)
         {
-            if (buffer == null || buffer.Length < Config.ChannelCount)
+            if (atrac9Buffer == null) throw new ArgumentNullException(nameof(atrac9Buffer));
+            if (pcmBuffer == null) throw new ArgumentNullException(nameof(pcmBuffer));
+
+            if (atrac9Buffer.Length < Config.SuperframeSize)
+            {
+                throw new ArgumentException("ATRAC9 buffer is too small");
+            }
+
+            if (pcmBuffer.Length < Config.ChannelCount)
             {
                 throw new ArgumentException("PCM buffer is too small");
             }
 
             for (int i = 0; i < Config.ChannelCount; i++)
             {
-                if (buffer[i]?.Length < Config.SuperframeSamples)
+                if (pcmBuffer[i]?.Length < Config.SuperframeSamples)
                 {
                     throw new ArgumentException("PCM buffer is too small");
                 }
