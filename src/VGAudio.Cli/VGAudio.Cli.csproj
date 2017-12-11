@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VGAudio\VGAudio.csproj" />
-    <ProjectReference Include="..\VGAudio.Atrac9\VGAudio.Atrac9.csproj" />
   </ItemGroup>
 
 </Project>
