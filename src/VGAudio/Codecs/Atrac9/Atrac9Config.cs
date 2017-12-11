@@ -3,24 +3,76 @@ using VGAudio.Utilities;
 
 namespace VGAudio.Codecs.Atrac9
 {
+    /// <summary>
+    /// Stores the configuration data needed to decode or encode an ATRAC9 stream.
+    /// </summary>
     public class Atrac9Config
     {
-        public int ChannelCount { get; }
-        public int SampleRate { get; }
-        public int SuperframeSize { get; }
+        /// <summary>
+        /// The 4-byte ATRAC9 configuration data.
+        /// </summary>
         public byte[] ConfigData { get; }
 
+        /// <summary>
+        /// A 4-bit value specifying one of 16 sample rates.
+        /// </summary>
         public int SampleRateIndex { get; }
-        public int FrameSamplesPower { get; }
-        public int FrameSamples { get; }
+        /// <summary>
+        /// A 3-bit value specifying one of 6 substream channel mappings.
+        /// </summary>
         public int ChannelConfigIndex { get; }
-        public int FrameSize { get; }
+        /// <summary>
+        /// An 11-bit value containing the average size of a single frame.
+        /// </summary>
+        public int FrameBytes { get; }
+        /// <summary>
+        /// A 2-bit value indicating how many frames are in each superframe.
+        /// </summary>
         public int SuperframeIndex { get; }
-        public int SuperframeSamples { get; }
-        public int FramesPerSuperframe { get; }
-        public bool HighSampleRate { get; }
-        public ChannelConfig ChannelConfig { get; }
 
+        /// <summary>
+        /// The channel mapping used by the ATRAC9 stream.
+        /// </summary>
+        public ChannelConfig ChannelConfig { get; }
+        /// <summary>
+        /// The total number of channels in the ATRAC9 stream.
+        /// </summary>
+        public int ChannelCount { get; }
+        /// <summary>
+        /// The sample rate of the ATRAC9 stream.
+        /// </summary>
+        public int SampleRate { get; }
+        /// <summary>
+        /// Indicates whether the ATRAC9 stream has a <see cref="SampleRateIndex"/> of 8 or above.
+        /// </summary>
+        public bool HighSampleRate { get; }
+
+        /// <summary>
+        /// The number of frames in each superframe.
+        /// </summary>
+        public int FramesPerSuperframe { get; }
+        /// <summary>
+        /// The number of samples in one frame as an exponent of 2.
+        /// <see cref="FrameSamples"/> = 2^<see cref="FrameSamplesPower"/>.
+        /// </summary>
+        public int FrameSamplesPower { get; }
+        /// <summary>
+        /// The number of samples in one frame.
+        /// </summary>
+        public int FrameSamples { get; }
+        /// <summary>
+        /// The number of bytes in one superframe.
+        /// </summary>
+        public int SuperframeBytes { get; }
+        /// <summary>
+        /// The number of samples in one superframe.
+        /// </summary>
+        public int SuperframeSamples { get; }
+
+        /// <summary>
+        /// Reads ATRAC9 configuration data and calculates the stream parameters from it.
+        /// </summary>
+        /// <param name="configData">The processed ATRAC9 configuration.</param>
         public Atrac9Config(byte[] configData)
         {
             if (configData == null || configData.Length != 4)
@@ -31,12 +83,12 @@ namespace VGAudio.Codecs.Atrac9
             ReadConfigData(configData, out int a, out int b, out int c, out int d);
             SampleRateIndex = a;
             ChannelConfigIndex = b;
-            FrameSize = c;
+            FrameBytes = c;
             SuperframeIndex = d;
             ConfigData = configData;
 
             FramesPerSuperframe = 1 << SuperframeIndex;
-            SuperframeSize = FrameSize << SuperframeIndex;
+            SuperframeBytes = FrameBytes << SuperframeIndex;
             ChannelConfig = Tables.ChannelConfig[ChannelConfigIndex];
 
             ChannelCount = ChannelConfig.ChannelCount;
@@ -47,7 +99,7 @@ namespace VGAudio.Codecs.Atrac9
             SuperframeSamples = FrameSamples * FramesPerSuperframe;
         }
 
-        private static void ReadConfigData(byte[] configData, out int sampleRateIndex, out int channelConfigIndex, out int frameSize, out int superframeIndex)
+        private static void ReadConfigData(byte[] configData, out int sampleRateIndex, out int channelConfigIndex, out int frameBytes, out int superframeIndex)
         {
             var reader = new BitReader(configData);
 
@@ -55,7 +107,7 @@ namespace VGAudio.Codecs.Atrac9
             sampleRateIndex = reader.ReadInt(4);
             channelConfigIndex = reader.ReadInt(3);
             int validationBit = reader.ReadInt(1);
-            frameSize = reader.ReadInt(11) + 1;
+            frameBytes = reader.ReadInt(11) + 1;
             superframeIndex = reader.ReadInt(2);
 
             if (header != 0xFE || validationBit != 0)

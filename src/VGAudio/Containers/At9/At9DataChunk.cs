@@ -24,14 +24,14 @@ namespace VGAudio.Containers.At9
 
             var config = new Atrac9Config(ext.ConfigData);
             FrameCount = (fact.SampleCount + fact.EncoderDelaySamples).DivideByRoundUp(config.SuperframeSamples);
-            int dataSize = FrameCount * config.SuperframeSize;
+            int dataSize = FrameCount * config.SuperframeBytes;
 
             if (dataSize > reader.BaseStream.Length - reader.BaseStream.Position)
             {
                 throw new InvalidDataException("Required AT9 length is greater than the number of bytes remaining in the file.");
             }
 
-            AudioData = reader.BaseStream.DeInterleave(dataSize, config.SuperframeSize, FrameCount);
+            AudioData = reader.BaseStream.DeInterleave(dataSize, config.SuperframeBytes, FrameCount);
         }
 
         public static At9DataChunk ParseAt9(RiffParser parser, BinaryReader reader) => new At9DataChunk(parser, reader);

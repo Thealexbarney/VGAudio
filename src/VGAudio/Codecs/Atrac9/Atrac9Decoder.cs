@@ -29,11 +29,11 @@ namespace VGAudio.Codecs.Atrac9
         /// <summary>
         /// Decodes one superframe of ATRAC9 data.
         /// </summary>
-        /// <param name="atrac9Data">The ATRAC9 data to decode. Must be at least as long as one superframe
-        /// as indicated in <see cref="Config"/></param>
+        /// <param name="atrac9Data">The ATRAC9 data to decode. The array must be at least
+        /// <see cref="Config"/>.<see cref="Atrac9Config.SuperframeBytes"/> bytes long.</param>
         /// <param name="pcmOut">A buffer that the decoded PCM data will be placed in.
-        /// The length of the array for each channel must be at least the number of samples per superframe
-        /// as indicated in <see cref="Config"/></param>
+        /// The array must have dimensions of at least [<see cref="Config"/>.<see cref="Atrac9Config.ChannelCount"/>]
+        /// [<see cref="Config"/>.<see cref="Atrac9Config.SuperframeSamples"/>].</param>
         public void Decode(byte[] atrac9Data, short[][] pcmOut)
         {
             if (!_initialized) throw new InvalidOperationException("Decoder must be initialized before decoding.");
@@ -48,7 +48,7 @@ namespace VGAudio.Codecs.Atrac9
             if (atrac9Buffer == null) throw new ArgumentNullException(nameof(atrac9Buffer));
             if (pcmBuffer == null) throw new ArgumentNullException(nameof(pcmBuffer));
 
-            if (atrac9Buffer.Length < Config.SuperframeSize)
+            if (atrac9Buffer.Length < Config.SuperframeBytes)
             {
                 throw new ArgumentException("ATRAC9 buffer is too small");
             }

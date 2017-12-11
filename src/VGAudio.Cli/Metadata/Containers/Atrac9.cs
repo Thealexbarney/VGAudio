@@ -40,7 +40,7 @@ namespace VGAudio.Cli.Metadata.Containers
 
             builder.AppendLine($"ATRAC9 version: {at9Structure.Version}");
             builder.AppendLine($"Superframe count: {at9Structure.SuperframeCount}");
-            builder.AppendLine($"Superframe size: {config.SuperframeSize} bytes");
+            builder.AppendLine($"Superframe size: {config.SuperframeBytes} bytes");
             builder.AppendLine($"Frames per superframe: {config.FramesPerSuperframe}");
             builder.AppendLine($"Encoder delay: {at9Structure.EncoderDelay} samples");
         }

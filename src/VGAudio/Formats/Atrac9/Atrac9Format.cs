@@ -49,7 +49,7 @@ namespace VGAudio.Formats.Atrac9
             return pcmOut;
         }
 
-        public static void CopyBuffer(short[][] bufferIn, short[][] bufferOut, int startIndex, int bufferIndex)
+        private static void CopyBuffer(short[][] bufferIn, short[][] bufferOut, int startIndex, int bufferIndex)
         {
             if (bufferIn == null || bufferOut == null || bufferIn.Length == 0 || bufferOut.Length == 0)
             {
