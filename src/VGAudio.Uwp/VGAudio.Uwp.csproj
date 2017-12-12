@@ -31,7 +31,7 @@
   <PropertyGroup Condition="'$(AppxBuildType)' == 'Sideload' ">
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <PackageCertificateKeyFile>VGAudio.Uwp_StoreKey.pfx</PackageCertificateKeyFile>
-    <PackageCertificateThumbprint>2043012AE523F7FA0F77A537387633BEB7A9F4DD</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>A81DF5034B182A7235B71B5524CCC9EE822BFA98</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -214,7 +214,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.0.1" />
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.0.4" />
     <PackageReference Include="MvvmLightLibs" Version="5.3.0" />
     <PackageReference Include="PropertyChanged.Fody" Version="2.1.4" />
     <ProjectReference Include="..\VGAudio\VGAudio.csproj">
