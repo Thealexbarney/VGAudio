@@ -11,6 +11,7 @@ namespace Build.Tasks
     [Dependency(typeof(TestLibrary))]
     [Dependency(typeof(RunUwpBuild))]
     [Dependency(typeof(RunUwpStoreBuild))]
+    [Dependency(typeof(TrimLibrary))]
     public sealed class Build : FrostingTask<Context> { }
 
     [Dependency(typeof(SetupAll))]
@@ -38,5 +39,15 @@ namespace Build.Tasks
     {
         public override void Run(Context context) => Utilities.RunCoreMsBuild(context, "TestLibrary");
         public override bool ShouldRun(Context context) => context.RunTests && (context.RunNetCore || context.RunNetFramework);
+    }
+
+    public sealed class TrimLibrary : FrostingTask<Context>
+    {
+#if NET461
+        public override void Run(Context context) => Trim.TrimSolution(context);
+        public override bool ShouldRun(Context context) => context.RunTrim;
+#else
+        public override bool ShouldRun(Context context) => false;
+#endif
     }
 }

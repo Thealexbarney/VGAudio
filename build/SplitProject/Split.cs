@@ -31,7 +31,7 @@ namespace Build.SplitProject
             }
 
             string[] newProjects = projects.ProjectList.Select(x => x.Csproj.FullPath).ToArray();
-            string references = string.Join(' ', newProjects);
+            string references = string.Join(" ", newProjects);
             context.DotNetCoreTool(solutionFile, $"sln add {references}");
 
             foreach (string project in OldProjects)
@@ -41,7 +41,7 @@ namespace Build.SplitProject
 
             foreach (Project project in projects.ProjectList)
             {
-                string dependencies = string.Join(' ', project.Dependencies.Select(x => x.Csproj.FullPath).ToArray());
+                string dependencies = string.Join(" ", project.Dependencies.Select(x => x.Csproj.FullPath).ToArray());
                 context.DotNetCoreTool(project.Csproj, $"add reference {dependencies} {libraryProject}");
             }
         }

@@ -35,6 +35,7 @@ Param(
     [switch]$Test,
     [switch]$Clean,
     [switch]$CleanAll,
+    [switch]$Trim,
     [Parameter(Position=0,Mandatory=$false,ValueFromRemainingArguments=$true)]
     [string[]]$ScriptArgs
 )
@@ -114,14 +115,23 @@ try {
         uwpstore=$UwpStore;
         build=$Build;
         test=$Test;
+        trim=$Trim;
         clean=$Clean;
         cleanall=$CleanAll;
     }.GetEnumerator() | ForEach-Object {"--{0}=`"{1}`"" -f $_.key, $_.value };
+	
+	$framework = If ($Trim) {"net461"} Else {"netcoreapp2.0"}
 
     # Start Cake
     Write-Output "Running build..."
-	& dotnet publish /v:q /nologo
-    & dotnet bin/Debug/netcoreapp2.0/publish/Build.dll $Arguments
+	& dotnet publish -f $framework /v:q /nologo
+	
+	if ($Trim) {
+        & bin/Debug/$framework/publish/Build.exe $Arguments
+    } else {
+        & dotnet bin/Debug/$framework/publish/Build.dll $Arguments
+	}
+
     exit $LASTEXITCODE;
 
 } finally {

@@ -18,6 +18,7 @@ namespace Build
         public DirectoryPath UwpDir { get; set; }
         public DirectoryPath CliPackageDir { get; set; }
         public FilePath BuildTargetsFile { get; set; }
+        public FilePath TrimSolution { get; set; }
 
         public string AppxPublisher { get; set; }
         public string ReleaseCertThumbprint { get; set; }
@@ -30,6 +31,7 @@ namespace Build
         public bool RunTests { get; private set; }
         public bool RunClean { get; private set; }
         public bool RunCleanAll { get; private set; }
+        public bool RunTrim { get; private set; }
 
         public void ParseArguments()
         {
@@ -41,9 +43,10 @@ namespace Build
             RunTests = this.Argument("test", false);
             RunClean = this.Argument("clean", false);
             RunCleanAll = this.Argument("cleanAll", false);
+            RunTrim = this.Argument("trim", false);
             if (this.IsRunningOnUnix()) RunNetCore = true;
 
-            if (!(RunBuild || RunTests | RunClean | RunCleanAll))
+            if (!(RunBuild || RunTests || RunClean || RunCleanAll || RunTrim))
             {
                 if (this.IsRunningOnUnix())
                     throw new Exception("Must specify at least one of \"--Build\", \"--Test\", \"--Clean\", \"--CleanAll\"");
