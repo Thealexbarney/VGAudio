@@ -86,10 +86,9 @@ namespace VGAudio.Codecs.Atrac9
             block.BandCount = reader.ReadInt(4);
             block.BandCount += minBandCount;
             block.QuantizationUnitCount = BandToQuantUnitCount[block.BandCount];
-            if (block.BandCount < minBandCount || block.BandCount >
-                MaxBandCount[block.Config.SampleRateIndex])
+            if (block.BandCount > MaxBandCount[block.Config.SampleRateIndex])
             {
-                return;
+                throw new InvalidDataException();
             }
 
             if (block.BlockType == BlockType.Stereo)
@@ -101,6 +100,11 @@ namespace VGAudio.Codecs.Atrac9
             else
             {
                 block.StereoBand = block.BandCount;
+            }
+
+            if (block.StereoBand > block.BandCount)
+            {
+                throw new InvalidDataException();
             }
 
             block.BandExtensionEnabled = reader.ReadBool();
