@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>2.2.0</VersionPrefix>
-    <UwpVersion>2.2.0.0</UwpVersion>
+    <VersionPrefix>2.2.1</VersionPrefix>
+    <UwpVersion>2.2.1.0</UwpVersion>
     <SideloadAppxName>TheAlexBarney.VGAudio</SideloadAppxName>
     <PathMap>$(MSBuildThisFileDirectory)=D:/VGAudio/</PathMap>
     <IncludeSymbols>true</IncludeSymbols>
