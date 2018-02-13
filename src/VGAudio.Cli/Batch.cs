@@ -21,28 +21,30 @@ namespace VGAudio.Cli
             {
                 progress.SetTotal(files.Length);
 
-                Parallel.ForEach(files, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount - 1 }, inPath =>
-                {
-                    string relativePath = inPath.Substring(options.InDir.Length).TrimStart('\\');
-                    string outPath = Path.ChangeExtension(Path.Combine(options.OutDir, relativePath), options.OutTypeName);
-
-                    var jobFiles = new JobFiles();
-                    jobFiles.InFiles.Add(new AudioFile(inPath));
-                    jobFiles.OutFiles.Add(new AudioFile(outPath));
-
-                    try
+                Parallel.ForEach(files,
+                    new ParallelOptions { MaxDegreeOfParallelism = Math.Max(Environment.ProcessorCount - 1, 1) },
+                    inPath =>
                     {
-                        progress.LogMessage(Path.GetFileName(inPath));
-                        Convert.ConvertFile(options, jobFiles, false);
-                    }
-                    catch (Exception ex)
-                    {
-                        progress.LogMessage($"Error converting {Path.GetFileName(inPath)}");
-                        progress.LogMessage(ex.ToString());
-                    }
+                        string relativePath = inPath.Substring(options.InDir.Length).TrimStart('\\');
+                        string outPath = Path.ChangeExtension(Path.Combine(options.OutDir, relativePath), options.OutTypeName);
 
-                    progress.ReportAdd(1);
-                });
+                        var jobFiles = new JobFiles();
+                        jobFiles.InFiles.Add(new AudioFile(inPath));
+                        jobFiles.OutFiles.Add(new AudioFile(outPath));
+
+                        try
+                        {
+                            progress.LogMessage(Path.GetFileName(inPath));
+                            Convert.ConvertFile(options, jobFiles, false);
+                        }
+                        catch (Exception ex)
+                        {
+                            progress.LogMessage($"Error converting {Path.GetFileName(inPath)}");
+                            progress.LogMessage(ex.ToString());
+                        }
+
+                        progress.ReportAdd(1);
+                    });
             }
 
             return true;
