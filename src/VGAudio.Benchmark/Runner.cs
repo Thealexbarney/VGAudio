@@ -26,7 +26,7 @@ namespace VGAudio.Benchmark
                 .WithLaunchCount(1)
                 .WithIterationTime(TimeInterval.Millisecond * 100)
                 .WithWarmupCount(3)
-                .WithTargetCount(3)
+                .WithIterationCount(3)
             );
 
         public static void Main(string[] args)

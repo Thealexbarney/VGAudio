@@ -29,7 +29,7 @@
     </PropertyGroup>
 
     <MSBuild Projects="$(TestsProjectFile)" Targets="Restore;Build" Properties="TargetFrameworks=$(TestFrameworks)"/>
-    <Exec Command="dotnet xunit -c $(Configuration) -nobuild -f %(TestFrameworks.Identity)" WorkingDirectory="$(TestsProjectDir)" />
+    <Exec Command="dotnet test -c $(Configuration) --no-build -f %(TestFrameworks.Identity)" WorkingDirectory="$(TestsProjectDir)" />
   </Target>
 
   <Target Name="RestoreUwp">
