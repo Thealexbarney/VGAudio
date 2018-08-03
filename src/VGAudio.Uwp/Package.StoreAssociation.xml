@@ -2,6 +2,7 @@
 <StoreAssociation xmlns="http://schemas.microsoft.com/appx/2010/storeassociation">
   <Publisher>CN=2E186599-2EB7-4677-93A5-C222C2F74D01</Publisher>
   <PublisherDisplayName>TheAlexBarney</PublisherDisplayName>
+  <DeveloperAccountType>MSA</DeveloperAccountType>
   <GeneratePackageHash>http://www.w3.org/2001/04/xmlenc#sha256</GeneratePackageHash>
   <SupportedLocales>
     <Language Code="af" InMinimumRequirementSet="true" />
@@ -360,8 +361,9 @@
   <ProductReservedInfo>
     <MainPackageIdentityName>35626TheAlexBarney.DSP-ADPCMEncoder</MainPackageIdentityName>
     <ReservedNames>
-      <ReservedName>DSP-ADPCM Encoder</ReservedName>
       <ReservedName>VGAudio</ReservedName>
+      <ReservedName>VGAudio Encoder</ReservedName>
+      <ReservedName>VG Audio</ReservedName>
     </ReservedNames>
   </ProductReservedInfo>
   <AccountPackageIdentityNames />
