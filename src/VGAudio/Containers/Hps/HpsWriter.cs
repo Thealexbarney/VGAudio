@@ -26,7 +26,7 @@ namespace VGAudio.Containers.Hps
         protected override void SetupWriter(AudioData audio)
         {
             Adpcm = audio.GetFormat<GcAdpcmFormat>(new GcAdpcmParameters { Progress = Configuration.Progress });
-            int channelSize = GetNextMultiple(MaxBlockSize / ChannelCount - 0x20, 0x20);
+            int channelSize = GetNextMultiple(MaxBlockSize / ChannelCount, 0x20);
             MaxBlockSizeActual = channelSize * ChannelCount;
             int alignment = ByteCountToSampleCount(channelSize);
             if (!LoopPointsAreAligned(Adpcm.LoopStart, alignment))
