@@ -38,7 +38,7 @@ namespace VGAudio.Codecs.CriHca
         private static byte[] CreateDecryptionTable(ulong keyCode)
         {
             byte[] kc = BitConverter.GetBytes(keyCode - 1);
-            byte[] seed = new byte[16];
+            var seed = new byte[16];
 
             seed[0] = kc[1];
             seed[1] = (byte)(kc[6] ^ kc[1]);
@@ -62,7 +62,7 @@ namespace VGAudio.Codecs.CriHca
 
         private static byte[] CreateDecryptionTableType0()
         {
-            byte[] table = new byte[256];
+            var table = new byte[256];
 
             for (int i = 0; i < 256; i++)
             {
@@ -74,7 +74,7 @@ namespace VGAudio.Codecs.CriHca
 
         private static byte[] CreateDecryptionTableType1()
         {
-            byte[] table = new byte[256];
+            var table = new byte[256];
             int xor = 0;
             const int mult = 13;
             const int inc = 11;
@@ -95,7 +95,7 @@ namespace VGAudio.Codecs.CriHca
 
         private static byte[] CreateTable(byte rowSeed, byte[] columnSeeds)
         {
-            byte[] table = new byte[256];
+            var table = new byte[256];
             byte[] row = Rows[rowSeed];
 
             for (int r = 0; r < 16; r++)
@@ -112,7 +112,7 @@ namespace VGAudio.Codecs.CriHca
 
         public static byte[] CreateRandomRow(byte seed)
         {
-            byte[] row = new byte[16];
+            var row = new byte[16];
             int xor = seed >> 4;
             int mult = ((seed & 1) << 3) | 5;
             int inc = (seed & 0xe) | 1;
@@ -140,7 +140,7 @@ namespace VGAudio.Codecs.CriHca
 
         private static byte[] ShuffleTable(byte[] tableIn)
         {
-            byte[] table = new byte[256];
+            var table = new byte[256];
             byte x = 0;
             int outPos = 1;
 
@@ -160,7 +160,7 @@ namespace VGAudio.Codecs.CriHca
         public static byte[] InvertTable(byte[] tableIn)
         {
             int length = tableIn.Length;
-            byte[] table = new byte[length];
+            var table = new byte[length];
 
             for (int i = 0; i < length; i++)
             {

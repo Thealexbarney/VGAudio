@@ -37,8 +37,8 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void CreatingLoopContextHistory(int loopStart, short expected1, short expected2)
         {
             var context = new GcAdpcmLoopContext(Adpcm, Pcm, loopStart);
-            var expected = new[] { expected1, expected2 };
-            var actual = new[] { context.Hist1, context.Hist2 };
+            short[] expected = new[] { expected1, expected2 };
+            short[] actual = new[] { context.Hist1, context.Hist2 };
             Assert.Equal(expected, actual);
         }
 

@@ -55,7 +55,7 @@ namespace VGAudio.Codecs.CriAdx
 
         public static byte[] Encode(short[] pcm, CriAdxParameters config)
         {
-            var c = config;
+            CriAdxParameters c = config;
             int sampleCount = pcm.Length + c.Padding;
             int samplesPerFrame = (c.FrameSize - 2) * 2;
             int frameCount = sampleCount.DivideByRoundUp(samplesPerFrame);
@@ -107,7 +107,7 @@ namespace VGAudio.Codecs.CriAdx
         public static void EncodeFrame(short[] pcm, byte[] adpcmOut, short[] coefs, int samplesPerFrame, CriAdxType type, int version)
         {
             int maxDistance = 0;
-            int[] adpcm = new int[samplesPerFrame];
+            var adpcm = new int[samplesPerFrame];
 
             for (int i = 0; i < samplesPerFrame; i++)
             {

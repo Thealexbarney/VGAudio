@@ -78,7 +78,7 @@ namespace VGAudio.Tools.Atrac9
         {
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
-                var meta = new At9Reader().ReadMetadata(stream);
+                At9Structure meta = new At9Reader().ReadMetadata(stream);
                 return meta.Config.FrameSamples;
             }
         }

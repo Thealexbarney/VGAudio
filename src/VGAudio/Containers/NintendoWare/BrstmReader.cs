@@ -33,7 +33,7 @@ namespace VGAudio.Containers.NintendoWare
 
         protected override BxstmConfiguration GetConfiguration(BxstmStructure structure)
         {
-            var info = structure.StreamInfo;
+            StreamInfo info = structure.StreamInfo;
             var configuration = new BxstmConfiguration();
             if (info.Codec == NwCodec.GcAdpcm)
             {

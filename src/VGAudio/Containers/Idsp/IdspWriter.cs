@@ -78,7 +78,7 @@ namespace VGAudio.Containers.Idsp
             for (int i = 0; i < ChannelCount; i++)
             {
                 writer.BaseStream.Position = StreamInfoSize + i * ChannelInfoSize;
-                var channel = Adpcm.Channels[i];
+                GcAdpcmChannel channel = Adpcm.Channels[i];
 
                 writer.Write(channel.SampleCount);
                 writer.Write(SampleCountToNibbleCount(channel.SampleCount));

@@ -232,7 +232,7 @@ namespace VGAudio.Containers.NintendoWare
                                                      x.Type == ReferenceType.WaveDataBlock) ??
                 throw new InvalidDataException("File has no DATA block");
 
-            var info = structure.StreamInfo;
+            StreamInfo info = structure.StreamInfo;
 
             reader.BaseStream.Position = reference.AbsoluteOffset;
 

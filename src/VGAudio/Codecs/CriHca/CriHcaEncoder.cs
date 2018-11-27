@@ -679,7 +679,7 @@ namespace VGAudio.Codecs.CriHca
                     double max = 0;
                     for (int sf = 0; sf < SubframesPerFrame; sf++)
                     {
-                        var coeff = Math.Abs(channel.Spectra[sf][b]);
+                        double coeff = Math.Abs(channel.Spectra[sf][b]);
                         max = Math.Max(coeff, max);
                     }
                     channel.ScaleFactors[b] = FindScaleFactor(max);

@@ -37,7 +37,7 @@ namespace VGAudio.Containers.NintendoWare.Structures
             for (int i = 0; i < info.ChannelCount; i++)
             {
                 reader.BaseStream.Position = baseOffset + channelInfoOffsets[i];
-                var channel = RwavChannelInfo.Read(reader, baseOffset);
+                RwavChannelInfo channel = RwavChannelInfo.Read(reader, baseOffset);
                 info.Channels.Add(channel);
             }
 

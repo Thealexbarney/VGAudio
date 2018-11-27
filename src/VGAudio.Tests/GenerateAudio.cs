@@ -23,7 +23,7 @@ namespace VGAudio.Tests
         public static short[] GenerateSineWave(int sampleCount, double frequency, int sampleRate)
         {
             var wave = new short[sampleCount];
-            var c = 2 * Math.PI * frequency / sampleRate;
+            double c = 2 * Math.PI * frequency / sampleRate;
             for (int i = 0; i < sampleCount; i++)
             {
                 wave[i] = (short)(short.MaxValue * Math.Sin(c * i));

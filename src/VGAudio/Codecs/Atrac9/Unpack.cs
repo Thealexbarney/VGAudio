@@ -316,7 +316,7 @@ namespace VGAudio.Codecs.Atrac9
                 int precision = channel.Precisions[i] + 1;
                 if (precision <= maxHuffPrecision)
                 {
-                    var huff = HuffmanSpectrum[channel.CodebookSet[i]][precision][QuantUnitToCodebookIndex[i]];
+                    HuffmanCodebook huff = HuffmanSpectrum[channel.CodebookSet[i]][precision][QuantUnitToCodebookIndex[i]];
                     int groupCount = subbandCount >> huff.ValueCountPower;
                     for (int j = 0; j < groupCount; j++)
                     {
@@ -403,7 +403,7 @@ namespace VGAudio.Codecs.Atrac9
 
         private static void CalculateLfePrecision(Channel channel)
         {
-            var block = channel.Block;
+            Block block = channel.Block;
             int precision = block.ReuseBandParams ? 8 : 4;
             for (int i = 0; i < block.QuantizationUnitCount; i++)
             {

@@ -41,7 +41,7 @@ namespace VGAudio.Tools.CrackHca
 
         public Frequency[][] LoadFrequencies(string path)
         {
-            var files = Directory.GetFiles(path, "*hca");
+            string[] files = Directory.GetFiles(path, "*hca");
             var freq = Helpers.CreateJaggedArray<Frequency[][]>(30, 0x100);
             var counts = Helpers.CreateJaggedArray<int[][]>(30, 0x100);
             int total = 0;

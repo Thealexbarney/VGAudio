@@ -156,7 +156,7 @@ namespace VGAudio.Cli
                                 PrintWithUsage("No argument after -f switch.");
                                 return null;
                             }
-                            var format = GetFormat(args[i + 1]);
+                            AudioFormat format = GetFormat(args[i + 1]);
                             if (format == AudioFormat.None)
                             {
                                 PrintWithUsage("Format must be one of pcm16, pcm8, or GcAdpcm");

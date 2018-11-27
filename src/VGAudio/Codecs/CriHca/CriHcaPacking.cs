@@ -231,7 +231,7 @@ namespace VGAudio.Codecs.CriHca
         private static void WriteChecksum(BitWriter writer, Crc16 crc, byte[] hcaBuffer)
         {
             writer.Position = writer.LengthBits - 16;
-            var crc16 = crc.Compute(hcaBuffer, hcaBuffer.Length - 2);
+            ushort crc16 = crc.Compute(hcaBuffer, hcaBuffer.Length - 2);
             writer.Write(crc16, 16);
         }
 
@@ -262,7 +262,7 @@ namespace VGAudio.Codecs.CriHca
         private static void WriteScaleFactors(BitWriter writer, CriHcaChannel channel)
         {
             int deltaBits = channel.ScaleFactorDeltaBits;
-            var scales = channel.ScaleFactors;
+            int[] scales = channel.ScaleFactors;
             writer.Write(deltaBits, 3);
             if (deltaBits == 0) return;
 

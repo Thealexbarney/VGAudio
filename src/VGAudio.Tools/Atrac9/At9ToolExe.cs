@@ -25,7 +25,7 @@ namespace VGAudio.Tools.Atrac9
             {
                 throw new FileNotFoundException($"Could not find {filename}");
             }
-            var tempOut = Path.GetTempFileName();
+            string tempOut = Path.GetTempFileName();
 
             try
             {

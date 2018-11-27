@@ -43,12 +43,12 @@ namespace VGAudio.Tools.GcAdpcm
         public unsafe GcAdpcmChannel EncodeChannel(short[] pcm)
         {
             int sampleCount = pcm.Length;
-            byte[] adpcm = new byte[GcAdpcmMath.SampleCountToByteCount(sampleCount)];
+            var adpcm = new byte[GcAdpcmMath.SampleCountToByteCount(sampleCount)];
             var info = new ADPCMINFO();
 
             Encode(pcm, adpcm, ref info, (uint)sampleCount);
 
-            short[] coefs = new short[16];
+            var coefs = new short[16];
             for (int i = 0; i < 16; i++)
             {
                 coefs[i] = info.coef[i];
@@ -77,7 +77,7 @@ namespace VGAudio.Tools.GcAdpcm
         public unsafe short[] DecodeAdpcm(byte[] adpcm, short[] coefs, int sampleCount)
         {
             var info = new ADPCMINFO();
-            short[] pcm = new short[sampleCount];
+            var pcm = new short[sampleCount];
             for (int i = 0; i < 16; i++)
             {
                 info.coef[i] = coefs[i];

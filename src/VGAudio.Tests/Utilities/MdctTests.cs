@@ -32,7 +32,7 @@ namespace VGAudio.Tests.Utilities
         [InlineData(8)]
         public void SinTablesAreCorrect(int sizeBits)
         {
-            Mdct.GenerateTrigTables(sizeBits, out var sin, out _);
+            Mdct.GenerateTrigTables(sizeBits, out double[] sin, out _);
             for (int i = 0; i < PreBuiltMdctTables.SinTables[sizeBits].Length; i++)
             {
                 Assert.Equal(PreBuiltMdctTables.SinTables[sizeBits][i], sin[i], 14);
@@ -51,7 +51,7 @@ namespace VGAudio.Tests.Utilities
         [InlineData(8)]
         public void CosTablesAreCorrect(int sizeBits)
         {
-            Mdct.GenerateTrigTables(sizeBits, out _, out var cos);
+            Mdct.GenerateTrigTables(sizeBits, out _, out double[] cos);
             for (int i = 0; i < PreBuiltMdctTables.CosTables[sizeBits].Length; i++)
             {
                 Assert.Equal(PreBuiltMdctTables.CosTables[sizeBits][i], cos[i], 14);

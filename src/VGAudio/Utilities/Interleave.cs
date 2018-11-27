@@ -170,7 +170,7 @@ namespace VGAudio.Utilities
         {
             int inputCount = input.Length;
             int length = input[0].Length;
-            byte[] output = new byte[inputCount * length * 2];
+            var output = new byte[inputCount * length * 2];
 
             for (int i = 0; i < length; i++)
             {
@@ -188,7 +188,7 @@ namespace VGAudio.Utilities
         public static short[][] InterleavedByteToShort(this byte[] input, int outputCount)
         {
             int itemCount = input.Length / 2 / outputCount;
-            short[][] output = new short[outputCount][];
+            var output = new short[outputCount][];
             for (int i = 0; i < outputCount; i++)
             {
                 output[i] = new short[itemCount];

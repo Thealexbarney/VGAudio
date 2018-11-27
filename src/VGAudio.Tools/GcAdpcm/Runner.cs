@@ -10,9 +10,9 @@ namespace VGAudio.Tools.GcAdpcm
     {
         public static void Run(FileType fileType, string audioPath, string dllPath)
         {
-            var info = Common.FileTypes[fileType];
-            var files = Directory.GetFiles(audioPath, info.Extension, SearchOption.AllDirectories);
-            var watch = Stopwatch.StartNew();
+            FileTypeInfo info = Common.FileTypes[fileType];
+            string[] files = Directory.GetFiles(audioPath, info.Extension, SearchOption.AllDirectories);
+            Stopwatch watch = Stopwatch.StartNew();
             var encode = new Encode(files, new DspToolDll(DspToolType.Cafe64, dllPath), new DspToolVGAudio(), info.GetReader);
 
              encode.Run().ForAll(x => Console.WriteLine(PrintResult(x)));
@@ -84,7 +84,7 @@ namespace VGAudio.Tools.GcAdpcm
 
         private static string PrintShort(short[] data, string name)
         {
-            StringBuilder stringOut = new StringBuilder($"short[] {name} = {{ ");
+            var stringOut = new StringBuilder($"short[] {name} = {{ ");
 
             for (int i = 0; i < data.Length; i++)
             {
@@ -99,7 +99,7 @@ namespace VGAudio.Tools.GcAdpcm
         }
         private static string PrintByte(byte[] data, string name)
         {
-            StringBuilder stringOut = new StringBuilder($"byte[] {name} = {{ ");
+            var stringOut = new StringBuilder($"byte[] {name} = {{ ");
 
             for (int i = 0; i < data.Length; i++)
             {

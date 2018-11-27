@@ -65,7 +65,7 @@ namespace VGAudio.Formats
         public bool TryAdd(IAudioFormat format, out IAudioFormat result)
         {
             result = null;
-            TFormat castFormat = format as TFormat;
+            var castFormat = format as TFormat;
             if (castFormat == null) return false;
             try
             {

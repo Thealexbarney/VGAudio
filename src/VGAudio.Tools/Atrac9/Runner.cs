@@ -39,12 +39,12 @@ namespace VGAudio.Tools.Atrac9
                 Console.WriteLine("Usage: Atrac9 decode <audio file path> <at9 tools path>");
                 return;
             }
-            var audioPath = args[2];
-            var exePath = args[3];
+            string audioPath = args[2];
+            string exePath = args[3];
 
-            var info = Common.FileTypes[FileType.Atrac9];
-            var files = Directory.GetFiles(audioPath, info.Extension, SearchOption.AllDirectories);
-            var watch = Stopwatch.StartNew();
+            FileTypeInfo info = Common.FileTypes[FileType.Atrac9];
+            string[] files = Directory.GetFiles(audioPath, info.Extension, SearchOption.AllDirectories);
+            Stopwatch watch = Stopwatch.StartNew();
             var decode = new Decode(files, new At9ToolVGAudio(), new At9ToolExe(exePath));
 
             decode.Run().ForAll(x => Console.WriteLine(PrintResult(x)));
@@ -61,9 +61,9 @@ namespace VGAudio.Tools.Atrac9
                 return;
             }
 
-            var directory = Path.GetFullPath(args[2]);
-            var fileName = Path.Combine(directory, args[3]);
-            var at9ToolPath = Path.Combine(directory, "at9tool.exe");
+            string directory = Path.GetFullPath(args[2]);
+            string fileName = Path.Combine(directory, args[3]);
+            string at9ToolPath = Path.Combine(directory, "at9tool.exe");
 
             if (!Directory.Exists(directory))
             {

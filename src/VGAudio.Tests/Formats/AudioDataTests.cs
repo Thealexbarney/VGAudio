@@ -75,7 +75,7 @@ namespace VGAudio.Tests.Formats
             var audio = new AudioData(pcm);
             var audio2 = new AudioData(pcm2);
 
-            var combined = AudioData.Combine(audio, audio2);
+            AudioData combined = AudioData.Combine(audio, audio2);
             var pcmCombined = combined.GetFormat<Pcm16Format>();
             Assert.Same(pcm.Channels[0], pcmCombined.Channels[0]);
             Assert.Same(pcm2.Channels[0], pcmCombined.Channels[1]);
@@ -86,11 +86,11 @@ namespace VGAudio.Tests.Formats
         public void AddDifferentFormats()
         {
             Pcm16Format pcm = GenerateAudio.GeneratePcmSineWave(100, 1, 48000);
-            var adpcm = GenerateAudio.GenerateAdpcmSineWave(100, 1, 48000);
+            GcAdpcmFormat adpcm = GenerateAudio.GenerateAdpcmSineWave(100, 1, 48000);
             var audio = new AudioData(pcm);
             var audio2 = new AudioData(adpcm);
 
-            var combined = AudioData.Combine(audio, audio2);
+            AudioData combined = AudioData.Combine(audio, audio2);
             Assert.Collection(combined.GetAllFormats(), x => Assert.True(x is Pcm16Format));
             var pcmCombined = combined.GetFormat<Pcm16Format>();
             Assert.Same(pcm.Channels[0], pcmCombined.Channels[0]);
@@ -108,7 +108,7 @@ namespace VGAudio.Tests.Formats
             var adpcm = audio.GetFormat<GcAdpcmFormat>();
             var adpcm2 = audio2.GetFormat<GcAdpcmFormat>();
 
-            var combined = AudioData.Combine(audio, audio2);
+            AudioData combined = AudioData.Combine(audio, audio2);
             Assert.Collection(combined.GetAllFormats(), x => Assert.True(x is GcAdpcmFormat));
             var pcmCombined = combined.GetFormat<Pcm16Format>();
             var adpcmCombined = combined.GetFormat<GcAdpcmFormat>();
@@ -124,9 +124,9 @@ namespace VGAudio.Tests.Formats
         public void AddDifferentFormatsMultipleInputs()
         {
             Pcm16Format pcmFormat = GenerateAudio.GeneratePcmSineWave(100, 4, 48000);
-            var pcm0 = pcmFormat.GetChannels(0);
-            var pcm1 = pcmFormat.GetChannels(1, 2);
-            var pcm2 = pcmFormat.GetChannels(3);
+            Pcm16Format pcm0 = pcmFormat.GetChannels(0);
+            Pcm16Format pcm1 = pcmFormat.GetChannels(1, 2);
+            Pcm16Format pcm2 = pcmFormat.GetChannels(3);
             var audio0 = new AudioData(pcm0);
             var audio1 = new AudioData(pcm1);
             var audio2 = new AudioData(pcm2);
@@ -134,7 +134,7 @@ namespace VGAudio.Tests.Formats
             audio0.GetFormat<GcAdpcmFormat>();
             audio2.GetFormat<GcAdpcmFormat>();
 
-            var combined = AudioData.Combine(audio0, audio1, audio2);
+            AudioData combined = AudioData.Combine(audio0, audio1, audio2);
             Assert.Collection(combined.GetAllFormats(), x => Assert.True(x is Pcm16Format));
             var pcmCombined = combined.GetFormat<Pcm16Format>();
             Assert.Equal(4, pcmCombined.ChannelCount);

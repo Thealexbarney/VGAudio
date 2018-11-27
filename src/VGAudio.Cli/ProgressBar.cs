@@ -73,7 +73,7 @@ namespace VGAudio.Cli
 
         private void UpdateText(string text)
         {
-            StringBuilder outputBuilder = new StringBuilder();
+            var outputBuilder = new StringBuilder();
 
             if (LogText.Length > 0)
             {

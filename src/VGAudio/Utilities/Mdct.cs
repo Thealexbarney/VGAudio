@@ -125,9 +125,9 @@ namespace VGAudio.Utilities
         /// <param name="output">The output array that will contain the transformed time or frequency-domain samples</param>
         private void Dct4(double[] input, double[] output)
         {
-            var shuffleTable = ShuffleTables[MdctBits];
-            var sinTable = SinTables[MdctBits];
-            var cosTable = CosTables[MdctBits];
+            int[] shuffleTable = ShuffleTables[MdctBits];
+            double[] sinTable = SinTables[MdctBits];
+            double[] cosTable = CosTables[MdctBits];
             double[] dctTemp = _scratchDct;
 
             int size = MdctSize;
@@ -137,10 +137,10 @@ namespace VGAudio.Utilities
             for (int i = 0; i < halfSize; i++)
             {
                 int i2 = i * 2;
-                var a = input[i2];
-                var b = input[lastIndex - i2];
-                var sin = sinTable[i];
-                var cos = cosTable[i];
+                double a = input[i2];
+                double b = input[lastIndex - i2];
+                double sin = sinTable[i];
+                double cos = cosTable[i];
                 dctTemp[i2] = a * cos + b * sin;
                 dctTemp[i2 + 1] = a * sin - b * cos;
             }
@@ -162,10 +162,10 @@ namespace VGAudio.Utilities
                     {
                         int frontPos = (block * blockSize + i) * 2;
                         int backPos = frontPos + blockSize;
-                        var a = dctTemp[frontPos] - dctTemp[backPos];
-                        var b = dctTemp[frontPos + 1] - dctTemp[backPos + 1];
-                        var sin = sinTable[i];
-                        var cos = cosTable[i];
+                        double a = dctTemp[frontPos] - dctTemp[backPos];
+                        double b = dctTemp[frontPos + 1] - dctTemp[backPos + 1];
+                        double sin = sinTable[i];
+                        double cos = cosTable[i];
                         dctTemp[frontPos] += dctTemp[backPos];
                         dctTemp[frontPos + 1] += dctTemp[backPos + 1];
                         dctTemp[backPos] = a * cos + b * sin;

@@ -7,7 +7,7 @@ namespace VGAudio.Cli.Metadata.Containers
     {
         public override Common ToCommon(object structure)
         {
-            var wave = structure as WaveStructure ?? throw new InvalidDataException("Could not parse file metadata.");
+            WaveStructure wave = structure as WaveStructure ?? throw new InvalidDataException("Could not parse file metadata.");
 
             var format = AudioFormat.None;
             switch (wave.BitsPerSample)

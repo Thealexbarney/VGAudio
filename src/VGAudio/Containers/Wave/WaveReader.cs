@@ -18,9 +18,9 @@ namespace VGAudio.Containers.Wave
 
             ValidateWaveFile(parser);
 
-            WaveFmtChunk fmt = parser.GetSubChunk<WaveFmtChunk>("fmt ");
-            WaveDataChunk data = parser.GetSubChunk<WaveDataChunk>("data");
-            WaveSmplChunk smpl = parser.GetSubChunk<WaveSmplChunk>("smpl");
+            var fmt = parser.GetSubChunk<WaveFmtChunk>("fmt ");
+            var data = parser.GetSubChunk<WaveDataChunk>("data");
+            var smpl = parser.GetSubChunk<WaveSmplChunk>("smpl");
 
             int bytesPerSample = fmt.BitsPerSample.DivideByRoundUp(8);
             structure.RiffSubChunks = parser.GetAllSubChunks();

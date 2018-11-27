@@ -20,7 +20,7 @@ namespace VGAudio.Formats.GcAdpcm
             SampleCount = Channels[0]?.UnalignedSampleCount ?? 0;
             SampleRate = sampleRate;
 
-            foreach (var channel in Channels)
+            foreach (GcAdpcmChannel channel in Channels)
             {
                 if (channel == null)
                     throw new InvalidDataException("All provided channels must be non-null");

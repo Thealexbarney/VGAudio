@@ -16,26 +16,29 @@
         </Grid.Resources>
         <StackPanel>
             <ToggleButton x:Name="AdvancedBcstm" Margin="0,10,0,0">
-                <TextBlock Text="Show Advanced Options"/>
+                <TextBlock Text="Show Advanced Options" />
             </ToggleButton>
-            <StackPanel Visibility="{Binding IsChecked, ElementName=AdvancedBcstm, Converter={StaticResource BoolToVisibilityConverter}}">
-                <CheckBox Content="Recalculate seek table" IsChecked="{Binding BxstmConfiguration.RecalculateSeekTable}"/>
-                <CheckBox Content="Recalculate loop context" IsChecked="{Binding BxstmConfiguration.RecalculateLoopContext}"/>
-                <TextBlock Text="Track description type:" TextWrapping="Wrap" VerticalAlignment="Center"/>
+            <StackPanel
+                Visibility="{Binding IsChecked, ElementName=AdvancedBcstm, Converter={StaticResource BoolToVisibilityConverter}}">
+                <CheckBox Content="Recalculate seek table"
+                          IsChecked="{Binding BxstmConfiguration.RecalculateSeekTable}" />
+                <CheckBox Content="Recalculate loop context"
+                          IsChecked="{Binding BxstmConfiguration.RecalculateLoopContext}" />
+                <TextBlock Text="Track description type:" TextWrapping="Wrap" VerticalAlignment="Center" />
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
-                    <TextBlock Text="Loop point alignment:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.LoopPointAlignment, Mode=TwoWay}"/>
+                    <TextBlock Text="Loop point alignment:" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.LoopPointAlignment, Mode=TwoWay}" />
                 </StackPanel>
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
-                    <TextBlock Text="Samples per interleaved block:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.SamplesPerInterleave, Mode=TwoWay}"/>
+                    <TextBlock Text="Samples per interleaved block:" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.SamplesPerInterleave, Mode=TwoWay}" />
                 </StackPanel>
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
-                    <TextBlock Text="Samples per seek table entry:" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.SamplesPerSeekTableEntry, Mode=TwoWay}"/>
+                    <TextBlock Text="Samples per seek table entry:" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    <TextBox Margin="10, 0" Text="{Binding BxstmConfiguration.SamplesPerSeekTableEntry, Mode=TwoWay}" />
                 </StackPanel>
             </StackPanel>
         </StackPanel>
     </Grid>
-    
+
 </UserControl>

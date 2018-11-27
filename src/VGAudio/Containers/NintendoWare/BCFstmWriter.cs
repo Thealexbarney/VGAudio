@@ -320,7 +320,7 @@ namespace VGAudio.Containers.NintendoWare
 
             if (Codec != NwCodec.GcAdpcm) { return; }
 
-            foreach (var channel in Adpcm.Channels)
+            foreach (GcAdpcmChannel channel in Adpcm.Channels)
             {
                 GcAdpcmContext loopContext = Adpcm.Looping ? channel.LoopContext : channel.StartContext;
 
@@ -337,7 +337,7 @@ namespace VGAudio.Containers.NintendoWare
             writer.WriteUTF8("SEEK");
             writer.Write(SeekBlockSize);
 
-            var table = Adpcm.BuildSeekTable(SeekTableEntryCount, Endianness.LittleEndian);
+            byte[] table = Adpcm.BuildSeekTable(SeekTableEntryCount, Endianness.LittleEndian);
 
             writer.Write(table);
         }

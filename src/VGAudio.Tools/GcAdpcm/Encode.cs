@@ -110,12 +110,12 @@ namespace VGAudio.Tools.GcAdpcm
                     int differentSample = ArraysEqual(pcmBufferA, pcmBufferB) - 2;
 
                     //Get the input PCM that resulted in different encodings
-                    short[] history = new short[2 + SamplesPerFrame];
+                    var history = new short[2 + SamplesPerFrame];
                     Array.Copy(pcm, frame * SamplesPerFrame, history, 2, samplesToCopy);
                     Array.Copy(pcmBufferA, 0, history, 0, 2);
 
-                    short[] pcmA = new short[SamplesPerFrame];
-                    short[] pcmB = new short[SamplesPerFrame];
+                    var pcmA = new short[SamplesPerFrame];
+                    var pcmB = new short[SamplesPerFrame];
                     Array.Copy(pcmBufferA, 2, pcmA, 0, samplesToCopy);
                     Array.Copy(pcmBufferB, 2, pcmB, 0, samplesToCopy);
 

@@ -23,7 +23,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void SetSeekTablePrebuilt(int sampleCount, int samplesPerEntry)
         {
             var seekTable = new short[100];
-            var builder = GetBuilder(sampleCount).WithSeekTable(seekTable, samplesPerEntry);
+            GcAdpcmChannelBuilder builder = GetBuilder(sampleCount).WithSeekTable(seekTable, samplesPerEntry);
             Assert.Equal(seekTable, builder.SeekTable);
             Assert.Equal(samplesPerEntry, builder.SamplesPerSeekTableEntry);
             Assert.False(builder.SeekTableIsSelfCalculated);
@@ -35,7 +35,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void SetSeekTablePrebuiltSelfCalculated(int sampleCount, int samplesPerEntry, bool isSelfCalculated)
         {
             var seekTable = new short[100];
-            var builder = GetBuilder(sampleCount).WithSeekTable(seekTable, samplesPerEntry, isSelfCalculated);
+            GcAdpcmChannelBuilder builder = GetBuilder(sampleCount).WithSeekTable(seekTable, samplesPerEntry, isSelfCalculated);
             Assert.Equal(seekTable, builder.SeekTable);
             Assert.Equal(samplesPerEntry, builder.SamplesPerSeekTableEntry);
             Assert.Equal(isSelfCalculated, builder.SeekTableIsSelfCalculated);
@@ -44,7 +44,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [Fact]
         public void SetSeekTableSamplesOnlyReplacesOldTable()
         {
-            var builder = GetBuilder().WithSeekTable(new short[100], 100, true);
+            GcAdpcmChannelBuilder builder = GetBuilder().WithSeekTable(new short[100], 100, true);
             builder.WithSamplesPerSeekTableEntry(10);
             Assert.Null(builder.SeekTable);
             Assert.False(builder.SeekTableIsSelfCalculated);
@@ -55,7 +55,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void SetSeekTableSamplesDoesntReplaceOldTable()
         {
             var seekTable = new short[100];
-            var builder = GetBuilder().WithSeekTable(seekTable, 100, true);
+            GcAdpcmChannelBuilder builder = GetBuilder().WithSeekTable(seekTable, 100, true);
             builder.WithSamplesPerSeekTableEntry(100);
             Assert.Equal(seekTable, builder.SeekTable);
             Assert.True(builder.SeekTableIsSelfCalculated);
@@ -67,7 +67,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(4, 14, 24, 34, false)]
         public void SetLoopContextAssignsVariables(int loopStart, short predScale, short loopHist1, short loopHist2, bool isSelfCalculated)
         {
-            var builder = GetBuilder().WithLoopContext(loopStart, predScale, loopHist1, loopHist2, isSelfCalculated);
+            GcAdpcmChannelBuilder builder = GetBuilder().WithLoopContext(loopStart, predScale, loopHist1, loopHist2, isSelfCalculated);
             Assert.Equal(loopStart, builder.LoopContextStart);
             Assert.Equal(predScale, builder.LoopContext.PredScale);
             Assert.Equal(loopHist1, builder.LoopContext.Hist1);
@@ -78,7 +78,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [Fact]
         public void SetLoopAssignsProperlyWhenLooping()
         {
-            var builder = GetBuilder().WithLoop(true, 30, 50);
+            GcAdpcmChannelBuilder builder = GetBuilder().WithLoop(true, 30, 50);
             Assert.True(builder.Looping);
             Assert.Equal(30, builder.LoopStart);
             Assert.Equal(50, builder.LoopEnd);
@@ -87,7 +87,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [Fact]
         public void SetLoopAssignsProperlyWhenNotLooping()
         {
-            var builder = GetBuilder().WithLoop(false, 30, 50);
+            GcAdpcmChannelBuilder builder = GetBuilder().WithLoop(false, 30, 50);
             Assert.False(builder.Looping);
             Assert.Equal(0, builder.LoopStart);
             Assert.Equal(0, builder.LoopEnd);
@@ -96,7 +96,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [Fact]
         public void SetLoopAssignsProperlyBoolOnlyWhenLooping()
         {
-            var builder = GetBuilder(200).WithLoop(true);
+            GcAdpcmChannelBuilder builder = GetBuilder(200).WithLoop(true);
             Assert.True(builder.Looping);
             Assert.Equal(0, builder.LoopStart);
             Assert.Equal(200, builder.LoopEnd);
@@ -105,7 +105,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [Fact]
         public void SetLoopAssignsProperlyBoolOnlyWhenNotLooping()
         {
-            var builder = GetBuilder().WithLoop(false);
+            GcAdpcmChannelBuilder builder = GetBuilder().WithLoop(false);
             Assert.False(builder.Looping);
             Assert.Equal(0, builder.LoopStart);
             Assert.Equal(0, builder.LoopEnd);
@@ -117,7 +117,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
             var seekTable = new GcAdpcmSeekTable(new short[10], 2);
             var loopContext = new GcAdpcmLoopContext(1, 2, 3, 4, true);
             var alignment = new GcAdpcmAlignment(0, 0, 10, new byte[10], new short[16]);
-            var builder = GetBuilder().WithPrevious(seekTable, loopContext, alignment);
+            GcAdpcmChannelBuilder builder = GetBuilder().WithPrevious(seekTable, loopContext, alignment);
             Assert.Equal(seekTable, builder.PreviousSeekTable);
             Assert.Equal(loopContext, builder.PreviousLoopContext);
             Assert.Equal(alignment, builder.PreviousAlignment);
@@ -132,7 +132,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void PreviousAlignmentIsValidTest(bool looping, int multiple, int loopStart, int loopEnd, bool expected)
         {
             var previous = new GcAdpcmAlignment(10, 20, 30, new byte[20], new short[16]);
-            var builder = GetBuilder()
+            GcAdpcmChannelBuilder builder = GetBuilder()
                 .WithPrevious(null, null, previous)
                 .WithLoop(looping, loopStart, loopEnd);
             builder.LoopAlignmentMultiple = multiple;
@@ -152,7 +152,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void LoopContextIsValidTest(bool isSelfCalculated, bool ensureSelfCalculated, int loopStart, bool expected)
         {
             var previous = new GcAdpcmLoopContext(0, 0, 0, 20, isSelfCalculated);
-            var builder = GetBuilder()
+            GcAdpcmChannelBuilder builder = GetBuilder()
                 .WithPrevious(null, previous, null)
                 .WithLoopContext(20, 0, 0, 0, isSelfCalculated);
             builder.EnsureLoopContextIsSelfCalculated = ensureSelfCalculated;
@@ -170,7 +170,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void PreviousSeekTableIsValidTest(bool isSelfCalculated, bool ensureSelfCalculated, int samplesPerEntry, bool expected)
         {
             var previous = new GcAdpcmSeekTable(new short[0], 20, isSelfCalculated);
-            var builder = GetBuilder()
+            GcAdpcmChannelBuilder builder = GetBuilder()
                 .WithPrevious(previous, null, null)
                 .WithSamplesPerSeekTableEntry(samplesPerEntry);
             builder.EnsureSeekTableIsSelfCalculated = ensureSelfCalculated;
@@ -186,7 +186,7 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(true, true, 25, false)]
         public void CurrentSeekTableIsValidTest(bool isSelfCalculated, bool ensureSelfCalculated, int samplesPerEntry, bool expected)
         {
-            var builder = GetBuilder()
+            GcAdpcmChannelBuilder builder = GetBuilder()
                 .WithSeekTable(new short[0], 20, isSelfCalculated)
                 .WithSamplesPerSeekTableEntry(samplesPerEntry);
             builder.EnsureSeekTableIsSelfCalculated = ensureSelfCalculated;
@@ -199,13 +199,13 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(10, 25, 65)]
         public void CreateAlignmentWithNoPrevious(int multiple, int loopStart, int loopEnd)
         {
-            var sampleCount = 100;
-            var (adpcm, coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
+            int sampleCount = 100;
+            (byte[] adpcm, short[] coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
 
-            var builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
+            GcAdpcmChannelBuilder builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
                 .WithLoop(true, loopStart, loopEnd);
             builder.LoopAlignmentMultiple = multiple;
-            var alignment = builder.GetAlignment();
+            GcAdpcmAlignment alignment = builder.GetAlignment();
 
             Assert.Equal(multiple, alignment.AlignmentMultiple);
             Assert.Equal(loopStart, alignment.LoopStart);
@@ -217,15 +217,15 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(10, 25, 65)]
         public void CreateAlignmentWithPrevious(int multiple, int loopStart, int loopEnd)
         {
-            var sampleCount = 100;
-            var (adpcm, coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
+            int sampleCount = 100;
+            (byte[] adpcm, short[] coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
             var previous = new GcAdpcmAlignment(multiple, loopStart, loopEnd, adpcm, coefs);
 
-            var builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
+            GcAdpcmChannelBuilder builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
                 .WithLoop(true, loopStart, loopEnd)
                 .WithPrevious(null, null, previous);
             builder.LoopAlignmentMultiple = multiple;
-            var alignment = builder.GetAlignment();
+            GcAdpcmAlignment alignment = builder.GetAlignment();
 
             Assert.Equal(previous, alignment);
         }
@@ -235,15 +235,15 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(10, 25, 65)]
         public void CreateAlignmentReplacePreviousWhenMultipleChanges(int multiple, int loopStart, int loopEnd)
         {
-            var sampleCount = 100;
-            var (adpcm, coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
+            int sampleCount = 100;
+            (byte[] adpcm, short[] coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
             var previous = new GcAdpcmAlignment(multiple, loopStart, loopEnd, adpcm, coefs);
 
-            var builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
+            GcAdpcmChannelBuilder builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
                 .WithLoop(true, loopStart, loopEnd)
                 .WithPrevious(null, null, previous);
             builder.LoopAlignmentMultiple = multiple + 1;
-            var alignment = builder.GetAlignment();
+            GcAdpcmAlignment alignment = builder.GetAlignment();
 
             Assert.NotEqual(previous, alignment);
         }
@@ -253,15 +253,15 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(10, 25, 65)]
         public void CreateAlignmentReplacePreviousWhenLoopChanges(int multiple, int loopStart, int loopEnd)
         {
-            var sampleCount = 100;
-            var (adpcm, coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
+            int sampleCount = 100;
+            (byte[] adpcm, short[] coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
             var previous = new GcAdpcmAlignment(multiple, loopStart, loopEnd, adpcm, coefs);
 
-            var builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
+            GcAdpcmChannelBuilder builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
                 .WithLoop(true, loopStart + 1, loopEnd + 1)
                 .WithPrevious(null, null, previous);
             builder.LoopAlignmentMultiple = multiple;
-            var alignment = builder.GetAlignment();
+            GcAdpcmAlignment alignment = builder.GetAlignment();
 
             Assert.NotEqual(previous, alignment);
         }
@@ -271,15 +271,15 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         [InlineData(22, 33, 44, 55, true)]
         public void CreateLoopContextWithNoPrevious(short predScale, short hist1, short hist2, int loopStart, bool isSelfCalculated)
         {
-            var sampleCount = 100;
-            var (adpcm, coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
+            int sampleCount = 100;
+            (byte[] adpcm, short[] coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
 
-            var builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
+            GcAdpcmChannelBuilder builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
                 .WithLoop(true, loopStart, sampleCount)
                 .WithLoopContext(loopStart, predScale, hist1, hist2, isSelfCalculated);
             builder.AlignedLoopStart = loopStart;
 
-            var context = builder.GetLoopContext();
+            GcAdpcmLoopContext context = builder.GetLoopContext();
 
             Assert.Equal(predScale, context.PredScale);
             Assert.Equal(hist1, context.Hist1);
@@ -295,17 +295,17 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         public void GetLoopContextWithPrevious(bool isSelfCalculated, bool ensureSelfCalculated)
         {
             short num = 20;
-            var sampleCount = 100;
-            var (adpcm, coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
+            int sampleCount = 100;
+            (byte[] adpcm, short[] coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
             var previous = new GcAdpcmLoopContext(num, num, num, num, isSelfCalculated);
 
-            var builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
+            GcAdpcmChannelBuilder builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
                 .WithLoop(true, num, sampleCount)
                 .WithPrevious(null, previous, null)
                 .PrepareForBuild();
 
             builder.EnsureLoopContextIsSelfCalculated = ensureSelfCalculated;
-            var context = builder.GetLoopContext();
+            GcAdpcmLoopContext context = builder.GetLoopContext();
 
             Assert.Equal(previous, context);
         }
@@ -327,18 +327,18 @@ namespace VGAudio.Tests.Formats.GcAdpcm
         {
             short num = 20;
             short numLarge = 25;
-            var sampleCount = 100;
-            var (adpcm, coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
+            int sampleCount = 100;
+            (byte[] adpcm, short[] coefs) = GenerateAudio.GenerateAdpcmEmpty(sampleCount);
             var previous = new GcAdpcmLoopContext(num, num, num, num, isSelfCalculated);
 
-            var builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
+            GcAdpcmChannelBuilder builder = new GcAdpcmChannelBuilder(adpcm, coefs, sampleCount)
                 .WithPrevious(null, previous, null)
                 .WithLoop(true, loopStart, sampleCount)
                 .WithLoopContext(numLarge, numLarge, numLarge, numLarge, isSelfCalculated)
                 .PrepareForBuild();
 
             builder.EnsureLoopContextIsSelfCalculated = ensureSelfCalculated;
-            var context = builder.GetLoopContext();
+            GcAdpcmLoopContext context = builder.GetLoopContext();
 
             Assert.Equal(expected, context.PredScale);
             Assert.Equal(expected, context.Hist1);

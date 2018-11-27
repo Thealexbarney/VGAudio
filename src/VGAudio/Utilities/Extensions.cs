@@ -59,7 +59,7 @@ namespace VGAudio.Utilities
 
         public static string ReadUTF8Z(this BinaryReader reader)
         {
-            var start = reader.BaseStream.Position;
+            long start = reader.BaseStream.Position;
 
             // Read until we hit the end of the stream (-1) or a zero
             while (reader.BaseStream.ReadByte() - 1 > 0) { }

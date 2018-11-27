@@ -25,7 +25,7 @@ namespace VGAudio.Formats.CriHca
         public override Pcm16Format ToPcm16(CodecParameters config) => ToPcm16(new CriHcaParameters(config));
         public override Pcm16Format ToPcm16(CriHcaParameters config)
         {
-            var audio = CriHcaDecoder.Decode(Hca, AudioData, config);
+            short[][] audio = CriHcaDecoder.Decode(Hca, AudioData, config);
             return new Pcm16FormatBuilder(audio, SampleRate)
                 .WithLoop(Looping, UnalignedLoopStart, UnalignedLoopEnd)
                 .Build();

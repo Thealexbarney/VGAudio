@@ -20,7 +20,7 @@ namespace VGAudio.Formats.Pcm8
             SampleRate = sampleRate;
             Signed = signed;
 
-            foreach (var channel in Channels)
+            foreach (byte[] channel in Channels)
             {
                 if (channel == null)
                     throw new InvalidDataException("All provided channels must be non-null");

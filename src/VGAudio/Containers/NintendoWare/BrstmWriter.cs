@@ -264,7 +264,7 @@ namespace VGAudio.Containers.NintendoWare
             writer.WriteUTF8("ADPC");
             writer.Write(AdpcBlockSize);
 
-            var table = Adpcm.BuildSeekTable(SeekTableEntryCount, Endianness.BigEndian);
+            byte[] table = Adpcm.BuildSeekTable(SeekTableEntryCount, Endianness.BigEndian);
 
             writer.Write(table);
         }

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using VGAudio.Containers.At9;
+using VGAudio.Formats;
 
 namespace VGAudio.Tools.Atrac9
 {
@@ -9,7 +10,7 @@ namespace VGAudio.Tools.Atrac9
         {
             using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
-                var at9 = new At9Reader().ReadFormat(stream);
+                IAudioFormat at9 = new At9Reader().ReadFormat(stream);
                 return at9.ToPcm16().Channels;
             }
         }

@@ -22,7 +22,7 @@ namespace VGAudio.Benchmark.UtilityBenchmarks
             var rands = new List<byte>();
             do
             {
-                var next = rand.Next(1, 16);
+                int next = rand.Next(1, 16);
                 rands.Add((byte)next);
                 total += next;
             } while (total < Size);

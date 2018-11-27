@@ -67,7 +67,7 @@ namespace VGAudio.Utilities.Riff
             reader.BaseStream.Position -= 4;
             long startOffset = reader.BaseStream.Position + 8;
 
-            RiffSubChunk subChunk = RegisteredSubChunks.TryGetValue(id, out var parser) ? parser(this, reader) : new RiffSubChunk(reader);
+            RiffSubChunk subChunk = RegisteredSubChunks.TryGetValue(id, out Func<RiffParser, BinaryReader, RiffSubChunk> parser) ? parser(this, reader) : new RiffSubChunk(reader);
 
             long endOffset = startOffset + subChunk.SubChunkSize;
             int remainingBytes = (int)Math.Max(endOffset - reader.BaseStream.Position, 0);

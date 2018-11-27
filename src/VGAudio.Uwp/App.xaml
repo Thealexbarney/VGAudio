@@ -6,7 +6,7 @@
 
     <Application.Resources>
         <vm:ViewModelLocator xmlns:vm="using:VGAudio.Uwp.ViewModels"
-                           x:Key="Locator" />
+                             x:Key="Locator" />
     </Application.Resources>
 
 </Application>

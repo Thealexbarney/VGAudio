@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using VGAudio.Codecs.GcAdpcm;
+using VGAudio.Containers.NintendoWare.Structures;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
 using VGAudio.Formats.Pcm16;
@@ -45,7 +47,7 @@ namespace VGAudio.Containers.NintendoWare
             if (structure.PrefetchData != null)
             {
                 // Read only the first prefetch region for now
-                var pdat = structure.PrefetchData[0];
+                PrefetchData pdat = structure.PrefetchData[0];
                 structure.StreamInfo.Looping = false;
                 structure.StreamInfo.SampleCount = pdat.SampleCount;
             }
@@ -64,8 +66,8 @@ namespace VGAudio.Containers.NintendoWare
 
         private static GcAdpcmFormat ToAdpcmStream(BxstmStructure structure)
         {
-            var streamInfo = structure.StreamInfo;
-            var channelInfo = structure.ChannelInfo.Channels;
+            StreamInfo streamInfo = structure.StreamInfo;
+            List<GcAdpcmChannelInfo> channelInfo = structure.ChannelInfo.Channels;
             var channels = new GcAdpcmChannel[streamInfo.ChannelCount];
 
             for (int c = 0; c < channels.Length; c++)
@@ -96,7 +98,7 @@ namespace VGAudio.Containers.NintendoWare
 
         private static Pcm16Format ToPcm16Stream(BxstmStructure structure)
         {
-            var info = structure.StreamInfo;
+            StreamInfo info = structure.StreamInfo;
             short[][] channels = structure.AudioData.Select(x => x.ToShortArray(structure.Endianness)).ToArray();
             return new Pcm16FormatBuilder(channels, info.SampleRate)
                 .WithTracks(structure.TrackInfo?.Tracks)
@@ -106,7 +108,7 @@ namespace VGAudio.Containers.NintendoWare
 
         private static Pcm8SignedFormat ToPcm8Stream(BxstmStructure structure)
         {
-            var info = structure.StreamInfo;
+            StreamInfo info = structure.StreamInfo;
             return new Pcm8FormatBuilder(structure.AudioData, info.SampleRate, true)
                 .WithTracks(structure.TrackInfo?.Tracks)
                 .WithLoop(info.Looping, info.LoopStart, info.SampleCount)

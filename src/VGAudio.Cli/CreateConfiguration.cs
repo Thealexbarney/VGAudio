@@ -16,7 +16,7 @@ namespace VGAudio.Cli
     {
         public static Configuration Wave(Options options, Configuration inConfig = null)
         {
-            var config = inConfig as WaveConfiguration ?? new WaveConfiguration();
+            WaveConfiguration config = inConfig as WaveConfiguration ?? new WaveConfiguration();
 
             switch (options.OutFormat)
             {
@@ -35,7 +35,7 @@ namespace VGAudio.Cli
 
         public static Configuration Dsp(Options options, Configuration inConfig = null)
         {
-            var config = inConfig as DspConfiguration ?? new DspConfiguration();
+            DspConfiguration config = inConfig as DspConfiguration ?? new DspConfiguration();
 
             switch (options.OutFormat)
             {
@@ -55,7 +55,7 @@ namespace VGAudio.Cli
 
         public static Configuration Idsp(Options options, Configuration inConfig = null)
         {
-            var config = inConfig as IdspConfiguration ?? new IdspConfiguration();
+            IdspConfiguration config = inConfig as IdspConfiguration ?? new IdspConfiguration();
 
             switch (options.OutFormat)
             {
@@ -75,7 +75,7 @@ namespace VGAudio.Cli
 
         public static Configuration Bxstm(Options options, Configuration inConfig = null)
         {
-            var config = inConfig as BxstmConfiguration ?? new BxstmConfiguration();
+            BxstmConfiguration config = inConfig as BxstmConfiguration ?? new BxstmConfiguration();
             config.Endianness = options.Endianness;
 
             switch (options.OutFormat)
@@ -101,7 +101,7 @@ namespace VGAudio.Cli
 
         public static Configuration Hps(Options options, Configuration inConfig = null)
         {
-            var config = inConfig as HpsConfiguration ?? new HpsConfiguration();
+            HpsConfiguration config = inConfig as HpsConfiguration ?? new HpsConfiguration();
 
             switch (options.OutFormat)
             {
@@ -116,7 +116,7 @@ namespace VGAudio.Cli
 
         public static Configuration Adx(Options options, Configuration inConfig = null)
         {
-            var config = inConfig as AdxConfiguration ?? new AdxConfiguration();
+            AdxConfiguration config = inConfig as AdxConfiguration ?? new AdxConfiguration();
 
             if (options.Version != 0) config.Version = options.Version;
             if (options.FrameSize != 0) config.FrameSize = options.FrameSize;

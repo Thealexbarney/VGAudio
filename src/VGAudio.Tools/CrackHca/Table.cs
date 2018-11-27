@@ -138,9 +138,9 @@ namespace VGAudio.Tools.CrackHca
         {
             Seeds[result].Possible.RemoveAll(seed =>
             {
-                foreach (var seedA in Seeds[a].Possible)
+                foreach (int seedA in Seeds[a].Possible)
                 {
-                    foreach (var seedB in Seeds[b].Possible)
+                    foreach (int seedB in Seeds[b].Possible)
                     {
                         if ((seedA ^ seedB) == seed)
                         {

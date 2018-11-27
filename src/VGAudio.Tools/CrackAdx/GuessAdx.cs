@@ -83,7 +83,7 @@ namespace VGAudio.Tools.CrackAdx
             {
                 using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read))
                 {
-                    var adx = new AdxReader().ReadMetadata(stream);
+                    AdxStructure adx = new AdxReader().ReadMetadata(stream);
                     if (type == 0) type = adx.Revision;
                     if (adx.Revision != type) continue;
 
@@ -138,7 +138,7 @@ namespace VGAudio.Tools.CrackAdx
             string[] keyStrings = KeyStrings?[key].ToArray();
 
             Progress?.LogMessage($"Key {PrintKey(key)} could be valid. Calculating confidence...");
-            var confidences = Files.AsParallel().Select(file => GetReencodeConfidence(key, file.Filename)).ToList();
+            List<AdxKeyConfidence> confidences = Files.AsParallel().Select(file => GetReencodeConfidence(key, file.Filename)).ToList();
 
             double confidenceSmall = 1 - (double)confidences.Sum(x => x.IdenticalBytesShort) / confidences.Sum(x => x.TotalBytesShort);
             double confidenceFull = 1 - (double)confidences.Sum(x => x.IdenticalBytesFull) / confidences.Sum(x => x.TotalBytesFull);
@@ -164,7 +164,7 @@ namespace VGAudio.Tools.CrackAdx
 
             foreach (int mult in PossibleMultipliers)
             {
-                foreach (var inc in PossibleIncrements)
+                foreach (int inc in PossibleIncrements)
                 {
                     int xor = seed;
                     bool match = true;
@@ -181,7 +181,7 @@ namespace VGAudio.Tools.CrackAdx
 
                     if (match)
                     {
-                        var key = FindStartingKey(seed, mult, inc, adx.StartFrame);
+                        CriAdxKey key = FindStartingKey(seed, mult, inc, adx.StartFrame);
                         if (key != null) AddKey(key);
                     }
                 }
@@ -195,7 +195,7 @@ namespace VGAudio.Tools.CrackAdx
                 return new CriAdxKey(seed, mult, inc);
             }
 
-            foreach (var realSeed in PossibleSeeds)
+            foreach (int realSeed in PossibleSeeds)
             {
                 int xor = realSeed;
 

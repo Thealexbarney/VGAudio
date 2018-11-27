@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using VGAudio.Codecs.CriHca;
 using VGAudio.Containers.Hca;
 
 namespace VGAudio.Cli.Metadata.Containers
@@ -14,7 +15,7 @@ namespace VGAudio.Cli.Metadata.Containers
         public override Common ToCommon(object metadata)
         {
             var hcaStructure = metadata as HcaStructure;
-            var hca = hcaStructure?.Hca;
+            HcaInfo hca = hcaStructure?.Hca;
             if (hcaStructure == null || hca == null) throw new InvalidDataException("Could not parse file metadata.");
 
             return new Common
@@ -32,7 +33,7 @@ namespace VGAudio.Cli.Metadata.Containers
         public override void PrintSpecificMetadata(object metadata, StringBuilder builder)
         {
             var hcaStructure = metadata as HcaStructure;
-            var hca = hcaStructure?.Hca;
+            HcaInfo hca = hcaStructure?.Hca;
             if (hcaStructure == null || hca == null) throw new InvalidDataException("Could not parse file metadata.");
 
             builder.AppendLine();

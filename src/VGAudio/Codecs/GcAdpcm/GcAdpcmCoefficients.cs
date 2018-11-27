@@ -10,27 +10,27 @@ namespace VGAudio.Codecs.GcAdpcm
         {
             int frameCount = source.Length.DivideByRoundUp(SamplesPerFrame);
 
-            short[] pcmHistBuffer = new short[28];
+            var pcmHistBuffer = new short[28];
 
-            short[] coefs = new short[16];
+            var coefs = new short[16];
 
-            double[] vec1 = new double[3];
-            double[] vec2 = new double[3];
-            double[] buffer = new double[3];
+            var vec1 = new double[3];
+            var vec2 = new double[3];
+            var buffer = new double[3];
 
-            double[][] mtx = new double[3][];
+            var mtx = new double[3][];
             for (int i = 0; i < mtx.Length; i++)
             {
                 mtx[i] = new double[3];
             }
 
-            int[] vecIdxs = new int[3];
+            var vecIdxs = new int[3];
 
-            double[,] records = new double[frameCount * 2, 3];
+            var records = new double[frameCount * 2, 3];
 
             int recordCount = 0;
 
-            double[][] vecBest = new double[8][];
+            var vecBest = new double[8][];
             for (int i = 0; i < vecBest.Length; i++)
             {
                 vecBest[i] = new double[3];
@@ -306,7 +306,7 @@ namespace VGAudio.Codecs.GcAdpcm
 
         private static void MergeFinishRecord(double[] src, double[] dst)
         {
-            double[] tmp = new double[3];
+            var tmp = new double[3];
             double val = src[0];
 
             dst[0] = 1.0;
@@ -343,20 +343,20 @@ namespace VGAudio.Codecs.GcAdpcm
 
         private static void FilterRecords(double[][] vecBest, int exp, double[,] records, int recordCount)
         {
-            double[][] bufferList = new double[8][];
+            var bufferList = new double[8][];
             for (int i = 0; i < bufferList.Length; i++)
             {
                 bufferList[i] = new double[3];
             }
 
-            double[][] mtx = new double[3][];
+            var mtx = new double[3][];
             for (int i = 0; i < mtx.Length; i++)
             {
                 mtx[i] = new double[3];
             }
 
-            int[] buffer1 = new int[8];
-            double[] buffer2 = new double[3];
+            var buffer1 = new int[8];
+            var buffer2 = new double[3];
 
             for (int x = 0; x < 2; x++)
             {
@@ -368,8 +368,8 @@ namespace VGAudio.Codecs.GcAdpcm
                 }
                 for (int z = 0; z < recordCount; z++)
                 {
-                    var index = 0;
-                    var value = 1.0e30;
+                    int index = 0;
+                    double value = 1.0e30;
                     for (int i = 0; i < exp; i++)
                     {
                         double tempVal = ContrastVectors(vecBest[i], records, z);

@@ -55,7 +55,7 @@ namespace VGAudio.Tools.CrackHca
         /// </remarks>
         public void FilterPossibleShufflersWithByte2Zeros()
         {
-            int[] count = new int[16];
+            var count = new int[16];
             for (int pos1 = 0; pos1 < 0x100; pos1++)
             {
                 for (int pos2 = pos1; pos2 < 0x100; pos2++)
@@ -90,7 +90,7 @@ namespace VGAudio.Tools.CrackHca
             var rowIndex = new int[4];
 
             // Determine row indexes from frequency analysis
-            foreach (var table in PossibleShufflers)
+            foreach (ShufflerId table in PossibleShufflers)
             {
                 int position = 0;
                 foreach (int[] count in counts)
@@ -115,7 +115,7 @@ namespace VGAudio.Tools.CrackHca
 
         private int[] PossibleSeeds(int[] rowIndex)
         {
-            var possibleSubTables = SubTables.AsEnumerable();
+            IEnumerable<byte[]> possibleSubTables = SubTables.AsEnumerable();
 
             for (int i = 0; i < rowIndex.Length; i++)
             {
@@ -123,7 +123,7 @@ namespace VGAudio.Tools.CrackHca
                 possibleSubTables = possibleSubTables.Where(x => x[rowIndex[iLocal]] == 5 - iLocal);
             }
 
-            var possibleSeeds = possibleSubTables.Select(x => SubTables.ToList().IndexOf(x)).ToArray();
+            int[] possibleSeeds = possibleSubTables.Select(x => SubTables.ToList().IndexOf(x)).ToArray();
             return possibleSeeds;
         }
 
@@ -141,12 +141,12 @@ namespace VGAudio.Tools.CrackHca
         {
             byte[] upperSubTable = SubTables[UpperSeed];
             byte[] inverseSubTable = CriHcaKey.InvertTable(upperSubTable);
-            int[] count = new int[16];
+            var count = new int[16];
             var possibleShufflers = new List<ShufflerId>();
             byte row0 = inverseSubTable[0];
             byte rowF = inverseSubTable[0xf];
 
-            foreach (var s in PossibleShufflers)
+            foreach (ShufflerId s in PossibleShufflers)
             {
                 // Count the number of zeros in each row
                 Array.Clear(count, 0, 16);
@@ -218,7 +218,7 @@ namespace VGAudio.Tools.CrackHca
 
         public static byte[] GenerateShuffler(int a, int b, bool backward)
         {
-            byte[] table = new byte[256];
+            var table = new byte[256];
             byte x = 0;
             int outPos = 1;
 

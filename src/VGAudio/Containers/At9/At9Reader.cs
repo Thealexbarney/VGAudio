@@ -55,8 +55,8 @@ namespace VGAudio.Containers.At9
                 throw new InvalidDataException("Not a valid WAVE file");
             }
 
-            var fmt = parser.GetSubChunk<WaveFmtChunk>("fmt ") ?? throw new InvalidDataException("File must have a valid fmt chunk");
-            var ext = fmt.Ext as At9WaveExtensible ?? throw new InvalidDataException("File must have a format chunk extension");
+            WaveFmtChunk fmt = parser.GetSubChunk<WaveFmtChunk>("fmt ") ?? throw new InvalidDataException("File must have a valid fmt chunk");
+            At9WaveExtensible ext = fmt.Ext as At9WaveExtensible ?? throw new InvalidDataException("File must have a format chunk extension");
             if (parser.GetSubChunk<At9FactChunk>("fact") == null) throw new InvalidDataException("File must have a valid fact chunk");
             if (parser.GetSubChunk<At9DataChunk>("data") == null) throw new InvalidDataException("File must have a valid data chunk");
 

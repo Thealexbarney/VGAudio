@@ -24,10 +24,10 @@ namespace VGAudio.Utilities.Riff
 
             if (FormatTag == WaveFormatTags.WaveFormatExtensible && parser.FormatExtensibleParser != null)
             {
-                var startOffset = reader.BaseStream.Position + 2;
+                long startOffset = reader.BaseStream.Position + 2;
                 Ext = parser.FormatExtensibleParser(parser, reader);
 
-                var endOffset = startOffset + Ext.Size;
+                long endOffset = startOffset + Ext.Size;
                 int remainingBytes = (int)Math.Max(endOffset - reader.BaseStream.Position, 0);
                 Ext.Extra = reader.ReadBytes(remainingBytes);
             }

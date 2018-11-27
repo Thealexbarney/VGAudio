@@ -55,7 +55,7 @@ namespace VGAudio.Containers.Dsp
         {
             for (int i = 0; i < ChannelCount; i++)
             {
-                var channel = Adpcm.Channels[i];
+                GcAdpcmChannel channel = Adpcm.Channels[i];
                 writer.BaseStream.Position = HeaderSize * i;
                 writer.Write(SampleCount);
                 writer.Write(SampleCountToNibbleCount(SampleCount));

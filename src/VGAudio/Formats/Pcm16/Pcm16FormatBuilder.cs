@@ -18,7 +18,7 @@ namespace VGAudio.Formats.Pcm16
             SampleCount = Channels[0]?.Length ?? 0;
             SampleRate = sampleRate;
 
-            foreach (var channel in Channels)
+            foreach (short[] channel in Channels)
             {
                 if (channel == null)
                     throw new InvalidDataException("All provided channels must be non-null");

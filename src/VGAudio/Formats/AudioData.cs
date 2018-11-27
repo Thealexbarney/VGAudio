@@ -19,7 +19,7 @@ namespace VGAudio.Formats
 
         public T GetFormat<T>(CodecParameters configuration = null) where T : class, IAudioFormat, new()
         {
-            T format = GetAudioFormat<T>();
+            var format = GetAudioFormat<T>();
 
             if (format != null)
             {
@@ -98,7 +98,7 @@ namespace VGAudio.Formats
 
         private void CreateFormat<T>(CodecParameters configuration = null) where T : class, IAudioFormat, new()
         {
-            Pcm16Format pcm = GetAudioFormat<Pcm16Format>();
+            var pcm = GetAudioFormat<Pcm16Format>();
             AddFormat(new T().EncodeFromPcm16(pcm, configuration));
         }
 
