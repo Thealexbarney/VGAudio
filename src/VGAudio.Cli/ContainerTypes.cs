@@ -10,6 +10,7 @@ using VGAudio.Containers.Hca;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
 using VGAudio.Containers.NintendoWare;
+using VGAudio.Containers.Opus;
 using VGAudio.Containers.Wave;
 
 namespace VGAudio.Cli
@@ -33,7 +34,8 @@ namespace VGAudio.Cli
             [FileType.Adx] = new ContainerType(new[] { "adx" }, () => new AdxReader(), () => new AdxWriter(), CreateConfiguration.Adx),
             [FileType.Hca] = new ContainerType(new[] { "hca" }, () => new HcaReader(), () => new HcaWriter(), CreateConfiguration.Hca),
             [FileType.Genh] = new ContainerType(new[] { "genh" }, () => new GenhReader(), null, null),
-            [FileType.Atrac9] = new ContainerType(new[] { "at9" }, () => new At9Reader(), null, null)
+            [FileType.Atrac9] = new ContainerType(new[] { "at9" }, () => new At9Reader(), null, null),
+            [FileType.NxOpus] = new ContainerType(new[] { "lopus" }, () => new NxOpusReader(), null, null)
         };
 
         public static readonly Dictionary<string, FileType> Extensions =
