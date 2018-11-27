@@ -7,8 +7,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VGAudio\VGAudio.csproj" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.11.0" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.0" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.11.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.3" />
   </ItemGroup>
 
 </Project>

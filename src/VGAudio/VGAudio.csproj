@@ -9,7 +9,7 @@
     <Description>A library for encoding, decoding, and manipulating audio files from video games.</Description>
     <PackageTags>audio;dspadpcm;adpcm;brstm;Nintendo</PackageTags>
     <PackageProjectUrl>https://github.com/Thealexbarney/VGAudio</PackageProjectUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/Thealexbarney/VGAudio/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Thealexbarney/VGAudio</RepositoryUrl>
     <NoWarn>$(NoWarn);1591</NoWarn>
