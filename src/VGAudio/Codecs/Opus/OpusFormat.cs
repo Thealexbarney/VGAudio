@@ -14,6 +14,8 @@ namespace VGAudio.Codecs.Opus
     {
         public List<NxOpusFrame> Frames { get; }
 
+        public OpusFormat() { }
+
         internal OpusFormat(OpusFormatBuilder b) : base(b)
         {
             Frames = b.Frames;
