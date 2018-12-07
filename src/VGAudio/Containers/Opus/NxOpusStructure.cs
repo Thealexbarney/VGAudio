@@ -4,6 +4,8 @@ namespace VGAudio.Containers.Opus
 {
     public class NxOpusStructure
     {
+        public NxOpusHeaderType HeaderType { get; set; }
+
         public uint Type { get; set; }
         public int HeaderSize { get; set; }
         public int Version { get; set; }
@@ -15,6 +17,16 @@ namespace VGAudio.Containers.Opus
         public uint DataType { get; set; }
         public int DataSize { get; set; }
 
+        public int SampleCount { get; set; }
+        public int LoopStart { get; set; }
+        public int LoopEnd { get; set; }
+        public bool Looping { get; set; }
+
+        public int NamcoFieldC { get; set; }
+        public int NamcoField1C { get; set; }
+        public int NamcoDataOffset { get; set; }
+        public int NamcoField24 { get; set; }
+
         public List<NxOpusFrame> Frames { get; set; } = new List<NxOpusFrame>();
     }
 
@@ -25,6 +37,6 @@ namespace VGAudio.Containers.Opus
         public byte[] Data { get; set; }
         public int SampleCount { get; set; }
 
-        
+
     }
 }

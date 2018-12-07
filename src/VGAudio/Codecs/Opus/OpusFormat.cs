@@ -40,19 +40,22 @@ namespace VGAudio.Codecs.Opus
             var pcmOut = CreateJaggedArray<short[][]>(ChannelCount, SampleCount);
             var pcmBuffer = new short[ChannelCount * maxSampleCount];
             int outPos = 0;
+            int remaining = SampleCount;
 
             for (int i = 0; i < Frames.Count; i++)
             {
+                int frameSamples = Math.Min(remaining, Frames[i].SampleCount);
                 dec.Decode(Frames[i].Data, 0, Frames[i].Data.Length, pcmBuffer, 0, maxSampleCount);
 
                 short[][] deinterleaved = pcmBuffer.DeInterleave(1, 2);
 
                 for (int c = 0; c < ChannelCount; c++)
                 {
-                    Array.Copy(deinterleaved[c], 0, pcmOut[c], outPos, Frames[i].SampleCount);
+                    Array.Copy(deinterleaved[c], 0, pcmOut[c], outPos, frameSamples);
                 }
 
-                outPos += Frames[i].SampleCount;
+                outPos += frameSamples;
+                remaining -= frameSamples;
             }
 
             return pcmOut;
