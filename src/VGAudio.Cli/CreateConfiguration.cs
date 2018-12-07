@@ -151,6 +151,8 @@ namespace VGAudio.Cli
         {
             NxOpusConfiguration config = inConfig as NxOpusConfiguration ?? new NxOpusConfiguration();
 
+            config.HeaderType = options.NxOpusHeaderType;
+
             return config;
         }
     }

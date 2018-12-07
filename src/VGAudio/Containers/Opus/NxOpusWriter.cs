@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using VGAudio.Codecs.Opus;
 using VGAudio.Formats;
@@ -10,8 +11,26 @@ namespace VGAudio.Containers.Opus
     public class NxOpusWriter : AudioWriter<NxOpusWriter, NxOpusConfiguration>
     {
         private OpusFormat Format { get; set; }
-        protected override int FileSize => DataSize + 0x28;
+        protected override int FileSize
+        {
+            get
+            {
+                switch (Configuration.HeaderType)
+                {
+                    case NxOpusHeaderType.Standard:
+                        return StandardFileSize;
+                    case NxOpusHeaderType.Namco:
+                        return NamcoHeaderSize + StandardFileSize;
+                    default:
+                        return 0;
+                }
+            }
+        }
 
+        private const int StandardHeaderSize = 0x28;
+        private const int NamcoHeaderSize = 0x40;
+
+        private int StandardFileSize => StandardHeaderSize + DataSize;
         private int DataSize { get; set; }
 
         protected override void SetupWriter(AudioData audio)
@@ -23,18 +42,23 @@ namespace VGAudio.Containers.Opus
 
         protected override void WriteStream(Stream stream)
         {
-            using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.LittleEndian))
+            switch (Configuration.HeaderType)
             {
-                WriteHeader(writer);
-            }
-
-            using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.BigEndian))
-            {
-                WriteData(writer);
+                case NxOpusHeaderType.Standard:
+                    WriteStandardHeader(GetBinaryWriter(stream, Endianness.LittleEndian));
+                    WriteData(GetBinaryWriter(stream, Endianness.BigEndian));
+                    break;
+                case NxOpusHeaderType.Namco:
+                    WriteNamcoHeader(GetBinaryWriter(stream, Endianness.BigEndian));
+                    WriteStandardHeader(GetBinaryWriter(stream, Endianness.LittleEndian));
+                    WriteData(GetBinaryWriter(stream, Endianness.BigEndian));
+                    break;
+                default:
+                    throw new NotImplementedException("Writing this Opus header is not supported");
             }
         }
 
-        private void WriteHeader(BinaryWriter writer)
+        private void WriteStandardHeader(BinaryWriter writer)
         {
             writer.Write(0x80000001);
             writer.Write(0x18);
@@ -50,9 +74,27 @@ namespace VGAudio.Containers.Opus
             writer.Write(DataSize);
         }
 
+        private void WriteNamcoHeader(BinaryWriter writer)
+        {
+            long startPos = writer.BaseStream.Position;
+
+            writer.WriteUTF8("OPUS");
+            writer.Write(0);
+            writer.Write(Format.SampleCount);
+            writer.Write(Format.ChannelCount);
+            writer.Write(Format.SampleRate);
+            writer.Write(Format.LoopStart);
+            writer.Write(Format.LoopEnd);
+            writer.Write(0);
+            writer.Write(NamcoHeaderSize);
+            writer.Write(StandardFileSize);
+
+            writer.BaseStream.Position = startPos + NamcoHeaderSize;
+        }
+
         private void WriteData(BinaryWriter writer)
         {
-            foreach (var frame in Format.Frames)
+            foreach (NxOpusFrame frame in Format.Frames)
             {
                 writer.Write(frame.Length);
                 writer.Write(frame.FinalRange);

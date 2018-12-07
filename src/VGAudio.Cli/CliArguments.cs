@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Codecs.CriHca;
+using VGAudio.Containers.Opus;
 using VGAudio.Utilities;
 
 namespace VGAudio.Cli
@@ -334,6 +336,31 @@ namespace VGAudio.Cli
                         case "-LITTLE-ENDIAN":
                             options.Endianness = Endianness.LittleEndian;
                             continue;
+                        case "-OPUSHEADER":
+                            if (i + 1 >= args.Length)
+                            {
+                                PrintWithUsage("No argument after --OpusHeader");
+                                return null;
+                            }
+                            string headerType = args[i + 1];
+                            NxOpusHeaderType nxHeaderType;
+
+                            switch (headerType.ToUpper())
+                            {
+                                case "STANDARD":
+                                    nxHeaderType = NxOpusHeaderType.Standard;
+                                    break;
+                                case "NAMCO":
+                                    nxHeaderType = NxOpusHeaderType.Namco;
+                                    break;
+                                default:
+                                    Console.WriteLine("Invalid header type");
+                                    return null;
+                            }
+
+                            options.NxOpusHeaderType = nxHeaderType;
+                            i++;
+                            continue;
                     }
                 }
 
@@ -489,6 +516,8 @@ namespace VGAudio.Cli
 
         private static void PrintUsage()
         {
+            string opusHeaderTypes = string.Join(", ", Enum.GetNames(typeof(NxOpusHeaderType)).Select(x => x));
+
             Console.WriteLine($"Usage: {GetProgramName()} [mode] [options] infile [-i infile2...] [outfile]");
             Console.WriteLine("\nAvailable Modes:");
             Console.WriteLine("If no mode is specified, a single-file conversion is performed");
@@ -535,6 +564,10 @@ namespace VGAudio.Cli
             Console.WriteLine("                       --bitrate takes precedence over --hcaquality");
             Console.WriteLine("      --limit-bitrate  This flag sets a limit on how low the bitrate can go");
             Console.WriteLine("                       This limit depends on the properties of the input file");
+
+            Console.WriteLine("\nSwitch Opus Options:");
+            Console.WriteLine("      --opusheader     The type of header to use for the generated Opus file");
+            Console.WriteLine("                       Available types: " + opusHeaderTypes);
         }
 
         private static string GetProgramName() => Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly()?.Location ?? "");

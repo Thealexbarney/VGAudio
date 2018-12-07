@@ -26,7 +26,7 @@ namespace VGAudio.Containers.Opus
         public int NamcoFieldC { get; set; }
         public int NamcoField1C { get; set; }
         public int NamcoDataOffset { get; set; }
-        public int NamcoField24 { get; set; }
+        public int NamcoCoreDataLength { get; set; }
 
         public List<NxOpusFrame> Frames { get; set; } = new List<NxOpusFrame>();
     }
@@ -37,7 +37,5 @@ namespace VGAudio.Containers.Opus
         public uint FinalRange { get; set; }
         public byte[] Data { get; set; }
         public int SampleCount { get; set; }
-
-
     }
 }

@@ -42,6 +42,14 @@ namespace VGAudio.Containers.Opus
                 .Build();
         }
 
+        protected override NxOpusConfiguration GetConfiguration(NxOpusStructure structure)
+        {
+            return new NxOpusConfiguration
+            {
+                HeaderType = structure.HeaderType
+            };
+        }
+
         private static NxOpusHeaderType DetectHeader(Stream stream)
         {
             uint value = GetBinaryReader(stream, Endianness.LittleEndian).ReadUInt32();
@@ -89,13 +97,13 @@ namespace VGAudio.Containers.Opus
             structure.Looping = structure.LoopEnd != 0;
             structure.NamcoField1C = reader.ReadInt32();
             structure.NamcoDataOffset = reader.ReadInt32();
-            structure.NamcoField24 = reader.ReadInt32();
+            structure.NamcoCoreDataLength = reader.ReadInt32();
         }
 
         private static void ReadData(BinaryReader reader, NxOpusStructure structure)
         {
             long startPos = reader.BaseStream.Position;
-            long endPos =  startPos + structure.DataSize;
+            long endPos = startPos + structure.DataSize;
 
             while (true)
             {

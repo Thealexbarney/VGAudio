@@ -128,7 +128,9 @@ namespace VGAudio.Codecs.Opus
                 inPos += encodeCount * pcm16.ChannelCount;
             }
 
-            OpusFormat format = new OpusFormatBuilder(pcm16.ChannelCount, pcm16.SampleCount, frames).Build();
+            OpusFormat format = new OpusFormatBuilder(pcm16.ChannelCount, pcm16.SampleCount, frames)
+                .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
+                .Build();
 
             return format;
         }
