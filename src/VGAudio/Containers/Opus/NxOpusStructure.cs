@@ -13,6 +13,7 @@ namespace VGAudio.Containers.Opus
         public int FrameSize { get; set; }
         public int SampleRate { get; set; }
         public int DataOffset { get; set; }
+        public int EncoderDelay { get; set; }
 
         public uint DataType { get; set; }
         public int DataSize { get; set; }

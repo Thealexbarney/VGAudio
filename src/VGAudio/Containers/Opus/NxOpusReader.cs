@@ -37,7 +37,7 @@ namespace VGAudio.Containers.Opus
 
         protected override IAudioFormat ToAudioStream(NxOpusStructure structure)
         {
-            return new OpusFormatBuilder(structure.ChannelCount, structure.SampleCount, structure.Frames)
+            return new OpusFormatBuilder(structure.ChannelCount, structure.SampleCount, structure.EncoderDelay, structure.Frames)
                 .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
                 .Build();
         }
@@ -67,6 +67,9 @@ namespace VGAudio.Containers.Opus
             structure.SampleRate = reader.ReadInt32();
             structure.DataOffset = reader.ReadInt32();
 
+            reader.BaseStream.Position += 8;
+            structure.EncoderDelay = reader.ReadInt32();
+
             reader.BaseStream.Position = startPos + structure.DataOffset;
 
             structure.DataType = reader.ReadUInt32();
@@ -91,17 +94,18 @@ namespace VGAudio.Containers.Opus
 
         private static void ReadData(BinaryReader reader, NxOpusStructure structure)
         {
-            long inputLength = reader.BaseStream.Length;
+            long startPos = reader.BaseStream.Position;
+            long endPos =  startPos + structure.DataSize;
 
             while (true)
             {
-                if (inputLength - reader.BaseStream.Position < 8) break;
+                if (endPos - reader.BaseStream.Position < 8) break;
 
                 var frame = new NxOpusFrame();
                 frame.Length = reader.ReadInt32();
                 frame.FinalRange = reader.ReadUInt32();
 
-                if (inputLength - reader.BaseStream.Position < frame.Length) break;
+                if (endPos - reader.BaseStream.Position < frame.Length) break;
 
                 frame.Data = reader.ReadBytes(frame.Length);
                 frame.SampleCount = GetOpusSamplesPerFrame(frame.Data[0], 48000);

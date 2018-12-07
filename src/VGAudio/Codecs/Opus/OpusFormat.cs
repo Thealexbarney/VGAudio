@@ -13,6 +13,8 @@ namespace VGAudio.Codecs.Opus
 {
     public class OpusFormat : AudioFormatBase<OpusFormat, OpusFormatBuilder, OpusParameters>
     {
+        public int EncoderDelay { get; }
+
         public List<NxOpusFrame> Frames { get; }
 
         public OpusFormat() { }
@@ -20,6 +22,7 @@ namespace VGAudio.Codecs.Opus
         internal OpusFormat(OpusFormatBuilder b) : base(b)
         {
             Frames = b.Frames;
+            EncoderDelay = b.EncoderDelay;
         }
 
         public override Pcm16Format ToPcm16()
@@ -49,16 +52,38 @@ namespace VGAudio.Codecs.Opus
 
                 short[][] deinterleaved = pcmBuffer.DeInterleave(1, 2);
 
-                for (int c = 0; c < ChannelCount; c++)
-                {
-                    Array.Copy(deinterleaved[c], 0, pcmOut[c], outPos, frameSamples);
-                }
+                CopyBuffer(deinterleaved, frameSamples, pcmOut, EncoderDelay, outPos);
 
                 outPos += frameSamples;
                 remaining -= frameSamples;
             }
 
             return pcmOut;
+        }
+
+        private static void CopyBuffer(short[][] bufferIn, int inputLength, short[][] bufferOut, int startIndex, int currentPosition)
+        {
+            if (bufferIn == null || bufferOut == null || bufferIn.Length == 0 || bufferOut.Length == 0)
+            {
+                throw new ArgumentException(
+                    $"{nameof(bufferIn)} and {nameof(bufferOut)} must be non-null with a length greater than 0");
+            }
+
+            int bufferLength = inputLength;
+            int outLength = bufferOut[0].Length;
+
+            int currentIndex = currentPosition - startIndex;
+            int remainingElements = Math.Min(outLength - currentIndex, outLength);
+            int srcStart = Clamp(0 - currentIndex, 0, bufferLength);
+            int destStart = Math.Max(currentIndex, 0);
+
+            int length = Math.Min(bufferLength - srcStart, remainingElements);
+            if (length <= 0) return;
+
+            for (int c = 0; c < bufferOut.Length; c++)
+            {
+                Array.Copy(bufferIn[c], srcStart, bufferOut[c], destStart, length);
+            }
         }
 
         public override OpusFormat EncodeFromPcm16(Pcm16Format pcm16)
