@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
+using VGAudio.Codecs.Opus;
 using VGAudio.Containers.Opus;
-using VGAudio.Formats;
 
-namespace VGAudio.Codecs.Opus
+namespace VGAudio.Formats.Opus
 {
     public class OpusFormatBuilder : AudioFormatBaseBuilder<OpusFormat, OpusFormatBuilder, OpusParameters>
     {

@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Concentus.Enums;
 using Concentus.Structs;
+using VGAudio.Codecs.Opus;
 using VGAudio.Containers.Opus;
-using VGAudio.Formats;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
-using static VGAudio.Utilities.Helpers;
 
-namespace VGAudio.Codecs.Opus
+namespace VGAudio.Formats.Opus
 {
     public class OpusFormat : AudioFormatBase<OpusFormat, OpusFormatBuilder, OpusParameters>
     {
@@ -40,7 +39,7 @@ namespace VGAudio.Codecs.Opus
 
             int maxSampleCount = Frames.Max(x => x.SampleCount);
 
-            var pcmOut = CreateJaggedArray<short[][]>(ChannelCount, SampleCount);
+            var pcmOut = Helpers.CreateJaggedArray<short[][]>(ChannelCount, SampleCount);
             var pcmBuffer = new short[ChannelCount * maxSampleCount];
             int outPos = 0;
             int remaining = SampleCount;
@@ -74,7 +73,7 @@ namespace VGAudio.Codecs.Opus
 
             int currentIndex = currentPosition - startIndex;
             int remainingElements = Math.Min(outLength - currentIndex, outLength);
-            int srcStart = Clamp(0 - currentIndex, 0, bufferLength);
+            int srcStart = Helpers.Clamp(0 - currentIndex, 0, bufferLength);
             int destStart = Math.Max(currentIndex, 0);
 
             int length = Math.Min(bufferLength - srcStart, remainingElements);

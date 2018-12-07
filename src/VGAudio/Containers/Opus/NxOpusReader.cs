@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using VGAudio.Codecs.Opus;
 using VGAudio.Formats;
+using VGAudio.Formats.Opus;
 using VGAudio.Utilities;
 using static VGAudio.Utilities.Helpers;
 
