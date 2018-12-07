@@ -37,7 +37,8 @@ namespace VGAudio.Containers.Opus
 
         protected override IAudioFormat ToAudioStream(NxOpusStructure structure)
         {
-            return new OpusFormatBuilder(structure.ChannelCount, structure.SampleCount, structure.EncoderDelay, structure.Frames)
+            return new OpusFormatBuilder(structure.SampleCount, structure.SampleRate, structure.ChannelCount,
+                    structure.PreSkip, structure.Frames)
                 .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
                 .Build();
         }
@@ -76,7 +77,7 @@ namespace VGAudio.Containers.Opus
             structure.DataOffset = reader.ReadInt32();
 
             reader.BaseStream.Position += 8;
-            structure.EncoderDelay = reader.ReadInt32();
+            structure.PreSkip = reader.ReadInt32();
 
             reader.BaseStream.Position = startPos + structure.DataOffset;
 

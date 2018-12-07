@@ -12,7 +12,7 @@ namespace VGAudio.Formats.Opus
 {
     public class OpusFormat : AudioFormatBase<OpusFormat, OpusFormatBuilder, OpusParameters>
     {
-        public int EncoderDelay { get; }
+        public int PreSkipCount { get; }
 
         public List<NxOpusFrame> Frames { get; }
 
@@ -21,7 +21,7 @@ namespace VGAudio.Formats.Opus
         internal OpusFormat(OpusFormatBuilder b) : base(b)
         {
             Frames = b.Frames;
-            EncoderDelay = b.EncoderDelay;
+            PreSkipCount = b.PreSkip;
         }
 
         public override Pcm16Format ToPcm16()
@@ -35,14 +35,14 @@ namespace VGAudio.Formats.Opus
 
         private short[][] Decode()
         {
-            var dec = new OpusDecoder(48000, ChannelCount);
+            var dec = new OpusDecoder(SampleRate, ChannelCount);
 
             int maxSampleCount = Frames.Max(x => x.SampleCount);
 
             var pcmOut = Helpers.CreateJaggedArray<short[][]>(ChannelCount, SampleCount);
             var pcmBuffer = new short[ChannelCount * maxSampleCount];
             int outPos = 0;
-            int remaining = SampleCount;
+            int remaining = SampleCount + PreSkipCount;
 
             for (int i = 0; i < Frames.Count; i++)
             {
@@ -51,7 +51,7 @@ namespace VGAudio.Formats.Opus
 
                 short[][] deinterleaved = pcmBuffer.DeInterleave(1, 2);
 
-                CopyBuffer(deinterleaved, frameSamples, pcmOut, EncoderDelay, outPos);
+                CopyBuffer(deinterleaved, frameSamples, pcmOut, PreSkipCount, outPos);
 
                 outPos += frameSamples;
                 remaining -= frameSamples;
@@ -101,11 +101,11 @@ namespace VGAudio.Formats.Opus
 
             short[] encodeInput = pcmData;
 
-            while (remaining > 0)
+            while (remaining >= 0)
             {
                 int encodeCount = Math.Min(frameSize, remaining);
 
-                if (remaining < frameSize * pcm16.ChannelCount)
+                if (remaining < frameSize)
                 {
                     encodeInput = new short[frameSize * pcm16.ChannelCount];
                     Array.Copy(pcmData, inPos, encodeInput, 0, encodeCount);
@@ -123,11 +123,13 @@ namespace VGAudio.Formats.Opus
 
                 frames.Add(frame);
 
+                if (remaining == 0) break;
+
                 remaining -= encodeCount;
                 inPos += encodeCount * pcm16.ChannelCount;
             }
 
-            OpusFormat format = new OpusFormatBuilder(pcm16.ChannelCount, pcm16.SampleCount, frames)
+            OpusFormat format = new OpusFormatBuilder(pcm16.SampleCount, pcm16.SampleRate, pcm16.ChannelCount, encoder.Lookahead, frames)
                 .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
                 .Build();
 

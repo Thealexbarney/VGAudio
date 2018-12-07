@@ -69,7 +69,8 @@ namespace VGAudio.Containers.Opus
             writer.Write(0x20);
             writer.Write(0);
             writer.Write(0);
-            writer.Write(0);
+            writer.Write((short)Format.PreSkipCount);
+            writer.Write((short)0);
             writer.Write(0x80000004);
             writer.Write(DataSize);
         }
