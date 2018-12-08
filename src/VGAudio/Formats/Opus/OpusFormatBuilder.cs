@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using VGAudio.Codecs.Opus;
-using VGAudio.Containers.Opus;
 
 namespace VGAudio.Formats.Opus
 {
@@ -9,12 +8,12 @@ namespace VGAudio.Formats.Opus
         public override int ChannelCount { get; }
         public int PreSkip { get; }
 
-        public List<NxOpusFrame> Frames { get; }
+        public List<OpusFrame> Frames { get; }
 
-        public OpusFormatBuilder(int sampleCount, int sampleRate, int channelCount, List<NxOpusFrame> frames)
+        public OpusFormatBuilder(int sampleCount, int sampleRate, int channelCount, List<OpusFrame> frames)
         : this(sampleCount, sampleRate, channelCount, 0, frames) { }
 
-        public OpusFormatBuilder(int sampleCount, int sampleRate, int channelCount, int preSkip, List<NxOpusFrame> frames)
+        public OpusFormatBuilder(int sampleCount, int sampleRate, int channelCount, int preSkip, List<OpusFrame> frames)
         {
             SampleCount = sampleCount;
             SampleRate = sampleRate;

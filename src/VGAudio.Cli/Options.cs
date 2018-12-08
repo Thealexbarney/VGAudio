@@ -91,6 +91,7 @@ namespace VGAudio.Cli
         Hca,
         Genh,
         Atrac9,
-        NxOpus
+        NxOpus,
+        OggOpus
     }
 }

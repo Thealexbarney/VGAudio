@@ -4,7 +4,6 @@ using System.Linq;
 using Concentus.Enums;
 using Concentus.Structs;
 using VGAudio.Codecs.Opus;
-using VGAudio.Containers.Opus;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
 
@@ -14,7 +13,7 @@ namespace VGAudio.Formats.Opus
     {
         public int PreSkipCount { get; }
 
-        public List<NxOpusFrame> Frames { get; }
+        public List<OpusFrame> Frames { get; }
 
         public OpusFormat() { }
 
@@ -97,7 +96,7 @@ namespace VGAudio.Formats.Opus
 
             // Encoded data shouldn't be larger than the input pcm
             var buffer = new byte[frameSize * pcm16.ChannelCount];
-            var frames = new List<NxOpusFrame>();
+            var frames = new List<OpusFrame>();
 
             short[] encodeInput = pcmData;
 
@@ -114,7 +113,7 @@ namespace VGAudio.Formats.Opus
 
                 int frameLength = encoder.Encode(encodeInput, inPos, frameSize, buffer, 0, buffer.Length);
 
-                var frame = new NxOpusFrame();
+                var frame = new OpusFrame();
                 frame.Length = frameLength;
                 frame.Data = new byte[frameLength];
                 frame.FinalRange = encoder.FinalRange;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using VGAudio.Codecs.Opus;
 using VGAudio.Formats;
 using VGAudio.Formats.Opus;
 using VGAudio.Utilities;
@@ -95,7 +96,7 @@ namespace VGAudio.Containers.Opus
 
         private void WriteData(BinaryWriter writer)
         {
-            foreach (NxOpusFrame frame in Format.Frames)
+            foreach (OpusFrame frame in Format.Frames)
             {
                 writer.Write(frame.Length);
                 writer.Write(frame.FinalRange);

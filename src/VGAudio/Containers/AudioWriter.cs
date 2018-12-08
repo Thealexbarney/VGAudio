@@ -25,17 +25,30 @@ namespace VGAudio.Containers
         {
             Configuration = configuration ?? Configuration;
             SetupWriter(audio);
-            var file = new byte[FileSize];
-            var stream = new MemoryStream(file);
+
+            MemoryStream stream;
+            byte[] file = null;
+
+            if (FileSize == -1)
+            {
+                stream = new MemoryStream();
+            }
+            else
+            {
+                file = new byte[FileSize];
+                stream = new MemoryStream(file);
+            }
+
             WriteStream(stream);
-            return file;
+
+            return FileSize == -1 ? stream.ToArray() : file;
         }
 
         private void WriteStream(AudioData audio, Stream stream, TConfig configuration = null)
         {
             Configuration = configuration ?? Configuration;
             SetupWriter(audio);
-            if (stream.Length != FileSize)
+            if (stream.Length != FileSize && FileSize != -1)
             {
                 try
                 {

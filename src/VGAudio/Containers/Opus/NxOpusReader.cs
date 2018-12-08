@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using VGAudio.Codecs.Opus;
 using VGAudio.Formats;
 using VGAudio.Formats.Opus;
 using VGAudio.Utilities;
@@ -110,7 +111,7 @@ namespace VGAudio.Containers.Opus
             {
                 if (endPos - reader.BaseStream.Position < 8) break;
 
-                var frame = new NxOpusFrame();
+                var frame = new OpusFrame();
                 frame.Length = reader.ReadInt32();
                 frame.FinalRange = reader.ReadUInt32();
 

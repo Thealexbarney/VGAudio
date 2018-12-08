@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using VGAudio.Codecs.Opus;
 
 namespace VGAudio.Containers.Opus
 {
@@ -28,14 +29,6 @@ namespace VGAudio.Containers.Opus
         public int NamcoDataOffset { get; set; }
         public int NamcoCoreDataLength { get; set; }
 
-        public List<NxOpusFrame> Frames { get; set; } = new List<NxOpusFrame>();
-    }
-
-    public class NxOpusFrame
-    {
-        public int Length { get; set; }
-        public uint FinalRange { get; set; }
-        public byte[] Data { get; set; }
-        public int SampleCount { get; set; }
+        public List<OpusFrame> Frames { get; set; } = new List<OpusFrame>();
     }
 }
