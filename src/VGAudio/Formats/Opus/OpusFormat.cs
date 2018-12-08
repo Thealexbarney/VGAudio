@@ -48,7 +48,7 @@ namespace VGAudio.Formats.Opus
                 int frameSamples = Math.Min(remaining, Frames[i].SampleCount);
                 dec.Decode(Frames[i].Data, 0, Frames[i].Data.Length, pcmBuffer, 0, maxSampleCount);
 
-                short[][] deinterleaved = pcmBuffer.DeInterleave(1, 2);
+                short[][] deinterleaved = pcmBuffer.DeInterleave(1, ChannelCount);
 
                 CopyBuffer(deinterleaved, frameSamples, pcmOut, PreSkipCount, outPos);
 
