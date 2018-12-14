@@ -36,6 +36,8 @@ namespace Concentus.Oggfile
         private short[] _opusFrame;
         private int _opusFrameSamples;
         private int _opusFrameIndex;
+        private int _sampleCount = int.MaxValue;
+        private int _preSkipSamples = 0;
         private byte[] _currentHeader = new byte[400];
         private byte[] _currentPayload = new byte[65536];
         private int _headerIndex = 0;
@@ -44,12 +46,13 @@ namespace Concentus.Oggfile
         private int _logicalStreamId = 0;
         private long _granulePosition = 0;
         private byte _lacingTableCount = 0;
+        private byte _pageFrameCount = 0;
         private const int PAGE_FLAGS_POS = 5;
         private const int GRANULE_COUNT_POS = 6;
         private const int CHECKSUM_HEADER_POS = 22;
         private const int SEGMENT_COUNT_POS = 26;
         private bool _finalized = false;
-
+        
         /// <summary>
         /// Constructs a stream that will accept PCM audio input, and automatically encode it to Opus and packetize it using Ogg,
         /// writing the output pages to an underlying stream (usually a file stream).
@@ -64,7 +67,7 @@ namespace Concentus.Oggfile
         /// sample rates to line up properly in this case, set the encoder to 48000 and pass inputSampleRate = 44100,
         /// and the write stream will perform resampling for you automatically (Note that resampling will slow down
         /// the encoding).</param>
-        public OpusOggWriteStream(int sampleRate, int channelCount, Stream outputStream, OpusTags fileTags = null, int inputSampleRate = 0)
+        public OpusOggWriteStream(Stream outputStream, int sampleRate, int channelCount, int preSkip, int sampleCount = -1, OpusTags fileTags = null, int inputSampleRate = 0)
         {
             _inputSampleRate = inputSampleRate;
             if (_inputSampleRate == 0)
@@ -82,6 +85,9 @@ namespace Concentus.Oggfile
             _opusFrame = new short[_opusFrameSamples * _inputChannels];
             _crc = new Crc();
             _resampler = SpeexResampler.Create(_inputChannels, _inputSampleRate, _encoderSampleRate, 5);
+
+            _preSkipSamples = preSkip;
+            _sampleCount = sampleCount == -1 ? int.MaxValue : preSkip + sampleCount;
 
             BeginNewPage();
             WriteOpusHeadPage();
@@ -102,6 +108,11 @@ namespace Concentus.Oggfile
                 throw new InvalidOperationException("Cannot write new samples to Ogg file, the output stream is already closed!");
             }
 
+            if (_pageFrameCount >= 50)
+            {
+                FinalizePage();
+            }
+
             Array.Copy(frame.Data, 0, _currentPayload, _payloadIndex, frame.Length);
             int packetSize = frame.Length;
             _payloadIndex += packetSize;
@@ -120,14 +131,7 @@ namespace Concentus.Oggfile
             }
             _currentHeader[_headerIndex++] = (byte)segmentLength;
             _lacingTableCount++;
-
-            // And finalize the page if we need
-            // 284 is a magic number meaning "our page is almost full so just finalize it"
-            // A more proper implementation would have the packets span to the next page, but meh
-            if (_lacingTableCount > 248)
-            {
-                FinalizePage();
-            }
+            _pageFrameCount++;
 
             _opusFrameIndex = 0;
         }
@@ -137,30 +141,14 @@ namespace Concentus.Oggfile
         /// </summary>
         public void Finish()
         {
-            // Finalize the page if it was not just finalized right then
-            FinalizePage();
+            _currentHeader[PAGE_FLAGS_POS] = (byte)PageFlags.EndOfStream;
 
-            // Write a new page that just contains the EndOfStream flag
-            WriteStreamFinishedPage();
+            FinalizePage();
 
             // Now close our output
             _outputStream.Flush();
             _outputStream.Dispose();
             _finalized = true;
-        }
-
-        /// <summary>
-        /// Writes an empty page containing only the EndOfStream flag
-        /// </summary>
-        private void WriteStreamFinishedPage()
-        {
-            // Write one lacing value of 0 length
-            _currentHeader[_headerIndex++] = 0x00;
-            // Increase the segment count
-            _lacingTableCount++;
-            // Set page flag to start of logical stream
-            _currentHeader[PAGE_FLAGS_POS] = (byte)PageFlags.EndOfStream;
-            FinalizePage();
         }
 
         /// <summary>
@@ -176,8 +164,8 @@ namespace Concentus.Oggfile
             _payloadIndex += WriteValueToByteBuffer("OpusHead", _currentPayload, _payloadIndex);
             _currentPayload[_payloadIndex++] = 0x01; // Version number
             _currentPayload[_payloadIndex++] = (byte)_inputChannels; // Channel count
-            short preskip = 0;
-            _payloadIndex += WriteValueToByteBuffer(preskip, _currentPayload, _payloadIndex); // Pre-skip.
+
+            _payloadIndex += WriteValueToByteBuffer((short)_preSkipSamples, _currentPayload, _payloadIndex); // Pre-skip.
             _payloadIndex += WriteValueToByteBuffer(_encoderSampleRate, _currentPayload, _payloadIndex); //Input sample rate
             short outputGain = 0;
             _payloadIndex += WriteValueToByteBuffer(outputGain, _currentPayload, _payloadIndex); // Output gain in Q8
@@ -262,6 +250,7 @@ namespace Concentus.Oggfile
             _headerIndex = 0;
             _payloadIndex = 0;
             _lacingTableCount = 0;
+            _pageFrameCount = 0;
 
             // Page begin keyword
             _headerIndex += WriteValueToByteBuffer("OggS", _currentHeader, _headerIndex);
@@ -299,6 +288,7 @@ namespace Concentus.Oggfile
 
             if (_lacingTableCount != 0)
             {
+                _granulePosition = Math.Min(_granulePosition, _sampleCount);
                 // Write the final segment count to the header
                 _currentHeader[SEGMENT_COUNT_POS] = _lacingTableCount;
                 // And the granule count for frames that finished on this page

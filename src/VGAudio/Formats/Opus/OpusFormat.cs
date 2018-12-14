@@ -121,6 +121,7 @@ namespace VGAudio.Formats.Opus
                 frame.Length = frameLength;
                 frame.Data = new byte[frameLength];
                 frame.FinalRange = encoder.FinalRange;
+                frame.SampleCount = frameSize;
 
                 Array.Copy(buffer, frame.Data, frameLength);
 

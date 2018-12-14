@@ -24,9 +24,9 @@ namespace VGAudio.Containers.Opus
 
         protected override void WriteStream(Stream stream)
         {
-            var oggStream = new OpusOggWriteStream(Format.SampleRate, Format.ChannelCount, stream);
+            var oggStream = new OpusOggWriteStream(stream, Format.SampleRate, Format.ChannelCount, Format.PreSkipCount, Format.SampleCount);
 
-            foreach (var frame in Format.Frames)
+            foreach (OpusFrame frame in Format.Frames)
             {
                 oggStream.WriteSamples(frame);
             }
