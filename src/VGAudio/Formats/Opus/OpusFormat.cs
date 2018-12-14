@@ -84,10 +84,14 @@ namespace VGAudio.Formats.Opus
             }
         }
 
-        public override OpusFormat EncodeFromPcm16(Pcm16Format pcm16)
+        public override OpusFormat EncodeFromPcm16(Pcm16Format pcm16) => EncodeFromPcm16(pcm16, new OpusParameters());
+
+        public override OpusFormat EncodeFromPcm16(Pcm16Format pcm16, OpusParameters config)
         {
             const int frameSize = 960;
             var encoder = new OpusEncoder(pcm16.SampleRate, pcm16.ChannelCount, OpusApplication.OPUS_APPLICATION_AUDIO);
+
+            if (config.Bitrate > 0) encoder.Bitrate = config.Bitrate;
 
             int inPos = 0;
             int remaining = pcm16.SampleCount;

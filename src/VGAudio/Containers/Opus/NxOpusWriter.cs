@@ -36,7 +36,13 @@ namespace VGAudio.Containers.Opus
 
         protected override void SetupWriter(AudioData audio)
         {
-            Format = audio.GetFormat<OpusFormat>();
+            var encodingConfig = new OpusParameters
+            {
+                Bitrate = Configuration.Bitrate,
+                Progress = Configuration.Progress
+            };
+
+            Format = audio.GetFormat<OpusFormat>(encodingConfig);
 
             DataSize = Format.Frames.Sum(x => x.Length + 8);
         }

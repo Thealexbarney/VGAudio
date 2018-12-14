@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Concentus.Oggfile;
+using VGAudio.Codecs.Opus;
 using VGAudio.Formats;
 using VGAudio.Formats.Opus;
 
@@ -12,7 +13,13 @@ namespace VGAudio.Containers.Opus
 
         protected override void SetupWriter(AudioData audio)
         {
-            Format = audio.GetFormat<OpusFormat>();
+            var encodingConfig = new OpusParameters
+            {
+                Bitrate = Configuration.Bitrate,
+                Progress = Configuration.Progress
+            };
+
+            Format = audio.GetFormat<OpusFormat>(encodingConfig);
         }
 
         protected override void WriteStream(Stream stream)

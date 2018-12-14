@@ -152,7 +152,8 @@ namespace VGAudio.Cli
             NxOpusConfiguration config = inConfig as NxOpusConfiguration ?? new NxOpusConfiguration();
 
             config.HeaderType = options.NxOpusHeaderType;
-
+            if (options.Bitrate != 0) config.Bitrate = options.Bitrate;
+            
             return config;
         }
     }
