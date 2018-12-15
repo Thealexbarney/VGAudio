@@ -16,16 +16,23 @@ namespace VGAudio.Containers.Opus
             var structure = new NxOpusStructure();
             structure.HeaderType = DetectHeader(stream);
 
+            long startPos = stream.Position;
+
             switch (structure.HeaderType)
             {
                 case NxOpusHeaderType.Standard:
                     ReadStandardHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
                     break;
                 case NxOpusHeaderType.Namco:
-                    long startPos = stream.Position;
                     ReadNamcoHeader(GetBinaryReader(stream, Endianness.BigEndian), structure);
 
                     stream.Position = startPos + structure.NamcoDataOffset;
+                    ReadStandardHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
+                    break;
+                case NxOpusHeaderType.Sadf:
+                    ReadSadfHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
+
+                    stream.Position = startPos + structure.SadfDataOffset;
                     ReadStandardHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
                     break;
             }
@@ -61,6 +68,7 @@ namespace VGAudio.Containers.Opus
             {
                 case 0x80000001: return NxOpusHeaderType.Standard;
                 case 0x5355504F: return NxOpusHeaderType.Namco; // OPUS
+                case 0x66646173: return NxOpusHeaderType.Sadf; // sadf
                 default: throw new NotImplementedException("This Opus header is not supported");
             }
         }
@@ -100,6 +108,29 @@ namespace VGAudio.Containers.Opus
             structure.NamcoField1C = reader.ReadInt32();
             structure.NamcoDataOffset = reader.ReadInt32();
             structure.NamcoCoreDataLength = reader.ReadInt32();
+        }
+
+        private static void ReadSadfHeader(BinaryReader reader, NxOpusStructure structure)
+        {
+            if (reader.ReadUInt32() != 0x66646173) throw new InvalidDataException();
+            reader.ReadInt32(); // fileSize
+            if (reader.ReadUInt32() != 0x7375706F) throw new InvalidDataException();
+
+            reader.ReadInt32(); // sectionCount
+            if (reader.ReadUTF8(4) != "head") throw new InvalidDataException();
+            reader.ReadInt32(); // sectionLength
+
+            structure.ChannelCount = reader.ReadByte();
+            structure.Looping = (reader.ReadByte() & 2) != 0;
+            reader.BaseStream.Position += 2; // padding
+
+            structure.SadfDataOffset = reader.ReadInt32();
+            reader.ReadInt32(); // dataLength
+
+            structure.SampleRate = reader.ReadInt32();
+            structure.SampleCount = reader.ReadInt32();
+            structure.LoopStart = reader.ReadInt32();
+            structure.LoopEnd = reader.ReadInt32();
         }
 
         private static void ReadData(BinaryReader reader, NxOpusStructure structure)
@@ -155,6 +186,7 @@ namespace VGAudio.Containers.Opus
     public enum NxOpusHeaderType
     {
         Standard,
-        Namco
+        Namco,
+        Sadf
     }
 }

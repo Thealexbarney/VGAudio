@@ -35,7 +35,7 @@ namespace VGAudio.Cli
             [FileType.Hca] = new ContainerType(new[] { "hca" }, () => new HcaReader(), () => new HcaWriter(), CreateConfiguration.Hca),
             [FileType.Genh] = new ContainerType(new[] { "genh" }, () => new GenhReader(), null, null),
             [FileType.Atrac9] = new ContainerType(new[] { "at9" }, () => new At9Reader(), null, null),
-            [FileType.NxOpus] = new ContainerType(new[] { "lopus" }, () => new NxOpusReader(), () => new NxOpusWriter(), CreateConfiguration.NxOpus),
+            [FileType.NxOpus] = new ContainerType(new[] { "lopus", "nop" }, () => new NxOpusReader(), () => new NxOpusWriter(), CreateConfiguration.NxOpus),
             [FileType.OggOpus] = new ContainerType(new[] { "opus" }, null, () => new OggOpusWriter(), CreateConfiguration.NxOpus)
         };
 

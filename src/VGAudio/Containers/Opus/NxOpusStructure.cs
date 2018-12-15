@@ -28,6 +28,7 @@ namespace VGAudio.Containers.Opus
         public int NamcoField1C { get; set; }
         public int NamcoDataOffset { get; set; }
         public int NamcoCoreDataLength { get; set; }
+        public int SadfDataOffset { get; set; }
 
         public List<OpusFrame> Frames { get; set; } = new List<OpusFrame>();
     }
