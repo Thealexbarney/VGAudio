@@ -43,6 +43,7 @@ namespace VGAudio.Containers.Opus
             };
 
             Format = audio.GetFormat<OpusFormat>(encodingConfig);
+            Format.EnsureHasFinalRange();
 
             DataSize = Format.Frames.Sum(x => x.Length + 8);
         }

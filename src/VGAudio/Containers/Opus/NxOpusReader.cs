@@ -48,6 +48,7 @@ namespace VGAudio.Containers.Opus
             return new OpusFormatBuilder(structure.SampleCount, structure.SampleRate, structure.ChannelCount,
                     structure.PreSkip, structure.Frames)
                 .WithLoop(structure.Looping, structure.LoopStart, structure.LoopEnd)
+                .HasFinalRange()
                 .Build();
         }
 
@@ -149,7 +150,7 @@ namespace VGAudio.Containers.Opus
                 if (endPos - reader.BaseStream.Position < frame.Length) break;
 
                 frame.Data = reader.ReadBytes(frame.Length);
-                frame.SampleCount = GetOpusSamplesPerFrame(frame.Data[0], 48000);
+                frame.SampleCount = OggOpusReader.GetOpusSamplesPerFrame(frame.Data[0], 48000);
                 structure.Frames.Add(frame);
             }
 
@@ -157,29 +158,6 @@ namespace VGAudio.Containers.Opus
             {
                 structure.SampleCount = structure.Frames.Sum(x => x.SampleCount);
             }
-        }
-
-        private static int GetOpusSamplesPerFrame(byte data, int fs)
-        {
-            int audioSize;
-            if ((data & 0x80) != 0)
-            {
-                audioSize = ((data >> 3) & 0x3);
-                audioSize = (fs << audioSize) / 400;
-            }
-            else if ((data & 0x60) == 0x60)
-            {
-                audioSize = ((data & 0x08) != 0) ? fs / 50 : fs / 100;
-            }
-            else
-            {
-                audioSize = ((data >> 3) & 0x3);
-                if (audioSize == 3)
-                    audioSize = fs * 60 / 1000;
-                else
-                    audioSize = (fs << audioSize) / 100;
-            }
-            return audioSize;
         }
     }
 

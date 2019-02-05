@@ -15,12 +15,15 @@ namespace VGAudio.Formats.Opus
 
         public List<OpusFrame> Frames { get; }
 
+        public bool HasFinalRange { get; private set; }
+
         public OpusFormat() { }
 
         internal OpusFormat(OpusFormatBuilder b) : base(b)
         {
             Frames = b.Frames;
             PreSkipCount = b.PreSkip;
+            HasFinalRange = b.HasFinalRangeSet;
         }
 
         public override Pcm16Format ToPcm16()
@@ -138,6 +141,23 @@ namespace VGAudio.Formats.Opus
                 .Build();
 
             return format;
+        }
+
+        public void EnsureHasFinalRange()
+        {
+            if (HasFinalRange) return;
+
+            int maxSampleCount = Frames.Max(x => x.SampleCount);
+            var dec = new OpusDecoder(SampleRate, ChannelCount);
+            var pcm = new short[5760 * ChannelCount];
+
+            foreach (OpusFrame frame in Frames)
+            {
+                dec.Decode(frame.Data, 0, frame.Data.Length, pcm, 0, maxSampleCount);
+                frame.FinalRange = dec.FinalRange;
+            }
+
+            HasFinalRange = true;
         }
 
         protected override OpusFormat GetChannelsInternal(int[] channelRange)

@@ -98,9 +98,6 @@ namespace Concentus.Oggfile
         /// Writes a buffer of PCM audio samples to the encoder and packetizer. Runs Opus encoding and potentially outputs one or more pages to the underlying Ogg stream.
         /// You can write any non-zero number of samples that you want here; there are no restrictions on length or packet boundaries
         /// </summary>
-        /// <param name="data">The audio samples to write. If stereo, this will be interleaved</param>
-        /// <param name="offset">The offset to use when reading data</param>
-        /// <param name="count">The amount of PCM data to write</param>
         public void WriteSamples(OpusFrame frame)
         {
             if (_finalized)

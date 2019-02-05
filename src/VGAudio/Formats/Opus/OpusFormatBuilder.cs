@@ -7,6 +7,7 @@ namespace VGAudio.Formats.Opus
     {
         public override int ChannelCount { get; }
         public int PreSkip { get; }
+        public bool HasFinalRangeSet { get; private set; }
 
         public List<OpusFrame> Frames { get; }
 
@@ -20,6 +21,12 @@ namespace VGAudio.Formats.Opus
             ChannelCount = channelCount;
             PreSkip = preSkip;
             Frames = frames;
+        }
+
+        public OpusFormatBuilder HasFinalRange()
+        {
+            HasFinalRangeSet = true;
+            return this;
         }
 
         public override OpusFormat Build()

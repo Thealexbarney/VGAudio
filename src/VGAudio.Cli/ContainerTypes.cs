@@ -36,7 +36,7 @@ namespace VGAudio.Cli
             [FileType.Genh] = new ContainerType(new[] { "genh" }, () => new GenhReader(), null, null),
             [FileType.Atrac9] = new ContainerType(new[] { "at9" }, () => new At9Reader(), null, null),
             [FileType.NxOpus] = new ContainerType(new[] { "lopus", "nop" }, () => new NxOpusReader(), () => new NxOpusWriter(), CreateConfiguration.NxOpus),
-            [FileType.OggOpus] = new ContainerType(new[] { "opus" }, null, () => new OggOpusWriter(), CreateConfiguration.NxOpus)
+            [FileType.OggOpus] = new ContainerType(new[] { "opus" }, () => new OggOpusReader(), () => new OggOpusWriter(), CreateConfiguration.NxOpus)
         };
 
         public static readonly Dictionary<string, FileType> Extensions =
