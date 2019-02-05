@@ -8,6 +8,7 @@ using VGAudio.Containers.Hca;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
 using VGAudio.Containers.NintendoWare;
+using VGAudio.Containers.Opus;
 using VGAudio.Containers.Wave;
 
 namespace VGAudio.Cli
@@ -143,6 +144,16 @@ namespace VGAudio.Cli
             config.LimitBitrate = options.LimitBitrate;
             if (options.Bitrate != 0) config.Bitrate = options.Bitrate;
 
+            return config;
+        }
+
+        public static Configuration NxOpus(Options options, Configuration inConfig = null)
+        {
+            NxOpusConfiguration config = inConfig as NxOpusConfiguration ?? new NxOpusConfiguration();
+
+            config.HeaderType = options.NxOpusHeaderType;
+            if (options.Bitrate != 0) config.Bitrate = options.Bitrate;
+            
             return config;
         }
     }

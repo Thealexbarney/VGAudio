@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using VGAudio.Codecs.CriAdx;
 using VGAudio.Codecs.CriHca;
+using VGAudio.Containers.Opus;
 using VGAudio.Formats;
 using VGAudio.Utilities;
 
@@ -39,6 +40,8 @@ namespace VGAudio.Cli
         public CriHcaQuality HcaQuality { get; set; }
         public int Bitrate { get; set; }
         public bool LimitBitrate { get; set; }
+
+        public NxOpusHeaderType NxOpusHeaderType { get; set; } // Switch Opus
     }
 
     internal class JobFiles
@@ -87,6 +90,8 @@ namespace VGAudio.Cli
         Adx,
         Hca,
         Genh,
-        Atrac9
+        Atrac9,
+        NxOpus,
+        OggOpus
     }
 }
