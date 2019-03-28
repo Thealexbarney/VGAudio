@@ -7,20 +7,28 @@ namespace VGAudio.Codecs.CriHca
     {
         private const int FramesToTest = 10;
 
-        public static void Decrypt(HcaInfo hca, byte[][] audio, CriHcaKey key)
+        private static Crc16 Crc { get; } = new Crc16(0x8005);
+
+        public static void Crypt(HcaInfo hca, byte[][] audio, CriHcaKey key, bool doDecrypt)
         {
             for (int frame = 0; frame < hca.FrameCount; frame++)
             {
-                DecryptFrame(hca, audio[frame], key);
+                CryptFrame(hca, audio[frame], key, doDecrypt);
             }
         }
 
-        public static void DecryptFrame(HcaInfo hca, byte[] audio, CriHcaKey key)
+        public static void CryptFrame(HcaInfo hca, byte[] audio, CriHcaKey key, bool doDecrypt)
         {
-            for (int b = 0; b < hca.FrameSize; b++)
+            byte[] substitutionTable = doDecrypt ? key.DecryptionTable : key.EncryptionTable;
+
+            for (int b = 0; b < hca.FrameSize - 2; b++)
             {
-                audio[b] = key.DecryptionTable[audio[b]];
+                audio[b] = substitutionTable[audio[b]];
             }
+
+            ushort crc = Crc.Compute(audio, hca.FrameSize - 2);
+            audio[hca.FrameSize - 2] = (byte)(crc >> 8);
+            audio[hca.FrameSize - 1] = (byte)crc;
         }
 
         public static CriHcaKey FindKey(HcaInfo hca, byte[][] audio)
@@ -44,7 +52,7 @@ namespace VGAudio.Codecs.CriHca
             for (int i = startFrame; i < endFrame; i++)
             {
                 Array.Copy(audio[i], buffer, audio[i].Length);
-                DecryptFrame(frame.Hca, buffer, key);
+                CryptFrame(frame.Hca, buffer, key, true);
                 var reader = new BitReader(buffer);
                 if (!CriHcaPacking.UnpackFrame(frame, reader))
                 {
