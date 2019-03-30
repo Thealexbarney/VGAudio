@@ -72,7 +72,10 @@ namespace VGAudio.Containers.Opus
             writer.Write(0x18);
             writer.Write((byte)0);
             writer.Write((byte)Format.ChannelCount);
-            writer.Write((short)0);
+            if (Format.Frames.Count != 0)
+                writer.Write((short)(Format.Frames[0].Length + 8));
+            else
+                writer.Write((short)0);
             writer.Write(Format.SampleRate);
             writer.Write(0x20);
             writer.Write(0);
@@ -94,7 +97,7 @@ namespace VGAudio.Containers.Opus
             writer.Write(Format.SampleRate);
             writer.Write(Format.LoopStart);
             writer.Write(Format.LoopEnd);
-            writer.Write(0);
+            writer.Write(Format.Looping ? 0x10 : 0);
             writer.Write(NamcoHeaderSize);
             writer.Write(StandardFileSize);
 
