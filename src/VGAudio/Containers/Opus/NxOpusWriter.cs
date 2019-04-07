@@ -72,10 +72,18 @@ namespace VGAudio.Containers.Opus
             writer.Write(0x18);
             writer.Write((byte)0);
             writer.Write((byte)Format.ChannelCount);
-            if (Format.Frames.Count != 0)
-                writer.Write((short)(Format.Frames[0].Length + 8));
-            else
-                writer.Write((short)0);
+            // If frame length is inconsistent, frameLength = 0
+            int frameLength = 0;
+            if (Format.Frames.Count > 0){
+                frameLength = Format.Frames[0].Length;
+                foreach(OpusFrame frame in Format.Frames){
+                    if(frame.Length != frameLength){
+                        frameLength = 0;
+                        break;
+                    }
+                }
+            }
+            writer.Write((short)(frameLength + 8));
             writer.Write(Format.SampleRate);
             writer.Write(0x20);
             writer.Write(0);
