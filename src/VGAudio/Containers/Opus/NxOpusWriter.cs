@@ -39,6 +39,7 @@ namespace VGAudio.Containers.Opus
             var encodingConfig = new OpusParameters
             {
                 Bitrate = Configuration.Bitrate,
+                EncodeCbr = Configuration.EncodeCbr,
                 Progress = Configuration.Progress
             };
 
@@ -74,10 +75,13 @@ namespace VGAudio.Containers.Opus
             writer.Write((byte)Format.ChannelCount);
             // If frame length is inconsistent, frameLength = 0
             int frameLength = 0;
-            if (Format.Frames.Count > 0){
+            if (Format.Frames.Count > 0)
+            {
                 frameLength = Format.Frames[0].Length;
-                foreach(OpusFrame frame in Format.Frames){
-                    if(frame.Length != frameLength){
+                foreach (OpusFrame frame in Format.Frames)
+                {
+                    if (frame.Length != frameLength)
+                    {
                         frameLength = 0;
                         break;
                     }

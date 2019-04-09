@@ -92,7 +92,9 @@ namespace VGAudio.Formats.Opus
         public override OpusFormat EncodeFromPcm16(Pcm16Format pcm16, OpusParameters config)
         {
             const int frameSize = 960;
+
             var encoder = new OpusEncoder(pcm16.SampleRate, pcm16.ChannelCount, OpusApplication.OPUS_APPLICATION_AUDIO);
+            encoder.UseVBR = !config.EncodeCbr;
 
             if (config.Bitrate > 0) encoder.Bitrate = config.Bitrate;
 

@@ -361,6 +361,9 @@ namespace VGAudio.Cli
                             options.NxOpusHeaderType = nxHeaderType;
                             i++;
                             continue;
+                        case "-CBR":
+                            options.EncodeCbr = true;
+                            continue;
                     }
                 }
 
@@ -560,12 +563,14 @@ namespace VGAudio.Cli
 
             Console.WriteLine("\nHCA Options:");
             Console.WriteLine("      --hcaquality     The quality level to use for the HCA file");
-            Console.WriteLine("      --bitrate        The bitrate in bps of the output HCA file");
+            Console.WriteLine("      --bitrate        The bitrate in bits per second of the output HCA file");
             Console.WriteLine("                       --bitrate takes precedence over --hcaquality");
             Console.WriteLine("      --limit-bitrate  This flag sets a limit on how low the bitrate can go");
             Console.WriteLine("                       This limit depends on the properties of the input file");
 
             Console.WriteLine("\nSwitch Opus Options:");
+            Console.WriteLine("      --bitrate        The bitrate in bits per second of the output file");
+            Console.WriteLine("      --cbr            Encode the file using a constant bitrate");
             Console.WriteLine("      --opusheader     The type of header to use for the generated Opus file");
             Console.WriteLine("                       Available types: " + opusHeaderTypes);
         }
