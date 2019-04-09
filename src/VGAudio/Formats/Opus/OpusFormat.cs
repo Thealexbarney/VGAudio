@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Concentus.Enums;
 using Concentus.Structs;
+using VGAudio.Codecs;
 using VGAudio.Codecs.Opus;
 using VGAudio.Formats.Pcm16;
 using VGAudio.Utilities;
@@ -26,16 +27,18 @@ namespace VGAudio.Formats.Opus
             HasFinalRange = b.HasFinalRangeSet;
         }
 
-        public override Pcm16Format ToPcm16()
+        public override Pcm16Format ToPcm16() => ToPcm16(null);
+        public override Pcm16Format ToPcm16(CodecParameters config) => ToPcm16(new OpusParameters(config));
+        public override Pcm16Format ToPcm16(OpusParameters config)
         {
-            short[][] audio = Decode();
+            short[][] audio = Decode(config);
 
             return new Pcm16FormatBuilder(audio, SampleRate)
                 .WithLoop(Looping, UnalignedLoopStart, UnalignedLoopEnd)
                 .Build();
         }
 
-        private short[][] Decode()
+        private short[][] Decode(OpusParameters config)
         {
             var dec = new OpusDecoder(SampleRate, ChannelCount);
 
@@ -45,6 +48,8 @@ namespace VGAudio.Formats.Opus
             var pcmBuffer = new short[ChannelCount * maxSampleCount];
             int outPos = 0;
             int remaining = SampleCount + PreSkipCount;
+
+            config.Progress?.SetTotal(Frames.Count);
 
             for (int i = 0; i < Frames.Count; i++)
             {
@@ -57,7 +62,11 @@ namespace VGAudio.Formats.Opus
 
                 outPos += frameSamples;
                 remaining -= frameSamples;
+
+                config.Progress?.ReportAdd(1);
             }
+
+            config.Progress?.SetTotal(0);
 
             return pcmOut;
         }
@@ -109,6 +118,8 @@ namespace VGAudio.Formats.Opus
 
             short[] encodeInput = pcmData;
 
+            config.Progress?.SetTotal(pcm16.SampleCount.DivideByRoundUp(frameSize));
+
             while (remaining >= 0)
             {
                 int encodeCount = Math.Min(frameSize, remaining);
@@ -136,11 +147,15 @@ namespace VGAudio.Formats.Opus
 
                 remaining -= encodeCount;
                 inPos += encodeCount * pcm16.ChannelCount;
+
+                config.Progress?.ReportAdd(1);
             }
 
             OpusFormat format = new OpusFormatBuilder(pcm16.SampleCount, pcm16.SampleRate, pcm16.ChannelCount, encoder.Lookahead, frames)
                 .WithLoop(pcm16.Looping, pcm16.LoopStart, pcm16.LoopEnd)
                 .Build();
+
+            config.Progress?.SetTotal(0);
 
             return format;
         }
