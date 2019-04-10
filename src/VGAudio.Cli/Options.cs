@@ -42,6 +42,7 @@ namespace VGAudio.Cli
         public bool LimitBitrate { get; set; }
 
         public NxOpusHeaderType NxOpusHeaderType { get; set; } // Switch Opus
+        public bool EncodeCbr { get; set; }
     }
 
     internal class JobFiles

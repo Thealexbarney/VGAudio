@@ -39,6 +39,7 @@ namespace VGAudio.Containers.Opus
             var encodingConfig = new OpusParameters
             {
                 Bitrate = Configuration.Bitrate,
+                EncodeCbr = Configuration.EncodeCbr,
                 Progress = Configuration.Progress
             };
 
@@ -72,7 +73,21 @@ namespace VGAudio.Containers.Opus
             writer.Write(0x18);
             writer.Write((byte)0);
             writer.Write((byte)Format.ChannelCount);
-            writer.Write((short)0);
+            // If frame length is inconsistent, frameLength = 0
+            int frameLength = 0;
+            if (Format.Frames.Count > 0)
+            {
+                frameLength = Format.Frames[0].Length;
+                foreach (OpusFrame frame in Format.Frames)
+                {
+                    if (frame.Length != frameLength)
+                    {
+                        frameLength = 0;
+                        break;
+                    }
+                }
+            }
+            writer.Write((short)(frameLength + 8));
             writer.Write(Format.SampleRate);
             writer.Write(0x20);
             writer.Write(0);
@@ -94,7 +109,7 @@ namespace VGAudio.Containers.Opus
             writer.Write(Format.SampleRate);
             writer.Write(Format.LoopStart);
             writer.Write(Format.LoopEnd);
-            writer.Write(0);
+            writer.Write(Format.Looping ? 0x10 : 0);
             writer.Write(NamcoHeaderSize);
             writer.Write(StandardFileSize);
 
