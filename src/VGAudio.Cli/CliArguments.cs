@@ -367,6 +367,9 @@ namespace VGAudio.Cli
                         case "-CBR":
                             options.EncodeCbr = true;
                             continue;
+                        case "-FUZ":
+                            options.SkyrimFuz = true;
+                            continue;
                     }
                 }
 

@@ -43,6 +43,8 @@ namespace VGAudio.Cli
 
         public NxOpusHeaderType NxOpusHeaderType { get; set; } // Switch Opus
         public bool EncodeCbr { get; set; }
+
+        public bool SkyrimFuz { get; set; }
     }
 
     internal class JobFiles

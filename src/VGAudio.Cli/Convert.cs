@@ -16,7 +16,7 @@ namespace VGAudio.Cli
 
         public static bool ConvertFile(Options options) => ConvertFile(options, options.Files);
 
-        public static bool ConvertFile(Options options, JobFiles files, bool showProgress = true)
+        public static bool ConvertFile(Options options, JobFiles files, bool showProgress = false)
         {
             if (options.Job != JobType.Convert && options.Job != JobType.Batch) return false;
 
@@ -29,7 +29,7 @@ namespace VGAudio.Cli
 
             converter.EncodeFiles(files, options);
             converter.SetConfiguration(files.OutFiles[0].Type, options);
-            converter.WriteFile(files.OutFiles[0].Path);
+            converter.WriteFile(files.OutFiles[0].Path, options);
 
             return true;
         }
@@ -51,7 +51,7 @@ namespace VGAudio.Cli
             }
         }
 
-        private void WriteFile(string fileName)
+        private void WriteFile(string fileName, Options options)
         {
             string directory = Path.GetDirectoryName(fileName);
             if (!String.IsNullOrWhiteSpace(directory))
@@ -59,10 +59,38 @@ namespace VGAudio.Cli
                 Directory.CreateDirectory(directory);
             }
 
+            bool isFuz = options.SkyrimFuz && options.NxOpusHeaderType == Containers.Opus.NxOpusHeaderType.Skyrim;
+            int lipSize = 0, lipPadding = 0;
+            byte[] lipData = { };
+
+            if (isFuz)
+            {
+                string fileNameWithoutExtension = Path.GetDirectoryName(fileName) + Path.GetFileNameWithoutExtension(fileName);
+                string lipFileName = fileNameWithoutExtension + ".LIP";
+                fileName = fileNameWithoutExtension + ".FUZ";
+
+                if (File.Exists(lipFileName))
+                {
+                    lipData = File.ReadAllBytes(lipFileName);
+                    lipSize = lipData.Length;
+                    lipPadding = lipSize % 4;
+                    if (lipPadding != 0) lipPadding = 4 - lipPadding;
+                }
+            }
+
             using (var stream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
+            using (var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, true))
             using (var progress = new ProgressBar())
             {
                 if (ShowProgress) Configuration.Progress = progress;
+                if (isFuz)
+                {
+                    writer.Write(0x455A5546);
+                    writer.Write((int)0x01);
+                    writer.Write(lipSize);
+                    writer.Write(0x10 + lipSize + lipPadding);
+                    if (lipSize > 0) writer.Write(lipData);
+                }
                 OutType.GetWriter().WriteToStream(Audio, stream, Configuration);
             }
         }
