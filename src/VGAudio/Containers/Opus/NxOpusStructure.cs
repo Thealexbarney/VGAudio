@@ -30,6 +30,10 @@ namespace VGAudio.Containers.Opus
         public int NamcoCoreDataLength { get; set; }
         public int SadfDataOffset { get; set; }
 
+        public int SkyrimSoundDurationMS { get; set; }
+        public int SkyrimHeaderSize { get; set; }
+        public int SkyrimOpusDataSize { get; set; }
+
         public List<OpusFrame> Frames { get; set; } = new List<OpusFrame>();
     }
 }

@@ -353,6 +353,9 @@ namespace VGAudio.Cli
                                 case "NAMCO":
                                     nxHeaderType = NxOpusHeaderType.Namco;
                                     break;
+                                case "SKYRIM":
+                                    nxHeaderType = NxOpusHeaderType.Skyrim;
+                                    break;
                                 default:
                                     Console.WriteLine("Invalid header type");
                                     return null;

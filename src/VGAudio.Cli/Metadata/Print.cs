@@ -50,6 +50,7 @@ namespace VGAudio.Cli.Metadata
             [AudioFormat.Pcm16] = "16-bit PCM",
             [AudioFormat.Pcm8] = "8-bit PCM",
             [AudioFormat.GcAdpcm] = "GameCube \"DSP\" 4-bit ADPCM",
+            [AudioFormat.McAdpcm] = "Nintendo Switch Multi-Channel \"DSP\" 4-bit ADPCM",
             [AudioFormat.ImaAdpcm] = "IMA 4-bit ADPCM",
             [AudioFormat.CriAdx] = "CRI ADX 4-bit ADPCM",
             [AudioFormat.CriAdxFixed] = "CRI ADX 4-bit ADPCM with fixed coefficients",
@@ -62,6 +63,7 @@ namespace VGAudio.Cli.Metadata
         {
             [FileType.Wave] = new Wave(),
             [FileType.Dsp] = new Dsp(),
+            [FileType.McAdpcm] = new McAdpcm(),
             [FileType.Idsp] = new Idsp(),
             [FileType.Brstm] = new Brstm(),
             [FileType.Bcstm] = new Bcstm(),

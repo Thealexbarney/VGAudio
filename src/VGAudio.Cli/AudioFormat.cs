@@ -6,6 +6,7 @@
         Pcm16,
         Pcm8,
         GcAdpcm,
+        McAdpcm,
         ImaAdpcm,
         CriAdx,
         CriAdxFixed,
