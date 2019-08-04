@@ -51,6 +51,36 @@ namespace VGAudio.Cli
             }
         }
 
+        private void WriteFuzHeader(string fileName, BinaryWriter writer)
+        {
+            const int fuzHeaderSize = 0x10;
+
+            string fileNameWithoutExtension = Path.GetDirectoryName(fileName) + Path.GetFileNameWithoutExtension(fileName);
+            string lipFileName = fileNameWithoutExtension + ".lip";
+
+            int lipSize = 0;
+            int lipPadding = 0;
+            byte[] lipData = { };
+
+            if (File.Exists(lipFileName))
+            {
+                lipData = File.ReadAllBytes(lipFileName);
+                lipSize = lipData.Length;
+                lipPadding = lipSize % 4;
+                if (lipPadding != 0) lipPadding = 4 - lipPadding;
+            }
+
+            writer.Write(0x455A5546); // string FUZE
+            writer.Write((int)0x01); // FUZE version = 0x00000001
+            writer.Write(lipSize); // lip size
+            writer.Write(fuzHeaderSize + lipSize + lipPadding); // offset to audio data
+            if (lipSize > 0)
+            {
+                writer.Write(lipData);
+                while (lipPadding-- > 0) writer.Write(0x00);
+            }
+        }
+
         private void WriteFile(string fileName, Options options)
         {
             string directory = Path.GetDirectoryName(fileName);
@@ -59,39 +89,32 @@ namespace VGAudio.Cli
                 Directory.CreateDirectory(directory);
             }
 
-            bool isFuz = options.SkyrimFuz && options.NxOpusHeaderType == Containers.Opus.NxOpusHeaderType.Skyrim;
-            int lipSize = 0, lipPadding = 0;
-            byte[] lipData = { };
-
-            if (isFuz)
-            {
-                string fileNameWithoutExtension = Path.GetDirectoryName(fileName) + Path.GetFileNameWithoutExtension(fileName);
-                string lipFileName = fileNameWithoutExtension + ".LIP";
-                fileName = fileNameWithoutExtension + ".FUZ";
-
-                if (File.Exists(lipFileName))
-                {
-                    lipData = File.ReadAllBytes(lipFileName);
-                    lipSize = lipData.Length;
-                    lipPadding = lipSize % 4;
-                    if (lipPadding != 0) lipPadding = 4 - lipPadding;
-                }
-            }
+            // check if a special FUZ header is required
+            bool isFuz = options.NxOpusHeaderType == Containers.Opus.NxOpusHeaderType.Skyrim && Path.GetExtension(fileName).ToLower() == "fuz";
 
             using (var stream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
             using (var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, true))
             using (var progress = new ProgressBar())
             {
                 if (ShowProgress) Configuration.Progress = progress;
+                
+                // Add Skyrim FUZ header if output is an OPUS file with a Skyrim Header and a FUZ extension
                 if (isFuz)
                 {
-                    writer.Write(0x455A5546);
-                    writer.Write((int)0x01);
-                    writer.Write(lipSize);
-                    writer.Write(0x10 + lipSize + lipPadding);
-                    if (lipSize > 0) writer.Write(lipData);
+                    WriteFuzHeader(fileName, writer);
                 }
+
+                // Write audio data
                 OutType.GetWriter().WriteToStream(Audio, stream, Configuration);
+
+                // Need to pad the a FUZ file to the closest WORD boundary
+                if (isFuz)
+                {
+                    long fileSize = stream.Position;
+                    int fuzPadding = (int) (fileSize % 4);
+                    if (fuzPadding != 0) fuzPadding = 4 - fuzPadding;
+                    while (fuzPadding-- > 0) writer.Write(0x00);
+                }
             }
         }
 
