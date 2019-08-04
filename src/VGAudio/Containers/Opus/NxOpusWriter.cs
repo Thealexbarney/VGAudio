@@ -22,6 +22,8 @@ namespace VGAudio.Containers.Opus
                         return StandardFileSize;
                     case NxOpusHeaderType.Namco:
                         return NamcoHeaderSize + StandardFileSize;
+                    case NxOpusHeaderType.Skyrim:
+                        return SkyrimHeaderSize + StandardFileSize;
                     default:
                         return 0;
                 }
@@ -30,6 +32,7 @@ namespace VGAudio.Containers.Opus
 
         private const int StandardHeaderSize = 0x28;
         private const int NamcoHeaderSize = 0x40;
+        private const int SkyrimHeaderSize = 0x14;
 
         private int StandardFileSize => StandardHeaderSize + DataSize;
         private int DataSize { get; set; }
@@ -59,6 +62,11 @@ namespace VGAudio.Containers.Opus
                     break;
                 case NxOpusHeaderType.Namco:
                     WriteNamcoHeader(GetBinaryWriter(stream, Endianness.BigEndian));
+                    WriteStandardHeader(GetBinaryWriter(stream, Endianness.LittleEndian));
+                    WriteData(GetBinaryWriter(stream, Endianness.BigEndian));
+                    break;
+                case NxOpusHeaderType.Skyrim:
+                    WriteSkyrimHeader(GetBinaryWriter(stream, Endianness.LittleEndian));
                     WriteStandardHeader(GetBinaryWriter(stream, Endianness.LittleEndian));
                     WriteData(GetBinaryWriter(stream, Endianness.BigEndian));
                     break;
@@ -96,6 +104,19 @@ namespace VGAudio.Containers.Opus
             writer.Write((short)0);
             writer.Write(0x80000004);
             writer.Write(DataSize);
+        }
+
+        private void WriteSkyrimHeader(BinaryWriter writer)
+        {
+            long startPos = writer.BaseStream.Position;
+
+            writer.Write(0xFFD58D0A);
+            int duration_ms = (int) ((float)(Format.SampleCount * 1000) / (float)(Format.SampleRate));
+            writer.Write(duration_ms);
+            writer.Write(Format.ChannelCount);
+            writer.Write(SkyrimHeaderSize);
+            writer.Write(DataSize);
+            writer.BaseStream.Position = startPos + SkyrimHeaderSize;
         }
 
         private void WriteNamcoHeader(BinaryWriter writer)

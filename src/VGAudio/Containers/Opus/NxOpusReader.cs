@@ -35,6 +35,12 @@ namespace VGAudio.Containers.Opus
                     stream.Position = startPos + structure.SadfDataOffset;
                     ReadStandardHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
                     break;
+                case NxOpusHeaderType.Skyrim:
+                    ReadSkyrimHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
+
+                    stream.Position = startPos + structure.SkyrimHeaderSize;
+                    ReadStandardHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
+                    break;
             }
 
             BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian);
@@ -70,6 +76,7 @@ namespace VGAudio.Containers.Opus
                 case 0x80000001: return NxOpusHeaderType.Standard;
                 case 0x5355504F: return NxOpusHeaderType.Namco; // OPUS
                 case 0x66646173: return NxOpusHeaderType.Sadf; // sadf
+                case 0xFFD58D0A: return NxOpusHeaderType.Skyrim;
                 default: throw new NotImplementedException("This Opus header is not supported");
             }
         }
@@ -93,6 +100,15 @@ namespace VGAudio.Containers.Opus
 
             structure.DataType = reader.ReadUInt32();
             structure.DataSize = reader.ReadInt32();
+        }
+
+        private static void ReadSkyrimHeader(BinaryReader reader, NxOpusStructure structure)
+        {
+            if (reader.ReadUInt32() != 0xFFD58D0A) throw new InvalidDataException();
+            structure.SkyrimSoundDurationMS = reader.ReadInt32();
+            structure.ChannelCount = reader.ReadInt32();
+            structure.SkyrimHeaderSize = reader.ReadInt32(); ; // Skyrim NX OPUS Header Size == 0x14
+            structure.SkyrimOpusDataSize = reader.ReadInt32();
         }
 
         private static void ReadNamcoHeader(BinaryReader reader, NxOpusStructure structure)
@@ -165,6 +181,7 @@ namespace VGAudio.Containers.Opus
     {
         Standard,
         Namco,
-        Sadf
+        Sadf,
+        Skyrim
     }
 }

@@ -4,6 +4,7 @@ using VGAudio.Codecs.CriHca;
 using VGAudio.Containers;
 using VGAudio.Containers.Adx;
 using VGAudio.Containers.Dsp;
+using VGAudio.Containers.McAdpcm;
 using VGAudio.Containers.Hca;
 using VGAudio.Containers.Hps;
 using VGAudio.Containers.Idsp;
@@ -37,6 +38,26 @@ namespace VGAudio.Cli
         public static Configuration Dsp(Options options, Configuration inConfig = null)
         {
             DspConfiguration config = inConfig as DspConfiguration ?? new DspConfiguration();
+
+            switch (options.OutFormat)
+            {
+                case AudioFormat.Pcm16:
+                    throw new InvalidDataException("Can't use format PCM16 with DSP files");
+                case AudioFormat.Pcm8:
+                    throw new InvalidDataException("Can't use format PCM8 with DSP files");
+            }
+
+            if (options.LoopAlignment > 0)
+            {
+                config.LoopPointAlignment = options.LoopAlignment;
+            }
+
+            return config;
+        }
+
+        public static Configuration McAdpcm(Options options, Configuration inConfig = null)
+        {
+            McAdpcmConfiguration config = inConfig as McAdpcmConfiguration ?? new McAdpcmConfiguration();
 
             switch (options.OutFormat)
             {

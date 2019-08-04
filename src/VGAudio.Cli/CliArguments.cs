@@ -353,6 +353,9 @@ namespace VGAudio.Cli
                                 case "NAMCO":
                                     nxHeaderType = NxOpusHeaderType.Namco;
                                     break;
+                                case "SKYRIM":
+                                    nxHeaderType = NxOpusHeaderType.Skyrim;
+                                    break;
                                 default:
                                     Console.WriteLine("Invalid header type");
                                     return null;
@@ -571,6 +574,7 @@ namespace VGAudio.Cli
             Console.WriteLine("\nSwitch Opus Options:");
             Console.WriteLine("      --bitrate        The bitrate in bits per second of the output file");
             Console.WriteLine("      --cbr            Encode the file using a constant bitrate");
+            Console.WriteLine("      --fuz            Save the file as a Skyrim NX FUZ container (with corresponding LIP)");
             Console.WriteLine("      --opusheader     The type of header to use for the generated Opus file");
             Console.WriteLine("                       Available types: " + opusHeaderTypes);
         }
