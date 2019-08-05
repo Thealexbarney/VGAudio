@@ -60,7 +60,7 @@ namespace VGAudio.Cli
             }
 
             // check if a special FUZ header is required
-            bool isFuz = options.NxOpusHeaderType == Containers.Opus.NxOpusHeaderType.Skyrim && Path.GetExtension(fileName).ToLower() == "fuz";
+            bool isFuz = options.NxOpusHeaderType == Containers.Opus.NxOpusHeaderType.Skyrim && Path.GetExtension(fileName).ToLower() == ".fuz";
 
             using (var stream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
             using (var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, true))
@@ -82,8 +82,10 @@ namespace VGAudio.Cli
                 {
                     long fileSize = stream.Position;
                     int fuzPadding = (int) (fileSize % 4);
-                    if (fuzPadding != 0) fuzPadding = 4 - fuzPadding;
-                    while (fuzPadding-- > 0) writer.Write(0x00);
+                    if (fuzPadding != 0)
+                    {
+                        while (fuzPadding++ < 4) writer.Write((byte)0x00);
+                    }
                 }
             }
         }
@@ -92,8 +94,7 @@ namespace VGAudio.Cli
         {
             const int fuzHeaderSize = 0x10;
 
-            string fileNameWithoutExtension = Path.GetDirectoryName(fileName) + Path.GetFileNameWithoutExtension(fileName);
-            string lipFileName = fileNameWithoutExtension + ".lip";
+            string lipFileName = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".lip";
 
             int lipSize = 0;
             int lipPadding = 0;
@@ -104,7 +105,10 @@ namespace VGAudio.Cli
                 lipData = File.ReadAllBytes(lipFileName);
                 lipSize = lipData.Length;
                 lipPadding = lipSize % 4;
-                if (lipPadding != 0) lipPadding = 4 - lipPadding;
+                if (lipPadding != 0)
+                {
+                    lipPadding = 4 - lipPadding;
+                }
             }
 
             writer.Write(0x455A5546); // string FUZE
@@ -114,7 +118,7 @@ namespace VGAudio.Cli
             if (lipSize > 0)
             {
                 writer.Write(lipData);
-                while (lipPadding-- > 0) writer.Write(0x00);
+                while (lipPadding-- > 0) writer.Write((byte)0x00);
             }
         }
 
