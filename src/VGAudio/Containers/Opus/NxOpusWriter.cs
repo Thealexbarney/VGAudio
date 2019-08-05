@@ -115,7 +115,7 @@ namespace VGAudio.Containers.Opus
             writer.Write(duration_ms);
             writer.Write(Format.ChannelCount);
             writer.Write(SkyrimHeaderSize);
-            writer.Write(DataSize);
+            writer.Write(StandardHeaderSize + DataSize); // OPUS payload size
             writer.BaseStream.Position = startPos + SkyrimHeaderSize;
         }
 
