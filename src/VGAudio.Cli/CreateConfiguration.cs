@@ -177,7 +177,7 @@ namespace VGAudio.Cli
             config.HeaderType = options.NxOpusHeaderType;
             config.EncodeCbr = options.EncodeCbr;
             if (options.Bitrate != 0) config.Bitrate = options.Bitrate;
-            
+
             return config;
         }
     }

@@ -45,7 +45,7 @@ namespace VGAudio.Containers.Opus
                 EncodeCbr = Configuration.EncodeCbr,
                 Progress = Configuration.Progress
             };
-
+   
             Format = audio.GetFormat<OpusFormat>(encodingConfig);
             Format.EnsureHasFinalRange();
 
@@ -66,13 +66,33 @@ namespace VGAudio.Containers.Opus
                     WriteData(GetBinaryWriter(stream, Endianness.BigEndian));
                     break;
                 case NxOpusHeaderType.Skyrim:
-                    WriteSkyrimHeader(GetBinaryWriter(stream, Endianness.LittleEndian));
-                    WriteStandardHeader(GetBinaryWriter(stream, Endianness.LittleEndian));
-                    WriteData(GetBinaryWriter(stream, Endianness.BigEndian));
+                    using (var writer = GetBinaryWriter(stream, Endianness.LittleEndian))
+                    {
+                        WriteFuzLipHeader(writer);
+                        WriteSkyrimHeader(writer);
+                        WriteStandardHeader(writer);
+                    }
+                    using (var writer = GetBinaryWriter(stream, Endianness.BigEndian))
+                    {
+                        WriteData(writer);
+                        long fileSize = stream.Position;
+                        int fuzPadding = (int)(stream.Position % 4);
+                        if (fuzPadding != 0)
+                        {
+                            while (fuzPadding++ < 4) writer.Write((byte)0x00);
+                        }
+                    }
                     break;
                 default:
                     throw new NotImplementedException("Writing this Opus header is not supported");
             }
+        }
+
+
+        private string getLipFileName(Stream stream)
+        {
+            string fileName = (stream as FileStream).Name;
+            return fileName.Substring(0, fileName.Length - 3) + ".lip";
         }
 
         private void WriteStandardHeader(BinaryWriter writer)
@@ -117,6 +137,40 @@ namespace VGAudio.Containers.Opus
             writer.Write(SkyrimHeaderSize);
             writer.Write(StandardHeaderSize + DataSize); // OPUS payload size
             writer.BaseStream.Position = startPos + SkyrimHeaderSize;
+        }
+
+        private void WriteFuzLipHeader(BinaryWriter writer)
+        {
+            const int fuzHeaderSize = 0x10;
+
+            string fileName = (writer.BaseStream as FileStream).Name;
+            string lipFileName = fileName.Substring(0, fileName.Length - 3) + "lip";
+            int lipSize = 0;
+            int lipPadding = 0;
+            byte[] lipData = { };
+
+            if (File.Exists(lipFileName))
+            {
+                lipData = File.ReadAllBytes(lipFileName);
+                lipSize = lipData.Length;
+                lipPadding = lipSize % 4;
+                if (lipPadding != 0)
+                {
+                    lipPadding = 4 - lipPadding;
+                }
+            }
+
+            writer.Write(0x455A5546); // string FUZE
+            writer.Write((int)0x01); // FUZE version = 0x00000001
+            writer.Write(lipSize); // lip size
+            writer.Write(fuzHeaderSize + lipSize + lipPadding); // offset to audio data
+
+            // add the LIP payload
+            if (lipSize > 0)
+            {
+                writer.Write(lipData);
+                while (lipPadding-- > 0) writer.Write((byte)0x00);
+            }
         }
 
         private void WriteNamcoHeader(BinaryWriter writer)
