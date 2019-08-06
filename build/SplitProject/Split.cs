@@ -52,7 +52,7 @@ namespace Build.SplitProject
             "[assembly: InternalsVisibleTo(\"VGAudio.Benchmark\")]";
 
         private static readonly string DefaultProjectFile =
-            @"<Project Sdk=""Microsoft.NET.Sdk""><PropertyGroup><TargetFrameworks>netstandard1.1;net45</TargetFrameworks></PropertyGroup></Project>";
+            @"<Project Sdk=""Microsoft.NET.Sdk""><PropertyGroup><TargetFrameworks>netstandard1.3;net45</TargetFrameworks></PropertyGroup></Project>";
 
         private static readonly string[] OldProjects =
         {
