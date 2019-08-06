@@ -38,7 +38,7 @@ namespace VGAudio.Containers.Opus
                 case NxOpusHeaderType.Skyrim:
                     ReadSkyrimHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
 
-                    stream.Position = startPos + structure.SkyrimHeaderSize;
+                    // stream.Position = startPos + structure.SkyrimHeaderSize;
                     ReadStandardHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
                     break;
             }
@@ -76,7 +76,7 @@ namespace VGAudio.Containers.Opus
                 case 0x80000001: return NxOpusHeaderType.Standard;
                 case 0x5355504F: return NxOpusHeaderType.Namco; // OPUS
                 case 0x66646173: return NxOpusHeaderType.Sadf; // sadf
-                case 0xFFD58D0A: return NxOpusHeaderType.Skyrim;
+                case 0x455A5546: return NxOpusHeaderType.Skyrim;
                 default: throw new NotImplementedException("This Opus header is not supported");
             }
         }
@@ -104,7 +104,10 @@ namespace VGAudio.Containers.Opus
 
         private static void ReadSkyrimHeader(BinaryReader reader, NxOpusStructure structure)
         {
-            if (reader.ReadUInt32() != 0xFFD58D0A) throw new InvalidDataException();
+            if (reader.ReadUInt32() != 0x455A5546) throw new InvalidDataException();
+            reader.BaseStream.Position += 8;
+            uint audioOffset = reader.ReadUInt32();
+            reader.BaseStream.Position = audioOffset + 0x04;
             structure.SkyrimSoundDurationMS = reader.ReadInt32();
             structure.ChannelCount = reader.ReadInt32();
             structure.SkyrimHeaderSize = reader.ReadInt32(); ; // Skyrim NX OPUS Header Size == 0x14
