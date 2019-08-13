@@ -108,9 +108,9 @@ namespace VGAudio.Containers.Opus
             reader.BaseStream.Position += 8;
             uint audioOffset = reader.ReadUInt32();
             reader.BaseStream.Position = audioOffset + 0x04;
-            structure.SkyrimSoundDurationMS = reader.ReadInt32();
+            structure.SkyrimSoundDurationMs = reader.ReadInt32();
             structure.ChannelCount = reader.ReadInt32();
-            structure.SkyrimHeaderSize = reader.ReadInt32(); ; // Skyrim NX OPUS Header Size == 0x14
+            structure.SkyrimHeaderSize = reader.ReadInt32(); // Skyrim NX OPUS Header Size == 0x14
             structure.SkyrimOpusDataSize = reader.ReadInt32();
         }
 

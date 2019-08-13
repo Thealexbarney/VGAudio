@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using VGAudio.Codecs.GcAdpcm;
 using VGAudio.Formats;
 using VGAudio.Formats.GcAdpcm;
@@ -24,10 +23,6 @@ namespace VGAudio.Containers.McAdpcm
 
         private int SampleCount => (Configuration.TrimFile && Adpcm.Looping ? LoopEnd : Math.Max(Adpcm.SampleCount, LoopEnd));
         private short Format { get; } = 0; /* 0 for ADPCM */
-
-        private int SamplesPerInterleave => Configuration.SamplesPerInterleave;
-        private int BytesPerInterleave => SampleCountToByteCount(SamplesPerInterleave);
-        private int FramesPerInterleave => BytesPerInterleave / BytesPerFrame;
 
         private int AlignmentSamples => GetNextMultiple(Adpcm.LoopStart, Configuration.LoopPointAlignment) - Adpcm.LoopStart;
         private int LoopStart => Adpcm.LoopStart + AlignmentSamples;
@@ -61,7 +56,7 @@ namespace VGAudio.Containers.McAdpcm
             writer.Write(DspHeaderSize + AudioDataSize); // channel 0 data size
             if (ChannelCount == 2)
             {
-                writer.Write(McAdpcmHeaderSize + DspHeaderSize + AudioDataSize); // chabnel 1 offset
+                writer.Write(McAdpcmHeaderSize + DspHeaderSize + AudioDataSize); // channel 1 offset
                 writer.Write(DspHeaderSize + AudioDataSize); // channel 1 data size
             }
         }

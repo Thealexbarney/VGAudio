@@ -45,7 +45,7 @@ namespace VGAudio.Containers.Opus
                 EncodeCbr = Configuration.EncodeCbr,
                 Progress = Configuration.Progress
             };
-   
+
             Format = audio.GetFormat<OpusFormat>(encodingConfig);
             Format.EnsureHasFinalRange();
 
@@ -66,16 +66,15 @@ namespace VGAudio.Containers.Opus
                     WriteData(GetBinaryWriter(stream, Endianness.BigEndian));
                     break;
                 case NxOpusHeaderType.Skyrim:
-                    using (var writer = GetBinaryWriter(stream, Endianness.LittleEndian))
+                    using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.LittleEndian))
                     {
                         WriteFuzLipHeader(writer);
                         WriteSkyrimHeader(writer);
                         WriteStandardHeader(writer);
                     }
-                    using (var writer = GetBinaryWriter(stream, Endianness.BigEndian))
+                    using (BinaryWriter writer = GetBinaryWriter(stream, Endianness.BigEndian))
                     {
                         WriteData(writer);
-                        long fileSize = stream.Position;
                         int fuzPadding = (int)(stream.Position % 4);
                         if (fuzPadding != 0)
                         {
@@ -86,13 +85,6 @@ namespace VGAudio.Containers.Opus
                 default:
                     throw new NotImplementedException("Writing this Opus header is not supported");
             }
-        }
-
-
-        private string getLipFileName(Stream stream)
-        {
-            string fileName = (stream as FileStream).Name;
-            return fileName.Substring(0, fileName.Length - 3) + ".lip";
         }
 
         private void WriteStandardHeader(BinaryWriter writer)
@@ -131,8 +123,8 @@ namespace VGAudio.Containers.Opus
             long startPos = writer.BaseStream.Position;
 
             writer.Write(0xFFD58D0A);
-            int duration_ms = (int) ((float)(Format.SampleCount * 1000) / (float)(Format.SampleRate));
-            writer.Write(duration_ms);
+            int durationMs = (int)(Format.SampleCount * 1000 / (float)(Format.SampleRate));
+            writer.Write(durationMs);
             writer.Write(Format.ChannelCount);
             writer.Write(SkyrimHeaderSize);
             writer.Write(StandardHeaderSize + DataSize); // OPUS payload size
@@ -161,7 +153,7 @@ namespace VGAudio.Containers.Opus
             }
 
             writer.Write(0x455A5546); // string FUZE
-            writer.Write((int)0x01); // FUZE version = 0x00000001
+            writer.Write(0x01); // FUZE version = 0x00000001
             writer.Write(lipSize); // lip size
             writer.Write(fuzHeaderSize + lipSize + lipPadding); // offset to audio data
 
