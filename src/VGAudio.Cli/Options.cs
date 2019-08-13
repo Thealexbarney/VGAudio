@@ -93,6 +93,8 @@ namespace VGAudio.Cli
         Genh,
         Atrac9,
         NxOpus,
-        OggOpus
+        OggOpus,
+        McAdpcm,
+        Fuz
     }
 }
