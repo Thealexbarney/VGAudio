@@ -35,6 +35,9 @@ namespace VGAudio.Containers.Opus
                     stream.Position = startPos + structure.SadfDataOffset;
                     ReadStandardHeader(GetBinaryReader(stream, Endianness.LittleEndian), structure);
                     break;
+                case NxOpusHeaderType.Ktss:
+                    ReadKtssHeader( GetBinaryReader( stream, Endianness.LittleEndian ), structure );
+                    break;
             }
 
             BinaryReader reader = GetBinaryReader(stream, Endianness.BigEndian);
@@ -70,6 +73,7 @@ namespace VGAudio.Containers.Opus
                 case 0x80000001: return NxOpusHeaderType.Standard;
                 case 0x5355504F: return NxOpusHeaderType.Namco; // OPUS
                 case 0x66646173: return NxOpusHeaderType.Sadf; // sadf
+                case 0x4B545353: return NxOpusHeaderType.Ktss; // KTSS
                 default: throw new NotImplementedException("This Opus header is not supported");
             }
         }
@@ -134,6 +138,38 @@ namespace VGAudio.Containers.Opus
             structure.LoopEnd = reader.ReadInt32();
         }
 
+        private static void ReadKtssHeader( BinaryReader reader, NxOpusStructure structure )
+        {
+            if(reader.ReadUInt32() != 0x4B545353) throw new InvalidDataException();
+            reader.ReadInt32(); // fileSize
+            reader.BaseStream.Position += 0x18; // padding
+            reader.ReadUInt16(); // Codec ID
+            reader.ReadUInt16(); // Unknown
+            reader.ReadUInt32(); // Subsection start offset
+            reader.ReadByte(); // Layer count
+            structure.ChannelCount = reader.ReadByte();
+            reader.ReadUInt16(); // Unknown
+            structure.SampleRate = reader.ReadInt32();
+            structure.SampleCount = reader.ReadInt32();
+            structure.LoopStart = reader.ReadInt32();
+            structure.LoopEnd = structure.LoopStart + reader.ReadInt32(); // Actually LoopLength
+            structure.Looping = structure.LoopStart == 0;
+            reader.ReadInt32(); // Padding. Moaaar padding. Koei Tecmo loves padding.
+            var audioSectionAddress = reader.ReadUInt32(); // Audio section address
+            reader.ReadUInt32(); // Audio section size
+            reader.ReadInt32(); // Unknown
+            reader.ReadInt32(); // Frame count
+            structure.FrameSize = reader.ReadInt16();
+            reader.ReadInt16(); // Unknown. Always 0x3C0
+            reader.ReadInt32(); // Original sample rate?
+            reader.ReadUInt16(); // Pre-skip
+            reader.ReadByte(); // Stream count
+            reader.ReadByte(); // Coupled count
+            reader.ReadBytes(structure.ChannelCount); // Channel mapping
+            reader.ReadBytes(0x70 - (int)reader.BaseStream.Position % 0x70); // Padding to next section
+            reader.BaseStream.Position = audioSectionAddress;
+        }
+
         private static void ReadData(BinaryReader reader, NxOpusStructure structure)
         {
             long startPos = reader.BaseStream.Position;
@@ -165,6 +201,7 @@ namespace VGAudio.Containers.Opus
     {
         Standard,
         Namco,
-        Sadf
+        Sadf,
+        Ktss
     }
 }
