@@ -22,6 +22,8 @@ namespace VGAudio.Containers.Opus
                         return StandardFileSize;
                     case NxOpusHeaderType.Namco:
                         return NamcoHeaderSize + StandardFileSize;
+                    case NxOpusHeaderType.Ktss:
+                        return KtssHeaderSize;
                     default:
                         return 0;
                 }
@@ -30,6 +32,7 @@ namespace VGAudio.Containers.Opus
 
         private const int StandardHeaderSize = 0x28;
         private const int NamcoHeaderSize = 0x40;
+        private const int KtssHeaderSize = 0x70;
 
         private int StandardFileSize => StandardHeaderSize + DataSize;
         private int DataSize { get; set; }
@@ -60,6 +63,10 @@ namespace VGAudio.Containers.Opus
                 case NxOpusHeaderType.Namco:
                     WriteNamcoHeader(GetBinaryWriter(stream, Endianness.BigEndian));
                     WriteStandardHeader(GetBinaryWriter(stream, Endianness.LittleEndian));
+                    WriteData(GetBinaryWriter(stream, Endianness.BigEndian));
+                    break;
+                case NxOpusHeaderType.Ktss:
+                    WriteKtssHeader(GetBinaryWriter(stream, Endianness.LittleEndian));
                     WriteData(GetBinaryWriter(stream, Endianness.BigEndian));
                     break;
                 default:
@@ -116,6 +123,43 @@ namespace VGAudio.Containers.Opus
             writer.BaseStream.Position = startPos + NamcoHeaderSize;
         }
 
+        private void WriteKtssHeader(BinaryWriter writer)
+        {
+            long startPos = writer.BaseStream.Position;
+
+            writer.WriteUTF8("KTSS");
+            writer.Write(KtssHeaderSize + DataSize);
+            writer.Seek(0x20, SeekOrigin.Begin);
+            writer.Write((short)9);
+            writer.Write((byte)3);
+            writer.Write((byte)3);
+            writer.Write(0x50);
+            writer.Write((byte)1);
+            writer.Write((byte)Format.ChannelCount);
+            writer.Write((short)0);
+            writer.Write(Format.SampleRate);
+            writer.Write(Format.SampleCount);
+            writer.Write(Format.LoopStart);
+            writer.Write(Format.Looping ? Format.LoopEnd - Format.LoopStart : 0);
+            writer.Write(0); // Padding
+            writer.Write(0x70);
+            writer.Write(DataSize);
+            writer.Write(0);
+            writer.Write(Format.Frames.Count);
+            writer.Write((short)(DataSize / Format.Frames.Count)); // Frame size
+            writer.Write((short)0x3C0); // Some constant
+            writer.Write(Format.SampleRate); // "Original" sample rate
+            writer.Write((short)Format.PreSkipCount);
+            writer.Write((byte)1);
+            writer.Write((byte)1);
+
+            // Channel mapping, Koei Tecmo doesn't seem to care about the order so we don't either
+            for (int i = 0; i < Format.ChannelCount; i++)
+                writer.Write((byte)i);
+
+            writer.BaseStream.Position = startPos + KtssHeaderSize;
+        }
+
         private void WriteData(BinaryWriter writer)
         {
             foreach (OpusFrame frame in Format.Frames)
@@ -124,6 +168,10 @@ namespace VGAudio.Containers.Opus
                 writer.Write(frame.FinalRange);
                 writer.Write(frame.Data);
             }
+
+            // KTSS need to be 0x40 aligned
+            if (Configuration.HeaderType == NxOpusHeaderType.Ktss)
+                writer.Write(new byte[0x40 - writer.BaseStream.Position % 0x40]);
         }
     }
 }

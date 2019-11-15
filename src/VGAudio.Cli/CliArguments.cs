@@ -353,6 +353,9 @@ namespace VGAudio.Cli
                                 case "NAMCO":
                                     nxHeaderType = NxOpusHeaderType.Namco;
                                     break;
+                                case "KTSS":
+                                    nxHeaderType = NxOpusHeaderType.Ktss;
+                                    break;
                                 default:
                                     Console.WriteLine("Invalid header type");
                                     return null;
