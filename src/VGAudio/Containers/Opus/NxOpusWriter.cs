@@ -140,7 +140,7 @@ namespace VGAudio.Containers.Opus
             writer.Write(Format.SampleRate);
             writer.Write(Format.SampleCount);
             writer.Write(Format.LoopStart);
-            writer.Write(Format.LoopStart == 0 ? 0: Format.SampleCount - Format.LoopStart);
+            writer.Write(Format.Looping ? Format.LoopEnd - Format.LoopStart : 0);
             writer.Write(0); // Padding
             writer.Write(0x70);
             writer.Write(DataSize);
