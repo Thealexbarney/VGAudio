@@ -106,7 +106,7 @@ namespace VGAudio.Formats.CriHca
 
         public override CriHcaFormatBuilder GetCloneBuilder()
         {
-            throw new NotImplementedException();
+            return new CriHcaFormatBuilder(AudioData, Hca.GetClone());
         }
     }
 }
