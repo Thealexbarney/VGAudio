@@ -1,4 +1,5 @@
-﻿using VGAudio.Codecs.CriHca;
+﻿using System;
+using VGAudio.Codecs.CriHca;
 
 namespace VGAudio.Formats.CriHca
 {
@@ -21,6 +22,37 @@ namespace VGAudio.Formats.CriHca
                 LoopStart = hca.LoopStartSample;
                 LoopEnd = hca.LoopEndSample;
             }
+        }
+
+        public override CriHcaFormatBuilder WithLoop(bool loop, int loopStart, int loopEnd)
+        {
+            base.WithLoop(loop, loopStart, loopEnd);
+
+            if (loop && (loopStart != Hca.LoopStartSample || loopEnd != Hca.LoopEndSample))
+            {
+                throw new NotSupportedException("Changing the loop points on HCA audio without re-encoding is not supported.");
+            }
+
+            WithLoopImpl(loop);
+            return this;
+        }
+
+        public override CriHcaFormatBuilder WithLoop(bool loop)
+        {
+            base.WithLoop(loop);
+
+            WithLoopImpl(loop);
+            return this;
+        }
+
+        private void WithLoopImpl(bool loop)
+        {
+            if (loop && !Hca.Looping)
+            {
+                throw new NotSupportedException("Adding a loop to HCA audio without re-encoding is not supported.");
+            }
+
+            Hca.Looping = loop;
         }
 
         public override CriHcaFormat Build() => new CriHcaFormat(this);

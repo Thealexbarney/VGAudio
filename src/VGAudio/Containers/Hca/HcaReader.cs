@@ -40,7 +40,9 @@ namespace VGAudio.Containers.Hca
         {
             if (structure.EncryptionKey != null)
             {
-                CriHcaEncryption.Decrypt(structure.Hca, structure.AudioData, structure.EncryptionKey);
+                CriHcaEncryption.Crypt(structure.Hca, structure.AudioData, structure.EncryptionKey, true);
+
+                structure.Hca.EncryptionType = 0;
             }
 
             return new CriHcaFormatBuilder(structure.AudioData, structure.Hca).Build();
@@ -60,6 +62,7 @@ namespace VGAudio.Containers.Hca
             string signature = ReadChunkId(reader);
             structure.Version = reader.ReadInt16();
             structure.HeaderSize = reader.ReadInt16();
+            hca.HeaderSize = structure.HeaderSize;
 
             if (signature != "HCA\0")
             {

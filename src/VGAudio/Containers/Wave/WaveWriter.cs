@@ -58,9 +58,9 @@ namespace VGAudio.Containers.Wave
                 stream.Position = 0;
                 WriteRiffHeader(writer);
                 WriteFmtChunk(writer);
-                WriteDataChunk(writer);
                 if (Looping)
                     WriteSmplChunk(writer);
+                WriteDataChunk(writer);
             }
         }
 

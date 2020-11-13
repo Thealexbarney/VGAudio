@@ -144,6 +144,8 @@ namespace VGAudio.Cli
             config.LimitBitrate = options.LimitBitrate;
             if (options.Bitrate != 0) config.Bitrate = options.Bitrate;
 
+            if (options.KeyCode != 0) config.EncryptionKey = new CriHcaKey(options.KeyCode);
+
             return config;
         }
 
@@ -152,6 +154,7 @@ namespace VGAudio.Cli
             NxOpusConfiguration config = inConfig as NxOpusConfiguration ?? new NxOpusConfiguration();
 
             config.HeaderType = options.NxOpusHeaderType;
+            config.EncodeCbr = options.EncodeCbr;
             if (options.Bitrate != 0) config.Bitrate = options.Bitrate;
             
             return config;

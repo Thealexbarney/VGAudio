@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using VGAudio.Codecs.CriHca;
 using VGAudio.Formats;
 using VGAudio.Formats.CriHca;
@@ -34,6 +35,13 @@ namespace VGAudio.Containers.Hca
             var hcaFormat = audio.GetFormat<CriHcaFormat>(encodingConfig);
             Hca = hcaFormat.Hca;
             AudioData = hcaFormat.AudioData;
+
+            if (Configuration.EncryptionKey != null)
+            {
+                CriHcaEncryption.Crypt(Hca, AudioData, Configuration.EncryptionKey, false);
+
+                Hca.EncryptionType = Configuration.EncryptionKey.KeyType;
+            }
         }
 
         protected override void WriteStream(Stream stream)
@@ -72,14 +80,14 @@ namespace VGAudio.Containers.Hca
 
         private void WriteHcaChunk(BinaryWriter writer)
         {
-            writer.WriteUTF8("HCA\0");
+            WriteChunkId(writer, "HCA\0");
             writer.Write(Version);
             writer.Write((short)HeaderSize);
         }
 
         private void WriteFmtChunk(BinaryWriter writer)
         {
-            writer.WriteUTF8("fmt\0");
+            WriteChunkId(writer, "fmt\0");
             writer.Write((byte)Hca.ChannelCount);
 
             // Sample Rate is 24-bit
@@ -93,7 +101,7 @@ namespace VGAudio.Containers.Hca
 
         private void WriteCompChunk(BinaryWriter writer)
         {
-            writer.WriteUTF8("comp");
+            WriteChunkId(writer, "comp");
             writer.Write((short)Hca.FrameSize);
             writer.Write((byte)Hca.MinResolution);
             writer.Write((byte)Hca.MaxResolution);
@@ -110,7 +118,7 @@ namespace VGAudio.Containers.Hca
         {
             if (!Hca.Looping) return;
 
-            writer.WriteUTF8("loop");
+            WriteChunkId(writer, "loop");
             writer.Write(Hca.LoopStartFrame);
             writer.Write(Hca.LoopEndFrame);
             writer.Write((short)Hca.PreLoopSamples);
@@ -119,7 +127,7 @@ namespace VGAudio.Containers.Hca
 
         private void WriteCiphChunk(BinaryWriter writer)
         {
-            writer.WriteUTF8("ciph");
+            WriteChunkId(writer, "ciph");
             writer.Write((short)Hca.EncryptionType);
         }
 
@@ -129,20 +137,35 @@ namespace VGAudio.Containers.Hca
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (volume != 1)
             {
-                writer.WriteUTF8("rva\0");
+                WriteChunkId(writer, "rva\0");
                 writer.Write(volume);
             }
         }
 
         private void WriteCommChunk(BinaryWriter writer)
         {
-            writer.WriteUTF8("comm\0");
+            WriteChunkId(writer, "comm\0");
             writer.WriteUTF8Z(Hca.Comment);
         }
 
         private void WritePadChunk(BinaryWriter writer)
         {
-            writer.WriteUTF8("pad");
+            WriteChunkId(writer, "pad");
+        }
+
+        private void WriteChunkId(BinaryWriter writer, string value)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(value);
+
+            if (Configuration.EncryptionKey != null)
+            {
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    if (bytes[i] != 0) bytes[i] |= 0x80;
+                }
+            }
+
+            writer.Write(bytes);
         }
 
         private void WriteData(BinaryWriter writer)

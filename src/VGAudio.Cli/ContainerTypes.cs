@@ -26,7 +26,7 @@ namespace VGAudio.Cli
             [FileType.Bcstm] = new ContainerType(new[] { "bcstm" }, () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Ctr), CreateConfiguration.Bxstm),
             [FileType.Bfstm] = new ContainerType(new[] { "bfstm" }, () => new BCFstmReader(), () => new BCFstmWriter(NwTarget.Cafe), CreateConfiguration.Bxstm),
             [FileType.Brwav] = new ContainerType(new[] { "brwav", "rwav" }, () => new BrwavReader(), null, CreateConfiguration.Bxstm),
-            [FileType.Bcwav] = new ContainerType(new[] { "bcwav", "cwav" }, () => new BCFstmReader(), null, CreateConfiguration.Bxstm),
+            [FileType.Bcwav] = new ContainerType(new[] { "bcwav", "cwav", "bms" }, () => new BCFstmReader(), null, CreateConfiguration.Bxstm),
             [FileType.Bfwav] = new ContainerType(new[] { "bfwav" }, () => new BCFstmReader(), null, CreateConfiguration.Bxstm),
             [FileType.Bcstp] = new ContainerType(new[] { "bcstp" }, () => new BCFstmReader(), null, CreateConfiguration.Bxstm),
             [FileType.Bfstp] = new ContainerType(new[] { "bfstp" }, () => new BCFstmReader(), null, CreateConfiguration.Bxstm),
@@ -35,7 +35,7 @@ namespace VGAudio.Cli
             [FileType.Hca] = new ContainerType(new[] { "hca" }, () => new HcaReader(), () => new HcaWriter(), CreateConfiguration.Hca),
             [FileType.Genh] = new ContainerType(new[] { "genh" }, () => new GenhReader(), null, null),
             [FileType.Atrac9] = new ContainerType(new[] { "at9" }, () => new At9Reader(), null, null),
-            [FileType.NxOpus] = new ContainerType(new[] { "lopus", "nop" }, () => new NxOpusReader(), () => new NxOpusWriter(), CreateConfiguration.NxOpus),
+            [FileType.NxOpus] = new ContainerType(new[] { "lopus", "nop", "ktss", "kns" }, () => new NxOpusReader(), () => new NxOpusWriter(), CreateConfiguration.NxOpus),
             [FileType.OggOpus] = new ContainerType(new[] { "opus" }, () => new OggOpusReader(), () => new OggOpusWriter(), CreateConfiguration.NxOpus)
         };
 

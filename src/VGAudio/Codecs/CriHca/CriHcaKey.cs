@@ -10,6 +10,7 @@ namespace VGAudio.Codecs.CriHca
             KeyCode = keyCode;
             DecryptionTable = CreateDecryptionTable(keyCode);
             EncryptionTable = InvertTable(DecryptionTable);
+            KeyType = 56;
         }
 
         public CriHcaKey(Type type)
@@ -18,9 +19,11 @@ namespace VGAudio.Codecs.CriHca
             {
                 case Type.Type0:
                     DecryptionTable = CreateDecryptionTableType0();
+                    KeyType = 0;
                     break;
                 case Type.Type1:
                     DecryptionTable = CreateDecryptionTableType1();
+                    KeyType = 1;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
@@ -29,6 +32,7 @@ namespace VGAudio.Codecs.CriHca
             EncryptionTable = InvertTable(DecryptionTable);
         }
 
+        public int KeyType { get; }
         public ulong KeyCode { get; }
         public byte[] DecryptionTable { get; }
         public byte[] EncryptionTable { get; }
