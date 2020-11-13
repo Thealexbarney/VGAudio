@@ -127,7 +127,7 @@ namespace VGAudio.Formats.Opus
                 if (remaining < frameSize)
                 {
                     encodeInput = new short[frameSize * pcm16.ChannelCount];
-                    Array.Copy(pcmData, inPos, encodeInput, 0, encodeCount);
+                    Array.Copy(pcmData, inPos, encodeInput, 0, encodeCount * pcm16.ChannelCount);
                     inPos = 0;
                 }
 
