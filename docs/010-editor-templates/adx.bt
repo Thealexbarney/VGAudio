@@ -61,7 +61,7 @@ struct Header
     ubyte FrameSize;
     byte BitDepth;
     byte ChannelCount;
-    uint32 SampleRate;
+    int32 SampleRate;
     int32 SampleCount;
     int16 HighpassFreq;
     byte Version;
