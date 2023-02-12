@@ -57,15 +57,23 @@ namespace VGAudio.Codecs.CriHca
             WriteChecksum(writer, crc, outBuffer);
         }
 
-        public static int CalculateResolution(int scaleFactor, int noiseLevel)
+        private static int CalculateResolution(int scaleFactor, int noiseLevel, int version)
         {
             if (scaleFactor == 0)
             {
                 return 0;
             }
             int curvePosition = noiseLevel - 5 * scaleFactor / 2 + 2;
+            //https://github.com/vgmstream/vgmstream/blob/4eecdada9a03a73af0c7c17f5cd6e08518fd7e3f/src/coding/hca_decoder_clhca.c#L1450
+            if (version >= 0x0300 && curvePosition >= 67) return 0; //FIXME
             curvePosition = Helpers.Clamp(curvePosition, 0, 58);
             return CriHcaTables.ScaleToResolutionCurve[curvePosition];
+        }
+
+        public static int CalculateResolution(int scaleFactor, int noiseLevel)
+        {
+            const int HcaVersion = 0x0200;
+            return CalculateResolution(scaleFactor, noiseLevel, HcaVersion);
         }
 
         private static bool UnpackFrameHeader(CriHcaFrame frame, BitReader reader)
@@ -82,31 +90,36 @@ namespace VGAudio.Codecs.CriHca
 
             foreach (CriHcaChannel channel in frame.Channels)
             {
-                if (!ReadScaleFactors(channel, reader)) return false;
+                if (!ReadScaleFactors(channel, reader, frame.Hca.HfrGroupCount, frame.Hca.Version)) return false;
 
-                for (int i = 0; i < frame.EvaluationBoundary; i++)
+                for (int i = 0, newResolution = 0; i < frame.EvaluationBoundary; i++)
                 {
-                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], athCurve[i] + frame.AcceptableNoiseLevel - 1);
+                    newResolution = CalculateResolution(channel.ScaleFactors[i], athCurve[i] + frame.AcceptableNoiseLevel - 1, frame.Hca.Version);
+                    if (frame.Hca.Version >= 0x0300) newResolution = Helpers.Clamp(newResolution, frame.Hca.MinResolution, frame.Hca.MaxResolution);
+                    channel.Resolution[i] = newResolution;
                 }
 
-                for (int i = frame.EvaluationBoundary; i < channel.CodedScaleFactorCount; i++)
+                for (int i = frame.EvaluationBoundary, newResolution = 0; i < channel.CodedScaleFactorCount; i++)
                 {
-                    channel.Resolution[i] = CalculateResolution(channel.ScaleFactors[i], athCurve[i] + frame.AcceptableNoiseLevel);
+                    newResolution = CalculateResolution(channel.ScaleFactors[i], athCurve[i] + frame.AcceptableNoiseLevel, frame.Hca.Version);
+                    if (frame.Hca.Version >= 0x0300) newResolution = Helpers.Clamp(newResolution, frame.Hca.MinResolution, frame.Hca.MaxResolution);
+                    channel.Resolution[i] = newResolution;
                 }
 
                 if (channel.Type == ChannelType.StereoSecondary)
                 {
-                    ReadIntensity(reader, channel.Intensity);
+                    ReadIntensity(reader, channel.Intensity, frame.Hca.Version);
                 }
                 else if (frame.Hca.HfrGroupCount > 0)
                 {
-                    ReadHfrScaleFactors(reader, frame.Hca.HfrGroupCount, channel.HfrScales);
+                    if (frame.Hca.Version < 0x0300) ReadHfrScaleFactors(reader, frame.Hca.HfrGroupCount, channel.HfrScales);
+                    // v3.0 uses values derived in ReadScaleFactors
                 }
             }
             return true;
         }
 
-        private static bool ReadScaleFactors(CriHcaChannel channel, BitReader reader)
+        private static bool ReadScaleFactors(CriHcaChannel channel, BitReader reader, int hfrGroupCount, int version)
         {
             channel.ScaleFactorDeltaBits = reader.ReadInt(3);
             if (channel.ScaleFactorDeltaBits == 0)
@@ -115,23 +128,105 @@ namespace VGAudio.Codecs.CriHca
                 return true;
             }
 
+            // added in v3.0
+            // https://github.com/vgmstream/vgmstream/blob/4eecdada9a03a73af0c7c17f5cd6e08518fd7e3f/src/coding/hca_decoder_clhca.c#L1287
+            int extraCodedScaleFactorCount;
+            int codedScaleFactorCount;
+            if (channel.Type == ChannelType.StereoSecondary || hfrGroupCount <= 0 || version < 0x0300)
+            {
+                extraCodedScaleFactorCount = 0;
+                codedScaleFactorCount = channel.CodedScaleFactorCount;
+            }
+            else
+            {
+                extraCodedScaleFactorCount = hfrGroupCount;
+                codedScaleFactorCount = channel.CodedScaleFactorCount + extraCodedScaleFactorCount;
+
+                // just in case
+                if (codedScaleFactorCount > SamplesPerSubFrame)
+                    throw new InvalidDataException("codedScaleFactorCount > SamplesPerSubFrame");
+            }
+
             if (channel.ScaleFactorDeltaBits >= 6)
             {
-                for (int i = 0; i < channel.CodedScaleFactorCount; i++)
+                for (int i = 0; i < codedScaleFactorCount; i++)
                 {
                     channel.ScaleFactors[i] = reader.ReadInt(6);
                 }
                 return true;
             }
 
-            return DeltaDecode(reader, channel.ScaleFactorDeltaBits, 6, channel.CodedScaleFactorCount, channel.ScaleFactors);
+            bool result = DeltaDecode(reader, channel.ScaleFactorDeltaBits, 6, codedScaleFactorCount, channel.ScaleFactors);
+            if (!result) return result;
+
+            // set derived HFR scales for v3.0
+            //FIXME UNTESTED
+            for (int i = 0; i < extraCodedScaleFactorCount; i++)
+            {
+                channel.HfrScales[codedScaleFactorCount - 1 - i] = channel.ScaleFactors[codedScaleFactorCount - i];
+            }
+
+            return result;
         }
 
-        private static void ReadIntensity(BitReader reader, int[] intensity)
+        private static void ReadIntensity(BitReader reader, int[] intensity, int version)
         {
-            for (int i = 0; i < SubframesPerFrame; i++)
+            if (version < 0x0300)
             {
-                intensity[i] = reader.ReadInt(4);
+                for (int i = 0; i < SubframesPerFrame; i++)
+                {
+                    intensity[i] = reader.ReadInt(4);
+                }
+            } else
+            {
+                //https://github.com/vgmstream/vgmstream/blob/4eecdada9a03a73af0c7c17f5cd6e08518fd7e3f/src/coding/hca_decoder_clhca.c#L1374
+                int value = reader.ReadInt(4);
+                int delta_bits;
+
+                if (value < 15)
+                {
+                    delta_bits = reader.ReadInt(2); /* +1 */
+
+                    intensity[0] = value;
+                    if (delta_bits == 3)
+                    { /* 3+1 = 4b */
+                        /* fixed intensities */
+                        for (int i = 1; i < SubframesPerFrame; i++)
+                        {
+                            intensity[i] = reader.ReadInt(4);
+                        }
+                    }
+                    else
+                    {
+                        /* delta intensities */
+                        int bmax = (2 << delta_bits) - 1;
+                        int bits = delta_bits + 1;
+
+                        for (int i = 1; i < SubframesPerFrame; i++)
+                        {
+                            int delta = reader.ReadInt(bits);
+                            if (delta == bmax)
+                            {
+                                value = reader.ReadInt(4); /* encoded */
+                            }
+                            else
+                            {
+                                value = value - (bmax >> 1) + delta; /* differential */
+                                if (value > 15) //todo check
+                                    throw new InvalidDataException("value > 15"); /* not done in lib */
+                            }
+
+                            intensity[i] = value;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < SubframesPerFrame; i++)
+                    {
+                        intensity[i] = 7;
+                    }
+                }
             }
         }
 
@@ -194,6 +289,10 @@ namespace VGAudio.Codecs.CriHca
                     {
                         return false;
                     }
+
+                    // https://github.com/vgmstream/vgmstream/blob/4eecdada9a03a73af0c7c17f5cd6e08518fd7e3f/src/coding/hca_decoder_clhca.c#L1327
+                    //value &= 0x3F; // v3.0 lib
+
                     output[i] = value;
                 }
                 else
