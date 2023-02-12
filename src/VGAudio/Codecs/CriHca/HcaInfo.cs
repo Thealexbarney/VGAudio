@@ -4,6 +4,7 @@ namespace VGAudio.Codecs.CriHca
 {
     public class HcaInfo
     {
+        public int Version { get; set; }
         public int ChannelCount { get; set; }
         public int SampleRate { get; set; }
         public int SampleCount { get; set; }

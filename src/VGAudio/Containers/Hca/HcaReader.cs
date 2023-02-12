@@ -62,6 +62,7 @@ namespace VGAudio.Containers.Hca
             string signature = ReadChunkId(reader);
             structure.Version = reader.ReadInt16();
             structure.HeaderSize = reader.ReadInt16();
+            hca.Version = structure.Version;
             hca.HeaderSize = structure.HeaderSize;
 
             if (signature != "HCA\0")
