@@ -565,6 +565,8 @@ namespace VGAudio.Cli
             Console.WriteLine("      --version #  ADX header version to write [3,4]");
 
             Console.WriteLine("\nHCA Options:");
+            Console.WriteLine("      --keycode        Number to use for HCA type 0x38 encryption");
+            Console.WriteLine("                       Between 1-18446744073709551615");
             Console.WriteLine("      --hcaquality     The quality level to use for the HCA file");
             Console.WriteLine("      --bitrate        The bitrate in bits per second of the output HCA file");
             Console.WriteLine("                       --bitrate takes precedence over --hcaquality");
